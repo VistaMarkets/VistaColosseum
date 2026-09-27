@@ -1,0 +1,534 @@
+import 'package:flutter/widgets.dart';
+
+import '../tokens/vista_colors.dart';
+import '../tokens/vista_metrics.dart';
+import '../tokens/vista_typography.dart';
+import '../vista_assets.dart';
+import 'vista_icon.dart';
+
+/// Two-colour proportion bar (longs vs shorts) with a 2px gap.
+class VistaSplitBar extends StatelessWidget {
+  const VistaSplitBar({
+    super.key,
+    required this.leftFraction,
+    this.height = 8,
+    this.left = VistaColors.long,
+    this.right = VistaColors.short,
+  });
+
+  /// Share of the left segment, 0–1.
+  final double leftFraction;
+  final double height;
+  final Color left;
+  final Color right;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = (leftFraction.clamp(0.0, 1.0) * 1000).round();
+    Widget seg(Color c, int flex) => Expanded(
+      flex: flex,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: c,
+          borderRadius: BorderRadius.circular(VistaRadius.pill),
+        ),
+      ),
+    );
+    return Row(
+      children: [
+        seg(left, l),
+        const SizedBox(width: VistaSpace.xxs),
+        seg(right, 1000 - l),
+      ],
+    );
+  }
+}
+
+/// Chart interval tabs ("1m 5m 15m …" with an underline), a more-intervals
+/// chevron, the ƒx indicators pill and the chart-type toggle.
+class VistaIntervalSelector extends StatelessWidget {
+  const VistaIntervalSelector({
+    super.key,
+    required this.intervals,
+    required this.selectedIndex,
+    required this.onChanged,
+    this.onMore,
+    this.onIndicators,
+    this.onChartType,
+  });
+
+  final List<String> intervals;
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+  final VoidCallback? onMore;
+  final VoidCallback? onIndicators;
+  final VoidCallback? onChartType;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget tab({
+      required Widget child,
+      required bool selected,
+      required String label,
+      VoidCallback? onTap,
+    }) => Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          height: VistaSize.tapTarget,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                child,
+                const SizedBox(height: VistaSpace.xs),
+                Container(
+                  width: 14,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: selected ? VistaColors.accent : null,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(left: VistaSpace.xl, right: VistaSpace.md),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var i = 0; i < intervals.length; i++)
+                    tab(
+                      label: intervals[i],
+                      selected: i == selectedIndex,
+                      onTap: () => onChanged(i),
+                      child: Text(
+                        intervals[i],
+                        style: i == selectedIndex
+                            ? VistaType.bodyStrong
+                            : VistaType.bodyMedium.copyWith(
+                                color: VistaColors.textMuted,
+                              ),
+                      ),
+                    ),
+                  tab(
+                    label: 'More intervals',
+                    selected: false,
+                    onTap: onMore,
+                    child: const VistaIcon(VistaAssets.chevronBox, size: 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Semantics(
+            button: true,
+            label: 'Indicators',
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onIndicators,
+              child: Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: VistaSpace.lg),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: VistaColors.surface,
+                  borderRadius: BorderRadius.circular(VistaRadius.pill),
+                ),
+                child: Text('ƒx', style: VistaType.bodyStrong),
+              ),
+            ),
+          ),
+          const SizedBox(width: VistaSpace.sm),
+          Semantics(
+            button: true,
+            label: 'Chart type',
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onChartType,
+              child: const VistaIcon(
+                VistaAssets.chartTypeToggle,
+                size: 60,
+                height: 37,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Page indicator: the current page is a 16×6 pill, others 6pt dots.
+class VistaPageDots extends StatelessWidget {
+  const VistaPageDots({super.key, required this.count, required this.index});
+
+  final int count;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < count; i++) ...[
+          if (i > 0) const SizedBox(width: VistaSpace.sm),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: i == index ? 16 : 6,
+            height: 6,
+            decoration: BoxDecoration(
+              // Inactive dots match the exported dot (#F5F3FF at 30%).
+              color: i == index
+                  ? VistaColors.textPrimary
+                  : VistaColors.textPrimary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Grabber pill for a draggable sheet (36×4, white at 25%).
+class VistaDragHandle extends StatelessWidget {
+  const VistaDragHandle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 4,
+      decoration: BoxDecoration(
+        color: const Color(0x40FFFFFF),
+        borderRadius: BorderRadius.circular(VistaRadius.pill),
+      ),
+    );
+  }
+}
+
+/// ★ / ☆ favourite toggle in a 28×44 tap target.
+class VistaStarButton extends StatelessWidget {
+  const VistaStarButton({
+    super.key,
+    required this.starred,
+    required this.onPressed,
+    this.size = 15,
+  });
+
+  final bool starred;
+  final VoidCallback onPressed;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      toggled: starred,
+      label: 'Favorite',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: SizedBox(
+          width: 28,
+          height: VistaSize.tapTarget,
+          child: Center(
+            child: Text(
+              starred ? '★' : '☆',
+              style: VistaType.body.copyWith(
+                fontSize: size,
+                color: starred ? VistaColors.favorite : VistaColors.textMuted,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Up/down change label, e.g. "▲ 1.2%" / "▼ 0.4%".
+String vistaChangeLabel(double pct) =>
+    '${pct >= 0 ? '▲' : '▼'} ${pct.abs().toStringAsFixed(1)}%';
+
+Color vistaChangeColor(double pct) =>
+    pct >= 0 ? VistaColors.long : VistaColors.short;
+
+/// Favourite card in a horizontal rail: icon, name, badge and star; price
+/// with change; 24h spark; two footnotes.
+class VistaMarketCard extends StatelessWidget {
+  const VistaMarketCard({
+    super.key,
+    required this.icon,
+    required this.name,
+    required this.badge,
+    required this.price,
+    required this.changePct,
+    required this.sparkAsset,
+    required this.footLeft,
+    required this.footRight,
+    this.onPressed,
+  });
+
+  final String icon;
+  final String name;
+  final String badge;
+  final String price;
+  final double changePct;
+  final String sparkAsset;
+  final String footLeft;
+  final String footRight;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final foot = VistaType.caption.copyWith(color: VistaColors.textMuted);
+    return Semantics(
+      button: true,
+      label: '$name, $price, ${vistaChangeLabel(changePct)}',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Container(
+          width: 176,
+          padding: const EdgeInsets.all(VistaSpace.xl),
+          decoration: BoxDecoration(
+            color: VistaColors.surface,
+            borderRadius: BorderRadius.circular(VistaRadius.card),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  VistaIcon(icon, size: 20),
+                  const SizedBox(width: VistaSpace.sm),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        // Shrinks slightly before truncating: the card is a
+                        // fixed 176 wide.
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(name, style: VistaType.bodyStrong),
+                          ),
+                        ),
+                        if (badge.isNotEmpty) ...[
+                          const SizedBox(width: VistaSpace.sm),
+                          _Badge(badge),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: VistaSpace.sm),
+                  Text(
+                    '★',
+                    style: VistaType.label.copyWith(
+                      color: VistaColors.favorite,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.sm),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(price, style: VistaType.headline),
+                  const SizedBox(width: VistaSpace.sm),
+                  Text(
+                    vistaChangeLabel(changePct),
+                    style: VistaType.label.copyWith(
+                      color: vistaChangeColor(changePct),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.sm),
+              // The spark vector bleeds 0.66% past each side.
+              SizedBox(
+                width: 152,
+                height: 28,
+                child: OverflowBox(
+                  maxWidth: 154,
+                  child: VistaIcon(sparkAsset, size: 154, height: 28),
+                ),
+              ),
+              const SizedBox(height: VistaSpace.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      footLeft,
+                      style: foot,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(footRight, style: foot),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Pill-shaped list row: star, icon, name with badge over a subline, then
+/// price, change and a third figure in right-aligned columns.
+class VistaMarketRow extends StatelessWidget {
+  const VistaMarketRow({
+    super.key,
+    required this.starred,
+    required this.onStar,
+    required this.icon,
+    required this.name,
+    required this.subline,
+    required this.price,
+    required this.changePct,
+    required this.third,
+    this.badge,
+    this.onPressed,
+  });
+
+  final bool starred;
+  final VoidCallback onStar;
+  final String icon;
+  final String name;
+  final String? badge;
+  final String subline;
+  final String price;
+  final double changePct;
+
+  /// Last column: funding for assets, market cap for traders.
+  final String third;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget col(double width, Widget child) => SizedBox(
+      width: width,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: FittedBox(fit: BoxFit.scaleDown, child: child),
+      ),
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.only(left: 6, right: VistaSpace.gutter),
+        decoration: BoxDecoration(
+          color: VistaColors.surface,
+          borderRadius: BorderRadius.circular(VistaRadius.pill),
+        ),
+        child: Row(
+          children: [
+            VistaStarButton(starred: starred, onPressed: onStar),
+            Expanded(
+              child: Row(
+                children: [
+                  VistaIcon(icon, size: 22),
+                  const SizedBox(width: VistaSpace.md),
+                  Flexible(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                name,
+                                style: VistaType.bodyStrong,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (badge != null) ...[
+                              const SizedBox(width: VistaSpace.xs),
+                              _Badge(badge!),
+                            ],
+                          ],
+                        ),
+                        Text(
+                          subline,
+                          style: VistaType.caption.copyWith(
+                            color: VistaColors.textMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Figma: 78 / 58 / 70. Price and last column give up a few
+            // points so handles fit in the wider Open Runde face.
+            col(72, Text(price, style: VistaType.body)),
+            col(
+              58,
+              Text(
+                vistaChangeLabel(changePct),
+                style: VistaType.body.copyWith(
+                  color: vistaChangeColor(changePct),
+                ),
+              ),
+            ),
+            col(64, Text(third, style: VistaType.body)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "50x" / "3 open" tag.
+class _Badge extends StatelessWidget {
+  const _Badge(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: VistaColors.surfaceRaised,
+        borderRadius: BorderRadius.circular(VistaRadius.sm),
+      ),
+      child: Text(
+        label,
+        style: VistaType.label.copyWith(color: VistaColors.textMuted),
+      ),
+    );
+  }
+}

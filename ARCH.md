@@ -4,9 +4,20 @@
 
 ## Overview
 
-This repository currently contains the project presentation, shared vocabulary,
-and agent workflow configuration. The application components below describe the
-agreed demo design; their entry points and integrations are not implemented here yet.
+This repository contains the project presentation, shared vocabulary, agent
+workflow configuration, and the Flutter demo app in `app/`. The app currently
+implements the design system, the Home feed and the Portfolio (Wallet) tab with mock data; the
+application components below describe the agreed demo design, and their entry
+points and integrations are not implemented here yet.
+
+### Design system
+
+`app/lib/design_system/` is the single source of colour, type, spacing, radius
+and size tokens plus shared widgets. It is derived from the Arena Figma file
+(`yIxjFkwJAwBa07RgSmVv1D`, frames 301:102 Home, 174:110 Portfolio, 168:110 Your market, 308:102/308:244 Follow lists, 303:102 Profile, 236:102/237:*/241:102 Trader market and 185:110/222:110 Markets); that file defines no Figma variables,
+so token names come from usage. Screens import `design_system.dart` and must not
+hardcode colours or font sizes. Figma vectors live in `app/assets/figma/`; the
+SF Pro Rounded face is substituted with OFL-licensed Open Runde.
 
 ### Core flow
 
@@ -37,6 +48,19 @@ real financial execution out of the demo.
 - `CONTEXT.md` — project acronyms, vocabulary, and reference repositories
 - `docs/agents/` — issue tracker, triage labels, and domain-document configuration
 - `docs/assets/` — animated Vista logo and reduced-motion fallback
+- `app/` — Flutter demo app (iOS and Android)
+- `app/lib/design_system/` — Vista tokens, theme and shared components; import `design_system.dart`
+- `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, Wallet; People not built)
+- `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
+- `app/lib/features/profile/` — another user's profile (from follow lists and the Home caller): header, market chart, holdings, call/arena receipts (mock data)
+- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions (mock data)
+- `app/lib/features/markets/` — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
+- `app/lib/features/market/` — Your market screen (from Portfolio) and Trader market screen (from a profile): chart with a drag-up sheet of Market / Portfolio / Record / Holders panels (mock data)
+- `app/lib/features/home/` — Home swipe feed, TradeIdeaCard and signal replay chart and live fills stream, both animated on view (mock data)
+- `app/assets/figma/` — SVGs exported from the Arena Figma file
+- `app/assets/fonts/` — Open Runde font files and OFL license
+- `app/tool/` — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
+- `app/test/` — widget tests, including the multi-phone-size overflow checks
 <!-- ARCH:DESC:END -->
 
 ## File Tree
@@ -47,6 +71,277 @@ VistaColosseum/
 ├── .githooks/  — shared Git hook and generator that refresh this architecture map
 │   ├── gen_arch.py
 │   └── pre-commit
+├── app/  — Flutter demo app (iOS and Android)
+│   ├── android/
+│   │   ├── app/
+│   │   │   ├── src/
+│   │   │   │   ├── debug/
+│   │   │   │   │   └── AndroidManifest.xml
+│   │   │   │   ├── main/
+│   │   │   │   │   ├── kotlin/
+│   │   │   │   │   │   └── com/
+│   │   │   │   │   │       └── vistamarkets/
+│   │   │   │   │   │           └── vista_colosseum/
+│   │   │   │   │   │               └── MainActivity.kt
+│   │   │   │   │   ├── res/
+│   │   │   │   │   │   ├── drawable/
+│   │   │   │   │   │   │   └── launch_background.xml
+│   │   │   │   │   │   ├── drawable-v21/
+│   │   │   │   │   │   │   └── launch_background.xml
+│   │   │   │   │   │   ├── mipmap-hdpi/
+│   │   │   │   │   │   │   └── ic_launcher.png
+│   │   │   │   │   │   ├── mipmap-mdpi/
+│   │   │   │   │   │   │   └── ic_launcher.png
+│   │   │   │   │   │   ├── mipmap-xhdpi/
+│   │   │   │   │   │   │   └── ic_launcher.png
+│   │   │   │   │   │   ├── mipmap-xxhdpi/
+│   │   │   │   │   │   │   └── ic_launcher.png
+│   │   │   │   │   │   ├── mipmap-xxxhdpi/
+│   │   │   │   │   │   │   └── ic_launcher.png
+│   │   │   │   │   │   ├── values/
+│   │   │   │   │   │   │   └── styles.xml
+│   │   │   │   │   │   └── values-night/
+│   │   │   │   │   │       └── styles.xml
+│   │   │   │   │   └── AndroidManifest.xml
+│   │   │   │   └── profile/
+│   │   │   │       └── AndroidManifest.xml
+│   │   │   └── build.gradle.kts
+│   │   ├── gradle/
+│   │   │   └── wrapper/
+│   │   │       └── gradle-wrapper.properties
+│   │   ├── .gitignore
+│   │   ├── build.gradle.kts
+│   │   ├── gradle.properties
+│   │   └── settings.gradle.kts
+│   ├── assets/
+│   │   ├── figma/  — SVGs exported from the Arena Figma file
+│   │   │   ├── back_chevron.svg
+│   │   │   ├── baseline_entry.svg
+│   │   │   ├── bell.svg
+│   │   │   ├── caller_avatar.svg
+│   │   │   ├── chart_type_toggle.svg
+│   │   │   ├── chevron_box.svg
+│   │   │   ├── clip_above_entry.svg
+│   │   │   ├── clip_below_entry.svg
+│   │   │   ├── coin_arb_row.svg
+│   │   │   ├── coin_avax_row.svg
+│   │   │   ├── coin_btc_bg.svg
+│   │   │   ├── coin_btc_rail.svg
+│   │   │   ├── coin_btc_row.svg
+│   │   │   ├── coin_cash_bg.svg
+│   │   │   ├── coin_eth.svg
+│   │   │   ├── coin_eth_20.svg
+│   │   │   ├── coin_eth_rail.svg
+│   │   │   ├── coin_eth_row.svg
+│   │   │   ├── coin_placeholder.svg
+│   │   │   ├── coin_sol_20.svg
+│   │   │   ├── coin_sol_rail.svg
+│   │   │   ├── coin_sol_row.svg
+│   │   │   ├── dot_lattice.svg
+│   │   │   ├── fees_dot.svg
+│   │   │   ├── fill_avatar_1.svg
+│   │   │   ├── fill_avatar_2.svg
+│   │   │   ├── fill_avatar_3.svg
+│   │   │   ├── holder_avatar_long.svg
+│   │   │   ├── holder_avatar_short.svg
+│   │   │   ├── holders_avatars.svg
+│   │   │   ├── like_button.svg
+│   │   │   ├── live_dot_small.svg
+│   │   │   ├── lock.svg
+│   │   │   ├── long_arrow.svg
+│   │   │   ├── marker_breakout.svg
+│   │   │   ├── marker_breakout_halo.svg
+│   │   │   ├── marker_entry.svg
+│   │   │   ├── marker_funding.svg
+│   │   │   ├── marker_live.svg
+│   │   │   ├── marker_live_halo.svg
+│   │   │   ├── marker_whale.svg
+│   │   │   ├── market_baseline.svg
+│   │   │   ├── market_clip_above.svg
+│   │   │   ├── market_clip_below.svg
+│   │   │   ├── market_dot_lattice.svg
+│   │   │   ├── market_live_halo.svg
+│   │   │   ├── nav_compass.svg
+│   │   │   ├── nav_home.svg
+│   │   │   ├── nav_people.svg
+│   │   │   ├── nav_wallet.svg
+│   │   │   ├── notif_bell.svg
+│   │   │   ├── opponent_avatar_long.svg
+│   │   │   ├── opponent_avatar_short.svg
+│   │   │   ├── pager_dots.svg
+│   │   │   ├── pager_dots_market.svg
+│   │   │   ├── person_avatar.svg
+│   │   │   ├── portfolio_avatar.svg
+│   │   │   ├── portfolio_chart.svg
+│   │   │   ├── portfolio_chart_market_focus.svg
+│   │   │   ├── profile_avatar.svg
+│   │   │   ├── profile_baseline.svg
+│   │   │   ├── profile_clip_above.svg
+│   │   │   ├── profile_clip_below.svg
+│   │   │   ├── profile_dot_lattice.svg
+│   │   │   ├── rail_arena_open.svg
+│   │   │   ├── rail_arena_right.svg
+│   │   │   ├── rail_arena_wrong.svg
+│   │   │   ├── rail_call_open.svg
+│   │   │   ├── rail_call_right.svg
+│   │   │   ├── rail_record_open.svg
+│   │   │   ├── rail_record_right.svg
+│   │   │   ├── rail_record_wrong.svg
+│   │   │   ├── referral_button.svg
+│   │   │   ├── search.svg
+│   │   │   ├── search_16.svg
+│   │   │   ├── share_button.svg
+│   │   │   ├── spark24_down.svg
+│   │   │   ├── spark24_up_a.svg
+│   │   │   ├── spark24_up_b.svg
+│   │   │   ├── spark_0xreal.svg
+│   │   │   ├── spark_eth.svg
+│   │   │   ├── spark_sol.svg
+│   │   │   ├── star.svg
+│   │   │   ├── timeline_rail_open.svg
+│   │   │   ├── timeline_rail_right.svg
+│   │   │   ├── timeline_rail_wrong.svg
+│   │   │   ├── tm_baseline.svg
+│   │   │   ├── tm_last_price.svg
+│   │   │   ├── tm_short_clip_above.svg
+│   │   │   ├── tm_short_clip_below.svg
+│   │   │   ├── tm_short_lattice.svg
+│   │   │   ├── tm_tall_clip_above.svg
+│   │   │   ├── tm_tall_clip_below.svg
+│   │   │   ├── tm_tall_lattice.svg
+│   │   │   ├── topbar_avatar.svg
+│   │   │   ├── trader_avatar.svg
+│   │   │   ├── trader_avatar_rail.svg
+│   │   │   ├── trader_avatar_row.svg
+│   │   │   ├── traders_button.svg
+│   │   │   └── verdicts_last10.svg
+│   │   └── fonts/  — Open Runde font files and OFL license
+│   │       ├── OFL-Open-Runde.txt
+│   │       ├── OpenRunde-Bold.otf
+│   │       ├── OpenRunde-Medium.otf
+│   │       ├── OpenRunde-Regular.otf
+│   │       └── OpenRunde-Semibold.otf
+│   ├── ios/
+│   │   ├── Flutter/
+│   │   │   ├── AppFrameworkInfo.plist
+│   │   │   ├── Debug.xcconfig
+│   │   │   └── Release.xcconfig
+│   │   ├── Runner/
+│   │   │   ├── Assets.xcassets/
+│   │   │   │   ├── AppIcon.appiconset/
+│   │   │   │   │   ├── Contents.json
+│   │   │   │   │   ├── Icon-App-1024x1024@1x.png
+│   │   │   │   │   ├── Icon-App-20x20@1x.png
+│   │   │   │   │   ├── Icon-App-20x20@2x.png
+│   │   │   │   │   ├── Icon-App-20x20@3x.png
+│   │   │   │   │   ├── Icon-App-29x29@1x.png
+│   │   │   │   │   ├── Icon-App-29x29@2x.png
+│   │   │   │   │   ├── Icon-App-29x29@3x.png
+│   │   │   │   │   ├── Icon-App-40x40@1x.png
+│   │   │   │   │   ├── Icon-App-40x40@2x.png
+│   │   │   │   │   ├── Icon-App-40x40@3x.png
+│   │   │   │   │   ├── Icon-App-60x60@2x.png
+│   │   │   │   │   ├── Icon-App-60x60@3x.png
+│   │   │   │   │   ├── Icon-App-76x76@1x.png
+│   │   │   │   │   ├── Icon-App-76x76@2x.png
+│   │   │   │   │   └── Icon-App-83.5x83.5@2x.png
+│   │   │   │   └── LaunchImage.imageset/
+│   │   │   │       ├── Contents.json
+│   │   │   │       ├── LaunchImage.png
+│   │   │   │       ├── LaunchImage@2x.png
+│   │   │   │       ├── LaunchImage@3x.png
+│   │   │   │       └── README.md
+│   │   │   ├── Base.lproj/
+│   │   │   │   ├── LaunchScreen.storyboard
+│   │   │   │   └── Main.storyboard
+│   │   │   ├── AppDelegate.swift
+│   │   │   ├── Info.plist
+│   │   │   ├── Runner-Bridging-Header.h
+│   │   │   └── SceneDelegate.swift
+│   │   ├── Runner.xcodeproj/
+│   │   │   ├── project.xcworkspace/
+│   │   │   │   ├── xcshareddata/
+│   │   │   │   │   ├── IDEWorkspaceChecks.plist
+│   │   │   │   │   └── WorkspaceSettings.xcsettings
+│   │   │   │   └── contents.xcworkspacedata
+│   │   │   ├── xcshareddata/
+│   │   │   │   └── xcschemes/
+│   │   │   │       └── Runner.xcscheme
+│   │   │   └── project.pbxproj
+│   │   ├── Runner.xcworkspace/
+│   │   │   ├── xcshareddata/
+│   │   │   │   ├── IDEWorkspaceChecks.plist
+│   │   │   │   └── WorkspaceSettings.xcsettings
+│   │   │   └── contents.xcworkspacedata
+│   │   ├── RunnerTests/
+│   │   │   └── RunnerTests.swift
+│   │   └── .gitignore
+│   ├── lib/
+│   │   ├── design_system/  — Vista tokens, theme and shared components; import `design_system.dart`
+│   │   │   ├── components/
+│   │   │   │   ├── vista_buttons.dart
+│   │   │   │   ├── vista_chips.dart
+│   │   │   │   ├── vista_controls.dart
+│   │   │   │   ├── vista_detail.dart
+│   │   │   │   ├── vista_icon.dart
+│   │   │   │   ├── vista_list_row.dart
+│   │   │   │   ├── vista_market.dart
+│   │   │   │   ├── vista_navigation.dart
+│   │   │   │   ├── vista_people.dart
+│   │   │   │   └── vista_profile.dart
+│   │   │   ├── tokens/
+│   │   │   │   ├── vista_colors.dart
+│   │   │   │   ├── vista_metrics.dart
+│   │   │   │   └── vista_typography.dart
+│   │   │   ├── design_system.dart
+│   │   │   ├── vista_assets.dart
+│   │   │   └── vista_theme.dart
+│   │   ├── features/
+│   │   │   ├── home/  — Home swipe feed, TradeIdeaCard and signal replay chart and live fills stream, both animated on view (mock data)
+│   │   │   │   ├── active_replay.dart
+│   │   │   │   ├── home_screen.dart
+│   │   │   │   ├── live_fills_stream.dart
+│   │   │   │   ├── mock_trade_idea.dart
+│   │   │   │   ├── signal_replay_chart.dart
+│   │   │   │   └── trade_idea_card.dart
+│   │   │   ├── market/  — Your market screen (from Portfolio) and Trader market screen (from a profile): chart with a drag-up sheet of Market / Portfolio / Record / Holders panels (mock data)
+│   │   │   │   ├── market_mock.dart
+│   │   │   │   ├── trader_market_chart.dart
+│   │   │   │   ├── trader_market_mock.dart
+│   │   │   │   ├── trader_market_screen.dart
+│   │   │   │   └── your_market_screen.dart
+│   │   │   ├── markets/  — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
+│   │   │   │   ├── markets_mock.dart
+│   │   │   │   └── markets_screen.dart
+│   │   │   ├── people/  — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
+│   │   │   │   ├── follow_list_screen.dart
+│   │   │   │   └── follow_mock.dart
+│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions (mock data)
+│   │   │   │   ├── portfolio_mock.dart
+│   │   │   │   ├── portfolio_pager.dart
+│   │   │   │   └── portfolio_screen.dart
+│   │   │   └── profile/  — another user's profile (from follow lists and the Home caller): header, market chart, holdings, call/arena receipts (mock data)
+│   │   │       ├── holdings_table.dart
+│   │   │       ├── profile_mock.dart
+│   │   │       └── profile_screen.dart
+│   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, Wallet; People not built)
+│   │   └── main.dart
+│   ├── test/  — widget tests, including the multi-phone-size overflow checks
+│   │   └── home_screen_test.dart
+│   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
+│   │   ├── app_icon/
+│   │   │   ├── app_icon_1024.png
+│   │   │   ├── make_icons.py
+│   │   │   ├── mark_fill.svg
+│   │   │   ├── mark_outline.svg
+│   │   │   └── render_app_icon_test.dart
+│   │   └── derive_market_focus_chart.py
+│   ├── .gitignore
+│   ├── .metadata
+│   ├── analysis_options.yaml
+│   ├── pubspec.lock
+│   ├── pubspec.yaml
+│   └── README.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
 │   │   ├── domain.md

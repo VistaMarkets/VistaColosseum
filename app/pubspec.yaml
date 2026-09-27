@@ -1,0 +1,37 @@
+name: vista_colosseum
+description: "VistaColosseum demo app — an arena for trading talent."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/figma/
+
+  # Open Runde: OFL-licensed rounded Inter, used as the cross-platform
+  # substitute for the SF Pro Rounded face in the Figma designs.
+  # License: assets/fonts/OFL-Open-Runde.txt.
+  fonts:
+    - family: OpenRunde
+      fonts:
+        - asset: assets/fonts/OpenRunde-Regular.otf
+        - asset: assets/fonts/OpenRunde-Medium.otf
+          weight: 500
+        - asset: assets/fonts/OpenRunde-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/OpenRunde-Bold.otf
+          weight: 700
