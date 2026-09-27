@@ -52,12 +52,13 @@ VistaColosseum/
 │   │   ├── domain.md
 │   │   ├── issue-tracker.md
 │   │   └── triage-labels.md
-│   └── assets/  — animated Vista logo and reduced-motion fallback
-│       ├── vista-logo-animated.gif
-│       └── vista-logo-static.png
+│   ├── assets/  — animated Vista logo and reduced-motion fallback
+│   │   ├── vista-logo-animated.gif
+│   │   └── vista-logo-static.png
+│   └── prompts/
+│       └── social-market-demo-brief-prompt.md
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
-├── CLAUDE.md
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories
 └── README.md  — project presentation and animated Vista logo
 ```
