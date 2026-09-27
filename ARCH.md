@@ -57,6 +57,7 @@ VistaColosseum/
 │       └── vista-logo-static.png
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
+├── CLAUDE.md
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories
 └── README.md  — project presentation and animated Vista logo
 ```
