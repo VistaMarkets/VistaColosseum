@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# ARCH.md freshness hook — regenerate the file-tree map and re-stage it so the
+# committed ARCH.md always matches the tree being committed. Installed by
+# install-arch-map.sh into a repo's .githooks/ (shared) or .git/hooks/ (local).
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+GEN="$ROOT/.githooks/gen_arch.py"
+[ -f "$GEN" ] || exit 0   # tooling absent → don't block the commit
+
+if ! python3 "$GEN" --root "$ROOT" --quiet; then
+  echo "ARCH.md: gen_arch.py failed; committing without map refresh" >&2
+  exit 0
+fi
+
+# Re-stage only when ARCH.md is actually tracked-eligible (not gitignored).
+if ! git check-ignore -q ARCH.md; then
+  git add "$ROOT/ARCH.md"
+fi
+
+# Tooling-drift notice (warning only, never blocks).
+#
+# gen_arch.py is distributed by `cp` — install-arch-map.sh copies it into each repo's
+# .githooks/, after which the copies are independent tracked files with no upstream
+# link. That is how the sibling pre-commit fragmented into three versions (the
+# 2026-07-29 silent-`exit 1` fix never reached BotHaus / TradingBots / VistaMobileBE)
+# and how the ARCH.md footer conflict had to be fixed in four repos by hand. Neither
+# was detected, because `--check` validates the OUTPUT and nothing checked the tool.
+#
+# `--check-tooling` always exits 0 by design. The `|| true` is a SEPARATE guard: an
+# older installed copy does not know the flag, argparse exits 2 on an unrecognised
+# argument, and `set -e` would then abort the commit — i.e. adding this line without
+# `|| true` would break exactly the stale repos it is meant to warn about.
+python3 "$GEN" --check-tooling || true
+
+# A script's exit status is that of its last command. This template has no
+# trailing diagnostic today, but ~/.claude's installed copy grew three
+# `[ -t 2 ] && echo "✓ …"` progress lines and every commit then failed with
+# exit 1 — `[ -t 2 ]` returns 1 when stderr is not a TTY. Ending explicitly
+# stops that recurring here or in any repo seeded from this template.
+#
+# This does NOT make the hook unconditionally non-blocking: a failing
+# `git rev-parse` or `git add` still aborts under `set -e`, which is intended.
+# Any new gate that must block a commit has to `exit 1` explicitly.
+#
+# Caveat — that blocking guarantee holds only when the repo runs this file
+# directly (`core.hooksPath=.githooks`). install-arch-map.sh's other mode
+# chains it into an existing .git/hooks/pre-commit as
+# `"$(git rev-parse --show-toplevel)/.githooks/pre-commit" || true`, and the
+# `|| true` discards every failure, `git add` included. BotHaus is wired that
+# way today, so nothing this hook does can block a commit there.
+exit 0
