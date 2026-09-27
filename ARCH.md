@@ -14,7 +14,7 @@ points and integrations are not implemented here yet.
 
 `app/lib/design_system/` is the single source of colour, type, spacing, radius
 and size tokens plus shared widgets. It is derived from the Arena Figma file
-(`yIxjFkwJAwBa07RgSmVv1D`, frames 301:102 Home, 174:110 Portfolio, 168:110 Your market, 308:102/308:244 Follow lists, 303:102 Profile, 236:102/237:*/241:102 Trader market and 185:110/222:110 Markets); that file defines no Figma variables,
+(`yIxjFkwJAwBa07RgSmVv1D`, frames 301:102 Home, 174:110 Portfolio, 168:110 Your market, 308:102/308:244 Follow lists, 303:102 Profile, 236:102/237:*/241:102 Trader market 185:110/222:110 Markets, 33:2 Arena, 48:430 Clash detail 206:110/214:* Asset trade 104:110 Position sheet and 258:407 Private profile); that file defines no Figma variables,
 so token names come from usage. Screens import `design_system.dart` and must not
 hardcode colours or font sizes. Figma vectors live in `app/assets/figma/`; the
 SF Pro Rounded face is substituted with OFL-licensed Open Runde.
@@ -50,12 +50,16 @@ real financial execution out of the demo.
 - `docs/assets/` — animated Vista logo and reduced-motion fallback
 - `app/` — Flutter demo app (iOS and Android)
 - `app/lib/design_system/` — Vista tokens, theme and shared components; import `design_system.dart`
-- `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, Wallet; People not built)
+- `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, People → Arena, Wallet)
 - `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
-- `app/lib/features/profile/` — another user's profile (from follow lists and the Home caller): header, market chart, holdings, call/arena receipts (mock data)
-- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions (mock data)
+- `app/lib/features/profile/` — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
+- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers (mock data)
+- `app/lib/features/live/` — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125)
 - `app/lib/features/markets/` — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
-- `app/lib/features/market/` — Your market screen (from Portfolio) and Trader market screen (from a profile): chart with a drag-up sheet of Market / Portfolio / Record / Holders panels (mock data)
+- `app/lib/features/market/` — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)
+- `app/lib/features/account/` — the signed-in user's top bar (avatar, handle over portfolio balance, + Deposit; settings gear on Portfolio) shared by Home and Portfolio
+- `app/lib/features/arena/` — Arena (People tab): Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
+- `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): hollow-candle chart from Figma geometry with Market / Book / Callers panels (mock data)
 - `app/lib/features/home/` — Home swipe feed, TradeIdeaCard and signal replay chart and live fills stream, both animated on view (mock data)
 - `app/assets/figma/` — SVGs exported from the Arena Figma file
 - `app/assets/fonts/` — Open Runde font files and OFL license
@@ -115,10 +119,16 @@ VistaColosseum/
 │   │   └── settings.gradle.kts
 │   ├── assets/
 │   │   ├── figma/  — SVGs exported from the Arena Figma file
+│   │   │   ├── asset_avatar_32.svg
 │   │   │   ├── back_chevron.svg
+│   │   │   ├── back_chevron_small.svg
 │   │   │   ├── baseline_entry.svg
+│   │   │   ├── battle_avatar_bear.svg
+│   │   │   ├── battle_avatar_bull.svg
 │   │   │   ├── bell.svg
 │   │   │   ├── caller_avatar.svg
+│   │   │   ├── caller_avatar_short_32.svg
+│   │   │   ├── chart_type_candles.svg
 │   │   │   ├── chart_type_toggle.svg
 │   │   │   ├── chevron_box.svg
 │   │   │   ├── clip_above_entry.svg
@@ -145,9 +155,12 @@ VistaColosseum/
 │   │   │   ├── holder_avatar_long.svg
 │   │   │   ├── holder_avatar_short.svg
 │   │   │   ├── holders_avatars.svg
+│   │   │   ├── initials_avatar_36.svg
 │   │   │   ├── like_button.svg
 │   │   │   ├── live_dot_small.svg
 │   │   │   ├── lock.svg
+│   │   │   ├── lock_notice.svg
+│   │   │   ├── lock_small.svg
 │   │   │   ├── long_arrow.svg
 │   │   │   ├── marker_breakout.svg
 │   │   │   ├── marker_breakout_halo.svg
@@ -166,6 +179,7 @@ VistaColosseum/
 │   │   │   ├── nav_people.svg
 │   │   │   ├── nav_wallet.svg
 │   │   │   ├── notif_bell.svg
+│   │   │   ├── opinions_avatars.svg
 │   │   │   ├── opponent_avatar_long.svg
 │   │   │   ├── opponent_avatar_short.svg
 │   │   │   ├── pager_dots.svg
@@ -174,6 +188,12 @@ VistaColosseum/
 │   │   │   ├── portfolio_avatar.svg
 │   │   │   ├── portfolio_chart.svg
 │   │   │   ├── portfolio_chart_market_focus.svg
+│   │   │   ├── position_avatar_eth.svg
+│   │   │   ├── position_clip_above.svg
+│   │   │   ├── position_clip_below.svg
+│   │   │   ├── position_lattice.svg
+│   │   │   ├── position_sl_line.svg
+│   │   │   ├── position_tp_line.svg
 │   │   │   ├── profile_avatar.svg
 │   │   │   ├── profile_baseline.svg
 │   │   │   ├── profile_clip_above.svg
@@ -187,9 +207,11 @@ VistaColosseum/
 │   │   │   ├── rail_record_open.svg
 │   │   │   ├── rail_record_right.svg
 │   │   │   ├── rail_record_wrong.svg
+│   │   │   ├── range_dot.svg
 │   │   │   ├── referral_button.svg
 │   │   │   ├── search.svg
 │   │   │   ├── search_16.svg
+│   │   │   ├── settings.svg
 │   │   │   ├── share_button.svg
 │   │   │   ├── spark24_down.svg
 │   │   │   ├── spark24_up_a.svg
@@ -210,6 +232,7 @@ VistaColosseum/
 │   │   │   ├── tm_tall_clip_below.svg
 │   │   │   ├── tm_tall_lattice.svg
 │   │   │   ├── topbar_avatar.svg
+│   │   │   ├── trade_last_price.svg
 │   │   │   ├── trader_avatar.svg
 │   │   │   ├── trader_avatar_rail.svg
 │   │   │   ├── trader_avatar_row.svg
@@ -279,6 +302,7 @@ VistaColosseum/
 │   ├── lib/
 │   │   ├── design_system/  — Vista tokens, theme and shared components; import `design_system.dart`
 │   │   │   ├── components/
+│   │   │   │   ├── vista_battle.dart
 │   │   │   │   ├── vista_buttons.dart
 │   │   │   │   ├── vista_chips.dart
 │   │   │   │   ├── vista_controls.dart
@@ -288,7 +312,8 @@ VistaColosseum/
 │   │   │   │   ├── vista_market.dart
 │   │   │   │   ├── vista_navigation.dart
 │   │   │   │   ├── vista_people.dart
-│   │   │   │   └── vista_profile.dart
+│   │   │   │   ├── vista_profile.dart
+│   │   │   │   └── vista_rolling_number.dart
 │   │   │   ├── tokens/
 │   │   │   │   ├── vista_colors.dart
 │   │   │   │   ├── vista_metrics.dart
@@ -297,6 +322,14 @@ VistaColosseum/
 │   │   │   ├── vista_assets.dart
 │   │   │   └── vista_theme.dart
 │   │   ├── features/
+│   │   │   ├── account/  — the signed-in user's top bar (avatar, handle over portfolio balance, + Deposit; settings gear on Portfolio) shared by Home and Portfolio
+│   │   │   │   └── account_top_bar.dart
+│   │   │   ├── arena/  — Arena (People tab): Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
+│   │   │   │   ├── arena_mock.dart
+│   │   │   │   ├── arena_screen.dart
+│   │   │   │   ├── crowd_filter_panel.dart
+│   │   │   │   ├── opinions_mock.dart
+│   │   │   │   └── opinions_screen.dart
 │   │   │   ├── home/  — Home swipe feed, TradeIdeaCard and signal replay chart and live fills stream, both animated on view (mock data)
 │   │   │   │   ├── active_replay.dart
 │   │   │   │   ├── home_screen.dart
@@ -304,7 +337,10 @@ VistaColosseum/
 │   │   │   │   ├── mock_trade_idea.dart
 │   │   │   │   ├── signal_replay_chart.dart
 │   │   │   │   └── trade_idea_card.dart
-│   │   │   ├── market/  — Your market screen (from Portfolio) and Trader market screen (from a profile): chart with a drag-up sheet of Market / Portfolio / Record / Holders panels (mock data)
+│   │   │   ├── live/  — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125)
+│   │   │   │   └── live_feed.dart
+│   │   │   ├── market/  — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)
+│   │   │   │   ├── chart_sheet.dart
 │   │   │   │   ├── market_mock.dart
 │   │   │   │   ├── trader_market_chart.dart
 │   │   │   │   ├── trader_market_mock.dart
@@ -316,18 +352,25 @@ VistaColosseum/
 │   │   │   ├── people/  — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 │   │   │   │   ├── follow_list_screen.dart
 │   │   │   │   └── follow_mock.dart
-│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions (mock data)
+│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers (mock data)
 │   │   │   │   ├── portfolio_mock.dart
 │   │   │   │   ├── portfolio_pager.dart
-│   │   │   │   └── portfolio_screen.dart
-│   │   │   └── profile/  — another user's profile (from follow lists and the Home caller): header, market chart, holdings, call/arena receipts (mock data)
-│   │   │       ├── holdings_table.dart
-│   │   │       ├── profile_mock.dart
-│   │   │       └── profile_screen.dart
-│   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, Wallet; People not built)
+│   │   │   │   ├── portfolio_screen.dart
+│   │   │   │   └── position_sheet.dart
+│   │   │   ├── profile/  — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
+│   │   │   │   ├── holdings_table.dart
+│   │   │   │   ├── private_profile_screen.dart
+│   │   │   │   ├── profile_mock.dart
+│   │   │   │   └── profile_screen.dart
+│   │   │   └── trade/  — asset trade page (Home Details, Explore assets): hollow-candle chart from Figma geometry with Market / Book / Callers panels (mock data)
+│   │   │       ├── asset_trade_screen.dart
+│   │   │       ├── candle_chart.dart
+│   │   │       └── trade_mock.dart
+│   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, People → Arena, Wallet)
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
-│   │   └── home_screen_test.dart
+│   │   ├── home_screen_test.dart
+│   │   └── rolling_number_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   ├── app_icon/
 │   │   │   ├── app_icon_1024.png

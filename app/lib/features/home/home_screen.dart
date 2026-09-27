@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
+import '../trade/asset_trade_screen.dart';
 import 'mock_trade_idea.dart';
 import 'trade_idea_card.dart';
 
@@ -48,21 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
       bottom: false,
       child: Column(
         children: [
-          VistaTopBar(
-            avatarAsset: VistaAssets.profileAvatar,
-            handle: 'dotkoms',
-            actions: [
-              VistaIconButton(
-                asset: VistaAssets.referral,
-                semanticLabel: 'Invite',
-                onPressed: () => _notBuilt('Invite'),
-              ),
-              VistaIconButton(
-                asset: VistaAssets.notifications,
-                semanticLabel: 'Notifications',
-                onPressed: () => _notBuilt('Notifications'),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+            child: AccountTopBar(onNotBuilt: widget.onNotBuilt),
           ),
           const SizedBox(height: VistaSpace.md),
           VistaSegmentedTabs(
@@ -81,7 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (context, i) => TradeIdeaCard(
                   idea: mockFeed[i],
                   active: widget.visible && i == _settledPage,
-                  onDetails: () => _notBuilt('Details'),
+                  onDetails: () =>
+                      Navigator.of(context)
+                          .push(AssetTradeScreen.route(mockFeed[i].ticker)),
                   onCaller: () =>
                       Navigator.of(context)
                           .push(ProfileScreen.route(mockFeed[i].callerHandle)),

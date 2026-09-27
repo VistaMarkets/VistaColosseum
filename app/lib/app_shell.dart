@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'design_system/design_system.dart';
+import 'features/arena/arena_screen.dart';
+import 'features/arena/crowd_filter_panel.dart';
 import 'features/home/home_screen.dart';
 import 'features/markets/markets_screen.dart';
 import 'features/portfolio/portfolio_screen.dart';
 
 /// Top-level tabs with the floating capsule nav. Tabs keep their state while
-/// hidden; People is not built yet.
+/// hidden. The People tab hosts the Arena, whose crowd-split panel wraps the
+/// nav.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -16,7 +19,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   static const _home = 0;
-  static const _explore = 1;
+  static const _arena = 2;
   static const _wallet = 3;
 
   static const _navItems = [
@@ -39,46 +42,43 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _select(int i) {
-    if (i == _home || i == _explore || i == _wallet) {
-      setState(() => _tab = i);
-    } else {
-      _notBuilt(_navItems[i].label);
-    }
+    setState(() => _tab = i);
   }
 
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final nav = VistaBottomNav(
+      items: _navItems,
+      selectedIndex: _tab,
+      onChanged: _select,
+    );
     return Scaffold(
       body: Column(
         children: [
           Expanded(
             child: IndexedStack(
-              index: switch (_tab) {
-                _explore => 1,
-                _wallet => 2,
-                _ => 0,
-              },
+              index: _tab,
               children: [
                 HomeScreen(visible: _tab == _home, onNotBuilt: _notBuilt),
                 MarketsScreen(onNotBuilt: _notBuilt),
+                ArenaScreen(onNotBuilt: _notBuilt),
                 PortfolioScreen(onNotBuilt: _notBuilt),
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              18,
-              VistaSpace.gutter,
-              VistaSpace.sm + bottomInset,
+          if (_tab == _arena)
+            CrowdFilterPanel(nav: nav)
+          else
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                VistaSpace.gutter,
+                18,
+                VistaSpace.gutter,
+                VistaSpace.sm + bottomInset,
+              ),
+              child: nav,
             ),
-            child: VistaBottomNav(
-              items: _navItems,
-              selectedIndex: _tab,
-              onChanged: _select,
-            ),
-          ),
         ],
       ),
     );

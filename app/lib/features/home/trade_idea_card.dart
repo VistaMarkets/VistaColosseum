@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
+import '../live/live_feed.dart';
 import 'mock_trade_idea.dart';
 import 'signal_replay_chart.dart';
 
@@ -143,7 +144,13 @@ class _CallHeader extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(idea.price, style: VistaType.displayNumber),
+                  LiveUsd(
+                    feedKey: 'card:${idea.ticker}',
+                    base: parseUsd(idea.price),
+                    step: parseUsd(idea.price) * 0.0005,
+                    decimals: 2,
+                    style: VistaType.displayNumber,
+                  ),
                   const SizedBox(height: 1),
                   Text(
                     idea.changeSinceCall,

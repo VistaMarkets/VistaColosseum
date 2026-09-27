@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
@@ -56,9 +56,13 @@ class VistaIntervalSelector extends StatelessWidget {
     this.onMore,
     this.onIndicators,
     this.onChartType,
+    this.chartTypeAsset = VistaAssets.chartTypeToggle,
   });
 
   final List<String> intervals;
+
+  /// Toggle art: line selected (trader markets) or candles (asset trade).
+  final String chartTypeAsset;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
   final VoidCallback? onMore;
@@ -164,11 +168,7 @@ class VistaIntervalSelector extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onChartType,
-              child: const VistaIcon(
-                VistaAssets.chartTypeToggle,
-                size: 60,
-                height: 37,
-              ),
+              child: VistaIcon(chartTypeAsset, size: 60, height: 37),
             ),
           ),
         ],
@@ -528,6 +528,103 @@ class _Badge extends StatelessWidget {
       child: Text(
         label,
         style: VistaType.label.copyWith(color: VistaColors.textMuted),
+      ),
+    );
+  }
+}
+
+/// Bar histogram; bars whose index falls in [selected] are accent, the rest
+/// neutral. Heights are relative to the tallest bar.
+class VistaHistogram extends StatelessWidget {
+  const VistaHistogram({
+    super.key,
+    required this.values,
+    required this.selected,
+    this.height = 38,
+  });
+
+  final List<double> values;
+
+  /// Inclusive index range drawn in the accent colour.
+  final (int, int) selected;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxV = values.fold<double>(0, (m, v) => v > m ? v : m);
+    return SizedBox(
+      height: height,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var i = 0; i < values.length; i++) ...[
+            if (i > 0) const SizedBox(width: VistaSpace.xs),
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: maxV == 0 ? 0 : height * values[i] / maxV,
+                decoration: BoxDecoration(
+                  color: i >= selected.$1 && i <= selected.$2
+                      ? VistaColors.accent
+                      : VistaColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Two-thumb range slider on the Vista track (4pt, accent between the
+/// thumbs, 24pt light thumbs), snapping to [divisions].
+class VistaRangeSlider extends StatelessWidget {
+  const VistaRangeSlider({
+    super.key,
+    required this.values,
+    required this.onChanged,
+    this.divisions = 10,
+    this.semanticFormatter,
+  });
+
+  final RangeValues values;
+  final ValueChanged<RangeValues> onChanged;
+  final int divisions;
+  final String Function(double)? semanticFormatter;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        trackHeight: 4,
+        activeTrackColor: VistaColors.accent,
+        inactiveTrackColor: VistaColors.surfaceRaised,
+        thumbColor: VistaColors.textPrimary,
+        overlayShape: SliderComponentShape.noOverlay,
+        rangeThumbShape: const RoundRangeSliderThumbShape(
+          enabledThumbRadius: 12,
+          elevation: 0,
+          pressedElevation: 0,
+        ),
+        rangeTickMarkShape: const RoundRangeSliderTickMarkShape(
+          tickMarkRadius: 0,
+        ),
+        rangeTrackShape: const RoundedRectRangeSliderTrackShape(),
+        showValueIndicator: ShowValueIndicator.never,
+      ),
+      child: SizedBox(
+        height: 24,
+        child: RangeSlider(
+          values: values,
+          divisions: divisions,
+          semanticFormatterCallback: semanticFormatter,
+          onChanged: (v) {
+            // Keep at least one bucket selected.
+            if (v.end - v.start >= 1 / divisions - 1e-9) onChanged(v);
+          },
+        ),
       ),
     );
   }

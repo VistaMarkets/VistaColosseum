@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../account/account_top_bar.dart';
 import '../market/your_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
+import 'position_sheet.dart';
 
 /// Wallet tab (Figma 174:110, "Portfolio — dot grid · up").
 class PortfolioScreen extends StatefulWidget {
@@ -21,8 +23,6 @@ class PortfolioScreen extends StatefulWidget {
 class _PortfolioScreenState extends State<PortfolioScreen> {
   int _span = PortfolioMock.defaultSpan;
   int _list = 0;
-
-  void _notBuilt(String what) => widget.onNotBuilt?.call(what);
 
   @override
   Widget build(BuildContext context) {
@@ -70,32 +70,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: VistaSize.tapTarget,
-          child: Row(
-            children: [
-              const VistaIcon(
-                VistaAssets.portfolioAvatar,
-                size: VistaSize.avatarLarge,
-              ),
-              const SizedBox(width: VistaSpace.lg),
-              Expanded(
-                child: Text(
-                  PortfolioMock.handle,
-                  style: VistaType.subhead,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              VistaCompactButton(
-                label: 'Deposit',
-                leading: '+',
-                // Simulated only: the demo never moves funds.
-                onPressed: () => _notBuilt('Deposit (simulated)'),
-              ),
-            ],
-          ),
-        ),
+        AccountTopBar(onNotBuilt: widget.onNotBuilt, showSettings: true),
         Wrap(
           spacing: VistaSpace.sm,
           runSpacing: VistaSpace.sm,
@@ -178,7 +153,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             value: p.pnl,
             change: p.pnlPercent,
             valueColor: p.pnlColor,
-            onPressed: () => _notBuilt('Position details'),
+            onPressed: () => showPositionSheet(context, p),
           ),
         ],
       ],

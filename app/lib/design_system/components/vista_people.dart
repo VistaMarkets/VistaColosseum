@@ -62,10 +62,14 @@ class VistaSearchField extends StatelessWidget {
     required this.onChanged,
     this.controller,
     this.bordered = false,
+    this.onSubmitted,
   });
 
   final String hint;
   final ValueChanged<String> onChanged;
+
+  /// Called on the keyboard's search action (e.g. the Arena ask bar).
+  final ValueChanged<String>? onSubmitted;
   final TextEditingController? controller;
 
   /// Top-bar variant: hairline border, 16pt icon, lighter placeholder.
@@ -94,6 +98,7 @@ class VistaSearchField extends StatelessWidget {
             child: TextField(
               controller: controller,
               onChanged: onChanged,
+              onSubmitted: onSubmitted,
               style: style,
               cursorColor: VistaColors.accent,
               textInputAction: TextInputAction.search,
@@ -319,4 +324,55 @@ class VistaListDivider extends StatelessWidget {
     padding: const EdgeInsets.only(left: 68, right: VistaSpace.gutter),
     child: Container(height: 1, color: VistaColors.hairline),
   );
+}
+
+/// Slim app top bar: avatar, bordered search/ask field, notifications bell.
+class VistaSearchTopBar extends StatelessWidget {
+  const VistaSearchTopBar({
+    super.key,
+    required this.hint,
+    this.controller,
+    this.onChanged,
+    this.onSubmitted,
+    this.onBell,
+  });
+
+  final String hint;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onBell;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        VistaSpace.gutter,
+        2,
+        VistaSpace.xs,
+        VistaSpace.xl,
+      ),
+      child: Row(
+        children: [
+          const VistaIcon(VistaAssets.topBarAvatar, size: 32),
+          const SizedBox(width: VistaSpace.xl),
+          Expanded(
+            child: VistaSearchField(
+              bordered: true,
+              controller: controller,
+              hint: hint,
+              onChanged: onChanged ?? (_) {},
+              onSubmitted: onSubmitted,
+            ),
+          ),
+          VistaIconButton(
+            asset: VistaAssets.bell,
+            semanticLabel: 'Notifications',
+            iconSize: 22,
+            onPressed: onBell,
+          ),
+        ],
+      ),
+    );
+  }
 }

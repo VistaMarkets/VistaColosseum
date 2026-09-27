@@ -11,6 +11,7 @@ class PortfolioPosition {
     required this.sparkAsset,
     required this.pnl,
     required this.pnlPercent,
+    required this.detail,
     this.coinAsset,
     this.initial,
   });
@@ -26,9 +27,42 @@ class PortfolioPosition {
   final String? coinAsset;
   final String? initial;
 
+  /// Sheet content. Only Ethereum's is designed (Figma 104:110); Solana's
+  /// and 0xreal's are placeholders consistent with their rows.
+  final PositionDetail detail;
+
   bool get inProfit => !pnl.startsWith('−');
   Color get pnlColor => inProfit ? VistaColors.long : VistaColors.short;
   String get tag => '${side.label.toUpperCase()} ${leverage}x';
+}
+
+/// What the position sheet shows for a position (Figma 104:110). Prices are
+/// numbers so the take-profit / stop-loss steppers can move them.
+class PositionDetail {
+  const PositionDetail({
+    required this.avatar,
+    required this.opened,
+    required this.pnl,
+    required this.size,
+    required this.symbol,
+    required this.price,
+    required this.entry,
+    required this.takeProfit,
+    required this.stopLoss,
+    this.decimals = 0,
+  });
+
+  /// Leading mark: an asset icon, or null for a trader initial.
+  final String? avatar;
+  final String opened;
+  final String pnl;
+  final String size;
+  final String symbol;
+  final double price;
+  final double entry;
+  final double takeProfit;
+  final double stopLoss;
+  final int decimals;
 }
 
 /// Mock content from the Figma frame (174:110). Simulated.
@@ -54,6 +88,17 @@ abstract final class PortfolioMock {
       sparkAsset: VistaAssets.sparkEth,
       pnl: r'+$90',
       pnlPercent: '+11.3%',
+      detail: PositionDetail(
+        avatar: VistaAssets.positionAvatarEth,
+        opened: '20h ago',
+        pnl: r'+$90.00',
+        size: r'$4,000 position',
+        symbol: 'ETH',
+        price: 3489.20,
+        entry: 3412,
+        takeProfit: 3514,
+        stopLoss: 3344,
+      ),
     ),
     PortfolioPosition(
       title: 'Solana',
@@ -63,6 +108,18 @@ abstract final class PortfolioMock {
       sparkAsset: VistaAssets.sparkSol,
       pnl: r'−$30',
       pnlPercent: '−6.0%',
+      detail: PositionDetail(
+        avatar: VistaAssets.coinSolSmall,
+        opened: '2d ago',
+        pnl: r'−$30.00',
+        size: r'$500 position',
+        symbol: 'SOL',
+        price: 214.90,
+        entry: 213.62,
+        takeProfit: 207.20,
+        stopLoss: 217.90,
+        decimals: 2,
+      ),
     ),
     PortfolioPosition(
       title: '0xreal',
@@ -72,6 +129,18 @@ abstract final class PortfolioMock {
       sparkAsset: VistaAssets.spark0xreal,
       pnl: r'+$2.16',
       pnlPercent: '+3.2%',
+      detail: PositionDetail(
+        avatar: null,
+        opened: '5d ago',
+        pnl: r'+$2.16',
+        size: r'$67.50 position',
+        symbol: '0xreal',
+        price: 0.3820,
+        entry: 0.3702,
+        takeProfit: 0.4000,
+        stopLoss: 0.3500,
+        decimals: 4,
+      ),
     ),
   ];
 }

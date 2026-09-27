@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
+import '../live/live_feed.dart';
 import 'portfolio_mock.dart';
 
 /// "My portfolio" number and chart, swipeable to the user's own market cap.
@@ -99,10 +100,11 @@ class _PortfolioPagerState extends State<PortfolioPager>
                           _slid(
                             dx: -_slide * p,
                             opacity: _outgoing(p),
-                            child: const _NumberPage(
+                            child: _NumberPage(
                               caption: 'My portfolio',
                               dots: VistaAssets.pagerDots,
                               value: PortfolioMock.balance,
+                              live: true,
                               change: PortfolioMock.change24h,
                             ),
                           ),
@@ -157,11 +159,15 @@ class _NumberPage extends StatelessWidget {
     required this.dots,
     required this.value,
     required this.change,
+    this.live = false,
   });
 
   final String caption;
   final String dots;
   final String value;
+
+  /// Roll the value with the live feed (the portfolio balance).
+  final bool live;
   final String change;
 
   @override
@@ -188,7 +194,14 @@ class _NumberPage extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(value, style: VistaType.display),
+          child: live
+              ? LiveUsd(
+                  feedKey: 'portfolio',
+                  base: parseUsd(value),
+                  step: 9,
+                  style: VistaType.display,
+                )
+              : Text(value, style: VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(

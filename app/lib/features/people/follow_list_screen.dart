@@ -36,14 +36,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
     super.dispose();
   }
 
-  void _privateNotBuilt() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Private profile — not in the demo yet')),
-      );
-  }
-
   void _selectTab(int i) {
     if (i == _tab) return;
     setState(() {
@@ -114,10 +106,9 @@ class _FollowListScreenState extends State<FollowListScreen> {
                           emphasis: p.market,
                           locked: p.private,
                           badge: p.followsYou ? 'Follows you' : null,
-                          onPressed: () => p.private
-                              ? _privateNotBuilt()
-                              : Navigator.of(context)
-                                    .push(ProfileScreen.route(p.handle)),
+                          onPressed: () =>
+                              Navigator.of(context)
+                                  .push(ProfileScreen.route(p.handle)),
                           trailing: VistaFollowButton(
                             following: following,
                             // Local only: nothing is sent anywhere.

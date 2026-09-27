@@ -1,6 +1,7 @@
 /// Vista design system: tokens, theme and shared components.
 library;
 
+export 'components/vista_battle.dart';
 export 'components/vista_buttons.dart';
 export 'components/vista_chips.dart';
 export 'components/vista_controls.dart';
@@ -11,6 +12,7 @@ export 'components/vista_market.dart';
 export 'components/vista_navigation.dart';
 export 'components/vista_people.dart';
 export 'components/vista_profile.dart';
+export 'components/vista_rolling_number.dart';
 export 'tokens/vista_colors.dart';
 export 'tokens/vista_metrics.dart';
 export 'tokens/vista_typography.dart';

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../profile/holdings_table.dart';
+import 'chart_sheet.dart';
 import 'trader_market_chart.dart';
 import 'trader_market_mock.dart';
 
@@ -25,85 +26,27 @@ class TraderMarketScreen extends StatefulWidget {
   State<TraderMarketScreen> createState() => _TraderMarketScreenState();
 }
 
-/// Short chart height with the panels up (Figma).
-const double _shortChart = 196;
-
-/// Fixed rows between chart and panel: interval selector + handle row.
-const double _selectorH = 44;
-const double _handleH = 12;
-
-class _TraderMarketScreenState extends State<TraderMarketScreen>
-    with SingleTickerProviderStateMixin {
-  /// 0 = chart open, 1 = panels up.
-  late final AnimationController _sheet = AnimationController(
-    vsync: this,
-    value: 1,
-  );
-  final _pages = PageController();
-  int _page = 0;
-  int _interval = TraderMarketMock.defaultInterval;
-
-  /// Distance the chart grows between the two states; set during layout.
-  double _travel = 300;
-
-  static const _panelTitles = ['Market', 'Portfolio', 'Record', 'Holders'];
-
-  @override
-  void dispose() {
-    _sheet.dispose();
-    _pages.dispose();
-    super.dispose();
-  }
-
+class _TraderMarketScreenState extends State<TraderMarketScreen> {
   void _notBuilt(String what) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
   }
 
-  void _onDrag(DragUpdateDetails d) {
-    _sheet.value = (_sheet.value - d.primaryDelta! / _travel).clamp(0.0, 1.0);
-  }
-
-  void _onDragEnd(DragEndDetails d) {
-    final v = d.primaryVelocity ?? 0;
-    final target = v > 400
-        ? 0.0
-        : v < -400
-        ? 1.0
-        : _sheet.value.roundToDouble();
-    _settle(target);
-  }
-
-  void _settle(double target) {
-    final instant = MediaQuery.disableAnimationsOf(context);
-    _sheet.animateTo(
-      target,
-      duration: instant ? Duration.zero : const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: AnimatedBuilder(
-          animation: _sheet,
-          builder: (context, _) {
-            final t = _sheet.value;
-            return Column(
-              children: [
-                _header(t),
-                Expanded(child: _body(t)),
-                _tradeButtons(bottomInset),
-              ],
-            );
-          },
-        ),
-      ),
+    return ChartSheet(
+      header: _header,
+      chart: (t) => TraderMarketChart(collapse: t),
+      intervals: TraderMarketMock.intervals,
+      defaultInterval: TraderMarketMock.defaultInterval,
+      onNotBuilt: _notBuilt,
+      panels: [
+        ChartSheetPanel('Market', _marketPanel()),
+        ChartSheetPanel('Portfolio', _portfolioPanel()),
+        ChartSheetPanel('Record', _recordPanel()),
+        ChartSheetPanel('Holders', _holdersPanel()),
+      ],
     );
   }
 
@@ -251,132 +194,11 @@ class _TraderMarketScreenState extends State<TraderMarketScreen>
     );
   }
 
-  Widget _body(double t) {
-    return LayoutBuilder(
-      builder: (context, c) {
-        // Chart-open padding (8 top, 14 bottom) folds away as panels rise.
-        final padTop = lerpDouble(8, 0, t)!;
-        final padBottom = lerpDouble(14, 0, t)!;
-        final openChart = c.maxHeight - _selectorH - _handleH - 8 - 14;
-        final shortChart = openChart < _shortChart ? openChart : _shortChart;
-        _travel = (openChart - shortChart).clamp(1, double.infinity);
-        final chartH = lerpDouble(openChart, shortChart, t)!;
-        final panelH =
-            c.maxHeight - _selectorH - _handleH - chartH - padTop - padBottom;
-
-        return Column(
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragUpdate: _onDrag,
-              onVerticalDragEnd: _onDragEnd,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      VistaSpace.gutter,
-                      padTop,
-                      VistaSpace.gutter,
-                      padBottom,
-                    ),
-                    child: SizedBox(
-                      height: chartH,
-                      child: TraderMarketChart(collapse: t),
-                    ),
-                  ),
-                  SizedBox(
-                    height: _selectorH,
-                    child: VistaIntervalSelector(
-                      intervals: TraderMarketMock.intervals,
-                      selectedIndex: _interval,
-                      onChanged: (i) => setState(() => _interval = i),
-                      onMore: () => _notBuilt('More intervals'),
-                      onIndicators: () => _notBuilt('Indicators'),
-                      onChartType: () => _notBuilt('Chart type'),
-                    ),
-                  ),
-                  Semantics(
-                    button: true,
-                    label: t > 0.5 ? 'Expand chart' : 'Show panels',
-                    onTap: () => _settle(t > 0.5 ? 0 : 1),
-                    child: GestureDetector(
-                      onTap: () => _settle(t > 0.5 ? 0 : 1),
-                      child: const SizedBox(
-                        height: _handleH,
-                        width: double.infinity,
-                        child: Center(child: VistaDragHandle()),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: panelH.clamp(0, double.infinity),
-              child: ClipRect(
-                child: Opacity(
-                  opacity: t,
-                  child: IgnorePointer(
-                    ignoring: t < 0.5,
-                    // Nothing to lay out until there is room for the dots.
-                    child: panelH < 16 ? const SizedBox.shrink() : _panels(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _panels() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: VistaSpace.xs),
-          child: Semantics(
-            label: 'Panel ${_page + 1} of 4, ${_panelTitles[_page]}',
-            child: VistaPageDots(count: 4, index: _page),
-          ),
-        ),
-        Expanded(
-          child: PageView(
-            controller: _pages,
-            onPageChanged: (i) => setState(() => _page = i),
-            children: [
-              _panel(_marketPanel()),
-              _panel(_portfolioPanel()),
-              _panel(_recordPanel()),
-              _panel(_holdersPanel()),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Panel page: scrolls when the phone is too short to show it whole.
-  Widget _panel(Widget child) => SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(
-      horizontal: VistaSpace.gutter,
-      vertical: VistaSpace.lg,
-    ),
-    child: child,
-  );
-
-  Widget _title(String text, [Widget? trailing]) => Row(
-    children: [
-      Expanded(child: Text(text, style: VistaType.headline)),
-      ?trailing,
-    ],
-  );
-
   Widget _portfolioPanel() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _title(
+        chartSheetTitle(
           'Portfolio',
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -400,7 +222,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _title(
+        chartSheetTitle(
           'Record',
           GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -446,7 +268,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _title('Market'),
+        chartSheetTitle('Market'),
         gap,
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -537,7 +359,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _title(
+        chartSheetTitle(
           'Holders',
           Text(
             TraderMarketMock.holdersChange,
@@ -629,41 +451,6 @@ class _TraderMarketScreenState extends State<TraderMarketScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _tradeButtons(double bottomInset) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: VistaColors.background,
-        border: Border(top: BorderSide(color: VistaColors.hairline)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        VistaSpace.gutter,
-        VistaSpace.xl,
-        VistaSpace.gutter,
-        bottomInset > 0 ? bottomInset : VistaSpace.gutter,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: VistaPillButton(
-              label: 'Long',
-              variant: VistaPillVariant.long,
-              // Simulated only: the demo never places an order.
-              onPressed: () => _notBuilt('Long (simulated)'),
-            ),
-          ),
-          const SizedBox(width: VistaSpace.lg),
-          Expanded(
-            child: VistaPillButton(
-              label: 'Short',
-              variant: VistaPillVariant.short,
-              onPressed: () => _notBuilt('Short (simulated)'),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

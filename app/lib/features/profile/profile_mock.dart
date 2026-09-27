@@ -165,3 +165,75 @@ abstract final class ProfileMock {
   /// Filter counts as designed ("All 65 · Calls 51 · Arena 14").
   static const filters = [('All', 65), ('Calls', 51), ('Arena', 14)];
 }
+
+/// A private account with no market: stats and public calls only (Figma
+/// 258:407, "Profile — nara (private account)").
+class PrivateProfile {
+  const PrivateProfile({
+    required this.settled,
+    required this.right,
+    required this.followers,
+    required this.openCalls,
+    required this.bio,
+    required this.summary,
+    required this.calls,
+  });
+
+  final String settled;
+  final String right;
+  final String followers;
+  final String openCalls;
+  final String bio;
+  final List<(String, Color)> summary;
+
+  /// (rail, title, lead, lead colour, detail).
+  final List<(String, String, String, Color, String)> calls;
+}
+
+/// Private accounts without a market. Opening one of these profiles shows
+/// the private layout instead of the full profile.
+const privateProfiles = {
+  'nara': PrivateProfile(
+    settled: '31',
+    right: '17',
+    followers: '212',
+    openCalls: '2',
+    bio: 'Swing trades on the majors. I post calls, not positions.',
+    summary: [
+      ('31 settled', VistaColors.textPrimary),
+      ('17 right', VistaColors.long),
+      ('14 wrong', VistaColors.short),
+      ('2 open', VistaColors.textMuted),
+    ],
+    calls: [
+      (
+        VistaAssets.railRecordOpen,
+        r'BTC holds $64,000 to Oct 3',
+        '8d left',
+        VistaColors.textMuted,
+        'Market said 71% · 5.1% cushion',
+      ),
+      (
+        VistaAssets.railRecordOpen,
+        r'SOL loses $200 by Oct 10',
+        '15d left',
+        VistaColors.textMuted,
+        'Market said 34% · 6.9% away',
+      ),
+      (
+        VistaAssets.railRecordRight,
+        r'BTC reclaims $66,000 by Tue',
+        'Right at 29%',
+        VistaColors.long,
+        'Settled Tue 16:00',
+      ),
+      (
+        VistaAssets.railRecordWrong,
+        r'ETH reaches $3,300 by Sep 22',
+        'Wrong at 38%',
+        VistaColors.short,
+        'Settled Sep 22',
+      ),
+    ],
+  ),
+};

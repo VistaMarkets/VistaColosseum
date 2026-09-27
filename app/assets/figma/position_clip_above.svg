@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="380" height="103.737" viewBox="0 0 380 103.737" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="clip &#194;&#183; above entry (profit on a long)" clip-path="url(#clip0_0_6)">
+<path id="area gradient" d="M5 103.7L12.9 103.1L20.7 100.6L28.6 102.3L36.5 102.1L44.4 104.4L52.2 107.9L60.1 104L68 102L75.9 97.2L83.7 91.1L91.6 92L99.5 94.3L107.3 93.8L115.2 90.3L123.1 91.2L131 89.5L138.8 90.2L146.7 86.9L154.6 83.3L162.4 82.7L170.3 78.2L178.2 77.7L186.1 76.1L193.9 79.5L201.8 82.9L209.7 86.5L217.6 82.4L225.4 76.3L233.3 77L241.2 76L249 73.2L256.9 68.7L264.8 67.3L272.7 65.9L280.5 59.9L288.4 60.3L296.3 54.6L304.1 56.7L312 56.9H319.9L327.8 52.4L335.6 46.3L343.5 47.9L351.4 47.7L359.3 45.3L367.1 40.1L375 41.4V103.7H5Z" fill="url(#paint0_linear_0_6)"/>
+<path id="price line (source)" d="M5 103.7L12.9 103.1L20.7 100.6L28.6 102.3L36.5 102.1L44.4 104.4L52.2 107.9L60.1 104L68 102L75.9 97.2L83.7 91.1L91.6 92L99.5 94.3L107.3 93.8L115.2 90.3L123.1 91.2L131 89.5L138.8 90.2L146.7 86.9L154.6 83.3L162.4 82.7L170.3 78.2L178.2 77.7L186.1 76.1L193.9 79.5L201.8 82.9L209.7 86.5L217.6 82.4L225.4 76.3L233.3 77L241.2 76L249 73.2L256.9 68.7L264.8 67.3L272.7 65.9L280.5 59.9L288.4 60.3L296.3 54.6L304.1 56.7L312 56.9H319.9L327.8 52.4L335.6 46.3L343.5 47.9L351.4 47.7L359.3 45.3L367.1 40.1L375 41.4" stroke="#34D399" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_6" x1="190" y1="40.1" x2="190" y2="107.9" gradientUnits="userSpaceOnUse">
+<stop stop-color="#34D399" stop-opacity="0.18"/>
+<stop offset="1" stop-color="#34D399" stop-opacity="0"/>
+</linearGradient>
+<clipPath id="clip0_0_6">
+<rect width="380" height="103.737" fill="white"/>
+</clipPath>
+</defs>
+</svg>

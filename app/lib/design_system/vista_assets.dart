@@ -8,11 +8,15 @@ abstract final class VistaAssets {
   static const String referral = '$_dir/referral_button.svg';
   static const String notifications = '$_dir/notif_bell.svg';
   static const String back = '$_dir/back_chevron.svg';
+  static const String backSmall = '$_dir/back_chevron_small.svg';
   static const String search = '$_dir/search.svg';
   static const String search16 = '$_dir/search_16.svg';
   static const String bell = '$_dir/bell.svg';
+  static const String settings = '$_dir/settings.svg';
   static const String topBarAvatar = '$_dir/topbar_avatar.svg';
   static const String lock = '$_dir/lock.svg';
+  static const String lockSmall = '$_dir/lock_small.svg';
+  static const String lockNotice = '$_dir/lock_notice.svg';
   static const String longArrow = '$_dir/long_arrow.svg';
   static const String navHome = '$_dir/nav_home.svg';
   static const String navExplore = '$_dir/nav_compass.svg';
@@ -107,6 +111,25 @@ abstract final class VistaAssets {
   static const String spark24UpA = '$_dir/spark24_up_a.svg';
   static const String spark24UpB = '$_dir/spark24_up_b.svg';
   static const String spark24Down = '$_dir/spark24_down.svg';
+  // Arena (Figma 33:2).
+  static const String battleAvatarBull = '$_dir/battle_avatar_bull.svg';
+  static const String battleAvatarBear = '$_dir/battle_avatar_bear.svg';
+  static const String opinionsAvatars = '$_dir/opinions_avatars.svg';
+  // Clash detail / opinions (Figma 48:430).
+  static const String initialsAvatar = '$_dir/initials_avatar_36.svg';
+  // Asset trade (Figma 206:110 chart open; 214:110 / 214:428 / 214:746).
+  static const String assetAvatar = '$_dir/asset_avatar_32.svg';
+  static const String tradeLastPrice = '$_dir/trade_last_price.svg';
+  static const String chartTypeCandles = '$_dir/chart_type_candles.svg';
+  static const String rangeDot = '$_dir/range_dot.svg';
+  static const String callerAvatarShort = '$_dir/caller_avatar_short_32.svg';
+  // Position sheet (Figma 104:110).
+  static const String positionAvatarEth = '$_dir/position_avatar_eth.svg';
+  static const String positionLattice = '$_dir/position_lattice.svg';
+  static const String positionTpLine = '$_dir/position_tp_line.svg';
+  static const String positionSlLine = '$_dir/position_sl_line.svg';
+  static const String positionClipAbove = '$_dir/position_clip_above.svg';
+  static const String positionClipBelow = '$_dir/position_clip_below.svg';
   static const String feesDot = '$_dir/fees_dot.svg';
   static const String coinPlaceholder = '$_dir/coin_placeholder.svg';
   static const String sparkEth = '$_dir/spark_eth.svg';

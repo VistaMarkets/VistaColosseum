@@ -6,6 +6,7 @@ import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
+import 'private_profile_screen.dart';
 import 'profile_mock.dart';
 
 /// Someone else's profile (Figma 303:102, "Profile — maya.eth · Arena
@@ -13,8 +14,13 @@ import 'profile_mock.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.handle});
 
-  static Route<void> route(String handle) =>
-      MaterialPageRoute(builder: (_) => ProfileScreen(handle: handle));
+  /// Opens [handle]'s profile, or the private layout for private accounts
+  /// without a market.
+  static Route<void> route(String handle) => MaterialPageRoute(
+    builder: (_) => privateProfiles.containsKey(handle)
+        ? PrivateProfileScreen(handle: handle)
+        : ProfileScreen(handle: handle),
+  );
 
   final String handle;
 

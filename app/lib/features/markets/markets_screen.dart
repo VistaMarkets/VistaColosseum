@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../market/trader_market_screen.dart';
+import '../trade/asset_trade_screen.dart';
 import 'markets_mock.dart';
 
 /// Explore tab: Assets and Traders markets (Figma 185:110, 222:110).
@@ -60,7 +61,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
     if (_traders) {
       Navigator.of(context).push(TraderMarketScreen.route(m.name));
     } else {
-      _notBuilt('${m.name} market');
+      Navigator.of(context).push(AssetTradeScreen.route(m.id));
     }
   }
 
@@ -86,34 +87,11 @@ class _MarketsScreenState extends State<MarketsScreen> {
       bottom: false,
       child: Column(
         children: [
-          // Top bar: avatar, search, notifications.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              2,
-              VistaSpace.xs,
-              VistaSpace.xl,
-            ),
-            child: Row(
-              children: [
-                const VistaIcon(VistaAssets.topBarAvatar, size: 32),
-                const SizedBox(width: VistaSpace.xl),
-                Expanded(
-                  child: VistaSearchField(
-                    bordered: true,
-                    controller: _search,
-                    hint: _traders ? 'Search traders' : 'Search markets',
-                    onChanged: (q) => setState(() => _query = q),
-                  ),
-                ),
-                VistaIconButton(
-                  asset: VistaAssets.bell,
-                  semanticLabel: 'Notifications',
-                  iconSize: 22,
-                  onPressed: () => _notBuilt('Notifications'),
-                ),
-              ],
-            ),
+          VistaSearchTopBar(
+            controller: _search,
+            hint: _traders ? 'Search traders' : 'Search markets',
+            onChanged: (q) => setState(() => _query = q),
+            onBell: () => _notBuilt('Notifications'),
           ),
           Expanded(
             child: ListView(

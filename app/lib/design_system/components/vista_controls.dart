@@ -320,3 +320,40 @@ class VistaUnderlineTabs extends StatelessWidget {
     );
   }
 }
+
+/// Round 30pt − / + stepper button (44pt target), e.g. nudging a level.
+class VistaStepButton extends StatelessWidget {
+  const VistaStepButton({
+    super.key,
+    required this.glyph,
+    required this.semanticLabel,
+    required this.onPressed,
+  });
+
+  final String glyph;
+  final String semanticLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Tappable(
+      label: semanticLabel,
+      onPressed: onPressed,
+      child: SizedBox.square(
+        dimension: VistaSize.tapTarget,
+        child: Center(
+          child: Container(
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: VistaColors.surfaceRaised,
+              shape: BoxShape.circle,
+            ),
+            child: Text(glyph, style: VistaType.subhead),
+          ),
+        ),
+      ),
+    );
+  }
+}

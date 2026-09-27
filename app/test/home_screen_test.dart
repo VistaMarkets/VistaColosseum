@@ -4,7 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
+import 'package:vista_colosseum/features/account/account_top_bar.dart';
+import 'package:vista_colosseum/features/home/home_screen.dart';
+import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
+import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
+import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
+import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
+import 'package:vista_colosseum/features/trade/candle_chart.dart';
 import 'package:vista_colosseum/main.dart';
+
+/// Portfolio balance in the swipeable pager (the top bar repeats it).
+Finder get pagerBalance => find.descendant(
+  of: find.byType(PortfolioPager),
+  matching: find.text(r'$12,480'),
+);
 
 /// The breakout label is the last event the trace reaches.
 Finder get breakoutLabel => find.text(r'Broke $2,950');
@@ -72,7 +86,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(r'$12,480'), findsOneWidget);
+      expect(pagerBalance, findsOneWidget);
       // Last position is reachable by scrolling on short phones.
       await tester.ensureVisible(find.text('0xreal'));
       await tester.pumpAndSettle();
@@ -237,8 +251,7 @@ void main() {
       expect(find.text(r'$MAYA market cap'), findsOneWidget);
 
       // Mid-drag: both pages partly visible, following the finger.
-      final chart =
-          tester.getCenter(find.text(portfolio)) + const Offset(0, 150);
+      final chart = tester.getCenter(pagerBalance) + const Offset(0, 150);
       final gesture = await tester.startGesture(chart);
       await gesture.moveBy(const Offset(-40, 0));
       await gesture.moveBy(const Offset(-100, 0));
@@ -262,8 +275,7 @@ void main() {
 
     testWidgets('a short drag snaps back to where it started', (tester) async {
       await openWallet(tester);
-      final chart =
-          tester.getCenter(find.text(portfolio)) + const Offset(0, 150);
+      final chart = tester.getCenter(pagerBalance) + const Offset(0, 150);
       final gesture = await tester.startGesture(chart);
       await gesture.moveBy(const Offset(-30, 0));
       await gesture.moveBy(const Offset(-30, 0));
@@ -303,7 +315,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
       expect(find.text('Market cap'), findsNothing);
-      expect(find.text(r'$12,480'), findsOneWidget);
+      expect(pagerBalance, findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -393,7 +405,7 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
-      expect(find.text(r'$12,480'), findsOneWidget);
+      expect(pagerBalance, findsOneWidget);
     });
 
     testWidgets('Following chip opens on the Following tab', (tester) async {
@@ -469,15 +481,30 @@ void main() {
       expect(find.text(r'BTC reclaims $66,000 by Tue'), findsNothing);
     });
 
-    testWidgets('private accounts do not open a profile', (tester) async {
+    testWidgets('a private account without a market opens the private layout', (
+      tester,
+    ) async {
       await setView(tester);
       await openFromFollowers(tester, 'nara');
+      expect(find.byType(PrivateProfileScreen), findsOneWidget);
+      expect(find.text('Private account'), findsOneWidget);
+      expect(find.text('Positions are private'), findsOneWidget);
+      expect(find.text('Open calls'), findsOneWidget);
+      // No market or holdings for a private account.
       expect(find.text('HOLDING NOW'), findsNothing);
-      expect(
-        find.text('Private profile — not in the demo yet'),
-        findsOneWidget,
-      );
+      expect(find.text('market'), findsNothing);
+      expect(find.text(r'BTC holds $64,000 to Oct 3'), findsOneWidget);
     });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('private profile renders without overflow on $name', (
+        tester,
+      ) async {
+        await setView(tester, size, padding);
+        await openFromFollowers(tester, 'nara');
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     testWidgets('Home caller name opens their profile', (tester) async {
       await setView(tester);
@@ -654,6 +681,338 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.text('Traders'));
         await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('arena', () {
+    Future<void> openArena(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('People'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('People tab shows the Arena with the crowd filter', (
+      tester,
+    ) async {
+      await openArena(tester);
+      expect(find.byType(VistaBattleCard), findsWidgets);
+      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
+      expect(find.text('41 battles'), findsOneWidget);
+
+      // Drag the lower thumb all the way left: every split is included.
+      final slider = tester.getRect(find.byType(RangeSlider));
+      final startThumb = Offset(
+        slider.left + 12 + 0.4 * (slider.width - 24),
+        slider.center.dy,
+      );
+      await tester.dragFrom(startThumb, Offset(-slider.width, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
+      expect(find.text('106 battles'), findsOneWidget);
+
+      // Other tabs use the plain nav again.
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RangeSlider), findsNothing);
+    });
+
+    testWidgets('sort chips stay fixed while battles scroll', (tester) async {
+      await openArena(tester);
+      final before = tester.getTopLeft(find.text('Volume'));
+      final card = tester.getTopLeft(find.byType(VistaBattleCard).first);
+      await tester.drag(find.byType(ListView).last, const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('Volume')), before);
+      expect(
+        tester.getTopLeft(find.byType(VistaBattleCard).first).dy,
+        lessThan(card.dy),
+      );
+    });
+
+    testWidgets('tapping a caller opens their profile', (tester) async {
+      await openArena(tester);
+      await tester.tap(find.text('0xreal').first);
+      await tester.pumpAndSettle();
+      expect(find.text('HOLDING NOW'), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders without overflow on $name', (tester) async {
+        await openArena(tester, size, padding);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('opinions', () {
+    Future<void> openOpinions(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('People'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('+21 more opinions').first);
+      await tester.pumpAndSettle();
+    }
+
+    List<String> handles(WidgetTester tester) => tester
+        .widgetList<VistaSideDetail>(find.byType(VistaSideDetail))
+        .map((d) => d.handle)
+        .toList();
+
+    testWidgets('more opinions opens the clash detail; filters and back', (
+      tester,
+    ) async {
+      await openOpinions(tester);
+      expect(find.text('23 opinions'), findsOneWidget);
+      expect(find.text('Follow Bull'), findsOneWidget);
+      expect(handles(tester).first, '@renatafx');
+
+      await tester.tap(find.text('Bull thesis'));
+      await tester.pumpAndSettle();
+      expect(handles(tester), ['@renatafx']);
+
+      await tester.tap(find.text('Bear thesis'));
+      await tester.pumpAndSettle();
+      expect(handles(tester), isNot(contains('@renatafx')));
+      expect(handles(tester).first, '@voskov');
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      expect(find.byType(VistaBattleCard), findsWidgets);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders without overflow on $name', (tester) async {
+        await openOpinions(tester, size, padding);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  for (final tab in ['Home', 'Wallet']) {
+    testWidgets('$tab top bar: handle over balance, Deposit on the right', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel(tab));
+      await tester.pumpAndSettle();
+
+      final wallet = tab == 'Wallet';
+      final bar = find.descendant(
+        of: find.byType(wallet ? PortfolioScreen : HomeScreen),
+        matching: find.byType(AccountTopBar),
+      );
+      Finder inBar(String text) =>
+          find.descendant(of: bar, matching: find.text(text));
+      final handle = tester.getRect(inBar('maya.eth'));
+      final balance = tester.getRect(inBar(r'$12,480'));
+      expect(balance.top, greaterThanOrEqualTo(handle.bottom - 1));
+      expect(balance.left, closeTo(handle.left, 1));
+
+      // Settings gear only on Portfolio, right of Deposit.
+      final settings = find.descendant(
+        of: bar,
+        matching: find.byType(VistaIconButton),
+      );
+      final deposit = tester.getRect(inBar('Deposit'));
+      if (wallet) {
+        expect(settings, findsOneWidget);
+        expect(tester.getRect(settings).left, greaterThan(deposit.left));
+        await tester.tap(settings);
+        await tester.pump();
+        expect(find.text('Settings — not in the demo yet'), findsOneWidget);
+      } else {
+        expect(settings, findsNothing);
+        expect(deposit.right, greaterThan(402 - 16 - 20));
+      }
+    });
+  }
+
+  group('asset trade', () {
+    Future<void> launch(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    Finder visible(String text) => find.text(text).hitTestable();
+
+    testWidgets('Home Details opens the asset on the Market panel', (
+      tester,
+    ) async {
+      await launch(tester);
+      await tester.tap(find.text('Details').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(AssetTradeScreen), findsOneWidget);
+      expect(visible('Ethereum'), findsOneWidget); // the card is ETH
+      expect(visible('Nearest liquidations'), findsOneWidget);
+
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
+      await tester.pumpAndSettle();
+      expect(visible('Book'), findsOneWidget);
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
+      await tester.pumpAndSettle();
+      expect(visible('Callers in ETH'), findsOneWidget);
+
+      // A caller opens their profile.
+      await tester.tap(visible('lunaq'));
+      await tester.pumpAndSettle();
+      expect(find.text('HOLDING NOW'), findsOneWidget);
+    });
+
+    testWidgets('Explore asset row opens it; handle opens the chart', (
+      tester,
+    ) async {
+      await launch(tester);
+      await tester.tap(find.bySemanticsLabel('Explore'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(VistaMarketRow),
+          matching: find.text('SOL'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(visible('Solana'), findsOneWidget);
+
+      await tester.fling(
+        find.byType(VistaDragHandle),
+        const Offset(0, 400),
+        1500,
+      );
+      await tester.pumpAndSettle();
+      expect(visible('Nearest liquidations'), findsNothing);
+      expect(find.byType(CandleChart), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders without overflow on $name', (tester) async {
+        await launch(tester, size, padding);
+        await tester.tap(find.text('Details').first);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        for (var i = 0; i < 2; i++) {
+          await tester.fling(
+            find.byType(PageView),
+            const Offset(-300, 0),
+            1500,
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        }
+        await tester.fling(
+          find.byType(VistaDragHandle),
+          const Offset(0, 400),
+          1500,
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('position sheet', () {
+    Future<void> openPosition(
+      WidgetTester tester,
+      String title, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      final row = find.descendant(
+        of: find.byType(PortfolioScreen),
+        matching: find.text(title),
+      );
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('tapping a position slides its sheet up', (tester) async {
+      await openPosition(tester, 'Ethereum');
+      expect(find.byType(PositionSheet), findsOneWidget);
+      expect(find.text('Unrealised P/L'), findsOneWidget);
+      expect(find.text(r'+$90.00'), findsOneWidget);
+      expect(find.text(r'ETH $3,489.20'), findsOneWidget);
+      expect(find.text(r'$3,514'), findsOneWidget);
+      expect(find.text('+3.0%'), findsOneWidget);
+
+      // + nudges take profit up by 0.5% of entry.
+      await tester.tap(find.bySemanticsLabel('Raise Take profit'));
+      await tester.pump();
+      expect(find.text(r'$3,531'), findsOneWidget);
+      expect(find.text('+3.5%'), findsOneWidget);
+
+      // Close dismisses the sheet (simulated).
+      await tester.tap(find.bySemanticsLabel('Close position'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PositionSheet), findsNothing);
+      expect(
+        find.text('Close position (simulated) — not in the demo yet'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a short puts stop-loss above entry', (tester) async {
+      await openPosition(tester, 'Solana');
+      expect(find.text(r'−$30.00'), findsOneWidget);
+      final sl = tester.getTopLeft(find.text(r'SL $217.90'));
+      final tp = tester.getTopLeft(find.text(r'TP $207.20'));
+      expect(sl.dy, lessThan(tp.dy));
+      // Take profit can't cross to the losing side of entry.
+      for (var i = 0; i < 10; i++) {
+        await tester.tap(find.bySemanticsLabel('Raise Take profit'));
+        await tester.pump();
+      }
+      expect(find.text(r'$213.62'), findsNWidgets(1)); // entry unchanged
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders without overflow on $name', (tester) async {
+        await openPosition(tester, 'Ethereum', size, padding);
         expect(tester.takeException(), isNull);
       });
     }
