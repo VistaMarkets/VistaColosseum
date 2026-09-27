@@ -4,7 +4,29 @@
 
 ## Overview
 
-This repository contains the project presentation, shared vocabulary, and agent workflow configuration. Application entry points, layers, and data flow are not implemented yet. Update this section when the backend and frontend architecture is established.
+This repository currently contains the project presentation, shared vocabulary,
+and agent workflow configuration. The application components below describe the
+agreed demo design; their entry points and integrations are not implemented here yet.
+
+### Core flow
+
+1. **Aggro** aggregates venue prices and supplies market data exclusively to
+   **Maker** through an internal interface.
+2. **Maker** creates recommended orders from that data and sends them to the
+   **Tradefeed**, where users discover and review suggestions.
+3. **Merchant** handles purchasing the orders users choose. All financial actions
+   in this demo must remain simulated.
+4. **Market** lets users post orders for others to discover and copy. The original
+   trader can earn value when their orders are copied; the reward mechanism is
+   not yet specified.
+
+The social experience connects trader profiles, opposing calls, performance
+records, and communities. **TPX** (Trader Performance Exchange) adds long and
+short positions on trader performance indices derived from settled results.
+
+Use VistaMobileBE and Flutter-mobile-app as read-only references for lightweight
+demo implementations. Preserve existing safety gates and keep credentials and
+real financial execution out of the demo.
 
 ## Key Paths
 
