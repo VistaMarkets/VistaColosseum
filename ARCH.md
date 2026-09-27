@@ -10,6 +10,7 @@ This repository is at its initial scaffold stage. No application entry points, l
 
 <!-- ARCH:DESC:START — curated; one line per key path, preserved across regens -->
 - `.githooks/` — shared Git hook and generator that refresh this architecture map
+- `AGENTS.md` — repository instructions for using and maintaining this architecture map
 - `ARCH.md` — generated file tree with curated architecture notes
 <!-- ARCH:DESC:END -->
 
@@ -21,6 +22,7 @@ VistaColosseum/
 ├── .githooks/  — shared Git hook and generator that refresh this architecture map
 │   ├── gen_arch.py
 │   └── pre-commit
+├── AGENTS.md  — repository instructions for using and maintaining this architecture map
 └── ARCH.md  — generated file tree with curated architecture notes
 ```
 
