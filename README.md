@@ -8,41 +8,27 @@
   </picture>
 </p>
 
-**Trading ideas with the people and performance behind them.**
+**An arena for trading talent.**
 
-VistaColloseum is a mobile-first social trading experience for the Solana
-ecosystem. It brings trading calls, trader profiles, and performance into one
-place, helping people explore an idea and understand who is making it.
+VistaColloseum brings the energy of spectator sports to social trading on
+Solana. Traders put their convictions on display, spectators follow the
+rivalries, and settled results build the record behind every reputation.
 
-## The problem
+## How it works
 
-A trading call is only part of the story. People also need context: the trader's
-history, the market behind the idea, and the risk of a position. VistaColloseum
-connects these pieces in a single journey from discovery to evaluation.
+- **Enter the arena.** Discover traders and explore opposing market calls in
+  a mobile-first clash feed.
+- **Check the record.** See the history behind a trader's claims and how their
+  calls perform over time.
+- **Take a side.** TPX—the Trader Performance Exchange—offers long and short
+  positions on trader performance indices, built from settled results.
+- **Follow the story.** Track the traders, rivalries, and communities that
+  make each market decision worth watching.
 
-## The experience
+## Why it matters
 
-- **Discover trading ideas.** Browse the Tradefeed to see the trader, the market,
-  the direction of the call, and how the idea has performed.
-- **Explore the person behind the call.** Open a trader's profile, examine their
-  record, and follow the people whose approach interests you.
-- **Look beyond the headline.** Move from a feed card into the details of the
-  idea, its market context, and the proposed position.
-- **Make a deliberate decision.** Review a trade preview or pass on the idea
-  and continue exploring.
-
-## Walkthrough
-
-1. Find a call in the Tradefeed.
-2. Open the caller's profile and explore their track record.
-3. Return to the call and inspect its details.
-4. Preview the position or move on to the next idea.
+Trading talent becomes something people can discover, evaluate, and follow
+together. Traders earn their reputation through results, while spectators get
+the context to form their own view of who is improving and who is losing form.
 
 The demo uses simulated financial actions; it does not place real trades.
-
-## Why VistaColloseum
-
-The idea and its author stay connected throughout the experience. Discovery
-leads naturally into a trader's history, a closer look at the call, and a clear
-decision. That makes social context and trading context useful together on a
-mobile screen.
