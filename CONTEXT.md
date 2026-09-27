@@ -21,9 +21,11 @@ VC is the agreed project name. Its GitHub repository spelling is
 
 ## References
 
-- VMBE: `/home/alex/VistaMobileBE`; read `CONTEXT.md` for backend terminology.
-- FMA: `/home/alex/Flutter-mobile-app`; read `docs/APP_FLOW.md` for user flows
-  and `tpx/README.md` for TPX's definition and design status.
+- VMBE: [VistaMobileBE](https://github.com/VistaMarkets/VistaMobileBE); read its
+  `CONTEXT.md` for backend terminology.
+- FMA: [Flutter-mobile-app](https://github.com/VistaMarkets/Flutter-mobile-app);
+  read its `docs/APP_FLOW.md` for user flows and `tpx/README.md` for TPX's
+  definition and design status.
 
 Read the references and write original, lightweight implementations of the
 core demo behavior. Do not copy their source files or transplant their
