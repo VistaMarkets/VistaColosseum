@@ -116,7 +116,7 @@ abstract final class PortfolioMock {
         symbol: 'SOL',
         price: 214.90,
         entry: 213.62,
-        takeProfit: 207.20,
+        takeProfit: 210.77,
         stopLoss: 217.90,
         decimals: 2,
       ),

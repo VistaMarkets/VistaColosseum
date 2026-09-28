@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
+
+import '../account/account_state.dart';
 import '../account/account_top_bar.dart';
+import '../make_market/make_market_flow.dart';
 import '../market/your_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
@@ -26,6 +30,17 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        AccountState.hasMarket,
+        AccountState.ticker,
+      ]),
+      builder: (context, _) =>
+          _page(AccountState.hasMarket.value, AccountState.ticker.value),
+    );
+  }
+
+  Widget _page(bool hasMarket, String ticker) {
     const gutter = EdgeInsets.symmetric(horizontal: VistaSpace.gutter);
     const gap = SizedBox(height: VistaSpace.sm);
     return SafeArea(
@@ -35,7 +50,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         children: [
           Padding(padding: gutter, child: _profile()),
           gap,
-          const PortfolioPager(),
+          PortfolioPager(hasMarket: hasMarket, ticker: ticker),
           gap,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: VistaSpace.xl),
@@ -46,7 +61,10 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             ),
           ),
           gap,
-          Padding(padding: gutter, child: _fees()),
+          Padding(
+            padding: gutter,
+            child: hasMarket ? _fees() : _makeMarketButton(),
+          ),
           gap,
           Padding(
             padding: gutter,
@@ -91,6 +109,64 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  /// Shown in place of the fees row until the user lists a market (Figma
+  /// 175:218).
+  Widget _makeMarketButton() {
+    return Semantics(
+      button: true,
+      label: 'Make a market',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).push(MakeMarketFlow.route()),
+        child: SizedBox(
+          height: VistaSize.tapTarget,
+          child: Center(
+            child: Container(
+              height: 37,
+              width: double.infinity,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: VistaColors.surface,
+                borderRadius: BorderRadius.circular(VistaRadius.pill),
+                border: Border.all(color: VistaColors.accent, width: 0.5),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned.fill(
+                    child: SvgPicture.asset(
+                      VistaAssets.makeMarketButtonDots,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Make a market',
+                        style: VistaType.headline.copyWith(
+                          color: VistaColors.accent,
+                        ),
+                      ),
+                      const SizedBox(width: VistaSpace.md),
+                      Text(
+                        '↗',
+                        style: VistaType.headline.copyWith(
+                          color: VistaColors.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

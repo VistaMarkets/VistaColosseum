@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../settings/settings_screen.dart';
 
 /// The signed-in user's top bar: avatar, handle over portfolio balance, and
 /// + Deposit on the right, followed by a settings gear where [showSettings]
@@ -64,7 +65,8 @@ class AccountTopBar extends StatelessWidget {
               asset: VistaAssets.settings,
               semanticLabel: 'Settings',
               iconSize: 22,
-              onPressed: () => onNotBuilt?.call('Settings'),
+              onPressed: () =>
+                  Navigator.of(context).push(SettingsScreen.route()),
             ),
         ],
       ),

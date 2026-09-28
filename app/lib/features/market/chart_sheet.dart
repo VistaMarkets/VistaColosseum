@@ -3,6 +3,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../settings/settings_state.dart';
 
 /// One swipeable page under the chart.
 class ChartSheetPanel {
@@ -29,6 +30,8 @@ class ChartSheet extends StatefulWidget {
     required this.defaultInterval,
     required this.onNotBuilt,
     this.chartTypeAsset = VistaAssets.chartTypeToggle,
+    this.onIntervalChanged,
+    this.onChartType,
   });
 
   final Widget Function(double collapse) header;
@@ -40,6 +43,12 @@ class ChartSheet extends StatefulWidget {
 
   /// Chart-type toggle art (line or candles selected).
   final String chartTypeAsset;
+
+  /// Called with the new index when an interval is picked.
+  final ValueChanged<int>? onIntervalChanged;
+
+  /// Chart-type toggle tap; without it the toggle reports "not built".
+  final VoidCallback? onChartType;
 
   @override
   State<ChartSheet> createState() => _ChartSheetState();
@@ -154,10 +163,15 @@ class _ChartSheetState extends State<ChartSheet>
                       intervals: widget.intervals,
                       selectedIndex: _interval,
                       chartTypeAsset: widget.chartTypeAsset,
-                      onChanged: (i) => setState(() => _interval = i),
+                      onChanged: (i) {
+                        setState(() => _interval = i);
+                        widget.onIntervalChanged?.call(i);
+                      },
                       onMore: () => widget.onNotBuilt('More intervals'),
                       onIndicators: () => widget.onNotBuilt('Indicators'),
-                      onChartType: () => widget.onNotBuilt('Chart type'),
+                      onChartType:
+                          widget.onChartType ??
+                          () => widget.onNotBuilt('Chart type'),
                     ),
                   ),
                   Semantics(
@@ -239,25 +253,22 @@ class _ChartSheetState extends State<ChartSheet>
         VistaSpace.gutter,
         bottomInset > 0 ? bottomInset : VistaSpace.gutter,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: VistaPillButton(
-              label: 'Long',
-              variant: VistaPillVariant.long,
-              // Simulated only: the demo never places an order.
-              onPressed: () => widget.onNotBuilt('Long (simulated)'),
-            ),
+      child: ValueListenableBuilder(
+        valueListenable: DisplayPrefs.longOnRight,
+        builder: (context, longOnRight, _) => VistaSidePair(
+          longOnRight: longOnRight,
+          long: VistaPillButton(
+            label: 'Long',
+            variant: VistaPillVariant.long,
+            // Simulated only: the demo never places an order.
+            onPressed: () => widget.onNotBuilt('Long (simulated)'),
           ),
-          const SizedBox(width: VistaSpace.lg),
-          Expanded(
-            child: VistaPillButton(
-              label: 'Short',
-              variant: VistaPillVariant.short,
-              onPressed: () => widget.onNotBuilt('Short (simulated)'),
-            ),
+          short: VistaPillButton(
+            label: 'Short',
+            variant: VistaPillVariant.short,
+            onPressed: () => widget.onNotBuilt('Short (simulated)'),
           ),
-        ],
+        ),
       ),
     );
   }

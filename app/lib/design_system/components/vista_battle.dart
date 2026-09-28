@@ -50,6 +50,7 @@ class VistaBattleCard extends StatelessWidget {
     this.onBear,
     this.onOpinions,
     this.onCaller,
+    this.longOnRight = false,
   });
 
   final String ticker;
@@ -60,6 +61,9 @@ class VistaBattleCard extends StatelessWidget {
   final VistaBattleSide bull;
   final VistaBattleSide bear;
   final String moreOpinions;
+
+  /// Put the bull button on the right (Settings › Display).
+  final bool longOnRight;
   final VoidCallback? onBull;
   final VoidCallback? onBear;
   final VoidCallback? onOpinions;
@@ -183,24 +187,18 @@ class VistaBattleCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: VistaPillButton(
-                    label: "I'm with Bull",
-                    variant: VistaPillVariant.long,
-                    onPressed: onBull,
-                  ),
-                ),
-                const SizedBox(width: VistaSpace.lg),
-                Expanded(
-                  child: VistaPillButton(
-                    label: "I'm with Bear",
-                    variant: VistaPillVariant.short,
-                    onPressed: onBear,
-                  ),
-                ),
-              ],
+            child: VistaSidePair(
+              longOnRight: longOnRight,
+              long: VistaPillButton(
+                label: "I'm with Bull",
+                variant: VistaPillVariant.long,
+                onPressed: onBull,
+              ),
+              short: VistaPillButton(
+                label: "I'm with Bear",
+                variant: VistaPillVariant.short,
+                onPressed: onBear,
+              ),
             ),
           ),
         ],

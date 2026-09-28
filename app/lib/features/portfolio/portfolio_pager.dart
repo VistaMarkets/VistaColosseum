@@ -17,7 +17,18 @@ import 'portfolio_mock.dart';
 /// chart gets the same fill and dot-grid treatment as the portfolio one — see
 /// `tool/derive_market_focus_chart.py`.
 class PortfolioPager extends StatefulWidget {
-  const PortfolioPager({super.key});
+  const PortfolioPager({
+    super.key,
+    this.hasMarket = true,
+    this.ticker = 'MAYA',
+  });
+
+  /// Without a market there is no market-cap page: the pager stays on the
+  /// portfolio and ignores swipes.
+  final bool hasMarket;
+
+  /// The user's market ticker shown on the market-cap page.
+  final String ticker;
 
   @override
   State<PortfolioPager> createState() => _PortfolioPagerState();
@@ -79,8 +90,8 @@ class _PortfolioPagerState extends State<PortfolioPager>
       onDecrease: () => _settle(0),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onHorizontalDragUpdate: _onDrag,
-        onHorizontalDragEnd: _onDragEnd,
+        onHorizontalDragUpdate: widget.hasMarket ? _onDrag : null,
+        onHorizontalDragEnd: widget.hasMarket ? _onDragEnd : null,
         child: AnimatedBuilder(
           animation: _page,
           builder: (context, _) {
@@ -111,9 +122,8 @@ class _PortfolioPagerState extends State<PortfolioPager>
                           _slid(
                             dx: _slide * (1 - p),
                             opacity: _incoming(p),
-                            child: const _NumberPage(
-                              caption:
-                                  '\$${PortfolioMock.marketSymbol} market cap',
+                            child: _NumberPage(
+                              caption: '\$${widget.ticker} market cap',
                               dots: VistaAssets.pagerDotsMarket,
                               value: PortfolioMock.marketCap,
                               change: PortfolioMock.marketCapChange24h,

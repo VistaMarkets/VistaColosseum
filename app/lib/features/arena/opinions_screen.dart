@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../profile/profile_screen.dart';
+import '../settings/settings_state.dart';
 import 'opinions_mock.dart';
 
 /// Every opinion on a battle (Figma 48:430, "13 · Clash detail — scrolled"),
@@ -203,24 +204,22 @@ class _ConsensusDock extends StatelessWidget {
           const SizedBox(height: VistaSpace.xl + 17 + 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: VistaPillButton(
-                    label: 'Follow Bull',
-                    variant: VistaPillVariant.long,
-                    onPressed: onBull,
-                  ),
+            child: ValueListenableBuilder(
+              valueListenable: DisplayPrefs.longOnRight,
+              builder: (context, longOnRight, _) => VistaSidePair(
+                longOnRight: longOnRight,
+                gap: VistaSpace.md,
+                long: VistaPillButton(
+                  label: 'Follow Bull',
+                  variant: VistaPillVariant.long,
+                  onPressed: onBull,
                 ),
-                const SizedBox(width: VistaSpace.md),
-                Expanded(
-                  child: VistaPillButton(
-                    label: 'Follow Bear',
-                    variant: VistaPillVariant.short,
-                    onPressed: onBear,
-                  ),
+                short: VistaPillButton(
+                  label: 'Follow Bear',
+                  variant: VistaPillVariant.short,
+                  onPressed: onBear,
                 ),
-              ],
+              ),
             ),
           ),
         ],

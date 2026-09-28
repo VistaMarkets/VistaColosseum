@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../market/chart_sheet.dart';
+import '../settings/settings_state.dart';
 import '../profile/profile_screen.dart';
 import 'candle_chart.dart';
 import 'trade_mock.dart';
@@ -24,6 +26,7 @@ class AssetTradeScreen extends StatefulWidget {
 
 class _AssetTradeScreenState extends State<AssetTradeScreen> {
   bool _followingOnly = true;
+  int _interval = TradeMock.defaultInterval;
 
   AssetQuote get _quote =>
       TradeMock.quotes[widget.ticker] ?? TradeMock.quotes['BTC']!;
@@ -36,12 +39,32 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: DisplayPrefs.chartMode,
+      builder: (context, mode, _) => _sheet(mode),
+    );
+  }
+
+  Widget _sheet(PlotMode mode) {
     return ChartSheet(
       header: (_) => _header(),
-      chart: (_) => const CandleChart(lastPrice: TradeMock.lastPrice),
-      chartTypeAsset: VistaAssets.chartTypeCandles,
+      chart: (_) => CandleChart(
+        ticker: _quote.ticker,
+        price: parseUsd(_quote.price),
+        interval: _interval,
+        mode: mode,
+      ),
+      // Toggle art shows the selected type: candles, or line.
+      chartTypeAsset: mode == PlotMode.candles
+          ? VistaAssets.chartTypeCandles
+          : VistaAssets.chartTypeToggle,
+      // Same preference as Settings › Display › Charts.
+      onChartType: () => DisplayPrefs.chartMode.value = mode == PlotMode.candles
+          ? PlotMode.line
+          : PlotMode.candles,
       intervals: TradeMock.intervals,
       defaultInterval: TradeMock.defaultInterval,
+      onIntervalChanged: (i) => setState(() => _interval = i),
       onNotBuilt: _notBuilt,
       panels: [
         ChartSheetPanel('Market', _marketPanel()),

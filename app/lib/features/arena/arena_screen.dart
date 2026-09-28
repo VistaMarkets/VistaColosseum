@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../settings/settings_state.dart';
 import '../profile/profile_screen.dart';
 import 'arena_mock.dart';
 import 'opinions_screen.dart';
@@ -42,17 +43,20 @@ class _ArenaScreenState extends State<ArenaScreen> {
               VistaSpace.gutter,
               VistaSpace.xs,
             ),
-            child: Wrap(
-              spacing: VistaSpace.md,
-              children: [
-                for (var i = 0; i < ArenaMock.sorts.length; i++)
-                  VistaFilterChip(
-                    label: ArenaMock.sorts[i],
-                    accent: true,
-                    selected: i == _sort,
-                    onPressed: () => setState(() => _sort = i),
-                  ),
-              ],
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: VistaSpace.md,
+                children: [
+                  for (var i = 0; i < ArenaMock.sorts.length; i++)
+                    VistaFilterChip(
+                      label: ArenaMock.sorts[i],
+                      accent: true,
+                      selected: i == _sort,
+                      onPressed: () => setState(() => _sort = i),
+                    ),
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -63,23 +67,27 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 for (final b in ArenaMock.battles)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 7),
-                    child: VistaBattleCard(
-                      ticker: b.ticker,
-                      price: b.price,
-                      change: b.change,
-                      timeLeft: b.timeLeft,
-                      question: b.question,
-                      bull: b.bull,
-                      bear: b.bear,
-                      moreOpinions: b.moreOpinions,
-                      // Simulated only: joining a side places nothing.
-                      onBull: () => _notBuilt('Joining Bull (simulated)'),
-                      onBear: () => _notBuilt('Joining Bear (simulated)'),
-                      onOpinions: () =>
-                          Navigator.of(context).push(OpinionsScreen.route()),
-                      onCaller: (handle) =>
-                          Navigator.of(context)
-                              .push(ProfileScreen.route(handle)),
+                    child: ValueListenableBuilder(
+                      valueListenable: DisplayPrefs.longOnRight,
+                      builder: (context, longOnRight, _) => VistaBattleCard(
+                        longOnRight: longOnRight,
+                        ticker: b.ticker,
+                        price: b.price,
+                        change: b.change,
+                        timeLeft: b.timeLeft,
+                        question: b.question,
+                        bull: b.bull,
+                        bear: b.bear,
+                        moreOpinions: b.moreOpinions,
+                        // Simulated only: joining a side places nothing.
+                        onBull: () => _notBuilt('Joining Bull (simulated)'),
+                        onBear: () => _notBuilt('Joining Bear (simulated)'),
+                        onOpinions: () =>
+                            Navigator.of(context).push(OpinionsScreen.route()),
+                        onCaller: (handle) =>
+                            Navigator.of(context)
+                                .push(ProfileScreen.route(handle)),
+                      ),
                     ),
                   ),
               ],

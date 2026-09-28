@@ -2,8 +2,11 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 
+import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../profile/holdings_table.dart';
+import '../settings/settings_state.dart';
+import '../trade/trade_mock.dart';
 import 'chart_sheet.dart';
 import 'trader_market_chart.dart';
 import 'trader_market_mock.dart';
@@ -33,13 +36,42 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
       ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
   }
 
+  int _interval = TraderMarketMock.defaultInterval;
+
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: DisplayPrefs.chartMode,
+      builder: (context, mode, _) => _sheet(mode),
+    );
+  }
+
+  Widget _sheet(PlotMode mode) {
+    final period = TradeMock.periods[_interval];
     return ChartSheet(
       header: _header,
-      chart: (t) => TraderMarketChart(collapse: t),
+      // Line is the designed market-cap chart; candles draw the unit price.
+      chart: (t) => mode == PlotMode.line
+          ? TraderMarketChart(collapse: t)
+          : PriceChart(
+              period: period,
+              candles: sampleCandles(
+                key: 'market/${TraderMarketMock.intervals[_interval]}',
+                last: TraderMarketMock.unitPrice,
+                period: period,
+                end: alignToPeriod(TradeMock.chartEnd, period),
+              ),
+            ),
+      chartTypeAsset: mode == PlotMode.candles
+          ? VistaAssets.chartTypeCandles
+          : VistaAssets.chartTypeToggle,
+      // Same preference as Settings › Display › Charts.
+      onChartType: () => DisplayPrefs.chartMode.value = mode == PlotMode.candles
+          ? PlotMode.line
+          : PlotMode.candles,
       intervals: TraderMarketMock.intervals,
       defaultInterval: TraderMarketMock.defaultInterval,
+      onIntervalChanged: (i) => setState(() => _interval = i),
       onNotBuilt: _notBuilt,
       panels: [
         ChartSheetPanel('Market', _marketPanel()),

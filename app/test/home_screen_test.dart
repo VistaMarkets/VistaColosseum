@@ -3,13 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
+import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/account/account_top_bar.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
+import 'package:vista_colosseum/features/settings/settings_screen.dart';
+import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
 import 'package:vista_colosseum/features/trade/candle_chart.dart';
 import 'package:vista_colosseum/main.dart';
@@ -46,6 +50,12 @@ Future<void> _loadFonts() async {
 
 void main() {
   setUpAll(_loadFonts);
+  // Most screens assume the user already has a market; the make-a-market
+  // group below starts without one.
+  setUp(() {
+    AccountState.reset(withMarket: true);
+    SettingsState.reset();
+  });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
     testWidgets('Home renders without overflow on $name', (tester) async {
@@ -735,6 +745,11 @@ void main() {
       await tester.drag(find.byType(ListView).last, const Offset(0, -300));
       await tester.pumpAndSettle();
       expect(tester.getTopLeft(find.text('Volume')), before);
+      // Left-aligned with the page gutter, not centred.
+      expect(
+        tester.getTopLeft(find.byType(VistaFilterChip).first).dx,
+        closeTo(VistaSpace.gutter, 1),
+      );
       expect(
         tester.getTopLeft(find.byType(VistaBattleCard).first).dy,
         lessThan(card.dy),
@@ -845,8 +860,8 @@ void main() {
         expect(settings, findsOneWidget);
         expect(tester.getRect(settings).left, greaterThan(deposit.left));
         await tester.tap(settings);
-        await tester.pump();
-        expect(find.text('Settings — not in the demo yet'), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.byType(SettingsScreen), findsOneWidget);
       } else {
         expect(settings, findsNothing);
         expect(deposit.right, greaterThan(402 - 16 - 20));
@@ -917,6 +932,28 @@ void main() {
       await tester.pumpAndSettle();
       expect(visible('Nearest liquidations'), findsNothing);
       expect(find.byType(CandleChart), findsOneWidget);
+      // Generated SOL history ends on the quoted price.
+      expect(find.text('214.90'), findsOneWidget);
+      PlotMode mode() =>
+          tester.widget<PriceChart>(find.byType(PriceChart)).mode;
+      expect(mode(), PlotMode.candles);
+
+      Finder toggle(String asset) =>
+          find.byWidgetPredicate((w) => w is VistaIcon && w.asset == asset);
+      await tester.tap(toggle(VistaAssets.chartTypeCandles));
+      await tester.pump();
+      expect(mode(), PlotMode.line);
+      await tester.tap(toggle(VistaAssets.chartTypeToggle));
+      await tester.pump();
+      expect(mode(), PlotMode.candles);
+
+      await tester.tap(find.text('1D'));
+      await tester.pump();
+      expect(
+        tester.widget<PriceChart>(find.byType(PriceChart)).period,
+        const Duration(days: 1),
+      );
+      expect(tester.takeException(), isNull);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -980,11 +1017,31 @@ void main() {
       expect(find.text(r'$3,514'), findsOneWidget);
       expect(find.text('+3.0%'), findsOneWidget);
 
-      // + nudges take profit up by 0.5% of entry.
+      // + nudges take profit up by 0.5% of entry, and its line moves up.
+      final tpBefore = tester.getTopLeft(find.text(r'TP $3,514')).dy;
       await tester.tap(find.bySemanticsLabel('Raise Take profit'));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(find.text(r'$3,531'), findsOneWidget);
       expect(find.text('+3.5%'), findsOneWidget);
+      expect(tester.getTopLeft(find.text(r'TP $3,531')).dy, lessThan(tpBefore));
+
+      // An edited level turns Close into Edit; saving turns it back.
+      expect(find.bySemanticsLabel('Close position'), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Save take profit and stop loss'));
+      await tester.pump();
+      expect(
+        find.text('Take profit and stop loss updated (simulated)'),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Close position'), findsOneWidget);
+
+      // Nudging back and forth to the saved value also restores Close.
+      await tester.tap(find.bySemanticsLabel('Lower Stop loss'));
+      await tester.pump();
+      expect(find.text('Edit'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Raise Stop loss'));
+      await tester.pumpAndSettle();
+      expect(find.text('Close'), findsOneWidget);
 
       // Close dismisses the sheet (simulated).
       await tester.tap(find.bySemanticsLabel('Close position'));
@@ -1000,7 +1057,7 @@ void main() {
       await openPosition(tester, 'Solana');
       expect(find.text(r'−$30.00'), findsOneWidget);
       final sl = tester.getTopLeft(find.text(r'SL $217.90'));
-      final tp = tester.getTopLeft(find.text(r'TP $207.20'));
+      final tp = tester.getTopLeft(find.text(r'TP $210.77'));
       expect(sl.dy, lessThan(tp.dy));
       // Take profit can't cross to the losing side of entry.
       for (var i = 0; i < 10; i++) {
@@ -1013,6 +1070,215 @@ void main() {
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('renders without overflow on $name', (tester) async {
         await openPosition(tester, 'Ethereum', size, padding);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('make a market', () {
+    setUp(() => AccountState.reset(withMarket: false));
+
+    Future<void> openWallet(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('without a market Portfolio offers Make a market', (
+      tester,
+    ) async {
+      await openWallet(tester);
+      expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
+      expect(find.text('Your market'), findsNothing);
+      // No market-cap page to swipe to.
+      final chart = tester.getCenter(pagerBalance) + const Offset(0, 150);
+      await tester.flingFrom(chart, const Offset(-250, 0), 1000);
+      await tester.pumpAndSettle();
+      expect(find.text(r'$MAYA market cap').hitTestable(), findsNothing);
+    });
+
+    testWidgets('create → consent → live lists the market', (tester) async {
+      await openWallet(tester);
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+
+      // 1 · Create: taken tickers block Continue; a suggestion fixes it.
+      expect(find.text('✓ Available'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'btc');
+      await tester.pump();
+      expect(find.text('× Taken'), findsOneWidget);
+      expect(find.text(r'$BTC'), findsOneWidget); // uppercased
+      await tester.tap(find.text(r'Continue with $BTC'));
+      await tester.pump();
+      expect(find.text('Before you list'), findsNothing);
+
+      await tester.tap(find.bySemanticsLabel(r'Use $MACRO'));
+      await tester.pump();
+      await tester.tap(find.text(r'Continue with $MACRO'));
+      await tester.pumpAndSettle();
+
+      // 2 · Consent: every box is required.
+      expect(find.text('Your market has two sides'), findsOneWidget);
+      expect(find.text(r'Some will short $MACRO'), findsOneWidget);
+      await tester.tap(find.text(r'Create $MACRO'));
+      await tester.pump();
+      expect(find.text('Your market is open'), findsNothing);
+      for (var i = 0; i < 4; i++) {
+        final box = find.byType(VistaCheckRow).at(i);
+        await tester.tap(box);
+        await tester.pump();
+      }
+      await tester.tap(find.text(r'Create $MACRO'));
+      await tester.pumpAndSettle();
+
+      // 3 · Live, with the confetti burst.
+      expect(find.text('Your market is open'), findsOneWidget);
+      expect(find.text(r'$10,000'), findsOneWidget);
+      expect(AccountState.hasMarket.value, isTrue);
+
+      // Back on Portfolio: fees row and the new market-cap page.
+      await tester.tap(find.bySemanticsLabel('Close'));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('Make a market'), findsNothing);
+      expect(find.text('Your market'), findsOneWidget);
+      expect(find.text(r'$MACRO market cap'), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('flow renders without overflow on $name', (tester) async {
+        await openWallet(tester, size, padding);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.bySemanticsLabel('Make a market'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text(r'Continue with $MAYA'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        for (var i = 0; i < 4; i++) {
+          final box = find.byType(VistaCheckRow).at(i);
+          await tester.ensureVisible(box);
+          await tester.tap(box);
+          await tester.pump();
+        }
+        await tester.tap(find.text(r'Create $MAYA'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('settings', () {
+    Future<void> openSettings(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Settings'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsScreen), findsOneWidget);
+    }
+
+    Future<void> open(WidgetTester tester, String section) async {
+      final row = find.text(section);
+      await tester.scrollUntilVisible(
+        row,
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('gear opens Settings; notification switches update summary', (
+      tester,
+    ) async {
+      await openSettings(tester);
+      expect(find.text('maya.eth'), findsOneWidget);
+      expect(find.text('All on'), findsOneWidget);
+      expect(find.text('Calls'), findsNothing);
+
+      await open(tester, 'Notifications');
+      expect(find.text('Calls'), findsOneWidget);
+      expect(find.text('WHO NOTIFIES YOU'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Flips notifications'));
+      await tester.pumpAndSettle();
+      expect(SettingsState.notify.value['flips'], isFalse);
+      expect(find.text('3 of 4 on'), findsOneWidget);
+      expect(SettingsState.notifyFrom.value['0xreal'], isFalse);
+    });
+
+    testWidgets('Display settings change the charts and the Long side', (
+      tester,
+    ) async {
+      await openSettings(tester);
+      await open(tester, 'Display');
+      await tester.tap(find.text('Line'));
+      await tester.tap(find.text('Right'));
+      await tester.pumpAndSettle();
+      expect(DisplayPrefs.chartMode.value, PlotMode.line);
+      expect(DisplayPrefs.longOnRight.value, isTrue);
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Details').first);
+      await tester.pumpAndSettle();
+      await tester.fling(
+        find.byType(VistaDragHandle),
+        const Offset(0, 400),
+        1500,
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<PriceChart>(find.byType(PriceChart)).mode,
+        PlotMode.line,
+      );
+      // Long now sits to the right of Short.
+      final long = tester.getCenter(find.text('Long').last);
+      final short = tester.getCenter(find.text('Short').last);
+      expect(long.dx, greaterThan(short.dx));
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders every section without overflow on $name', (
+        tester,
+      ) async {
+        await openSettings(tester, size, padding);
+        for (final section in [
+          'Notifications',
+          'Display',
+          'Security',
+          'Legal and privacy',
+          'Help and support',
+        ]) {
+          await open(tester, section);
+          expect(tester.takeException(), isNull);
+        }
+        await tester.scrollUntilVisible(
+          find.text('Log out'),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
         expect(tester.takeException(), isNull);
       });
     }

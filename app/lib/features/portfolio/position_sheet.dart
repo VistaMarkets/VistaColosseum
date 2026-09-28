@@ -36,6 +36,16 @@ class PositionSheet extends StatefulWidget {
 class _PositionSheetState extends State<PositionSheet> {
   late double _tp = widget.position.detail.takeProfit;
   late double _sl = widget.position.detail.stopLoss;
+
+  /// Levels as last saved; editing either turns Close into Edit.
+  late double _savedTp = _tp;
+  late double _savedSl = _sl;
+
+  /// Tolerance for float drift from repeated nudges (a millionth of entry).
+  double get _eps => _d.entry * 1e-6;
+
+  bool get _edited =>
+      (_tp - _savedTp).abs() > _eps || (_sl - _savedSl).abs() > _eps;
   int _span = PortfolioMock.defaultSpan;
 
   PositionDetail get _d => widget.position.detail;
@@ -155,9 +165,15 @@ class _PositionSheetState extends State<PositionSheet> {
               height: 180,
               child: _PositionChart(
                 long: _long,
-                tp: 'TP ${_usd(_tp)}',
-                entry: 'Entry ${_usd(_d.entry)}',
-                sl: 'SL ${_usd(_sl)}',
+                entry: _d.entry,
+                takeProfit: _tp,
+                stopLoss: _sl,
+                // The designed chart's scale: its top line (TP on a long,
+                // SL on a short) at the original level.
+                topReference: _long ? _d.takeProfit : _d.stopLoss,
+                tpLabel: 'TP ${_usd(_tp)}',
+                entryLabel: 'Entry ${_usd(_d.entry)}',
+                slLabel: 'SL ${_usd(_sl)}',
               ),
             ),
             gap,
@@ -189,21 +205,28 @@ class _PositionSheetState extends State<PositionSheet> {
               onPlus: () => _nudge(takeProfit: false, dir: 1),
             ),
             gap,
+            // Close, or Edit once take profit / stop loss has changed.
             Semantics(
               button: true,
-              label: 'Close position',
+              label: _edited
+                  ? 'Save take profit and stop loss'
+                  : 'Close position',
               excludeSemantics: true,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _close,
-                child: Container(
+                onTap: _edited ? _saveEdits : _close,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: VistaColors.short,
+                    color: _edited ? VistaColors.accent : VistaColors.short,
                     borderRadius: BorderRadius.circular(VistaRadius.pill),
                   ),
-                  child: Text('Close', style: VistaType.headline),
+                  child: Text(
+                    _edited ? 'Edit' : 'Close',
+                    style: VistaType.headline,
+                  ),
                 ),
               ),
             ),
@@ -211,6 +234,21 @@ class _PositionSheetState extends State<PositionSheet> {
         ),
       ),
     );
+  }
+
+  void _saveEdits() {
+    // Simulated only: the new levels live in this sheet.
+    setState(() {
+      _savedTp = _tp;
+      _savedSl = _sl;
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Take profit and stop loss updated (simulated)'),
+        ),
+      );
   }
 
   void _close() {
@@ -289,25 +327,47 @@ class _PositionSheetState extends State<PositionSheet> {
   }
 }
 
-/// Price since entry against the take-profit, entry and stop-loss lines
-/// (static Figma vectors on a 370×180 box; x stretches). On a short the
-/// stop-loss sits above entry and take-profit below.
+/// Price since entry against the take-profit, entry and stop-loss lines.
+///
+/// The curve and lattice are the static Figma vectors on a 370×180 box
+/// (x stretches). The TP / SL lines sit at their prices on the chart's price
+/// scale — taken from the design, where the top line (TP on a long, SL on a
+/// short) is 82.4pt above entry — so nudging a level moves its line.
 class _PositionChart extends StatelessWidget {
   const _PositionChart({
     required this.long,
-    required this.tp,
     required this.entry,
-    required this.sl,
+    required this.takeProfit,
+    required this.stopLoss,
+    required this.topReference,
+    required this.tpLabel,
+    required this.entryLabel,
+    required this.slLabel,
   });
 
   final bool long;
-  final String tp;
-  final String entry;
-  final String sl;
+  final double entry;
+  final double takeProfit;
+  final double stopLoss;
+  final double topReference;
+  final String tpLabel;
+  final String entryLabel;
+  final String slLabel;
+
+  static const double _entryY = 103.74;
+  static const double _topY = 21.31;
+
+  /// Lines stay inside the chart with room for their labels.
+  static const double _minY = 4;
+  static const double _maxY = 176;
 
   @override
   Widget build(BuildContext context) {
+    final pointsPerUnit = (_entryY - _topY) / (topReference - entry).abs();
+    double y(double price) =>
+        (_entryY - (price - entry) * pointsPerUnit).clamp(_minY, _maxY);
     final label = VistaType.label;
+    const move = Duration(milliseconds: 180);
     return LayoutBuilder(
       builder: (context, c) {
         final sx = c.maxWidth / 370;
@@ -324,21 +384,50 @@ class _PositionChart extends StatelessWidget {
           height: h,
           child: SvgPicture.asset(asset, fit: BoxFit.fill),
         );
-        final (topLine, topLabel, topColor) = long
-            ? (VistaAssets.positionTpLine, tp, VistaColors.long)
-            : (VistaAssets.positionSlLine, sl, VistaColors.short);
-        final (bottomLine, bottomLabel, bottomColor) = long
-            ? (VistaAssets.positionSlLine, sl, VistaColors.short)
-            : (VistaAssets.positionTpLine, tp, VistaColors.long);
+
+        // A dotted level line with its label: below the line when it's in
+        // the top half, above it in the bottom half.
+        List<Widget> level(double lineY, String asset, String text, Color c) {
+          final below = lineY < _entryY;
+          return [
+            AnimatedPositioned(
+              duration: move,
+              curve: Curves.easeOut,
+              left: 0,
+              width: 370 * sx,
+              top: lineY - 1.5,
+              height: 1.5,
+              child: SvgPicture.asset(asset, fit: BoxFit.fill),
+            ),
+            AnimatedPositioned(
+              duration: move,
+              curve: Curves.easeOut,
+              left: 0,
+              top: below ? lineY + 3 : lineY - 16,
+              child: Text(text, style: label.copyWith(color: c)),
+            ),
+          ];
+        }
+
         return Stack(
           clipBehavior: Clip.none,
           children: [
             layer(VistaAssets.positionLattice, 0, 0, 370, 180),
-            layer(topLine, 0, 21.31 - 1.5, 370, 1.5),
-            layer(bottomLine, 0, 158.69 - 1.5, 370, 1.5),
-            layer(VistaAssets.marketBaseline, 0, 103.74 - 1, 370, 1),
+            layer(VistaAssets.marketBaseline, 0, _entryY - 1, 370, 1),
             layer(VistaAssets.positionClipAbove, -5, 0, 380, 103.737),
-            layer(VistaAssets.positionClipBelow, -5, 103.74, 380, 82.263),
+            layer(VistaAssets.positionClipBelow, -5, _entryY, 380, 82.263),
+            ...level(
+              y(takeProfit),
+              VistaAssets.positionTpLine,
+              tpLabel,
+              VistaColors.long,
+            ),
+            ...level(
+              y(stopLoss),
+              VistaAssets.positionSlLine,
+              slLabel,
+              VistaColors.short,
+            ),
             Positioned(
               left: c.maxWidth - 6.5,
               top: 34.85,
@@ -351,23 +440,10 @@ class _PositionChart extends StatelessWidget {
             ),
             Positioned(
               left: 0,
-              top: 24.31,
-              child: Text(topLabel, style: label.copyWith(color: topColor)),
-            ),
-            Positioned(
-              left: 0,
-              top: 106.74,
+              top: _entryY + 3,
               child: Text(
-                entry,
+                entryLabel,
                 style: label.copyWith(color: VistaColors.textMuted),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              top: 142.69,
-              child: Text(
-                bottomLabel,
-                style: label.copyWith(color: bottomColor),
               ),
             ),
           ],

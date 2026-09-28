@@ -108,3 +108,33 @@ class VistaRailButton extends StatelessWidget {
     );
   }
 }
+
+/// Two equal buttons for opposite sides, long (or bull) and short (or bear),
+/// in the order the viewer chose in Settings › Display: long on the left by
+/// default, or on the right when [longOnRight] is set.
+class VistaSidePair extends StatelessWidget {
+  const VistaSidePair({
+    super.key,
+    required this.long,
+    required this.short,
+    required this.longOnRight,
+    this.gap = VistaSpace.lg,
+  });
+
+  final Widget long;
+  final Widget short;
+  final bool longOnRight;
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) {
+    final (first, second) = longOnRight ? (short, long) : (long, short);
+    return Row(
+      children: [
+        Expanded(child: first),
+        SizedBox(width: gap),
+        Expanded(child: second),
+      ],
+    );
+  }
+}

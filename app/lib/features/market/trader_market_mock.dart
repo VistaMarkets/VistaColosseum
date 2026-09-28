@@ -47,6 +47,7 @@ abstract final class TraderMarketMock {
   static const capChange = r'+$1.8M';
   static const change24h = '+4.27%';
   static const unitLine = r'Market cap · $0.4400 per unit';
+  static const unitPrice = 0.44;
 
   static const intervals = ['1m', '5m', '15m', '1h', '4h', '1D'];
   static const defaultInterval = 2; // 15m

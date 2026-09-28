@@ -130,6 +130,18 @@ abstract final class VistaAssets {
   static const String positionSlLine = '$_dir/position_sl_line.svg';
   static const String positionClipAbove = '$_dir/position_clip_above.svg';
   static const String positionClipBelow = '$_dir/position_clip_below.svg';
+  // Make a market (Figma 175:218 button, 338:102 create, 329:102 consent,
+  // 348:624 live).
+  static const String makeMarketButtonDots =
+      '$_dir/make_market_button_dots.svg';
+  static const String mmCardLattice = '$_dir/mm_card_lattice.svg';
+  static const String mmPreviewChart = '$_dir/mm_preview_chart.svg';
+  static const String mmImageGlow = '$_dir/mm_image_glow.svg';
+  static const String mmImageInner = '$_dir/mm_image_inner.svg';
+  static const String mmAddImage = '$_dir/mm_add_image.svg';
+  static const String termsDashedLine = '$_dir/terms_dashed_line.svg';
+  static const String mmLiveLattice = '$_dir/mm_live_lattice.svg';
+  static const String mmLiveAvatar = '$_dir/mm_live_avatar.svg';
   static const String feesDot = '$_dir/fees_dot.svg';
   static const String coinPlaceholder = '$_dir/coin_placeholder.svg';
   static const String sparkEth = '$_dir/spark_eth.svg';
