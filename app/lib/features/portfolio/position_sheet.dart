@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
+import '../live/market_prices.dart';
 import 'portfolio_mock.dart';
 
 /// Slides the position sheet up from the bottom (Figma 104:110, "Position
@@ -152,9 +153,13 @@ class _PositionSheetState extends State<PositionSheet> {
             Row(
               children: [
                 // The live price keeps cents even when levels don't.
-                Text(
-                  '${_d.symbol} ${formatUsd(_d.price, decimals: _d.decimals < 2 ? 2 : _d.decimals)}',
-                  style: VistaType.body,
+                // The market's one live price.
+                ValueListenableBuilder(
+                  valueListenable: MarketPrices.of(_d.symbol),
+                  builder: (context, price, _) => Text(
+                    '${_d.symbol} ${formatUsd(price, decimals: _d.decimals < 2 ? 2 : _d.decimals)}',
+                    style: VistaType.body,
+                  ),
                 ),
                 const SizedBox(width: VistaSpace.sm),
                 Text('· entry ${_usd(_d.entry)}', style: VistaType.bodyRegular),

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
 import '../live/live_feed.dart';
+import '../live/market_prices.dart';
 import 'mock_trade_idea.dart';
 import 'replay_timeline.dart';
 import 'signal_replay_chart.dart';
@@ -189,12 +190,10 @@ class _CallHeader extends StatelessWidget {
   }
 }
 
-/// The card's live price feed, shared by the header and the chart.
-ValueListenable<double> _livePrice(TradeIdea idea) => LiveFeed.watch(
-  'card:${idea.ticker}',
-  parseUsd(idea.price),
-  parseUsd(idea.price) * 0.0005,
-);
+/// The market's one live price, shared by the header, the chart and every
+/// other screen showing this market.
+ValueListenable<double> _livePrice(TradeIdea idea) =>
+    MarketPrices.of(idea.ticker);
 
 /// Price and "% since call". During the replay both follow the chart's tip
 /// from the call price, with "replaying" in place of "since call"; then the
@@ -210,8 +209,8 @@ class _PriceBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final change = VistaType.bodyStrong;
     if (frame.replaying) {
-      final call = parseUsd(idea.callPrice);
-      final price = call + (parseUsd(idea.price) - call) * frame.priceFraction;
+      final call = idea.callPrice;
+      final price = call + (idea.price - call) * frame.priceFraction;
       var pct = (price - call) / call * 100;
       if (idea.side == TradeSide.short) pct = -pct;
       final colour = pct >= 0 ? VistaColors.long : VistaColors.short;
@@ -220,7 +219,7 @@ class _PriceBlock extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            formatUsd(price, decimals: 2),
+            formatUsd(price, decimals: MarketPrices.decimalsFor(idea.price)),
             style: VistaType.displayNumber.copyWith(fontFeatures: tabular),
           ),
           const SizedBox(height: 1),
@@ -252,10 +251,10 @@ class _PriceBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         LiveUsd(
-          feedKey: 'card:${idea.ticker}',
-          base: parseUsd(idea.price),
-          step: parseUsd(idea.price) * 0.0005,
-          decimals: 2,
+          feedKey: MarketPrices.feedKey(idea.ticker),
+          base: idea.price,
+          step: MarketPrices.step(idea.ticker),
+          decimals: MarketPrices.decimalsFor(idea.price),
           style: VistaType.displayNumber,
         ),
         const SizedBox(height: 1),
@@ -265,7 +264,7 @@ class _PriceBlock extends StatelessWidget {
           child: ValueListenableBuilder(
             valueListenable: _livePrice(idea),
             builder: (context, live, _) {
-              final call = parseUsd(idea.callPrice);
+              final call = idea.callPrice;
               var pct = (live - call) / call * 100;
               if (idea.side == TradeSide.short) pct = -pct;
               final colour = pct >= 0 ? VistaColors.long : VistaColors.short;
@@ -321,8 +320,7 @@ class _ChartWithRail extends StatelessWidget {
             frame: frame,
             // The same live price as the header, so both show one number.
             livePrice: _livePrice(idea),
-            callPrice: parseUsd(idea.callPrice),
-            nowPrice: parseUsd(idea.price),
+            script: idea.script,
           ),
         ),
         // Live fills stream; older entries fade.

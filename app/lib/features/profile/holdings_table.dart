@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../live/market_prices.dart';
 import 'profile_mock.dart';
 
 /// "Holding now" table: asset, side, entry, current and P/L per position,
@@ -56,9 +57,13 @@ class HoldingsTable extends StatelessWidget {
                 color: VistaColors.textMuted,
               ),
             ),
-            current: Text(
-              h.current,
-              style: VistaType.body.copyWith(fontSize: 14),
+            // The market's one live price.
+            current: ValueListenableBuilder(
+              valueListenable: MarketPrices.of(h.ticker),
+              builder: (context, price, _) => Text(
+                MarketPrices.format(price, compact: true),
+                style: VistaType.body.copyWith(fontSize: 14),
+              ),
             ),
             pnl: Text(
               h.pnl,

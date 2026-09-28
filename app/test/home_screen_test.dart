@@ -9,6 +9,7 @@ import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/account/account_top_bar.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
+import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
@@ -19,6 +20,10 @@ import 'package:vista_colosseum/features/watchlist/edit_favorites_screen.dart';
 import 'package:vista_colosseum/features/watchlist/watchlist_state.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
 import 'package:vista_colosseum/features/trade/candle_chart.dart';
+import 'package:vista_colosseum/features/live/market_prices.dart';
+import 'package:vista_colosseum/features/home/replay_script.dart';
+import 'package:vista_colosseum/features/markets/markets_mock.dart';
+import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/main.dart';
 
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
@@ -184,11 +189,15 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 16));
       expect(feed.pixels, closeTo(feed.viewportDimension, 1));
+      // The next card is another market, with its own replay story.
+      final next = mockFeed[1];
+      expect(next.ticker, isNot(mockFeed.first.ticker));
+      final payoff = find.text(next.script.events.last.label);
       // Swipe has settled; the new card has only just started tracing.
-      expect(breakoutLabel.hitTestable(), findsNothing);
+      expect(payoff.hitTestable(), findsNothing);
 
       await tester.pumpAndSettle();
-      expect(breakoutLabel.hitTestable(), findsOneWidget);
+      expect(payoff.hitTestable(), findsOneWidget);
     });
 
     testWidgets('fills arrive oldest first and settle at design opacity', (
@@ -1136,17 +1145,17 @@ void main() {
       expect(find.byType(PositionSheet), findsOneWidget);
       expect(find.text('Unrealised P/L'), findsOneWidget);
       expect(find.text(r'+$90.00'), findsOneWidget);
-      expect(find.text(r'ETH $3,489.20'), findsOneWidget);
-      expect(find.text(r'$3,514'), findsOneWidget);
+      expect(find.text(r'ETH $2,968.40'), findsOneWidget);
+      expect(find.text(r'$2,990'), findsOneWidget);
       expect(find.text('+3.0%'), findsOneWidget);
 
       // + nudges take profit up by 0.5% of entry, and its line moves up.
-      final tpBefore = tester.getTopLeft(find.text(r'TP $3,514')).dy;
+      final tpBefore = tester.getTopLeft(find.text(r'TP $2,990')).dy;
       await tester.tap(find.bySemanticsLabel('Raise Take profit'));
       await tester.pumpAndSettle();
-      expect(find.text(r'$3,531'), findsOneWidget);
+      expect(find.text(r'$3,004'), findsOneWidget);
       expect(find.text('+3.5%'), findsOneWidget);
-      expect(tester.getTopLeft(find.text(r'TP $3,531')).dy, lessThan(tpBefore));
+      expect(tester.getTopLeft(find.text(r'TP $3,004')).dy, lessThan(tpBefore));
 
       // An edited level turns Close into Edit; saving turns it back.
       expect(find.bySemanticsLabel('Close position'), findsNothing);
@@ -1532,9 +1541,9 @@ void main() {
       await openOrders(tester);
       expect(find.text('Open orders · 3'), findsOneWidget);
       Finder rich(String text) => find.textContaining(text, findRichText: true);
-      expect(rich(r'Fills at $3,350.00 · 4.0% below mark'), findsOneWidget);
-      expect(find.text(r'Size $2,513 · 0.75 ETH'), findsOneWidget);
-      expect(find.text(r'TP $3,600.00'), findsOneWidget);
+      expect(rich(r'Fills at $2,850.00 · 4.0% below mark'), findsOneWidget);
+      expect(find.text(r'Size $2,138 · 0.75 ETH'), findsOneWidget);
+      expect(find.text(r'TP $3,060.00'), findsOneWidget);
       // Only what the order needs: no venue, age or source call.
       expect(find.textContaining('Jupiter'), findsNothing);
       expect(find.textContaining("'s call"), findsNothing);
@@ -1566,5 +1575,104 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  group('markets everywhere', () {
+    tearDown(() {
+      final eth = MarketPrices.of('ETH') as ValueNotifier<double>;
+      eth.value = MarketPrices.base('ETH');
+    });
+
+    testWidgets('one ETH price on Home, Explore and the trade page', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      expect(find.text(r'$2,968.40'), findsWidgets); // Home, ETH card
+
+      // Move the one ETH price; every screen follows it.
+      (MarketPrices.of('ETH') as ValueNotifier<double>).value = 3001.25;
+      await tester.pumpAndSettle();
+      expect(find.text(r'$3,001.25'), findsWidgets);
+
+      await tester.tap(find.bySemanticsLabel('Explore'));
+      await tester.pumpAndSettle();
+      expect(find.text(r'$3,001'), findsWidgets); // compact, in the list
+      await tester.tap(
+        find.descendant(
+          of: find.byType(VistaMarketRow),
+          matching: find.text('ETH'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(r'$3,001.25'), findsOneWidget);
+    });
+
+    test('the feed has one call on every market Explore offers', () {
+      final markets = [
+        for (final m in [...MarketsMock.assets, ...MarketsMock.traders]) m.id,
+      ];
+      expect(
+        [for (final i in mockFeed) i.ticker],
+        markets.toList()
+          ..remove('ETH')
+          ..insert(0, 'ETH'),
+      );
+      for (final i in mockFeed) {
+        expect(
+          i.traderMarket,
+          MarketsMock.traders.any((m) => m.id == i.ticker),
+        );
+        expect(MarketPrices.base(i.ticker), greaterThan(0));
+      }
+    });
+
+    test('generated replays are repeatable and fit the frame', () {
+      for (final idea in mockFeed.skip(1)) {
+        final s = idea.script;
+        expect(s.path.length, 48);
+        expect(s.entryY, inInclusiveRange(70, 330));
+        for (final p in s.path) {
+          expect(p.dy, inInclusiveRange(23.9, 379.1));
+        }
+        // Up to the whale the path stays below the live-activity rows.
+        for (final p in s.path.take(37)) {
+          expect(p.dy, greaterThanOrEqualTo(149.9));
+        }
+        expect(s.events.map((e) => e.vertex), [20, 33, 44]);
+        final again = ReplayScript.generate(
+          seed: idea.ticker,
+          callPrice: idea.callPrice,
+          nowPrice: MarketPrices.base(idea.ticker),
+          side: idea.side,
+          age: idea.age,
+          whale: r'$1M',
+        );
+        expect(again.path, s.path);
+      }
+    });
+
+    testWidgets('a trader-market card opens that trader market', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      final feed = tester.widget<PageView>(find.byType(PageView).first);
+      final index = mockFeed.indexWhere((i) => i.traderMarket);
+      feed.controller!.jumpToPage(index);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Details').hitTestable());
+      await tester.pumpAndSettle();
+      expect(find.byType(TraderMarketScreen), findsOneWidget);
+      expect(find.text(mockFeed[index].ticker), findsWidgets);
+    });
   });
 }

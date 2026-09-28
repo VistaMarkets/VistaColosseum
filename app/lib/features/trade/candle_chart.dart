@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../charting/charting.dart';
-import '../live/live_feed.dart';
+import '../live/market_prices.dart';
 import 'trade_mock.dart';
 
 /// An asset's live price chart (Figma "TradeChart"). BTC on 15m starts from
@@ -58,12 +58,8 @@ class _CandleChartState extends State<CandleChart> {
     return LiveCandles(
       seed: seed,
       period: period,
-      // Same key, base and step as the header's LiveUsd.
-      price: LiveFeed.watch(
-        'asset:${widget.ticker}',
-        widget.price,
-        widget.price * 0.0004,
-      ),
+      // The market's one live price, shared with every other screen.
+      price: MarketPrices.of(widget.ticker),
     );
   }
 

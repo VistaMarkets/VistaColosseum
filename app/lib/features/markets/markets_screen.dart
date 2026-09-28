@@ -5,6 +5,7 @@ import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import '../watchlist/edit_favorites_screen.dart';
 import '../watchlist/watchlist_state.dart';
+import '../live/market_prices.dart';
 import 'markets_mock.dart';
 
 /// Explore tab: Assets and Traders markets (Figma 185:110, 222:110).
@@ -163,16 +164,19 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           const SizedBox(width: VistaSpace.lg),
                       itemBuilder: (context, i) {
                         final m = favItems[i];
-                        return VistaMarketCard(
-                          icon: m.railIcon,
-                          name: m.name,
-                          badge: m.badge ?? '',
-                          price: m.price,
-                          changePct: m.changePct,
-                          sparkAsset: m.spark,
-                          footLeft: m.footLeft,
-                          footRight: m.footRight,
-                          onPressed: () => _open(m),
+                        return ValueListenableBuilder(
+                          valueListenable: MarketPrices.of(m.id),
+                          builder: (context, price, _) => VistaMarketCard(
+                            icon: m.railIcon,
+                            name: m.name,
+                            badge: m.badge ?? '',
+                            price: MarketPrices.format(price, compact: true),
+                            changePct: m.changePct,
+                            sparkAsset: m.spark,
+                            footLeft: m.footLeft,
+                            footRight: m.footRight,
+                            onPressed: () => _open(m),
+                          ),
                         );
                       },
                     ),
@@ -237,17 +241,20 @@ class _MarketsScreenState extends State<MarketsScreen> {
                 for (final m in rows)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(6, 0, 6, VistaSpace.md),
-                    child: VistaMarketRow(
-                      starred: favs.contains(m.id),
-                      onStar: () => _toggleFavorite(m.id),
-                      icon: m.rowIcon,
-                      name: m.name,
-                      badge: m.badge,
-                      subline: m.subline,
-                      price: m.price,
-                      changePct: m.changePct,
-                      third: m.third,
-                      onPressed: () => _open(m),
+                    child: ValueListenableBuilder(
+                      valueListenable: MarketPrices.of(m.id),
+                      builder: (context, price, _) => VistaMarketRow(
+                        starred: favs.contains(m.id),
+                        onStar: () => _toggleFavorite(m.id),
+                        icon: m.rowIcon,
+                        name: m.name,
+                        badge: m.badge,
+                        subline: m.subline,
+                        price: MarketPrices.format(price, compact: true),
+                        changePct: m.changePct,
+                        third: m.third,
+                        onPressed: () => _open(m),
+                      ),
                     ),
                   ),
               ],

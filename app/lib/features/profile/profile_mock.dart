@@ -77,8 +77,8 @@ abstract final class ProfileMock {
       ticker: 'ETH',
       side: TradeSide.long,
       leverage: 3,
-      entry: r'$3,136',
-      current: r'$3,180',
+      entry: r'$2,927',
+      current: r'$2,968',
       pnl: '+4.2%',
     ),
     Holding(

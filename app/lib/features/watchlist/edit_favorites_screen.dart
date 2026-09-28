@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../markets/markets_mock.dart';
+import '../live/market_prices.dart';
 import 'watchlist_state.dart';
 
 /// Edit favourites (Explore › Favorites › Edit): drag to reorder, tap the
@@ -124,7 +125,10 @@ class EditFavoritesScreen extends StatelessWidget {
                         index: i,
                         name: id,
                         icon: m?.rowIcon,
-                        detail: m == null ? null : '${m.price} · ${m.subline}',
+                        detail: m == null
+                            ? null
+                            : '${MarketPrices.format(MarketPrices.now(id), compact: true)}'
+                                  ' · ${m.subline}',
                         onRemove: () => _remove(context, id, i),
                       );
                     },

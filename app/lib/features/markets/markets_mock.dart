@@ -73,7 +73,7 @@ abstract final class MarketsMock {
       railIcon: VistaAssets.coinEthRail,
       badge: '50x',
       subline: r'OI $290M',
-      price: r'$3,180',
+      price: r'$2,968',
       changePct: -0.4,
       third: '−0.004%',
       sortValues: {'Volume': 290, 'Change': -0.4, 'Funding': -0.004},

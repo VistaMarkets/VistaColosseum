@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart';
 
 import '../../design_system/design_system.dart';
+import '../live/market_prices.dart';
 
 /// One open position. Demo data only; nothing here is a real balance.
 class PortfolioPosition {
@@ -94,10 +95,10 @@ abstract final class PortfolioMock {
         pnl: r'+$90.00',
         size: r'$4,000 position',
         symbol: 'ETH',
-        price: 3489.20,
-        entry: 3412,
-        takeProfit: 3514,
-        stopLoss: 3344,
+        price: 2968.40,
+        entry: 2902.70,
+        takeProfit: 2989.50,
+        stopLoss: 2844.80,
       ),
     ),
     PortfolioPosition(
@@ -157,7 +158,6 @@ class OpenOrder {
     required this.side,
     required this.leverage,
     required this.limitPrice,
-    required this.markPrice,
     required this.quantity,
     required this.filled,
     this.decimals = 2,
@@ -175,8 +175,8 @@ class OpenOrder {
   final int leverage;
   final double limitPrice;
 
-  /// The market's current price, for how far the limit is from filling.
-  final double markPrice;
+  /// The market's live price, for how far the limit is from filling.
+  double get markPrice => MarketPrices.now(symbol);
 
   /// Order size and how much of it has filled, in asset units.
   final double quantity;
@@ -200,7 +200,7 @@ class OpenOrder {
 }
 
 /// Open orders for the Portfolio "Open orders" tab. Marks match the
-/// position sheet's prices. Simulated.
+/// market prices every other screen shows. Simulated.
 abstract final class OpenOrdersMock {
   static const orders = [
     OpenOrder(
@@ -210,12 +210,11 @@ abstract final class OpenOrdersMock {
       coinAsset: VistaAssets.coinEthRow,
       side: TradeSide.long,
       leverage: 5,
-      limitPrice: 3350,
-      markPrice: 3489.20,
+      limitPrice: 2850,
       quantity: 0.75,
       filled: 0,
-      takeProfit: 3600,
-      stopLoss: 3280,
+      takeProfit: 3060,
+      stopLoss: 2790,
     ),
     OpenOrder(
       id: 'o-sol-1',
@@ -225,7 +224,6 @@ abstract final class OpenOrdersMock {
       side: TradeSide.short,
       leverage: 10,
       limitPrice: 222.50,
-      markPrice: 214.90,
       quantity: 4.5,
       filled: 1.2,
       quantityDecimals: 1,
@@ -239,8 +237,7 @@ abstract final class OpenOrdersMock {
       coinAsset: VistaAssets.coinEthRow,
       side: TradeSide.short,
       leverage: 5,
-      limitPrice: 3620,
-      markPrice: 3489.20,
+      limitPrice: 3080,
       quantity: 0.4,
       filled: 0,
       reduceOnly: true,

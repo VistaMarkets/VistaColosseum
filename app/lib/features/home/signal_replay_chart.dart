@@ -10,6 +10,7 @@ import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../settings/settings_state.dart';
 import 'active_replay.dart';
+import 'replay_script.dart';
 import 'replay_timeline.dart';
 
 /// Replay of price since the call, then the live market: dashed entry
@@ -43,8 +44,7 @@ class SignalReplayChart extends StatefulWidget {
     this.active = true,
     this.frame,
     this.livePrice,
-    this.callPrice = 2801.10,
-    this.nowPrice = 2968.40,
+    this.script = ReplayScript.figmaEth,
   });
 
   /// Whether this chart is the one on screen. Becoming active replays the
@@ -59,42 +59,22 @@ class SignalReplayChart extends StatefulWidget {
   /// keeps the chart on the replay's final frame.
   final ValueListenable<double>? livePrice;
 
-  /// Prices at the call line and at the end of the replayed path, which
-  /// together set the chart's price scale.
-  final double callPrice;
-  final double nowPrice;
+  /// The card's story: its price path, call line, call tag and events.
+  final ReplayScript script;
 
   @override
   State<SignalReplayChart> createState() => _SignalReplayChartState();
 }
 
 const Size _canvas = Size(360, 403);
-const double _entryY = 232.04;
 const double _roomyScale = 0.8;
-
-/// Vertices of the price line on the canvas, from the Figma vector.
-const List<Offset> _line = [
-  Offset(4, 232), Offset(11.4, 275.9), Offset(18.8, 295.2), //
-  Offset(26.2, 310.3), Offset(33.6, 317), Offset(41, 321.4),
-  Offset(48.4, 345.5), Offset(55.8, 373.5), Offset(63.2, 379),
-  Offset(70.6, 355.3), Offset(78, 356.5), Offset(85.4, 342.1),
-  Offset(92.9, 330.3), Offset(100.3, 333.2), Offset(107.7, 334.1),
-  Offset(115.1, 318.5), Offset(122.5, 325), Offset(129.9, 331),
-  Offset(137.3, 332.2), Offset(144.7, 331.5), Offset(152.1, 328.8),
-  Offset(159.5, 333.4), Offset(166.9, 311.1), Offset(174.3, 287.9),
-  Offset(181.7, 274.3), Offset(189.1, 259.1), Offset(196.5, 255.5),
-  Offset(203.9, 225.8), Offset(211.3, 223.3), Offset(218.7, 226.2),
-  Offset(226.1, 208.8), Offset(233.5, 208.2), Offset(240.9, 188.6),
-  Offset(248.3, 193.6), Offset(255.7, 196.1), Offset(263.1, 168.9),
-  Offset(270.6, 145.1), Offset(278, 145.2), Offset(285.4, 118.5),
-  Offset(292.8, 125.3), Offset(300.2, 107.4), Offset(307.6, 81.7),
-  Offset(315, 85.7), Offset(322.4, 86.2), Offset(329.8, 60.2),
-  Offset(337.2, 62.3), Offset(344.6, 38.5), Offset(352, 24),
-];
 
 /// Canvas step between points, and the x "now" sits at.
 const double _step = 7.4;
-final double _nowX = _line.last.dx;
+const double _nowX = 352;
+
+/// Points in every replay path.
+const int _pathPoints = 48;
 
 /// Live ticks per new point (and new candle).
 const int _ticksPerPoint = 4;
@@ -103,18 +83,12 @@ const int _ticksPerPoint = 4;
 const double _topRoom = 18;
 const double _bottomRoom = 392;
 
-/// Point on the line a fraction [t] of the way along its vertices.
-Offset _tipAt(double t) {
-  final pos = t.clamp(0.0, 1.0) * (_line.length - 1);
-  final i = pos.floor();
-  if (i >= _line.length - 1) return _line.last;
-  return Offset.lerp(_line[i], _line[i + 1], pos - i)!;
-}
-
-/// Events: where each sits on the canvas and when the tip reaches it.
-const _funding = (Offset(152.09, 328.8), ReplayTimeline.funding);
-const _whale = (Offset(248.34, 193.6), ReplayTimeline.whale);
-const _breakout = (Offset(329.79, 60.17), ReplayTimeline.breakout);
+/// When the tip reaches each event kind.
+double _eventMs(ReplayEventKind kind) => switch (kind) {
+  ReplayEventKind.funding => ReplayTimeline.funding,
+  ReplayEventKind.whale => ReplayTimeline.whale,
+  ReplayEventKind.payoff => ReplayTimeline.breakout,
+};
 
 /// Overshooting ease for marker pops: past full size and back.
 const Curve _popCurve = Cubic(0.34, 1.8, 0.64, 1);
@@ -127,8 +101,8 @@ class _View {
   final double scroll;
   final double scale;
 
-  Offset apply(Offset p) =>
-      Offset(p.dx - scroll, _entryY + (p.dy - _entryY) * scale);
+  Offset apply(Offset p, double entryY) =>
+      Offset(p.dx - scroll, entryY + (p.dy - entryY) * scale);
 
   static _View lerp(_View a, _View b, double t) => _View(
     scroll: a.scroll + (b.scroll - a.scroll) * t,
@@ -154,18 +128,20 @@ class _Camera {
   Offset apply(Offset p) => Offset(ax + bx * p.dx, ay + by * p.dy);
 
   /// The camera when the tip has covered [t] of the path.
-  static _Camera at(double t) {
+  static _Camera at(ReplayScript script, double t) {
     if (t <= 0 || t >= 1) return identity;
-    final tip = _tipAt(t);
+    final tip = script.tipAt(t);
+    final line = script.path;
+    final entryY = script.entryY;
     // What has been revealed so far, always with the call line.
-    var top = math.min(_entryY, tip.dy);
-    var bottom = math.max(_entryY, tip.dy);
-    final reached = (t * (_line.length - 1)).floor();
+    var top = math.min(entryY, tip.dy);
+    var bottom = math.max(entryY, tip.dy);
+    final reached = (t * (line.length - 1)).floor();
     for (var i = 0; i <= reached; i++) {
-      top = math.min(top, _line[i].dy);
-      bottom = math.max(bottom, _line[i].dy);
+      top = math.min(top, line[i].dy);
+      bottom = math.max(bottom, line[i].dy);
     }
-    final left = _line.first.dx;
+    final left = line.first.dx;
     var right = tip.dx;
 
     // Never closer than a few candles wide and a set height, so the first
@@ -235,12 +211,16 @@ class _SignalReplayChartState extends State<SignalReplayChart>
   /// Replay time last tick, to fire each event's haptic exactly once.
   double _lastMs = 0;
 
+  ReplayScript get _s => widget.script;
+  List<Offset> get _line => _s.path;
+  double get _entryY => _s.entryY;
+
   // Live state: the path (the replay's, plus points added since), the
   // newest point's price height easing from → to, and the view doing the
   // same.
-  List<Offset> _path = [..._line];
-  double _fromY = _line.last.dy;
-  double _toY = _line.last.dy;
+  late List<Offset> _path = [..._line];
+  late double _fromY = _line.last.dy;
+  late double _toY = _line.last.dy;
   _View _fromView = const _View();
   _View _toView = const _View();
   int _ticks = 0;
@@ -284,10 +264,9 @@ class _SignalReplayChartState extends State<SignalReplayChart>
   /// Canvas height for a price: the call sits on the entry line and
   /// [SignalReplayChart.nowPrice] where the replayed path ends.
   double _yFor(double price) {
-    final span = widget.nowPrice - widget.callPrice;
+    final span = _s.nowPrice - _s.callPrice;
     if (span == 0) return _entryY;
-    return _entryY -
-        (price - widget.callPrice) / span * (_entryY - _line.last.dy);
+    return _entryY - (price - _s.callPrice) / span * (_entryY - _line.last.dy);
   }
 
   void _onPrice() => _follow(tick: true);
@@ -343,18 +322,20 @@ class _SignalReplayChartState extends State<SignalReplayChart>
     // A replay starting over (or a reset) begins from the designed path.
     if (ms < _lastMs && _ticks > 0) _resetLive();
     if (_trace.isAnimating && ms > _lastMs) {
-      for (final (_, at) in [_funding, _whale]) {
-        if (_lastMs < at && ms >= at) HapticFeedback.selectionClick();
-      }
-      if (_lastMs < _breakout.$2 && ms >= _breakout.$2) {
-        HapticFeedback.mediumImpact();
+      for (final e in _s.events) {
+        final at = _eventMs(e.kind);
+        if (_lastMs < at && ms >= at) {
+          e.kind == ReplayEventKind.payoff
+              ? HapticFeedback.mediumImpact()
+              : HapticFeedback.selectionClick();
+        }
       }
     }
     _lastMs = ms;
 
     final frame = widget.frame;
     if (frame == null) return;
-    final tip = _tipAt(ReplayTimeline.progressAt(ms));
+    final tip = _s.tipAt(ReplayTimeline.progressAt(ms));
     final tracing = _trace.isAnimating && ms < ReplayTimeline.trace;
     _publish(
       frame,
@@ -396,6 +377,76 @@ class _SignalReplayChartState extends State<SignalReplayChart>
     super.dispose();
   }
 
+  /// Where each event label sits, as its offset from the marker. Placed
+  /// payoff first, then whale, then funding: each takes the first free spot
+  /// of just above, just below, a step higher, a step lower, free meaning
+  /// clear of labels already placed, the call tag, the live-activity rows
+  /// at the top left and the chart's edge (else the least crowded). Decided
+  /// on the finished layout, so a label never moves mid-replay.
+  Map<ReplayEventKind, double> _labelOffsets(
+    Size size,
+    double sx,
+    double sy,
+    TextScaler scaler,
+  ) {
+    double textWidth(String text, TextStyle style) => (TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: scaler,
+      maxLines: 1,
+    )..layout()).width;
+
+    const labelHeight = 22.0;
+    Rect rectFor(ReplayEvent e, double offset) {
+      final c = _line[e.vertex];
+      final w = textWidth(e.label, VistaType.labelStrong) + 14;
+      // Matches the label's Align: its left edge slides with the point.
+      final left = (size.width - w) * (c.dx / _canvas.width);
+      return Rect.fromLTWH(left, c.dy * sy + offset, w, labelHeight);
+    }
+
+    final taken = <Rect>[
+      Rect.fromLTWH(
+        12,
+        _entryY * sy + 8,
+        textWidth(_s.callTag, VistaType.micro) + 12,
+        18,
+      ),
+      // The live-activity rows over the chart's top left.
+      Rect.fromLTRB(12, 16, math.max(12, size.width - 78), 108),
+    ];
+    double clash(Rect r) {
+      var area = 0.0;
+      if (r.top < 0) area += -r.top * r.width;
+      if (r.bottom > size.height) area += (r.bottom - size.height) * r.width;
+      for (final t in taken) {
+        final o = r.intersect(t);
+        if (o.width > 0 && o.height > 0) area += o.width * o.height;
+      }
+      return area;
+    }
+
+    const spots = [-34.0, 12.0, -58.0, 36.0];
+    final placed = <ReplayEventKind, double>{};
+    final order = [..._s.events]
+      ..sort((a, b) => b.kind.index.compareTo(a.kind.index));
+    for (final e in order) {
+      var best = spots.first;
+      var bestClash = double.infinity;
+      for (final offset in spots) {
+        final c = clash(rectFor(e, offset));
+        if (c < bestClash) {
+          best = offset;
+          bestClash = c;
+        }
+        if (c == 0) break;
+      }
+      placed[e.kind] = best;
+      taken.add(rectFor(e, best));
+    }
+    return placed;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -413,6 +464,12 @@ class _SignalReplayChartState extends State<SignalReplayChart>
         // On short phones the canvas squashes but labels don't; drop the
         // mid-chart annotations (markers stay) so labels never collide.
         final roomy = sy >= _roomyScale;
+        final labelAt = _labelOffsets(
+          size,
+          sx,
+          sy,
+          MediaQuery.textScalerOf(context),
+        );
 
         return ClipRect(
           child: AnimatedBuilder(
@@ -423,8 +480,9 @@ class _SignalReplayChartState extends State<SignalReplayChart>
               final live = _replayDone;
               final view = live ? _view : const _View();
               // While replaying, the camera; once live, the scrolling view.
-              final camera = live ? _Camera.identity : _Camera.at(t);
-              Offset at(Offset p) => live ? view.apply(p) : camera.apply(p);
+              final camera = live ? _Camera.identity : _Camera.at(_s, t);
+              Offset at(Offset p) =>
+                  live ? view.apply(p, _entryY) : camera.apply(p);
 
               // The path as shown: the replay's through the camera while
               // tracing; once live, the whole path scrolled and scaled, its
@@ -435,8 +493,8 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                       at(Offset(_path.last.dx, _lastY)),
                     ]
                   : [for (final p in _line) at(p)];
-              final tip = live ? points.last : at(_tipAt(t));
-              final entryY = at(const Offset(0, _entryY)).dy;
+              final tip = live ? points.last : at(_s.tipAt(t));
+              final entryY = at(Offset(0, _entryY)).dy;
 
               // Fixed-size marker centred on a canvas point.
               Widget marker(
@@ -444,12 +502,13 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                 Offset c,
                 double d, {
                 double pop = 1,
+                Color? tint,
               }) => Positioned(
                 left: c.dx * sx - d / 2,
                 top: c.dy * sy - d / 2,
                 child: _Pop(
                   value: pop,
-                  child: VistaIcon(asset, size: d),
+                  child: VistaIcon(asset, size: d, color: tint),
                 ),
               );
 
@@ -484,17 +543,22 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                 );
               }
 
-              // Label centred above a canvas point, kept inside the chart.
-              Widget labelAbove(Offset c, Widget child, {double pop = 1}) =>
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: math.max(0, c.dy * sy - 34),
-                    child: Align(
-                      alignment: Alignment((c.dx / _canvas.width) * 2 - 1, 0),
-                      child: _Rise(value: pop, child: child),
-                    ),
-                  );
+              // Label centred above (or below) a canvas point, kept inside
+              // the chart.
+              Widget labelAbove(
+                Offset c,
+                Widget child, {
+                double pop = 1,
+                double offset = -34,
+              }) => Positioned(
+                left: 0,
+                right: 0,
+                top: math.max(0, c.dy * sy + offset),
+                child: Align(
+                  alignment: Alignment((c.dx / _canvas.width) * 2 - 1, 0),
+                  child: _Rise(value: pop, child: child),
+                ),
+              );
 
               // Marker pop, its ring, and its label, from when the tip lands.
               double pop(double at) =>
@@ -507,10 +571,61 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                 ReplayTimeline.label,
               );
 
-              final funding = at(_funding.$1);
-              final whale = at(_whale.$1);
-              final breakout = at(_breakout.$1);
-              final entry = at(const Offset(4, _entryY));
+              final entry = at(Offset(4, _entryY));
+
+              // Each event: its marker, a ring as it lands, and its label.
+              // The payoff gets the halo, two wider rings and a tinted tag.
+              List<Widget> event(ReplayEvent e) {
+                final c = at(_line[e.vertex]);
+                final ms0 = _eventMs(e.kind);
+                final payoff = e.kind == ReplayEventKind.payoff;
+                final tone = e.favourable
+                    ? VistaColors.long
+                    : VistaColors.short;
+                return [
+                  ring(
+                    c,
+                    12,
+                    ringAt(ms0),
+                    payoff ? tone : VistaColors.textPrimary,
+                    payoff ? 4.5 : 3.2,
+                  ),
+                  if (payoff) ring(c, 12, ringAt(ms0 + 220), tone, 4.5),
+                  if (payoff)
+                    marker(
+                      VistaAssets.markerBreakoutHalo,
+                      c,
+                      26,
+                      pop: pop(ms0),
+                      tint: e.favourable ? null : tone,
+                    ),
+                  marker(
+                    switch (e.kind) {
+                      ReplayEventKind.funding => VistaAssets.markerFunding,
+                      ReplayEventKind.whale => VistaAssets.markerWhale,
+                      ReplayEventKind.payoff => VistaAssets.markerBreakout,
+                    },
+                    c,
+                    12,
+                    pop: pop(ms0),
+                    tint: payoff && !e.favourable ? tone : null,
+                  ),
+                  // Mid-chart labels drop on short phones; the payoff stays.
+                  if (roomy || payoff)
+                    labelAbove(
+                      c,
+                      payoff
+                          ? VistaTag(
+                              label: e.label,
+                              color: tone,
+                              textColor: VistaColors.onAccent,
+                            )
+                          : VistaTag(label: e.label),
+                      pop: label(ms0),
+                      offset: labelAt[e.kind] ?? -34,
+                    ),
+                ];
+              }
 
               return Stack(
                 clipBehavior: Clip.none,
@@ -549,92 +664,16 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                   Positioned(
                     left: 12,
                     top: entryY * sy + 8,
-                    child: const VistaTag(
-                      label: r'Called $2,801.10 · 5h ago',
-                      dense: true,
-                    ),
+                    child: VistaTag(label: _s.callTag, dense: true),
                   ),
-                  ring(
-                    funding,
-                    12,
-                    ringAt(_funding.$2),
-                    VistaColors.textPrimary,
-                    3.2,
-                  ),
-                  marker(
-                    VistaAssets.markerFunding,
-                    funding,
-                    12,
-                    pop: pop(_funding.$2),
-                  ),
-                  if (roomy)
-                    labelAbove(
-                      funding,
-                      const VistaTag(label: 'Funding flipped +'),
-                      pop: label(_funding.$2),
-                    ),
-                  ring(
-                    whale,
-                    12,
-                    ringAt(_whale.$2),
-                    VistaColors.textPrimary,
-                    3.2,
-                  ),
-                  marker(
-                    VistaAssets.markerWhale,
-                    whale,
-                    12,
-                    pop: pop(_whale.$2),
-                  ),
-                  if (roomy)
-                    labelAbove(
-                      whale,
-                      const VistaTag(label: r'Whale long $4.2M'),
-                      pop: label(_whale.$2),
-                    ),
-                  // The breakout is the payoff: two rings, wider and green.
-                  ring(
-                    breakout,
-                    12,
-                    ringAt(_breakout.$2),
-                    VistaColors.long,
-                    4.5,
-                  ),
-                  ring(
-                    breakout,
-                    12,
-                    ringAt(_breakout.$2 + 220),
-                    VistaColors.long,
-                    4.5,
-                  ),
-                  marker(
-                    VistaAssets.markerBreakoutHalo,
-                    breakout,
-                    26,
-                    pop: pop(_breakout.$2),
-                  ),
-                  marker(
-                    VistaAssets.markerBreakout,
-                    breakout,
-                    12,
-                    pop: pop(_breakout.$2),
-                  ),
-                  labelAbove(
-                    breakout,
-                    const VistaTag(
-                      label: r'Broke $2,950',
-                      color: VistaColors.long,
-                      textColor: VistaColors.onAccent,
-                    ),
-                    pop: label(_breakout.$2),
-                  ),
+                  for (final e in _s.events) ...event(e),
                   // Live dot: rides the tip while tracing, then "now".
                   if (t > 0)
                     Positioned(
                       left: tip.dx * sx - 7,
                       top: tip.dy * sy - 7,
                       child: _LiveDot(
-                        tint: tip.dy > _entryY ? VistaColors.short : null,
+                        tint: tip.dy > entryY ? VistaColors.short : null,
                       ),
                     ),
                 ],
@@ -754,8 +793,8 @@ class _ReplayLine extends CustomPainter {
 
 /// When the tip reaches each vertex of the path, in replay ms.
 final List<double> _vertexMs = [
-  for (var k = 0; k < _line.length; k++)
-    ReplayTimeline.timeAt(k / (_line.length - 1)),
+  for (var k = 0; k < _pathPoints; k++)
+    ReplayTimeline.timeAt(k / (_pathPoints - 1)),
 ];
 
 /// The replay path as candles: segment i opens at vertex i and closes at

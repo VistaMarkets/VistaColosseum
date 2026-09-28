@@ -55,8 +55,8 @@ abstract final class TradeMock {
       ticker: 'ETH',
       name: 'Ethereum',
       leverage: '50x',
-      price: r'$3,180.00',
-      changeUsd: r'−$13',
+      price: r'$2,968.40',
+      changeUsd: r'−$12',
       changePct: -0.4,
     ),
     'SOL': AssetQuote(

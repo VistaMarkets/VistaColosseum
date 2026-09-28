@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
+import '../live/market_prices.dart';
 import 'portfolio_mock.dart';
 
 /// One resting limit order on the Portfolio "Open orders" tab, kept to what
@@ -102,23 +103,27 @@ class _OpenOrderCardState extends State<OpenOrderCard>
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text.rich(
-                      TextSpan(
-                        style: muted,
-                        children: [
-                          const TextSpan(text: 'Fills at '),
-                          TextSpan(
-                            text: _usd(o.limitPrice),
-                            style: VistaType.bodyStrong,
-                          ),
-                          TextSpan(
-                            text:
-                                ' · ${(o.distance * 100).toStringAsFixed(1)}% '
-                                '${o.limitBelowMark ? 'below' : 'above'} mark',
-                          ),
-                        ],
+                    // Distance follows the market's one live price.
+                    ValueListenableBuilder(
+                      valueListenable: MarketPrices.of(o.symbol),
+                      builder: (context, _, _) => Text.rich(
+                        TextSpan(
+                          style: muted,
+                          children: [
+                            const TextSpan(text: 'Fills at '),
+                            TextSpan(
+                              text: _usd(o.limitPrice),
+                              style: VistaType.bodyStrong,
+                            ),
+                            TextSpan(
+                              text:
+                                  ' · ${(o.distance * 100).toStringAsFixed(1)}% '
+                                  '${o.limitBelowMark ? 'below' : 'above'} mark',
+                            ),
+                          ],
+                        ),
+                        maxLines: 2,
                       ),
-                      maxLines: 2,
                     ),
                   ],
                 ),

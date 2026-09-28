@@ -55,7 +55,7 @@ real financial execution out of the demo.
 - `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 - `app/lib/features/profile/` — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
 - `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
-- `app/lib/features/live/` — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125)
+- `app/lib/features/live/` — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125); `MarketPrices` is the one live price per market that every screen reads, so any two screens always agree
 - `app/lib/features/make_market/` — make-a-market flow (create → before you list → live with confetti burst), opened from Portfolio when the user has no market
 - `app/lib/features/markets/` — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
 - `app/lib/features/market/` — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)
@@ -64,7 +64,7 @@ real financial execution out of the demo.
 - `app/lib/features/settings/` — Settings from the Portfolio gear (Figma 442:102 / 442:772): sections open in place; Notifications (backend `NotificationPrefs` + per-trader switches), Display (`DisplayPrefs`: candles/line for every chart that draws both, Long button left/right on every Long/Short or Bull/Bear pair), Security (two-factor, trading permission), Legal and privacy (trade visibility, terms, region), Help; all changes simulated and on-device
 - `app/lib/features/watchlist/` — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 - `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
-- `app/lib/features/home/` — Home swipe feed, TradeIdeaCard and signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back to the full chart; candles grow in a wave behind the tip; paced by `replay_timeline.dart` with events 800ms apart, ringed entrances and haptics; the header price and % since call replay in step; afterwards the chart stays live on the card's price feed, adding points, scrolling and rescaling) and live fills stream, both animated on view (mock data)
+- `app/lib/features/home/` — Home swipe feed: one call card per market Explore offers (5 assets + 7 trader markets; ETH is the Figma card), each with its own `ReplayScript` (price path, call line, events; generated from a seed for all but ETH) played by the signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back; candles grow in a wave; paced by `replay_timeline.dart`, ringed entrances, haptics, labels placed clear of each other and the activity rows; header price and % since call replay in step; then live on the market's price); Details opens the asset or trader market (mock data)
 - `app/assets/figma/` — SVGs exported from the Arena Figma file
 - `app/assets/fonts/` — Open Runde font files and OFL license
 - `app/tool/` — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
@@ -356,16 +356,18 @@ VistaColosseum/
 │   │   │   │   ├── crowd_filter_panel.dart
 │   │   │   │   ├── opinions_mock.dart
 │   │   │   │   └── opinions_screen.dart
-│   │   │   ├── home/  — Home swipe feed, TradeIdeaCard and signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back to the full chart; candles grow in a wave behind the tip; paced by `replay_timeline.dart` with events 800ms apart, ringed entrances and haptics; the header price and % since call replay in step; afterwards the chart stays live on the card's price feed, adding points, scrolling and rescaling) and live fills stream, both animated on view (mock data)
+│   │   │   ├── home/  — Home swipe feed: one call card per market Explore offers (5 assets + 7 trader markets; ETH is the Figma card), each with its own `ReplayScript` (price path, call line, events; generated from a seed for all but ETH) played by the signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back; candles grow in a wave; paced by `replay_timeline.dart`, ringed entrances, haptics, labels placed clear of each other and the activity rows; header price and % since call replay in step; then live on the market's price); Details opens the asset or trader market (mock data)
 │   │   │   │   ├── active_replay.dart
 │   │   │   │   ├── home_screen.dart
 │   │   │   │   ├── live_fills_stream.dart
 │   │   │   │   ├── mock_trade_idea.dart
+│   │   │   │   ├── replay_script.dart
 │   │   │   │   ├── replay_timeline.dart
 │   │   │   │   ├── signal_replay_chart.dart
 │   │   │   │   └── trade_idea_card.dart
-│   │   │   ├── live/  — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125)
-│   │   │   │   └── live_feed.dart
+│   │   │   ├── live/  — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125); `MarketPrices` is the one live price per market that every screen reads, so any two screens always agree
+│   │   │   │   ├── live_feed.dart
+│   │   │   │   └── market_prices.dart
 │   │   │   ├── make_market/  — make-a-market flow (create → before you list → live with confetti burst), opened from Portfolio when the user has no market
 │   │   │   │   ├── confetti_burst.dart
 │   │   │   │   ├── make_market_flow.dart

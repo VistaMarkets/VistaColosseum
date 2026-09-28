@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
+import '../live/market_prices.dart';
 import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
 import '../watchlist/watchlist_state.dart';
@@ -63,7 +64,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
       header: (_) => _header(),
       chart: (_) => CandleChart(
         ticker: _quote.ticker,
-        price: parseUsd(_quote.price),
+        price: MarketPrices.base(_quote.ticker),
         interval: _interval,
         mode: mode,
       ),
@@ -177,9 +178,9 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         LiveUsd(
-                          feedKey: 'asset:${q.ticker}',
-                          base: parseUsd(q.price),
-                          step: parseUsd(q.price) * 0.0004,
+                          feedKey: MarketPrices.feedKey(q.ticker),
+                          base: MarketPrices.base(q.ticker),
+                          step: MarketPrices.step(q.ticker),
                           decimals: 2,
                           style: VistaType.display.copyWith(fontSize: 32),
                         ),

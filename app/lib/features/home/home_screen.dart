@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
+import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import 'mock_trade_idea.dart';
 import 'trade_idea_card.dart';
@@ -71,9 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (context, i) => TradeIdeaCard(
                   idea: mockFeed[i],
                   active: widget.visible && i == _settledPage,
-                  onDetails: () =>
-                      Navigator.of(context)
-                          .push(AssetTradeScreen.route(mockFeed[i].ticker)),
+                  // An asset opens its trade page; a trader market, the
+                  // trader's market page.
+                  onDetails: () => Navigator.of(context).push(
+                    mockFeed[i].traderMarket
+                        ? TraderMarketScreen.route(mockFeed[i].ticker)
+                        : AssetTradeScreen.route(mockFeed[i].ticker),
+                  ),
                   onCaller: () =>
                       Navigator.of(context)
                           .push(ProfileScreen.route(mockFeed[i].callerHandle)),

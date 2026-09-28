@@ -46,8 +46,13 @@ abstract final class TraderMarketMock {
   static const marketCap = r'$44.0M';
   static const capChange = r'+$1.8M';
   static const change24h = '+4.27%';
-  static const unitLine = r'Market cap · $0.4400 per unit';
-  static const unitPrice = 0.44;
+
+  /// Units in every trader market; cap = unit price × supply.
+  static const supply = 100e6;
+
+  /// "$44.0M" for a unit price of $0.44.
+  static String capFor(double unitPrice) =>
+      '\$${(unitPrice * supply / 1e6).toStringAsFixed(1)}M';
 
   static const intervals = ['1m', '5m', '15m', '1h', '4h', '1D'];
   static const defaultInterval = 2; // 15m

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
+import '../live/market_prices.dart';
 import '../profile/holdings_table.dart';
 import '../settings/settings_state.dart';
 import '../trade/trade_mock.dart';
@@ -58,7 +59,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
               period: period,
               candles: sampleCandles(
                 key: 'market/${TraderMarketMock.intervals[_interval]}',
-                last: TraderMarketMock.unitPrice,
+                last: MarketPrices.base(widget.handle),
                 period: period,
                 end: alignToPeriod(TradeMock.chartEnd, period),
               ),
@@ -138,10 +139,15 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                       ],
                     ),
                     const SizedBox(height: 1),
-                    Text(
-                      t > 0.5 ? TraderMarketMock.unitLine : 'Trader market',
-                      style: VistaType.caption.copyWith(
-                        color: VistaColors.textMuted,
+                    ValueListenableBuilder(
+                      valueListenable: MarketPrices.of(widget.handle),
+                      builder: (context, price, _) => Text(
+                        t > 0.5
+                            ? 'Market cap · ${MarketPrices.format(price)} per unit'
+                            : 'Trader market',
+                        style: VistaType.caption.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
                       ),
                     ),
                   ],
@@ -207,9 +213,13 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           children: [
-                            Text(
-                              TraderMarketMock.marketCap,
-                              style: VistaType.display.copyWith(fontSize: 32),
+                            // Cap = the market's one live price × its supply.
+                            ValueListenableBuilder(
+                              valueListenable: MarketPrices.of(widget.handle),
+                              builder: (context, price, _) => Text(
+                                TraderMarketMock.capFor(price),
+                                style: VistaType.display.copyWith(fontSize: 32),
+                              ),
                             ),
                             const SizedBox(width: 3),
                             Text(
