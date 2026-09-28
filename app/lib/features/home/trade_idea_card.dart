@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
@@ -188,9 +189,17 @@ class _CallHeader extends StatelessWidget {
   }
 }
 
+/// The card's live price feed, shared by the header and the chart.
+ValueListenable<double> _livePrice(TradeIdea idea) => LiveFeed.watch(
+  'card:${idea.ticker}',
+  parseUsd(idea.price),
+  parseUsd(idea.price) * 0.0005,
+);
+
 /// Price and "% since call". During the replay both follow the chart's tip
 /// from the call price, with "replaying" in place of "since call"; then the
-/// live price takes over and the final "% since call" stamps in.
+/// live price takes over, the "% since call" stamps in, and both keep
+/// following the live price.
 class _PriceBlock extends StatelessWidget {
   const _PriceBlock({required this.idea, required this.frame});
 
@@ -253,19 +262,29 @@ class _PriceBlock extends StatelessWidget {
         Transform.scale(
           scale: stamping ? 1.3 - 0.3 * settle : 1,
           alignment: Alignment.centerRight,
-          child: Text(
-            idea.changeSinceCall,
-            style: change.copyWith(
-              color: idea.side.color,
-              shadows: stamping
-                  ? [
-                      Shadow(
-                        color: idea.side.color.withValues(alpha: 1 - f),
-                        blurRadius: 12,
-                      ),
-                    ]
-                  : null,
-            ),
+          child: ValueListenableBuilder(
+            valueListenable: _livePrice(idea),
+            builder: (context, live, _) {
+              final call = parseUsd(idea.callPrice);
+              var pct = (live - call) / call * 100;
+              if (idea.side == TradeSide.short) pct = -pct;
+              final colour = pct >= 0 ? VistaColors.long : VistaColors.short;
+              return Text(
+                '${pct >= 0 ? '+' : '−'}'
+                '${pct.abs().toStringAsFixed(2)}% since call',
+                style: change.copyWith(
+                  color: colour,
+                  shadows: stamping
+                      ? [
+                          Shadow(
+                            color: colour.withValues(alpha: 1 - f),
+                            blurRadius: 12,
+                          ),
+                        ]
+                      : null,
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -297,7 +316,14 @@ class _ChartWithRail extends StatelessWidget {
           top: 0,
           bottom: 0,
           right: _chartRightInset,
-          child: SignalReplayChart(active: active, frame: frame),
+          child: SignalReplayChart(
+            active: active,
+            frame: frame,
+            // The same live price as the header, so both show one number.
+            livePrice: _livePrice(idea),
+            callPrice: parseUsd(idea.callPrice),
+            nowPrice: parseUsd(idea.price),
+          ),
         ),
         // Live fills stream; older entries fade.
         Positioned(

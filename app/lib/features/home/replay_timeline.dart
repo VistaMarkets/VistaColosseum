@@ -24,6 +24,13 @@ abstract final class ReplayTimeline {
   static const double labelDelay = 80;
   static const double label = 380;
 
+  /// How long each replay candle takes to reach full size after the tip
+  /// reaches it. A new candle starts every ~65 ms, far too quick for any
+  /// growth to be seen, so each keeps growing for a while behind the tip:
+  /// about four grow at once, in a short wave trailing the live dot. 280 ms
+  /// sits in the 200–300 ms range suited to a visible change on screen.
+  static const double candleGrow = 280;
+
   /// When the tip reaches each event (it is on that vertex at that moment).
   static const double funding = 1150;
   static const double whale = 1950;
@@ -68,6 +75,24 @@ abstract final class ReplayTimeline {
     double secant(int a) =>
         (_keys[a + 1].$2 - _keys[a].$2) / (_keys[a + 1].$1 - _keys[a].$1);
     return (secant(k - 1) + secant(k)) / 2;
+  }
+
+  /// The time the tip covers [fraction] of the path; the inverse of
+  /// [progressAt], found by bisection (the pace curve only ever rises).
+  static double timeAt(double fraction) {
+    if (fraction <= 0) return 0;
+    if (fraction >= 1) return trace;
+    var lo = 0.0;
+    var hi = trace;
+    for (var n = 0; n < 30; n++) {
+      final mid = (lo + hi) / 2;
+      if (progressAt(mid) < fraction) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return hi;
   }
 
   /// 0 → 1 over [length] ms, starting [start] ms into the replay.
