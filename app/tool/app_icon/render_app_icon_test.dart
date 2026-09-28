@@ -19,7 +19,7 @@ const _frame = 226.0;
 const _out = 1024.0;
 const _dir = 'tool/app_icon';
 
-/// CSS `linear-gradient(138.74deg, #7CE7BE 0.79%, #34D399 99.21%)` on a
+/// CSS `linear-gradient(138.74deg, #6CB4EA 0.79%, #5AA6DE 99.21%)` on a
 /// square: the gradient line runs along the angle's direction and spans
 /// |sin θ| + |cos θ| half-widths either side of the centre.
 LinearGradient _background() {
@@ -30,24 +30,37 @@ LinearGradient _background() {
   return LinearGradient(
     begin: Alignment(-dx * reach, -dy * reach),
     end: Alignment(dx * reach, dy * reach),
-    colors: const [Color(0xFF7CE7BE), Color(0xFF34D399)],
+    colors: const [Color(0xFF6CB4EA), Color(0xFF5AA6DE)],
     stops: const [0.0078557, 0.99214],
   );
 }
 
-/// Figma "Ellipse 16": r 94.5 at (53.5, 42.5), layer blur σ 25.75. The
-/// export uses an SVG filter flutter_svg cannot draw, so it is painted here.
+/// Figma "Ellipse 16" (light, top left) and "Ellipse 17" (dark, bottom
+/// right), each with a layer blur. The export uses an SVG filter flutter_svg
+/// cannot draw, so they are painted here. Figma blur radius = 2σ.
 class _Glow extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final s = size.width / _frame;
-    canvas.drawCircle(
-      const Offset(53.5, 42.5) * s,
-      94.5 * s,
-      Paint()
-        ..color = const Color(0xFF7CE7BE)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 25.75 * s),
-    );
+    for (final (centre, radius, colour, sigma) in const [
+      (Offset(30, 30), 83.0, Color(0xFFABD6F6), 25.75),
+      (Offset(213, 214), 100.0, Color(0xFF326F9D), 57.55),
+    ]) {
+      // An image filter, not a mask filter: MaskFilter.blur stops growing
+      // past σ ≈ 200px, which both glows exceed at 1024px.
+      canvas
+        ..saveLayer(
+          null,
+          Paint()
+            ..imageFilter = ui.ImageFilter.blur(
+              sigmaX: sigma * s,
+              sigmaY: sigma * s,
+              tileMode: TileMode.decal,
+            ),
+        )
+        ..drawCircle(centre * s, radius * s, Paint()..color = colour)
+        ..restore();
+    }
   }
 
   @override
@@ -62,7 +75,6 @@ void main() {
     addTearDown(tester.view.reset);
 
     const s = _out / _frame;
-    final outline = File('$_dir/mark_outline.svg').readAsStringSync();
     final fill = File('$_dir/mark_fill.svg').readAsStringSync();
     final key = GlobalKey();
 
@@ -79,15 +91,29 @@ void main() {
               child: Stack(
                 children: [
                   Positioned.fill(child: CustomPaint(painter: _Glow())),
-                  // Mark: 149×130.4 at (39, 48); its outline bleeds
-                  // 7.93% / 11.51% past that box.
+                  // Mark shadow: #3C7DAC, offset (−6, 6), blur 8.9 (σ 4.45).
                   Positioned(
-                    left: (39 - 11.816) * s,
-                    top: (48 - 15.008) * s,
-                    width: 172.632 * s,
-                    height: 160.375 * s,
-                    child: SvgPicture.string(outline, fit: BoxFit.fill),
+                    left: (39 - 6) * s,
+                    top: (48 + 6) * s,
+                    width: 148.999 * s,
+                    height: 130.375 * s,
+                    child: ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(
+                        sigmaX: 4.45 * s,
+                        sigmaY: 4.45 * s,
+                        tileMode: TileMode.decal,
+                      ),
+                      child: SvgPicture.string(
+                        fill,
+                        fit: BoxFit.fill,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF3C7DAC),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                   ),
+                  // Mark: 149×130.4 at (39, 48), solid white.
                   Positioned(
                     left: 39 * s,
                     top: 48 * s,
@@ -109,9 +135,8 @@ void main() {
           key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
       final image = await boundary.toImage();
       final png = await image.toByteData(format: ui.ImageByteFormat.png);
-      File('$_dir/app_icon_1024.png').writeAsBytesSync(
-        png!.buffer.asUint8List(),
-      );
+      File('$_dir/app_icon_1024.png')
+          .writeAsBytesSync(png!.buffer.asUint8List());
     });
   });
 }
