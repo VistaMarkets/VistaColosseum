@@ -8,10 +8,7 @@ import 'arena_mock.dart';
 /// histogram of battles by split, and a range slider picking which splits
 /// to show.
 class CrowdFilterPanel extends StatefulWidget {
-  const CrowdFilterPanel({super.key, required this.nav});
-
-  /// The app's bottom nav, drawn inside the sheet as in Figma.
-  final Widget nav;
+  const CrowdFilterPanel({super.key});
 
   @override
   State<CrowdFilterPanel> createState() => _CrowdFilterPanelState();
@@ -45,54 +42,35 @@ class _CrowdFilterPanelState extends State<CrowdFilterPanel> {
     return sum.round();
   }
 
+  /// The panel's content. The app shell draws the sheet around it and the
+  /// bottom nav under it, and folds it away off the Arena tab.
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return Container(
-      decoration: const BoxDecoration(
-        color: VistaColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x40000000),
-            offset: Offset(0, -4),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.fromLTRB(
-        VistaSpace.gutter,
-        14,
-        VistaSpace.gutter,
-        VistaSpace.sm + bottomInset,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(_label, style: VistaType.subhead)),
-              Text(
-                '$_count battles',
-                style: VistaType.bodyMedium.copyWith(
-                  color: VistaColors.textMuted,
-                ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(_label, style: VistaType.subhead)),
+            Text(
+              '$_count battles',
+              style: VistaType.bodyMedium.copyWith(
+                color: VistaColors.textMuted,
               ),
-            ],
-          ),
-          const SizedBox(height: VistaSpace.lg),
-          VistaHistogram(values: _buckets, selected: _selected),
-          const SizedBox(height: VistaSpace.lg),
-          VistaRangeSlider(
-            values: _range,
-            divisions: _buckets.length,
-            semanticFormatter: (v) => '${_split(v)} percent majority',
-            onChanged: (v) => setState(() => _range = v),
-          ),
-          const SizedBox(height: VistaSpace.lg),
-          widget.nav,
-        ],
-      ),
+            ),
+          ],
+        ),
+        const SizedBox(height: VistaSpace.lg),
+        VistaHistogram(values: _buckets, selected: _selected),
+        const SizedBox(height: VistaSpace.lg),
+        VistaRangeSlider(
+          values: _range,
+          divisions: _buckets.length,
+          semanticFormatter: (v) => '${_split(v)} percent majority',
+          onChanged: (v) => setState(() => _range = v),
+        ),
+        const SizedBox(height: VistaSpace.lg),
+      ],
     );
   }
 }

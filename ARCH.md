@@ -51,7 +51,7 @@ real financial execution out of the demo.
 - `app/` — Flutter demo app (iOS and Android)
 - `app/lib/design_system/` — Vista tokens, theme and shared components; import `design_system.dart`
 - `app/lib/charting/` — candle chart engine; import `charting.dart`: `Candle` (OHLC in prices), `PriceScale` + `roundTicks` (round-number gridlines), `timeMarks` (clock-boundary time labels), `LiveCandles` (newest candle follows a `LiveFeed` value), `sampleCandles` (seeded generated history) and the `PriceChart` widget (hollow candles or line)
-- `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, People → Arena, Wallet)
+- `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 - `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 - `app/lib/features/profile/` — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
 - `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save (mock data)
@@ -60,7 +60,7 @@ real financial execution out of the demo.
 - `app/lib/features/markets/` — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
 - `app/lib/features/market/` — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)
 - `app/lib/features/account/` — `AccountState` (has the user listed a market, and its ticker; `--dart-define=HAS_MARKET=true` starts with one) and the signed-in user's top bar (avatar, handle over portfolio balance, + Deposit; settings gear on Portfolio) shared by Home and Portfolio
-- `app/lib/features/arena/` — Arena (People tab): Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
+- `app/lib/features/arena/` — Arena tab: Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
 - `app/lib/features/settings/` — Settings from the Portfolio gear (Figma 442:102 / 442:772): sections open in place; Notifications (backend `NotificationPrefs` + per-trader switches), Display (`DisplayPrefs`: candles/line for every chart that draws both, Long button left/right on every Long/Short or Bull/Bear pair), Security (two-factor, trading permission), Legal and privacy (trade visibility, terms, region), Help; all changes simulated and on-device
 - `app/lib/features/watchlist/` — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 - `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
@@ -186,9 +186,9 @@ VistaColosseum/
 │   │   │   ├── mm_live_avatar.svg
 │   │   │   ├── mm_live_lattice.svg
 │   │   │   ├── mm_preview_chart.svg
+│   │   │   ├── nav_arena.svg
 │   │   │   ├── nav_compass.svg
 │   │   │   ├── nav_home.svg
-│   │   │   ├── nav_people.svg
 │   │   │   ├── nav_wallet.svg
 │   │   │   ├── notif_bell.svg
 │   │   │   ├── opinions_avatars.svg
@@ -349,7 +349,7 @@ VistaColosseum/
 │   │   │   ├── account/  — `AccountState` (has the user listed a market, and its ticker; `--dart-define=HAS_MARKET=true` starts with one) and the signed-in user's top bar (avatar, handle over portfolio balance, + Deposit; settings gear on Portfolio) shared by Home and Portfolio
 │   │   │   │   ├── account_state.dart
 │   │   │   │   └── account_top_bar.dart
-│   │   │   ├── arena/  — Arena (People tab): Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
+│   │   │   ├── arena/  — Arena tab: Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
 │   │   │   │   ├── arena_mock.dart
 │   │   │   │   ├── arena_screen.dart
 │   │   │   │   ├── crowd_filter_panel.dart
@@ -403,7 +403,7 @@ VistaColosseum/
 │   │   │   └── watchlist/  — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 │   │   │       ├── edit_favorites_screen.dart
 │   │   │       └── watchlist_state.dart
-│   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, People → Arena, Wallet)
+│   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart

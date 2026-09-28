@@ -828,11 +828,11 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('People'));
+      await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('People tab shows the Arena with the crowd filter', (
+    testWidgets('Arena tab shows the battles with the crowd filter', (
       tester,
     ) async {
       await openArena(tester);
@@ -851,10 +851,13 @@ void main() {
       expect(find.text('Crowd split 50/50 +'), findsOneWidget);
       expect(find.text('106 battles'), findsOneWidget);
 
-      // Other tabs use the plain nav again.
+      // Other tabs fold the panel away (kept, so its filter survives).
       await tester.tap(find.bySemanticsLabel('Home'));
       await tester.pumpAndSettle();
-      expect(find.byType(RangeSlider), findsNothing);
+      expect(find.byType(RangeSlider).hitTestable(), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
     });
 
     testWidgets('sort chips stay fixed while battles scroll', (tester) async {
@@ -903,7 +906,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('People'));
+      await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('+21 more opinions').first);
       await tester.pumpAndSettle();

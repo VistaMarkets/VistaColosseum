@@ -20,7 +20,7 @@ abstract final class VistaAssets {
   static const String longArrow = '$_dir/long_arrow.svg';
   static const String navHome = '$_dir/nav_home.svg';
   static const String navExplore = '$_dir/nav_compass.svg';
-  static const String navPeople = '$_dir/nav_people.svg';
+  static const String navArena = '$_dir/nav_arena.svg';
   static const String navWallet = '$_dir/nav_wallet.svg';
 
   // Social rail buttons (circle + glyph).
