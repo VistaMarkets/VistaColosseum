@@ -62,8 +62,9 @@ real financial execution out of the demo.
 - `app/lib/features/account/` — `AccountState` (has the user listed a market, and its ticker; `--dart-define=HAS_MARKET=true` starts with one) and the signed-in user's top bar (avatar, handle over portfolio balance, + Deposit; settings gear on Portfolio) shared by Home and Portfolio
 - `app/lib/features/arena/` — Arena (People tab): Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
 - `app/lib/features/settings/` — Settings from the Portfolio gear (Figma 442:102 / 442:772): sections open in place; Notifications (backend `NotificationPrefs` + per-trader switches), Display (`DisplayPrefs`: candles/line for every chart that draws both, Long button left/right on every Long/Short or Bull/Bear pair), Security (two-factor, trading permission), Legal and privacy (trade visibility, terms, region), Help; all changes simulated and on-device
+- `app/lib/features/watchlist/` — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 - `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
-- `app/lib/features/home/` — Home swipe feed, TradeIdeaCard and signal replay chart and live fills stream, both animated on view (mock data)
+- `app/lib/features/home/` — Home swipe feed, TradeIdeaCard and signal replay chart (line, or candles when chosen in Settings › Display; paced by `replay_timeline.dart` with events 800ms apart, ringed entrances and haptics; the header price and % since call replay in step, then stamp in live) and live fills stream, both animated on view (mock data)
 - `app/assets/figma/` — SVGs exported from the Arena Figma file
 - `app/assets/fonts/` — Open Runde font files and OFL license
 - `app/tool/` — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
@@ -231,6 +232,7 @@ VistaColosseum/
 │   │   │   ├── spark_eth.svg
 │   │   │   ├── spark_sol.svg
 │   │   │   ├── star.svg
+│   │   │   ├── star_filled.svg
 │   │   │   ├── terms_dashed_line.svg
 │   │   │   ├── timeline_rail_open.svg
 │   │   │   ├── timeline_rail_right.svg
@@ -353,11 +355,12 @@ VistaColosseum/
 │   │   │   │   ├── crowd_filter_panel.dart
 │   │   │   │   ├── opinions_mock.dart
 │   │   │   │   └── opinions_screen.dart
-│   │   │   ├── home/  — Home swipe feed, TradeIdeaCard and signal replay chart and live fills stream, both animated on view (mock data)
+│   │   │   ├── home/  — Home swipe feed, TradeIdeaCard and signal replay chart (line, or candles when chosen in Settings › Display; paced by `replay_timeline.dart` with events 800ms apart, ringed entrances and haptics; the header price and % since call replay in step, then stamp in live) and live fills stream, both animated on view (mock data)
 │   │   │   │   ├── active_replay.dart
 │   │   │   │   ├── home_screen.dart
 │   │   │   │   ├── live_fills_stream.dart
 │   │   │   │   ├── mock_trade_idea.dart
+│   │   │   │   ├── replay_timeline.dart
 │   │   │   │   ├── signal_replay_chart.dart
 │   │   │   │   └── trade_idea_card.dart
 │   │   │   ├── live/  — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125)
@@ -393,10 +396,13 @@ VistaColosseum/
 │   │   │   │   ├── settings_mock.dart
 │   │   │   │   ├── settings_screen.dart
 │   │   │   │   └── settings_state.dart
-│   │   │   └── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
-│   │   │       ├── asset_trade_screen.dart
-│   │   │       ├── candle_chart.dart
-│   │   │       └── trade_mock.dart
+│   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
+│   │   │   │   ├── asset_trade_screen.dart
+│   │   │   │   ├── candle_chart.dart
+│   │   │   │   └── trade_mock.dart
+│   │   │   └── watchlist/  — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
+│   │   │       ├── edit_favorites_screen.dart
+│   │   │       └── watchlist_state.dart
 │   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, People → Arena, Wallet)
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks

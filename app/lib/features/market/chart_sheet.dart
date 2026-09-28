@@ -148,13 +148,10 @@ class _ChartSheetState extends State<ChartSheet>
               onVerticalDragEnd: _onDragEnd,
               child: Column(
                 children: [
+                  // Full width: charts run edge to edge, their price axis
+                  // keeping its own margin at the right.
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      VistaSpace.gutter,
-                      padTop,
-                      VistaSpace.gutter,
-                      padBottom,
-                    ),
+                    padding: EdgeInsets.only(top: padTop, bottom: padBottom),
                     child: SizedBox(height: chartH, child: widget.chart(t)),
                   ),
                   SizedBox(

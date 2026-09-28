@@ -129,7 +129,16 @@ class _SpecLayers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final plotW = size.width - 50;
+    // Price axis only as wide as its widest tag, plus the edge margin, so
+    // the plot runs from the left edge right up to it.
+    final tagW =
+        (TextPainter(
+          text: TextSpan(text: '0.4400', style: VistaType.micro),
+          textDirection: TextDirection.ltr,
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout()).width +
+        8;
+    final plotW = size.width - (4 + tagW + 6);
     final sx = plotW / _plot;
     final sy = size.height / spec.height;
     double y(double v) => v * sy;
@@ -175,7 +184,7 @@ class _SpecLayers extends StatelessWidget {
             ),
             if (label != null)
               Positioned(
-                left: plotW + 6,
+                left: plotW + 8,
                 top: y(gy) - 6,
                 child: Text(label, style: axisLabel),
               ),
