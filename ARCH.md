@@ -61,6 +61,7 @@ real financial execution out of the demo.
 - `app/lib/features/market/` — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)
 - `app/lib/features/account/` — `AccountState` (has the user listed a market, and its ticker; `--dart-define=HAS_MARKET=true` starts with one) and the signed-in user's top bar (avatar, handle over portfolio balance, + Deposit; settings gear on Portfolio) shared by Home and Portfolio
 - `app/lib/features/arena/` — Arena tab: Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
+- `app/lib/features/share/` — Share call (Figma 462:474): the Home card's Share opens a sheet previewing exactly what the recipient gets (`ShareCallCard`, the 1.91:1 link-preview image with the Vista mark, drawn with the replay line painter, over its title and link), and Messages, Telegram, X and Copy link targets; sending is simulated (Copy link copies)
 - `app/lib/features/settings/` — Settings from the Portfolio gear (Figma 442:102 / 442:772): sections open in place; Notifications (backend `NotificationPrefs` + per-trader switches), Display (`DisplayPrefs`: candles/line for every chart that draws both, Long button left/right on every Long/Short or Bull/Bear pair), Security (two-factor, trading permission), Legal and privacy (trade visibility, terms, region), Help; all changes simulated and on-device
 - `app/lib/features/watchlist/` — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 - `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels; Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) filtered to Following or Everyone; tapping a post's order opens `CallerPlayScreen`, that call as a Home-style trade card (mock data); `order_ticket.dart` is the order sheet (Figma 218:608) that Long/Short opens on the trade pages, Home cards and Arena (Bull = long, Bear = short): side, Market/Limit/Stop, leverage up to the market's cap, price with Mid, size in units or USD with a 0–100% slider, TP/SL, reduce-only, live margin, liquidation and fee; placing is simulated and limit/stop orders land in Portfolio › Open orders via `OrdersState`
@@ -225,7 +226,13 @@ VistaColosseum/
 │   │   │   ├── search.svg
 │   │   │   ├── search_16.svg
 │   │   │   ├── settings.svg
+│   │   │   ├── share_avatar.svg
 │   │   │   ├── share_button.svg
+│   │   │   ├── share_copy_link.svg
+│   │   │   ├── share_logo.svg
+│   │   │   ├── share_messages.svg
+│   │   │   ├── share_telegram.svg
+│   │   │   ├── share_x.svg
 │   │   │   ├── spark24_down.svg
 │   │   │   ├── spark24_up_a.svg
 │   │   │   ├── spark24_up_b.svg
@@ -401,6 +408,9 @@ VistaColosseum/
 │   │   │   │   ├── settings_mock.dart
 │   │   │   │   ├── settings_screen.dart
 │   │   │   │   └── settings_state.dart
+│   │   │   ├── share/  — Share call (Figma 462:474): the Home card's Share opens a sheet previewing exactly what the recipient gets (`ShareCallCard`, the 1.91:1 link-preview image with the Vista mark, drawn with the replay line painter, over its title and link), and Messages, Telegram, X and Copy link targets; sending is simulated (Copy link copies)
+│   │   │   │   ├── share_call_card.dart
+│   │   │   │   └── share_call_sheet.dart
 │   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels; Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) filtered to Following or Everyone; tapping a post's order opens `CallerPlayScreen`, that call as a Home-style trade card (mock data); `order_ticket.dart` is the order sheet (Figma 218:608) that Long/Short opens on the trade pages, Home cards and Arena (Bull = long, Bear = short): side, Market/Limit/Stop, leverage up to the market's cap, price with Mid, size in units or USD with a 0–100% slider, TP/SL, reduce-only, live margin, liquidation and fee; placing is simulated and limit/stop orders land in Portfolio › Open orders via `OrdersState`
 │   │   │   │   ├── asset_trade_screen.dart
 │   │   │   │   ├── caller_play_screen.dart

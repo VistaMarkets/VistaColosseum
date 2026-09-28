@@ -36,7 +36,7 @@ void main() {
   }
 
   for (final (mode, painter) in [
-    (PlotMode.line, '_ReplayLine'),
+    (PlotMode.line, 'ReplayLinePainter'),
     (PlotMode.candles, '_ReplayCandles'),
   ]) {
     testWidgets('after the replay the $mode chart follows the live price', (

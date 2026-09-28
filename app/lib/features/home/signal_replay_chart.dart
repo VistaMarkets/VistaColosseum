@@ -650,7 +650,7 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                               sx: sx,
                               sy: sy,
                             )
-                          : _ReplayLine(
+                          : ReplayLinePainter(
                               points: points,
                               entryY: entryY,
                               revealX: live || t >= 1 ? null : tip.dx,
@@ -690,18 +690,22 @@ class _SignalReplayChartState extends State<SignalReplayChart>
 /// above the call line and red below it, and a 1pt dot lattice on a 14pt
 /// grid inside the filled area. Points are in canvas units. [revealX] cuts
 /// it off at the tracing tip; [latticeShift] moves the dots with the path
-/// as it scrolls, so they travel with the data.
-class _ReplayLine extends CustomPainter {
-  const _ReplayLine({
+/// as it scrolls, so they travel with the data. Shared with the share card,
+/// which squashes the canvas and so spaces its lattice in screen points
+/// ([screenLattice]) to keep the dots 14pt apart.
+class ReplayLinePainter extends CustomPainter {
+  const ReplayLinePainter({
     required this.points,
     required this.entryY,
     required this.revealX,
     required this.latticeShift,
     required this.sx,
     required this.sy,
+    this.screenLattice = false,
   });
 
   final List<Offset> points;
+  final bool screenLattice;
 
   /// The call line's height, in canvas units, as the camera shows it.
   final double entryY;
@@ -743,9 +747,17 @@ class _ReplayLine extends CustomPainter {
         ..save()
         ..clipRect(band)
         ..clipPath(area);
-      for (var gx = 4 - shift; gx < _canvas.width + 14; gx += 14) {
-        for (var gy = 5.0; gy < _canvas.height; gy += 14) {
-          canvas.drawCircle(Offset(gx * sx, gy * sy), 1, dot);
+      if (screenLattice) {
+        for (var gx = 4 * sx; gx < size.width + 14; gx += 14) {
+          for (var gy = 5.0; gy < size.height; gy += 14) {
+            canvas.drawCircle(Offset(gx, gy), 1, dot);
+          }
+        }
+      } else {
+        for (var gx = 4 - shift; gx < _canvas.width + 14; gx += 14) {
+          for (var gy = 5.0; gy < _canvas.height; gy += 14) {
+            canvas.drawCircle(Offset(gx * sx, gy * sy), 1, dot);
+          }
         }
       }
       canvas.restore();
@@ -782,13 +794,14 @@ class _ReplayLine extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ReplayLine old) =>
+  bool shouldRepaint(ReplayLinePainter old) =>
       !listEquals(old.points, points) ||
       old.entryY != entryY ||
       old.revealX != revealX ||
       old.latticeShift != latticeShift ||
       old.sx != sx ||
-      old.sy != sy;
+      old.sy != sy ||
+      old.screenLattice != screenLattice;
 }
 
 /// When the tip reaches each vertex of the path, in replay ms.

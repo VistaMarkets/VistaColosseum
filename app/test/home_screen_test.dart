@@ -28,6 +28,7 @@ import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
 import 'package:vista_colosseum/features/home/trade_idea_card.dart';
+import 'package:vista_colosseum/features/share/share_call_sheet.dart';
 import 'package:vista_colosseum/main.dart';
 
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
@@ -1827,6 +1828,71 @@ void main() {
         await pumpBtc(tester, size, padding);
         await tester.tap(find.text('Long').last);
         await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('share call', () {
+    Future<void> openShare(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Share').first);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Share opens the sheet with what the recipient will see', (
+      tester,
+    ) async {
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await openShare(tester);
+      expect(find.byType(ShareCallSheet), findsOneWidget);
+      expect(find.text("WHAT THEY'LL SEE"), findsOneWidget);
+      expect(
+        find.text("kaito.eth's ETH long is up 5.97% since the call"),
+        findsOneWidget,
+      );
+      // Four targets, as designed; no options.
+      for (final t in ['Messages', 'Telegram', 'X', 'Copy link']) {
+        expect(find.text(t), findsOneWidget);
+      }
+      expect(find.text('WhatsApp'), findsNothing);
+      expect(find.text('Include my referral link'), findsNothing);
+
+      await tester.tap(find.text('Copy link'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ShareCallSheet), findsNothing);
+      expect(copied.single, startsWith('https://vistamarkets.xyz/c/'));
+      expect(find.text('Link copied'), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('sheet renders without overflow on $name', (tester) async {
+        await openShare(tester, size, padding);
         expect(tester.takeException(), isNull);
       });
     }

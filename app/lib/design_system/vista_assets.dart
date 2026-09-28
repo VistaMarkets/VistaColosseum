@@ -87,6 +87,15 @@ abstract final class VistaAssets {
 
   /// [star] filled in the favourite colour, for the watched state.
   static const String starFilled = '$_dir/star_filled.svg';
+
+  /// Share call sheet (Figma 462:474): the Vista mark on the share card,
+  /// the caller avatar, and the share targets.
+  static const String shareLogo = '$_dir/share_logo.svg';
+  static const String shareAvatar = '$_dir/share_avatar.svg';
+  static const String shareMessages = '$_dir/share_messages.svg';
+  static const String shareTelegram = '$_dir/share_telegram.svg';
+  static const String shareX = '$_dir/share_x.svg';
+  static const String shareCopyLink = '$_dir/share_copy_link.svg';
   static const String chevronBox = '$_dir/chevron_box.svg';
   static const String chartTypeToggle = '$_dir/chart_type_toggle.svg';
   static const String tmBaseline = '$_dir/tm_baseline.svg';

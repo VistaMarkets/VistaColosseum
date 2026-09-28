@@ -5,6 +5,7 @@ import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
+import '../share/share_call_sheet.dart';
 import 'mock_trade_idea.dart';
 import 'replay_timeline.dart';
 import 'signal_replay_chart.dart';
@@ -353,10 +354,11 @@ class _ChartWithRail extends StatelessWidget {
                     semanticLabel: 'Traders',
                   ),
                   const SizedBox(height: VistaSpace.lg),
-                  const VistaRailButton(
+                  VistaRailButton(
                     asset: VistaAssets.share,
                     label: 'Share',
                     semanticLabel: 'Share',
+                    onPressed: () => showShareCallSheet(context, idea),
                   ),
                 ],
               ),
