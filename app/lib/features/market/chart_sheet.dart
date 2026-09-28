@@ -32,6 +32,7 @@ class ChartSheet extends StatefulWidget {
     this.chartTypeAsset = VistaAssets.chartTypeToggle,
     this.onIntervalChanged,
     this.onChartType,
+    this.onSide,
   });
 
   final Widget Function(double collapse) header;
@@ -49,6 +50,9 @@ class ChartSheet extends StatefulWidget {
 
   /// Chart-type toggle tap; without it the toggle reports "not built".
   final VoidCallback? onChartType;
+
+  /// Long or Short tapped: opens the order ticket on that side.
+  final ValueChanged<TradeSide>? onSide;
 
   @override
   State<ChartSheet> createState() => _ChartSheetState();
@@ -258,12 +262,16 @@ class _ChartSheetState extends State<ChartSheet>
             label: 'Long',
             variant: VistaPillVariant.long,
             // Simulated only: the demo never places an order.
-            onPressed: () => widget.onNotBuilt('Long (simulated)'),
+            onPressed: () => widget.onSide != null
+                ? widget.onSide!(TradeSide.long)
+                : widget.onNotBuilt('Long (simulated)'),
           ),
           short: VistaPillButton(
             label: 'Short',
             variant: VistaPillVariant.short,
-            onPressed: () => widget.onNotBuilt('Short (simulated)'),
+            onPressed: () => widget.onSide != null
+                ? widget.onSide!(TradeSide.short)
+                : widget.onNotBuilt('Short (simulated)'),
           ),
         ),
       ),

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -12,6 +10,7 @@ import '../market/your_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
 import 'open_order_card.dart';
+import 'orders_state.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
@@ -31,13 +30,10 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   int _span = PortfolioMock.defaultSpan;
   int _list = 0;
 
-  /// Open orders still resting; Cancel removes one (simulated, with Undo).
-  final _orders = [...OpenOrdersMock.orders];
-
+  /// Cancel removes a resting order (simulated, with Undo).
   void _cancelOrder(OpenOrder order) {
-    final index = _orders.indexOf(order);
+    final index = OrdersState.remove(order);
     if (index < 0) return;
-    setState(() => _orders.removeAt(index));
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -45,12 +41,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           content: Text('${order.symbol} limit order cancelled (simulated)'),
           action: SnackBarAction(
             label: 'Undo',
-            onPressed: () {
-              if (!mounted || _orders.contains(order)) return;
-              setState(
-                () => _orders.insert(math.min(index, _orders.length), order),
-              );
-            },
+            onPressed: () => OrdersState.insert(index, order),
           ),
         ),
       );
@@ -266,24 +257,31 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
   // Open orders has no Figma design; cards follow the backend's order model.
   Widget _openOrders() {
+    return ValueListenableBuilder(
+      valueListenable: OrdersState.open,
+      builder: (context, orders, _) => _orderList(orders),
+    );
+  }
+
+  Widget _orderList(List<OpenOrder> orders) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
           child: Text(
-            'Open orders · ${_orders.length}',
+            'Open orders · ${orders.length}',
             style: VistaType.body.copyWith(color: VistaColors.textMuted),
           ),
         ),
-        if (_orders.isEmpty)
+        if (orders.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text('No open orders', style: VistaType.bodyRegular),
             ),
           ),
-        for (final o in _orders)
+        for (final o in orders)
           Padding(
             key: ValueKey(o.id),
             padding: const EdgeInsets.only(top: VistaSpace.sm),

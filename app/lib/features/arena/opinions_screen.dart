@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
+import '../trade/order_ticket.dart';
 import 'opinions_mock.dart';
 
 /// Every opinion on a battle (Figma 48:430, "13 · Clash detail — scrolled"),
@@ -20,12 +21,6 @@ class OpinionsScreen extends StatefulWidget {
 
 class _OpinionsScreenState extends State<OpinionsScreen> {
   int _filter = 0; // 0 All, 1 Bull thesis, 2 Bear thesis
-
-  void _notBuilt(String what) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +131,14 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
             ),
             _ConsensusDock(
               bullPercent: bull,
-              onBull: () => _notBuilt('Follow Bull (simulated)'),
-              onBear: () => _notBuilt('Follow Bear (simulated)'),
+              // The clash is on BTC: Bull is long, Bear short.
+              onBull: () =>
+                  showOrderTicket(context, symbol: 'BTC', side: TradeSide.long),
+              onBear: () => showOrderTicket(
+                context,
+                symbol: 'BTC',
+                side: TradeSide.short,
+              ),
             ),
           ],
         ),

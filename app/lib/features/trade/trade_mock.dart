@@ -40,9 +40,13 @@ class CallerPost {
     required this.takeProfit,
     required this.stopLoss,
     required this.message,
+    this.following = true,
   });
 
   final String handle;
+
+  /// Whether the user follows this caller (the "Following" filter).
+  final bool following;
   final String age;
   final TradeSide side;
   final int leverage;
@@ -183,21 +187,6 @@ abstract final class TradeMock {
   static const rangePosition = 212 / 370;
   static const fundingSummary = 'Longs paid 8 of 9';
 
-  /// Last 9 funding payments: height (of 24) and whether longs paid.
-  static const funding = [
-    (12.0, true),
-    (16.0, true),
-    (6.0, false),
-    (14.0, true),
-    (18.0, true),
-    (20.0, true),
-    (24.0, true),
-    (18.0, true),
-    (22.0, true),
-  ];
-  static const liqLong = r'$65,900';
-  static const liqShort = r'$68,900';
-
   // Book panel: (price, size, depth fraction of the half-row).
   static const spread = 'Spread 0.5';
   static const bids = [
@@ -226,7 +215,36 @@ abstract final class TradeMock {
   // Callers panel.
   static const callersLong = 8;
   static const callersShort = 4;
+
+  /// Callers' posts, newest first; `following` marks people the user
+  /// follows.
   static const callers = [
+    CallerPost(
+      handle: 'vega',
+      age: '15m',
+      side: TradeSide.short,
+      leverage: 5,
+      entryRatio: 1.0021,
+      size: 900,
+      takeProfit: 0.98,
+      stopLoss: 1.01,
+      message:
+          'Third tap of the same ceiling today and volume is fading each '
+          'time. Short with a stop just above it.',
+      following: false,
+    ),
+    CallerPost(
+      handle: 'lunaq',
+      age: '40m',
+      side: TradeSide.long,
+      leverage: 10,
+      entryRatio: 0.9983,
+      size: 600,
+      takeProfit: 1.012,
+      stopLoss: 0.994,
+      message:
+          'Big bids stacked just under price. Quick one with a tight stop.',
+    ),
     CallerPost(
       handle: 'maya.eth',
       age: '2h',
@@ -239,6 +257,20 @@ abstract final class TradeMock {
       message:
           'Reclaimed the range high on real volume. Longing the retest, '
           'stop under the prior low. Not chasing if it loses the level.',
+    ),
+    CallerPost(
+      handle: 'orbit.eth',
+      age: '3h',
+      side: TradeSide.long,
+      leverage: 3,
+      entryRatio: 0.9871,
+      size: 1800,
+      takeProfit: 1.05,
+      stopLoss: 0.975,
+      message:
+          'Bought the dip into support I have been watching all week. '
+          'Adding more only if it holds on the daily close.',
+      following: false,
     ),
     CallerPost(
       handle: '0xreal',
@@ -254,16 +286,17 @@ abstract final class TradeMock {
           'resistance. Fading it, small size, out if we close above.',
     ),
     CallerPost(
-      handle: 'lunaq',
-      age: '40m',
+      handle: 'sam.sol',
+      age: '8h',
       side: TradeSide.long,
-      leverage: 10,
-      entryRatio: 0.9983,
-      size: 600,
-      takeProfit: 1.012,
-      stopLoss: 0.994,
+      leverage: 20,
+      entryRatio: 0.9960,
+      size: 400,
+      takeProfit: 1.01,
+      stopLoss: 0.996,
       message:
-          'Big bids stacked just under price. Quick one with a tight stop.',
+          'Scalp. Liquidity swept below the lows and snapped straight back.',
+      following: false,
     ),
     CallerPost(
       handle: 'deltaone',
@@ -277,6 +310,20 @@ abstract final class TradeMock {
       message:
           'The weekly close looks weak to me. Holding the short until the '
           'chart proves otherwise.',
+    ),
+    CallerPost(
+      handle: 'mirin',
+      age: '2d',
+      side: TradeSide.short,
+      leverage: 2,
+      entryRatio: 1.0150,
+      size: 2500,
+      takeProfit: 0.94,
+      stopLoss: 1.04,
+      message:
+          'Macro short, not a trade for this week. Rates and liquidity both '
+          'point the same way to me.',
+      following: false,
     ),
   ];
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../settings/settings_state.dart';
+import '../trade/order_ticket.dart';
 import '../profile/profile_screen.dart';
 import 'arena_mock.dart';
 import 'opinions_screen.dart';
@@ -80,8 +81,17 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         bear: b.bear,
                         moreOpinions: b.moreOpinions,
                         // Simulated only: joining a side places nothing.
-                        onBull: () => _notBuilt('Joining Bull (simulated)'),
-                        onBear: () => _notBuilt('Joining Bear (simulated)'),
+                        // Bull is long the battle's market, Bear short.
+                        onBull: () => showOrderTicket(
+                          context,
+                          symbol: b.ticker,
+                          side: TradeSide.long,
+                        ),
+                        onBear: () => showOrderTicket(
+                          context,
+                          symbol: b.ticker,
+                          side: TradeSide.short,
+                        ),
                         onOpinions: () =>
                             Navigator.of(context).push(OpinionsScreen.route()),
                         onCaller: (handle) =>

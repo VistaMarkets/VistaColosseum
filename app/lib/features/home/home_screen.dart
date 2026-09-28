@@ -5,6 +5,7 @@ import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
 import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
+import '../trade/order_ticket.dart';
 import 'mock_trade_idea.dart';
 import 'trade_idea_card.dart';
 
@@ -43,8 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
-  void _notBuilt(String what) => widget.onNotBuilt?.call(what);
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -82,8 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   onCaller: () =>
                       Navigator.of(context)
                           .push(ProfileScreen.route(mockFeed[i].callerHandle)),
-                  // Simulated only: the demo never places an order.
-                  onTrade: () => _notBuilt('Order flow (simulated)'),
+                  // Opens the order ticket on the call's side (simulated).
+                  onTrade: () => showOrderTicket(
+                    context,
+                    symbol: mockFeed[i].ticker,
+                    side: mockFeed[i].side,
+                  ),
                 ),
               ),
             ),

@@ -8,8 +8,10 @@ import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
 import '../watchlist/watchlist_state.dart';
 import '../profile/profile_screen.dart';
+import 'caller_play_screen.dart';
 import 'caller_thread.dart';
 import 'candle_chart.dart';
+import 'order_ticket.dart';
 import 'trade_mock.dart';
 
 /// An asset's trade page (Figma "Trade — BTC": 206:110 chart open, swiped-up
@@ -80,6 +82,8 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
       intervals: TradeMock.intervals,
       defaultInterval: TradeMock.defaultInterval,
       onIntervalChanged: (i) => setState(() => _interval = i),
+      onSide: (side) =>
+          showOrderTicket(context, symbol: _quote.ticker, side: side),
       onNotBuilt: _notBuilt,
       panels: [
         ChartSheetPanel('Market', _marketPanel()),
@@ -330,45 +334,6 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
             Text(TradeMock.fundingSummary, style: _rowValue),
           ],
         ),
-        const SizedBox(height: VistaSpace.sm),
-        SizedBox(
-          height: 24,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (var i = 0; i < TradeMock.funding.length; i++) ...[
-                if (i > 0) const SizedBox(width: VistaSpace.xs),
-                Expanded(
-                  child: Container(
-                    height: TradeMock.funding[i].$1,
-                    decoration: BoxDecoration(
-                      // Pink: longs paid; green: shorts paid.
-                      color: TradeMock.funding[i].$2
-                          ? VistaColors.short
-                          : VistaColors.long,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        gap,
-        Row(
-          children: [
-            Expanded(child: Text('Nearest liquidations', style: _rowLabel)),
-            Text(
-              TradeMock.liqLong,
-              style: _rowValue.copyWith(color: VistaColors.long),
-            ),
-            const SizedBox(width: VistaSpace.lg),
-            Text(
-              TradeMock.liqShort,
-              style: _rowValue.copyWith(color: VistaColors.short),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -514,11 +479,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
     const short = TradeMock.callersShort;
     Widget toggle(String label, bool on) => GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => on
-          ? null
-          : label == 'Everyone'
-          ? _notBuilt('All callers')
-          : setState(() => _followingOnly = true),
+      onTap: () => setState(() => _followingOnly = label == 'Following'),
       child: Text(
         label,
         style: VistaType.body.copyWith(
@@ -565,9 +526,16 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         gap,
         CallerThread(
           ticker: _quote.ticker,
-          posts: TradeMock.callers,
+          // Following: people the user follows; Everyone: all callers.
+          posts: [
+            for (final p in TradeMock.callers)
+              if (!_followingOnly || p.following) p,
+          ],
           onCaller: (handle) =>
               Navigator.of(context).push(ProfileScreen.route(handle)),
+          onPlay: (post) =>
+              Navigator.of(context)
+                  .push(CallerPlayScreen.route(post, _quote.ticker)),
         ),
         gap,
         const VistaHairline(),

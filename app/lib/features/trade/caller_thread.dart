@@ -15,11 +15,15 @@ class CallerThread extends StatelessWidget {
     required this.ticker,
     required this.posts,
     required this.onCaller,
+    this.onPlay,
   });
 
   final String ticker;
   final List<CallerPost> posts;
   final ValueChanged<String> onCaller;
+
+  /// Opens a caller's play (their order card was tapped).
+  final ValueChanged<CallerPost>? onPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +39,7 @@ class CallerThread extends StatelessWidget {
               price: price,
               threaded: i < posts.length - 1,
               onCaller: onCaller,
+              onPlay: onPlay,
             ),
         ],
       ),
@@ -49,9 +54,11 @@ class _Post extends StatelessWidget {
     required this.price,
     required this.threaded,
     required this.onCaller,
+    this.onPlay,
   });
 
   final CallerPost post;
+  final ValueChanged<CallerPost>? onPlay;
 
   /// The market's session price the order levels are set from, and its
   /// live price for P&L.
@@ -147,57 +154,67 @@ class _Post extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: VistaSpace.md),
-                  // The order, embedded like a quoted post.
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(VistaSpace.lg),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: VistaColors.surfaceRaised),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                  // The order, embedded like a quoted post; tap for the play.
+                  Semantics(
+                    button: true,
+                    label: "Open ${p.handle}'s play",
+                    value: '${p.side.label} ${p.leverage}x, entry ${level(1)}',
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onPlay == null ? null : () => onPlay!(p),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(VistaSpace.lg),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: VistaColors.surfaceRaised),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '${p.side.label.toUpperCase()} ${p.leverage}x',
-                              style: VistaType.labelStrong.copyWith(
-                                color: p.side.color,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '${p.side.label.toUpperCase()} ${p.leverage}x',
+                                  style: VistaType.labelStrong.copyWith(
+                                    color: p.side.color,
+                                  ),
+                                ),
+                                const SizedBox(width: VistaSpace.sm),
+                                Expanded(
+                                  child: Text(
+                                    'Entry ${level(1)}',
+                                    style: VistaType.body,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  '${pnl >= 0 ? '+' : '−'}'
+                                  '${pnl.abs().toStringAsFixed(1)}%',
+                                  style: VistaType.bodyStrong.copyWith(
+                                    color: pnl >= 0
+                                        ? VistaColors.long
+                                        : VistaColors.short,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: VistaSpace.sm),
-                            Expanded(
-                              child: Text(
-                                'Entry ${level(1)}',
-                                style: VistaType.body,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
+                            const SizedBox(height: VistaSpace.xs),
                             Text(
-                              '${pnl >= 0 ? '+' : '−'}'
-                              '${pnl.abs().toStringAsFixed(1)}%',
-                              style: VistaType.bodyStrong.copyWith(
-                                color: pnl >= 0
-                                    ? VistaColors.long
-                                    : VistaColors.short,
+                              'Size ${formatUsd(p.size)}'
+                              ' · TP ${level(p.takeProfit)}'
+                              ' · SL ${level(p.stopLoss)}',
+                              style: VistaType.caption.copyWith(
+                                color: VistaColors.textMuted,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: VistaSpace.xs),
-                        Text(
-                          'Size ${formatUsd(p.size)}'
-                          ' · TP ${level(p.takeProfit)}'
-                          ' · SL ${level(p.stopLoss)}',
-                          style: VistaType.caption.copyWith(
-                            color: VistaColors.textMuted,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],

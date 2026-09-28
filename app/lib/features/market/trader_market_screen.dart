@@ -8,6 +8,7 @@ import '../live/market_prices.dart';
 import '../profile/holdings_table.dart';
 import '../settings/settings_state.dart';
 import '../trade/trade_mock.dart';
+import '../trade/order_ticket.dart';
 import '../watchlist/watchlist_state.dart';
 import 'chart_sheet.dart';
 import 'trader_market_chart.dart';
@@ -74,6 +75,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
       intervals: TraderMarketMock.intervals,
       defaultInterval: TraderMarketMock.defaultInterval,
       onIntervalChanged: (i) => setState(() => _interval = i),
+      onSide: (side) =>
+          showOrderTicket(context, symbol: widget.handle, side: side),
       onNotBuilt: _notBuilt,
       panels: [
         ChartSheetPanel('Market', _marketPanel()),

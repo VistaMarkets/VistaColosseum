@@ -24,6 +24,10 @@ import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+import 'package:vista_colosseum/features/portfolio/orders_state.dart';
+import 'package:vista_colosseum/features/trade/order_ticket.dart';
+import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
+import 'package:vista_colosseum/features/home/trade_idea_card.dart';
 import 'package:vista_colosseum/main.dart';
 
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
@@ -64,6 +68,7 @@ void main() {
     AccountState.reset(withMarket: true);
     SettingsState.reset();
     WatchlistState.reset();
+    OrdersState.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1026,7 +1031,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(AssetTradeScreen), findsOneWidget);
       expect(visible('Ethereum'), findsOneWidget); // the card is ETH
-      expect(visible('Nearest liquidations'), findsOneWidget);
+      expect(visible('Longs pay shorts'), findsOneWidget);
 
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
       await tester.pumpAndSettle();
@@ -1046,6 +1051,32 @@ void main() {
         ),
         findsNothing,
       );
+
+      // Following shows people the user follows; Everyone adds the rest.
+      expect(find.text('vega'), findsNothing);
+      await tester.tap(find.text('Everyone'));
+      await tester.pumpAndSettle();
+      expect(find.text('vega'), findsOneWidget); // newest, first
+      expect(
+        find.textContaining('Third tap of the same ceiling'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      expect(find.text('vega'), findsNothing);
+      // The Market panel has no funding bars or liquidation levels now.
+      expect(find.text('Nearest liquidations'), findsNothing);
+
+      // Tapping a caller's order card opens their play as a trade card.
+      await tester.tap(find.bySemanticsLabel("Open lunaq's play"));
+      await tester.pumpAndSettle();
+      expect(find.byType(CallerPlayScreen), findsOneWidget);
+      expect(find.text("lunaq's call"), findsOneWidget);
+      expect(find.byType(TradeIdeaCard), findsWidgets);
+      expect(find.textContaining('Does ETH reach'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+      expect(find.byType(CallerPlayScreen), findsNothing);
 
       // A caller opens their profile.
       await tester.dragUntilVisible(
@@ -1080,7 +1111,7 @@ void main() {
         1500,
       );
       await tester.pumpAndSettle();
-      expect(visible('Nearest liquidations'), findsNothing);
+      expect(visible('Longs pay shorts'), findsNothing);
       expect(find.byType(CandleChart), findsOneWidget);
       // Generated SOL history ends on the quoted price.
       expect(find.text('214.90'), findsOneWidget);
@@ -1692,5 +1723,112 @@ void main() {
       expect(find.byType(TraderMarketScreen), findsOneWidget);
       expect(find.text(mockFeed[index].ticker), findsWidgets);
     });
+  });
+
+  group('order ticket', () {
+    Future<void> pumpBtc(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VistaTheme.dark(),
+          home: const AssetTradeScreen(ticker: 'BTC'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Long opens the ticket; a limit order lands in Open orders', (
+      tester,
+    ) async {
+      await pumpBtc(tester);
+      await tester.tap(find.text('Long').last);
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderTicket), findsOneWidget);
+      expect(find.text('Place limit long'), findsOneWidget);
+      expect(find.text('Cross · 10x'), findsOneWidget);
+      expect(find.text('Fee (maker 0.02%)'), findsOneWidget);
+
+      // Short + Market re-labels the order and the fee.
+      await tester.tap(find.bySemanticsLabel('Short').last);
+      await tester.tap(find.bySemanticsLabel('Market').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Place market short'), findsOneWidget);
+      expect(find.text('Fee (taker 0.05%)'), findsOneWidget);
+
+      // Back to a limit long and place it.
+      await tester.tap(find.bySemanticsLabel('Long').last);
+      await tester.tap(find.bySemanticsLabel('Limit').last);
+      await tester.pumpAndSettle();
+      final before = OrdersState.open.value.length;
+      await tester.tap(find.text('Place limit long'));
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderTicket), findsNothing);
+      expect(OrdersState.open.value.length, before + 1);
+      final placed = OrdersState.open.value.first;
+      expect(placed.symbol, 'BTC');
+      expect(placed.side, TradeSide.long);
+      expect(placed.leverage, 10);
+      expect(
+        find.text('Limit long placed · in Open orders (simulated)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a size beyond the margin blocks the order', (tester) async {
+      await pumpBtc(tester);
+      await tester.tap(find.text('Long').last);
+      await tester.pumpAndSettle();
+      final size = find.descendant(
+        of: find.byType(OrderTicket),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(size.at(1), '5');
+      await tester.pump();
+      expect(find.text('Not enough margin'), findsOneWidget);
+      final before = OrdersState.open.value.length;
+      await tester.tap(find.text('Not enough margin'));
+      await tester.pump();
+      expect(OrdersState.open.value.length, before);
+    });
+
+    testWidgets('Arena Bull and Home Long open the ticket on that side', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Place limit long'), findsOneWidget);
+      Navigator.of(tester.element(find.byType(OrderTicket))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text("I'm with Bear").first);
+      await tester.pumpAndSettle();
+      expect(find.text('Place limit short'), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('ticket renders without overflow on $name', (tester) async {
+        await pumpBtc(tester, size, padding);
+        await tester.tap(find.text('Long').last);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 }
