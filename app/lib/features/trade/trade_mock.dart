@@ -26,16 +26,37 @@ class AssetQuote {
       '${up ? '+' : '−'}${changePct.abs().toStringAsFixed(2)}%';
 }
 
-/// A caller's live position in this asset (Callers panel).
-class AssetCaller {
-  const AssetCaller(this.handle, this.side, this.detail, this.pnl);
+/// A caller's post on an asset (Callers panel): why they traded, and their
+/// order. Levels are ratios of the market's price, so every asset's page
+/// shows levels in its own prices.
+class CallerPost {
+  const CallerPost({
+    required this.handle,
+    required this.age,
+    required this.side,
+    required this.leverage,
+    required this.entryRatio,
+    required this.size,
+    required this.takeProfit,
+    required this.stopLoss,
+    required this.message,
+  });
 
   final String handle;
+  final String age;
   final TradeSide side;
-  final String detail;
-  final String pnl;
+  final int leverage;
 
-  bool get inProfit => !pnl.startsWith('−');
+  /// Entry as a share of the market's session price.
+  final double entryRatio;
+
+  /// Position size in dollars.
+  final double size;
+
+  /// Exits as shares of the entry.
+  final double takeProfit;
+  final double stopLoss;
+  final String message;
 }
 
 /// Mock content from Figma 206:110 and 214:110 / 214:428 / 214:746
@@ -206,9 +227,56 @@ abstract final class TradeMock {
   static const callersLong = 8;
   static const callersShort = 4;
   static const callers = [
-    AssetCaller('maya.eth', TradeSide.long, r'5x · from $66,900', '+3.8%'),
-    AssetCaller('0xreal', TradeSide.short, r'3x · from $67,950', '+2.4%'),
-    AssetCaller('lunaq', TradeSide.long, r'10x · from $67,300', '+1.7%'),
-    AssetCaller('deltaone', TradeSide.short, r'2x · from $66,800', '−1.8%'),
+    CallerPost(
+      handle: 'maya.eth',
+      age: '2h',
+      side: TradeSide.long,
+      leverage: 5,
+      entryRatio: 0.9924,
+      size: 2400,
+      takeProfit: 1.03,
+      stopLoss: 0.985,
+      message:
+          'Reclaimed the range high on real volume. Longing the retest, '
+          'stop under the prior low. Not chasing if it loses the level.',
+    ),
+    CallerPost(
+      handle: '0xreal',
+      age: '5h',
+      side: TradeSide.short,
+      leverage: 3,
+      entryRatio: 1.008,
+      size: 1200,
+      takeProfit: 0.97,
+      stopLoss: 1.015,
+      message:
+          'Funding is running hot and open interest keeps climbing into '
+          'resistance. Fading it, small size, out if we close above.',
+    ),
+    CallerPost(
+      handle: 'lunaq',
+      age: '40m',
+      side: TradeSide.long,
+      leverage: 10,
+      entryRatio: 0.9983,
+      size: 600,
+      takeProfit: 1.012,
+      stopLoss: 0.994,
+      message:
+          'Big bids stacked just under price. Quick one with a tight stop.',
+    ),
+    CallerPost(
+      handle: 'deltaone',
+      age: '1d',
+      side: TradeSide.short,
+      leverage: 2,
+      entryRatio: 0.9909,
+      size: 3000,
+      takeProfit: 0.95,
+      stopLoss: 1.03,
+      message:
+          'The weekly close looks weak to me. Holding the short until the '
+          'chart proves otherwise.',
+    ),
   ];
 }

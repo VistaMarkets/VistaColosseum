@@ -63,7 +63,7 @@ real financial execution out of the demo.
 - `app/lib/features/arena/` — Arena tab: Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
 - `app/lib/features/settings/` — Settings from the Portfolio gear (Figma 442:102 / 442:772): sections open in place; Notifications (backend `NotificationPrefs` + per-trader switches), Display (`DisplayPrefs`: candles/line for every chart that draws both, Long button left/right on every Long/Short or Bull/Bear pair), Security (two-factor, trading permission), Legal and privacy (trade visibility, terms, region), Help; all changes simulated and on-device
 - `app/lib/features/watchlist/` — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
-- `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
+- `app/lib/features/trade/` — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels; Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) (mock data)
 - `app/lib/features/home/` — Home swipe feed: one call card per market Explore offers (5 assets + 7 trader markets; ETH is the Figma card), each with its own `ReplayScript` (price path, call line, events; generated from a seed for all but ETH) played by the signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back; candles grow in a wave; paced by `replay_timeline.dart`, ringed entrances, haptics, labels placed clear of each other and the activity rows; header price and % since call replay in step; then live on the market's price); Details opens the asset or trader market (mock data)
 - `app/assets/figma/` — SVGs exported from the Arena Figma file
 - `app/assets/fonts/` — Open Runde font files and OFL license
@@ -400,8 +400,9 @@ VistaColosseum/
 │   │   │   │   ├── settings_mock.dart
 │   │   │   │   ├── settings_screen.dart
 │   │   │   │   └── settings_state.dart
-│   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels (mock data)
+│   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers panels; Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) (mock data)
 │   │   │   │   ├── asset_trade_screen.dart
+│   │   │   │   ├── caller_thread.dart
 │   │   │   │   ├── candle_chart.dart
 │   │   │   │   └── trade_mock.dart
 │   │   │   └── watchlist/  — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated

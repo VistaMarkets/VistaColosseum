@@ -8,6 +8,7 @@ import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
 import '../watchlist/watchlist_state.dart';
 import '../profile/profile_screen.dart';
+import 'caller_thread.dart';
 import 'candle_chart.dart';
 import 'trade_mock.dart';
 
@@ -561,50 +562,13 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         ),
         gap,
         const VistaSplitBar(leftFraction: long / (long + short), height: 6),
-        for (final c in TradeMock.callers) ...[
-          gap,
-          const VistaHairline(),
-          gap,
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () =>
-                Navigator.of(context).push(ProfileScreen.route(c.handle)),
-            child: Row(
-              children: [
-                VistaIcon(
-                  c.side == TradeSide.long
-                      ? VistaAssets.traderAvatar
-                      : VistaAssets.callerAvatarShort,
-                  size: 32,
-                ),
-                const SizedBox(width: VistaSpace.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(c.handle, style: VistaType.subhead),
-                      const SizedBox(height: VistaSpace.xxs),
-                      Text(
-                        '${c.side.label} · ${c.detail}',
-                        style: VistaType.chip.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: VistaColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  c.pnl,
-                  style: VistaType.subhead.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.inProfit ? VistaColors.long : VistaColors.short,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        gap,
+        CallerThread(
+          ticker: _quote.ticker,
+          posts: TradeMock.callers,
+          onCaller: (handle) =>
+              Navigator.of(context).push(ProfileScreen.route(handle)),
+        ),
         gap,
         const VistaHairline(),
         GestureDetector(

@@ -1035,7 +1035,25 @@ void main() {
       await tester.pumpAndSettle();
       expect(visible('Callers in ETH'), findsOneWidget);
 
+      // Callers are a post thread: why they traded, over their order, in
+      // this market's own prices; no like, repost or share.
+      expect(find.textContaining('Reclaimed the range high'), findsOneWidget);
+      expect(find.text(r'Entry $2,946'), findsOneWidget); // ETH, not BTC
+      expect(
+        find.descendant(
+          of: find.byType(AssetTradeScreen),
+          matching: find.bySemanticsLabel(RegExp('Like|Repost|Share')),
+        ),
+        findsNothing,
+      );
+
       // A caller opens their profile.
+      await tester.dragUntilVisible(
+        find.text('lunaq'),
+        find.text('Callers in ETH'),
+        const Offset(0, -150),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(visible('lunaq'));
       await tester.pumpAndSettle();
       expect(find.text('HOLDING NOW'), findsOneWidget);
