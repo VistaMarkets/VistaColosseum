@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
+import '../watchlist/edit_favorites_screen.dart';
+import '../watchlist/watchlist_state.dart';
 import 'markets_mock.dart';
 
 /// Explore tab: Assets and Traders markets (Figma 185:110, 222:110).
 ///
 /// Search filters by name, the sort chips order the list (descending), and
-/// stars add or remove favourites, which the Favourites rail follows.
+/// stars add or remove favourites (shared with the market pages' stars),
+/// which the Favourites rail follows in the order they were added.
 class MarketsScreen extends StatefulWidget {
   const MarketsScreen({super.key, this.onNotBuilt});
 
@@ -24,10 +27,6 @@ class _MarketsScreenState extends State<MarketsScreen> {
   final _search = TextEditingController();
   String _query = '';
   final _sort = [0, 0];
-  final _favorites = [
-    {...MarketsMock.assetFavorites},
-    {...MarketsMock.traderFavorites},
-  ];
 
   @override
   void dispose() {
@@ -52,10 +51,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
     });
   }
 
-  void _toggleFavorite(String id) => setState(() {
-    final favs = _favorites[_tab];
-    favs.contains(id) ? favs.remove(id) : favs.add(id);
-  });
+  ValueNotifier<List<String>> get _favorites =>
+      _traders ? WatchlistState.traders : WatchlistState.assets;
+
+  void _toggleFavorite(String id) => _traders
+      ? WatchlistState.toggleTrader(id)
+      : WatchlistState.toggleAsset(id);
 
   void _open(MarketItem m) {
     if (_traders) {
@@ -78,8 +79,19 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final favs = _favorites[_tab];
-    final favItems = _all.where((m) => favs.contains(m.id)).toList();
+    return ValueListenableBuilder(
+      valueListenable: _favorites,
+      builder: (context, favs, _) => _build(favs),
+    );
+  }
+
+  Widget _build(List<String> favs) {
+    // In favourite order, not list order.
+    final byId = {for (final m in _all) m.id: m};
+    final favItems = [
+      for (final id in favs)
+        if (byId[id] != null) byId[id]!,
+    ];
     final rows = _sorted();
     const gutter = EdgeInsets.symmetric(horizontal: VistaSpace.gutter);
 
@@ -125,7 +137,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () => _notBuilt('Edit favorites'),
+                          onTap: () => Navigator.of(
+                            context,
+                          ).push(EditFavoritesScreen.route(traders: _traders)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Text(

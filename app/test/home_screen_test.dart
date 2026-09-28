@@ -14,6 +14,8 @@ import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
+import 'package:vista_colosseum/features/watchlist/edit_favorites_screen.dart';
+import 'package:vista_colosseum/features/watchlist/watchlist_state.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
 import 'package:vista_colosseum/features/trade/candle_chart.dart';
 import 'package:vista_colosseum/main.dart';
@@ -55,6 +57,7 @@ void main() {
   setUp(() {
     AccountState.reset(withMarket: true);
     SettingsState.reset();
+    WatchlistState.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -685,6 +688,122 @@ void main() {
       expect(find.byType(VistaIntervalSelector), findsOneWidget);
     });
 
+    Future<void> railShows(WidgetTester tester, String name) =>
+        tester.scrollUntilVisible(
+          find.descendant(
+            of: find.byType(VistaMarketCard),
+            matching: find.text(name),
+          ),
+          150,
+          scrollable: find
+              .ancestor(
+                of: find.byType(VistaMarketCard).first,
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+
+    List<String> railNames(WidgetTester tester) => tester
+        .widgetList<VistaMarketCard>(find.byType(VistaMarketCard))
+        .map((c) => c.name)
+        .toList();
+
+    testWidgets('asset page star and Explore stars share one watchlist', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      expect(railNames(tester), ['BTC', 'ETH', 'SOL']);
+
+      // Star ARB from its trade page; it joins the end of the rail.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(VistaMarketRow),
+          matching: find.text('ARB'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final star = find.byType(VistaWatchButton);
+      expect(tester.widget<VistaWatchButton>(star).watched, isFalse);
+      await tester.tap(star);
+      await tester.pump();
+      expect(tester.widget<VistaWatchButton>(star).watched, isTrue);
+      expect(find.text('Added ARB to Favorites'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+      expect(WatchlistState.assets.value, ['BTC', 'ETH', 'SOL', 'ARB']);
+      await railShows(tester, 'ARB');
+
+      // Unstar BTC in Explore; its trade page shows it unwatched.
+      final btc = find.ancestor(
+        of: find.text('BTC').last,
+        matching: find.byType(VistaMarketRow),
+      );
+      await tester.tap(
+        find.descendant(of: btc, matching: find.byType(VistaStarButton)),
+      );
+      await tester.pumpAndSettle();
+      expect(railNames(tester).first, 'ETH');
+      expect(WatchlistState.assets.value, ['ETH', 'SOL', 'ARB']);
+      expect(WatchlistState.isAsset('BTC'), isFalse);
+    });
+
+    testWidgets('trader page star updates the Traders favourites', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Traders'));
+      await tester.pumpAndSettle();
+      expect(railNames(tester), ['maya.eth', 'lunaq', 'deltaone']);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(VistaMarketRow),
+          matching: find.text('0xreal'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(VistaWatchButton));
+      await tester.pump();
+      expect(WatchlistState.isTrader('0xreal'), isTrue);
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+      expect(WatchlistState.traders.value.last, '0xreal');
+      await railShows(tester, '0xreal');
+    });
+
+    testWidgets('Edit favorites removes with undo, and order drives the rail', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EditFavoritesScreen), findsOneWidget);
+      expect(find.text('Favorite markets'), findsOneWidget);
+
+      await tester.tap(find.byType(VistaStarButton).first);
+      await tester.pumpAndSettle();
+      expect(WatchlistState.assets.value, ['ETH', 'SOL']);
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(WatchlistState.assets.value, ['BTC', 'ETH', 'SOL']);
+
+      WatchlistState.move(WatchlistState.assets, 2, 0);
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+      expect(railNames(tester), ['SOL', 'BTC', 'ETH']);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('Edit favorites renders without overflow on $name', (
+        tester,
+      ) async {
+        await openMarkets(tester, size, padding);
+        await tester.tap(find.text('Edit'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('renders without overflow on $name', (tester) async {
         await openMarkets(tester, size, padding);
@@ -1282,5 +1401,73 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  testWidgets('home card replay follows the Candles / Line setting', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    Finder painted(String name) => find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter.runtimeType.toString() == name,
+    );
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    expect(DisplayPrefs.chartMode.value, PlotMode.candles);
+    expect(painted('_ReplayCandles'), findsWidgets);
+
+    DisplayPrefs.chartMode.value = PlotMode.line;
+    await tester.pumpAndSettle();
+    expect(painted('_ReplayCandles'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('replay moves the header price with the chart, events get '
+      'haptics, and it lands on the live figures', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final haptics = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptics.add(call.arguments as String);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    // Mid-replay: replayed figures, not the live ones, and no events yet.
+    expect(find.textContaining('replaying 5h'), findsWidgets);
+    expect(find.text('Whale long \$4.2M'), findsNothing);
+    expect(haptics, isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 700)); // past funding
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
+    await tester.pump(const Duration(milliseconds: 1600)); // past breakout
+    expect(haptics, [
+      'HapticFeedbackType.selectionClick',
+      'HapticFeedbackType.selectionClick',
+      'HapticFeedbackType.mediumImpact',
+    ]);
+
+    await tester.pumpAndSettle();
+    expect(find.textContaining('replaying'), findsNothing);
+    expect(find.text('+5.97% since call'), findsWidgets);
+    expect(find.text('Broke \$2,950'), findsWidgets);
+    expect(tester.takeException(), isNull);
   });
 }

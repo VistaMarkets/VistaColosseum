@@ -267,6 +267,76 @@ class VistaStarButton extends StatelessWidget {
   }
 }
 
+/// The header star on an asset or trader market page: the outline star when
+/// not watched, filled in the favourite colour when watched, with a small
+/// pop as it changes. 44pt tap target.
+class VistaWatchButton extends StatefulWidget {
+  const VistaWatchButton({
+    super.key,
+    required this.watched,
+    required this.onPressed,
+  });
+
+  final bool watched;
+  final VoidCallback onPressed;
+
+  @override
+  State<VistaWatchButton> createState() => _VistaWatchButtonState();
+}
+
+class _VistaWatchButtonState extends State<VistaWatchButton>
+    with SingleTickerProviderStateMixin {
+  late final _pop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    value: 1,
+  );
+
+  @override
+  void didUpdateWidget(VistaWatchButton old) {
+    super.didUpdateWidget(old);
+    // Pop only on a change, not when the page first builds.
+    if (old.watched != widget.watched) _pop.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _pop.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      toggled: widget.watched,
+      label: 'Favorite',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onPressed,
+        child: SizedBox.square(
+          dimension: VistaSize.tapTarget,
+          child: Center(
+            child: ScaleTransition(
+              scale: _pop.drive(
+                Tween(
+                  begin: 1.3,
+                  end: 1.0,
+                ).chain(CurveTween(curve: Curves.easeOutBack)),
+              ),
+              child: VistaIcon(
+                widget.watched ? VistaAssets.starFilled : VistaAssets.star,
+                size: 22,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Up/down change label, e.g. "▲ 1.2%" / "▼ 0.4%".
 String vistaChangeLabel(double pct) =>
     '${pct >= 0 ? '▲' : '▼'} ${pct.abs().toStringAsFixed(1)}%';

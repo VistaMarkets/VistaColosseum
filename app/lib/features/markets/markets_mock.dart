@@ -47,8 +47,8 @@ abstract final class MarketsMock {
 
   /// Favourites as designed. The Assets rail shows SOL although its row is
   /// unstarred in Figma; favourites here are one list, so SOL is starred.
-  static const assetFavorites = {'BTC', 'ETH', 'SOL'};
-  static const traderFavorites = {'maya.eth', 'lunaq', 'deltaone'};
+  static const assetFavorites = ['BTC', 'ETH', 'SOL'];
+  static const traderFavorites = ['maya.eth', 'lunaq', 'deltaone'];
 
   static const assets = [
     MarketItem(

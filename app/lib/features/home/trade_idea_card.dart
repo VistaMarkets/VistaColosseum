@@ -4,11 +4,15 @@ import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
 import '../live/live_feed.dart';
 import 'mock_trade_idea.dart';
+import 'replay_timeline.dart';
 import 'signal_replay_chart.dart';
 
 /// Full-height feed card: caller header, replay chart with social rail, and
 /// the Details / side action buttons. Fills whatever height it is given.
-class TradeIdeaCard extends StatelessWidget {
+///
+/// While the chart replays, the header's price and "% since call" move with
+/// the chart's tip, then land on the live values.
+class TradeIdeaCard extends StatefulWidget {
   const TradeIdeaCard({
     super.key,
     required this.idea,
@@ -29,14 +33,34 @@ class TradeIdeaCard extends StatelessWidget {
   final VoidCallback? onCaller;
 
   @override
+  State<TradeIdeaCard> createState() => _TradeIdeaCardState();
+}
+
+class _TradeIdeaCardState extends State<TradeIdeaCard> {
+  final _frame = ValueNotifier(const ReplayFrame());
+
+  TradeIdea get idea => widget.idea;
+
+  @override
+  void dispose() {
+    _frame.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final onTrade = widget.onTrade;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CallHeader(idea: idea, onCaller: onCaller),
+        _CallHeader(idea: idea, frame: _frame, onCaller: widget.onCaller),
         const SizedBox(height: VistaSpace.md),
         Expanded(
-          child: _ChartWithRail(idea: idea, active: active),
+          child: _ChartWithRail(
+            idea: idea,
+            active: widget.active,
+            frame: _frame,
+          ),
         ),
         const SizedBox(height: VistaSpace.xl),
         Padding(
@@ -44,7 +68,10 @@ class TradeIdeaCard extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: VistaPillButton(label: 'Details', onPressed: onDetails),
+                child: VistaPillButton(
+                  label: 'Details',
+                  onPressed: widget.onDetails,
+                ),
               ),
               const SizedBox(width: VistaSpace.xl),
               Expanded(
@@ -69,9 +96,10 @@ class TradeIdeaCard extends StatelessWidget {
 }
 
 class _CallHeader extends StatelessWidget {
-  const _CallHeader({required this.idea, this.onCaller});
+  const _CallHeader({required this.idea, required this.frame, this.onCaller});
 
   final TradeIdea idea;
+  final ValueNotifier<ReplayFrame> frame;
   final VoidCallback? onCaller;
 
   @override
@@ -141,24 +169,9 @@ class _CallHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  LiveUsd(
-                    feedKey: 'card:${idea.ticker}',
-                    base: parseUsd(idea.price),
-                    step: parseUsd(idea.price) * 0.0005,
-                    decimals: 2,
-                    style: VistaType.displayNumber,
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    idea.changeSinceCall,
-                    style: VistaType.bodyStrong.copyWith(
-                      color: idea.side.color,
-                    ),
-                  ),
-                ],
+              ValueListenableBuilder(
+                valueListenable: frame,
+                builder: (context, f, _) => _PriceBlock(idea: idea, frame: f),
               ),
             ],
           ),
@@ -175,11 +188,101 @@ class _CallHeader extends StatelessWidget {
   }
 }
 
+/// Price and "% since call". During the replay both follow the chart's tip
+/// from the call price, with "replaying" in place of "since call"; then the
+/// live price takes over and the final "% since call" stamps in.
+class _PriceBlock extends StatelessWidget {
+  const _PriceBlock({required this.idea, required this.frame});
+
+  final TradeIdea idea;
+  final ReplayFrame frame;
+
+  @override
+  Widget build(BuildContext context) {
+    final change = VistaType.bodyStrong;
+    if (frame.replaying) {
+      final call = parseUsd(idea.callPrice);
+      final price = call + (parseUsd(idea.price) - call) * frame.priceFraction;
+      var pct = (price - call) / call * 100;
+      if (idea.side == TradeSide.short) pct = -pct;
+      final colour = pct >= 0 ? VistaColors.long : VistaColors.short;
+      const tabular = [FontFeature.tabularFigures()];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            formatUsd(price, decimals: 2),
+            style: VistaType.displayNumber.copyWith(fontFeatures: tabular),
+          ),
+          const SizedBox(height: 1),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text:
+                      '${pct >= 0 ? '+' : '−'}'
+                      '${pct.abs().toStringAsFixed(2)}%',
+                  style: change.copyWith(color: colour, fontFeatures: tabular),
+                ),
+                TextSpan(
+                  text: ' · replaying ${idea.age}',
+                  style: change.copyWith(color: VistaColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // The stamp: the final figure lands a size up with a glow, then settles.
+    final f = frame.finale;
+    final stamping = f > 0 && f < 1;
+    final settle = Curves.easeOutBack.transform(f);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        LiveUsd(
+          feedKey: 'card:${idea.ticker}',
+          base: parseUsd(idea.price),
+          step: parseUsd(idea.price) * 0.0005,
+          decimals: 2,
+          style: VistaType.displayNumber,
+        ),
+        const SizedBox(height: 1),
+        Transform.scale(
+          scale: stamping ? 1.3 - 0.3 * settle : 1,
+          alignment: Alignment.centerRight,
+          child: Text(
+            idea.changeSinceCall,
+            style: change.copyWith(
+              color: idea.side.color,
+              shadows: stamping
+                  ? [
+                      Shadow(
+                        color: idea.side.color.withValues(alpha: 1 - f),
+                        blurRadius: 12,
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ChartWithRail extends StatelessWidget {
-  const _ChartWithRail({required this.idea, required this.active});
+  const _ChartWithRail({
+    required this.idea,
+    required this.active,
+    required this.frame,
+  });
 
   final TradeIdea idea;
   final bool active;
+  final ValueNotifier<ReplayFrame> frame;
 
   /// In Figma the chart stops 42px short of the right edge and the 52px rail
   /// overlaps its last 14px.
@@ -194,7 +297,7 @@ class _ChartWithRail extends StatelessWidget {
           top: 0,
           bottom: 0,
           right: _chartRightInset,
-          child: SignalReplayChart(active: active),
+          child: SignalReplayChart(active: active, frame: frame),
         ),
         // Live fills stream; older entries fade.
         Positioned(

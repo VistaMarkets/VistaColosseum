@@ -7,6 +7,7 @@ import '../../design_system/design_system.dart';
 import '../profile/holdings_table.dart';
 import '../settings/settings_state.dart';
 import '../trade/trade_mock.dart';
+import '../watchlist/watchlist_state.dart';
 import 'chart_sheet.dart';
 import 'trader_market_chart.dart';
 import 'trader_market_mock.dart';
@@ -146,11 +147,25 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                   ],
                 ),
               ),
-              VistaIconButton(
-                asset: VistaAssets.star,
-                semanticLabel: 'Watch',
-                iconSize: 22,
-                onPressed: () => _notBuilt('Watchlist'),
+              ValueListenableBuilder(
+                valueListenable: WatchlistState.traders,
+                builder: (context, list, _) => VistaWatchButton(
+                  watched: list.contains(widget.handle),
+                  onPressed: () {
+                    final added = WatchlistState.toggleTrader(widget.handle);
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            added
+                                ? 'Added ${widget.handle} to Favorites'
+                                : 'Removed ${widget.handle} from Favorites',
+                          ),
+                        ),
+                      );
+                  },
+                ),
               ),
             ],
           ),

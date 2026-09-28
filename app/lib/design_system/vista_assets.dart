@@ -80,6 +80,9 @@ abstract final class VistaAssets {
   // the chart is open, short (196) when the panels are up.
   static const String traderAvatar = '$_dir/trader_avatar.svg';
   static const String star = '$_dir/star.svg';
+
+  /// [star] filled in the favourite colour, for the watched state.
+  static const String starFilled = '$_dir/star_filled.svg';
   static const String chevronBox = '$_dir/chevron_box.svg';
   static const String chartTypeToggle = '$_dir/chart_type_toggle.svg';
   static const String tmBaseline = '$_dir/tm_baseline.svg';

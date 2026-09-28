@@ -5,6 +5,7 @@ import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
+import '../watchlist/watchlist_state.dart';
 import '../profile/profile_screen.dart';
 import 'candle_chart.dart';
 import 'trade_mock.dart';
@@ -35,6 +36,18 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
+  }
+
+  void _favoriteChanged(String name, bool added) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            added ? 'Added $name to Favorites' : 'Removed $name from Favorites',
+          ),
+        ),
+      );
   }
 
   @override
@@ -132,11 +145,15 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
                   ],
                 ),
               ),
-              VistaIconButton(
-                asset: VistaAssets.star,
-                semanticLabel: 'Watch',
-                iconSize: 22,
-                onPressed: () => _notBuilt('Watchlist'),
+              ValueListenableBuilder(
+                valueListenable: WatchlistState.assets,
+                builder: (context, list, _) => VistaWatchButton(
+                  watched: list.contains(q.ticker),
+                  onPressed: () => _favoriteChanged(
+                    q.ticker,
+                    WatchlistState.toggleAsset(q.ticker),
+                  ),
+                ),
               ),
             ],
           ),

@@ -11,6 +11,7 @@ class TradeIdea {
     required this.assetName,
     required this.coinAsset,
     required this.price,
+    required this.callPrice,
     required this.changeSinceCall,
     required this.question,
     required this.likes,
@@ -26,6 +27,9 @@ class TradeIdea {
   final String assetName;
   final String coinAsset;
   final String price;
+
+  /// Price when the call was made; the replay starts here.
+  final String callPrice;
   final String changeSinceCall;
   final String question;
   final String likes;
@@ -53,6 +57,7 @@ const mockTradeIdea = TradeIdea(
   assetName: 'Ethereum',
   coinAsset: VistaAssets.coinEth,
   price: r'$2,968.40',
+  callPrice: r'$2,801.10',
   changeSinceCall: '+5.97% since call',
   question: r'Is ETH poised for a breakout above $3,000?',
   likes: '4.4k',
