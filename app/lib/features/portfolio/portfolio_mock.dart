@@ -144,3 +144,106 @@ abstract final class PortfolioMock {
     ),
   ];
 }
+
+/// A resting limit order (market orders fill at once, so only limits sit
+/// open). Fields follow the backend's `Order` (request + status); amounts
+/// are shown, never computed into anything financial. Demo data only.
+class OpenOrder {
+  const OpenOrder({
+    required this.id,
+    required this.asset,
+    required this.symbol,
+    required this.coinAsset,
+    required this.side,
+    required this.leverage,
+    required this.limitPrice,
+    required this.markPrice,
+    required this.quantity,
+    required this.filled,
+    this.decimals = 2,
+    this.quantityDecimals = 2,
+    this.takeProfit,
+    this.stopLoss,
+    this.reduceOnly = false,
+  });
+
+  final String id;
+  final String asset;
+  final String symbol;
+  final String coinAsset;
+  final TradeSide side;
+  final int leverage;
+  final double limitPrice;
+
+  /// The market's current price, for how far the limit is from filling.
+  final double markPrice;
+
+  /// Order size and how much of it has filled, in asset units.
+  final double quantity;
+  final double filled;
+  final int decimals;
+  final int quantityDecimals;
+  final double? takeProfit;
+  final double? stopLoss;
+  final bool reduceOnly;
+
+  String get tag => '${side.label.toUpperCase()} ${leverage}x';
+  double get fillShare => quantity == 0 ? 0 : filled / quantity;
+  bool get partlyFilled => filled > 0;
+
+  /// Order value at the limit price.
+  double get notional => limitPrice * quantity;
+
+  /// How far the mark must move to reach the limit, as a share of the mark.
+  double get distance => (limitPrice - markPrice).abs() / markPrice;
+  bool get limitBelowMark => limitPrice < markPrice;
+}
+
+/// Open orders for the Portfolio "Open orders" tab. Marks match the
+/// position sheet's prices. Simulated.
+abstract final class OpenOrdersMock {
+  static const orders = [
+    OpenOrder(
+      id: 'o-eth-1',
+      asset: 'Ethereum',
+      symbol: 'ETH',
+      coinAsset: VistaAssets.coinEthRow,
+      side: TradeSide.long,
+      leverage: 5,
+      limitPrice: 3350,
+      markPrice: 3489.20,
+      quantity: 0.75,
+      filled: 0,
+      takeProfit: 3600,
+      stopLoss: 3280,
+    ),
+    OpenOrder(
+      id: 'o-sol-1',
+      asset: 'Solana',
+      symbol: 'SOL',
+      coinAsset: VistaAssets.coinSolRow,
+      side: TradeSide.short,
+      leverage: 10,
+      limitPrice: 222.50,
+      markPrice: 214.90,
+      quantity: 4.5,
+      filled: 1.2,
+      quantityDecimals: 1,
+      takeProfit: 205,
+    ),
+    // Reduce-only: trims the ETH long above the market, never adds to it.
+    OpenOrder(
+      id: 'o-eth-2',
+      asset: 'Ethereum',
+      symbol: 'ETH',
+      coinAsset: VistaAssets.coinEthRow,
+      side: TradeSide.short,
+      leverage: 5,
+      limitPrice: 3620,
+      markPrice: 3489.20,
+      quantity: 0.4,
+      filled: 0,
+      reduceOnly: true,
+    ),
+  ];
+}

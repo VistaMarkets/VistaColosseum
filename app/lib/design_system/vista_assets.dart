@@ -45,6 +45,10 @@ abstract final class VistaAssets {
 
   /// [portfolioChart] with the user's market in focus; derived from it by
   /// `tool/derive_market_focus_chart.py` so the two crossfade cleanly.
+  /// [portfolioChart] without the muted market line, for accounts with no
+  /// market; derived by the same tool.
+  static const String portfolioChartSolo = '$_dir/portfolio_chart_solo.svg';
+
   static const String portfolioChartMarketFocus =
       '$_dir/portfolio_chart_market_focus.svg';
   // Your market (Figma 168:110): market-cap chart on a 370×150 box, holder

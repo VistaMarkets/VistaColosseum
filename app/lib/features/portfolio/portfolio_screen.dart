@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -9,6 +11,7 @@ import '../make_market/make_market_flow.dart';
 import '../market/your_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
+import 'open_order_card.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
@@ -27,6 +30,31 @@ class PortfolioScreen extends StatefulWidget {
 class _PortfolioScreenState extends State<PortfolioScreen> {
   int _span = PortfolioMock.defaultSpan;
   int _list = 0;
+
+  /// Open orders still resting; Cancel removes one (simulated, with Undo).
+  final _orders = [...OpenOrdersMock.orders];
+
+  void _cancelOrder(OpenOrder order) {
+    final index = _orders.indexOf(order);
+    if (index < 0) return;
+    setState(() => _orders.removeAt(index));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${order.symbol} limit order cancelled (simulated)'),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              if (!mounted || _orders.contains(order)) return;
+              setState(
+                () => _orders.insert(math.min(index, _orders.length), order),
+              );
+            },
+          ),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +105,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           gap,
           Padding(
             padding: gutter,
-            child: _list == 0 ? _positions() : _noOpenOrders(),
+            child: _list == 0 ? _positions() : _openOrders(),
           ),
         ],
       ),
@@ -236,9 +264,32 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     );
   }
 
-  // Open orders has no Figma design yet.
-  Widget _noOpenOrders() => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 24),
-    child: Center(child: Text('No open orders', style: VistaType.bodyRegular)),
-  );
+  // Open orders has no Figma design; cards follow the backend's order model.
+  Widget _openOrders() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
+          child: Text(
+            'Open orders · ${_orders.length}',
+            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+          ),
+        ),
+        if (_orders.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text('No open orders', style: VistaType.bodyRegular),
+            ),
+          ),
+        for (final o in _orders)
+          Padding(
+            key: ValueKey(o.id),
+            padding: const EdgeInsets.only(top: VistaSpace.sm),
+            child: OpenOrderCard(order: o, onCancel: () => _cancelOrder(o)),
+          ),
+      ],
+    );
+  }
 }

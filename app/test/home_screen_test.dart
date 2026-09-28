@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
@@ -1222,6 +1223,15 @@ void main() {
       await openWallet(tester);
       expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
       expect(find.text('Your market'), findsNothing);
+      // The chart has no muted market line behind the portfolio.
+      Finder chartArt(String asset) => find.byWidgetPredicate(
+        (w) =>
+            w is SvgPicture &&
+            w.bytesLoader is SvgAssetLoader &&
+            (w.bytesLoader as SvgAssetLoader).assetName == asset,
+      );
+      expect(chartArt(VistaAssets.portfolioChartSolo), findsOneWidget);
+      expect(chartArt(VistaAssets.portfolioChart), findsNothing);
       // No market-cap page to swipe to.
       final chart = tester.getCenter(pagerBalance) + const Offset(0, 150);
       await tester.flingFrom(chart, const Offset(-250, 0), 1000);
@@ -1472,5 +1482,89 @@ void main() {
     expect(find.text('+5.97% since call'), findsWidgets);
     expect(find.text('Broke \$2,950'), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  group('open orders', () {
+    Future<void> openOrders(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      final tab = find.text('Open orders');
+      await tester.scrollUntilVisible(
+        tab,
+        120,
+        scrollable: find
+            .descendant(
+              of: find.byType(PortfolioScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(tab);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> reveal(WidgetTester tester, Finder f) =>
+        tester.scrollUntilVisible(
+          f,
+          150,
+          scrollable: find
+              .descendant(
+                of: find.byType(PortfolioScreen),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+
+    testWidgets('cards show the order details; Cancel removes, Undo restores', (
+      tester,
+    ) async {
+      await openOrders(tester);
+      expect(find.text('Open orders · 3'), findsOneWidget);
+      Finder rich(String text) => find.textContaining(text, findRichText: true);
+      expect(rich(r'Fills at $3,350.00 · 4.0% below mark'), findsOneWidget);
+      expect(find.text(r'Size $2,513 · 0.75 ETH'), findsOneWidget);
+      expect(find.text(r'TP $3,600.00'), findsOneWidget);
+      // Only what the order needs: no venue, age or source call.
+      expect(find.textContaining('Jupiter'), findsNothing);
+      expect(find.textContaining("'s call"), findsNothing);
+
+      await reveal(tester, find.text('1.2 / 4.5 SOL filled'));
+      expect(rich(r'Fills at $222.50 · 3.5% above mark'), findsOneWidget);
+      await reveal(tester, find.text('Reduce only'));
+
+      await tester.tap(find.bySemanticsLabel('Cancel SOL order'));
+      await tester.pumpAndSettle();
+      expect(find.text('Open orders · 2'), findsOneWidget);
+      expect(find.text('1.2 / 4.5 SOL filled'), findsNothing);
+      expect(
+        find.text('SOL limit order cancelled (simulated)'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Open orders · 3'), findsOneWidget);
+      expect(find.text('1.2 / 4.5 SOL filled'), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders without overflow on $name', (tester) async {
+        await openOrders(tester, size, padding);
+        expect(tester.takeException(), isNull);
+        await reveal(tester, find.text('Reduce only'));
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 }

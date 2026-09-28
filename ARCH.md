@@ -54,7 +54,7 @@ real financial execution out of the demo.
 - `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 - `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 - `app/lib/features/profile/` — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
-- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save (mock data)
+- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
 - `app/lib/features/live/` — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125)
 - `app/lib/features/make_market/` — make-a-market flow (create → before you list → live with confetti burst), opened from Portfolio when the user has no market
 - `app/lib/features/markets/` — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
@@ -200,6 +200,7 @@ VistaColosseum/
 │   │   │   ├── portfolio_avatar.svg
 │   │   │   ├── portfolio_chart.svg
 │   │   │   ├── portfolio_chart_market_focus.svg
+│   │   │   ├── portfolio_chart_solo.svg
 │   │   │   ├── position_avatar_eth.svg
 │   │   │   ├── position_clip_above.svg
 │   │   │   ├── position_clip_below.svg
@@ -382,7 +383,8 @@ VistaColosseum/
 │   │   │   ├── people/  — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 │   │   │   │   ├── follow_list_screen.dart
 │   │   │   │   └── follow_mock.dart
-│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save (mock data)
+│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
+│   │   │   │   ├── open_order_card.dart
 │   │   │   │   ├── portfolio_mock.dart
 │   │   │   │   ├── portfolio_pager.dart
 │   │   │   │   ├── portfolio_screen.dart

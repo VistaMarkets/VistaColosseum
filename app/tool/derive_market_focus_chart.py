@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Derive the market-in-focus Portfolio chart from the Figma export.
+"""Derive the market-in-focus Portfolio chart from the Figma export, and a
+portfolio-only version for accounts without a market.
 
 Figma designs the Portfolio chart (174:110) with the portfolio line in focus:
 dot grid and gradient fill under it, green above the dashed baseline and pink
@@ -16,6 +17,9 @@ from pathlib import Path
 
 SRC = Path('assets/figma/portfolio_chart.svg')
 OUT = Path('assets/figma/portfolio_chart_market_focus.svg')
+# The designed chart minus the muted market line, for accounts with no
+# market (there is nothing to draw it from).
+SOLO = Path('assets/figma/portfolio_chart_solo.svg')
 DOTS = Path('assets/figma/pager_dots_market.svg')
 MARKET = '#5AA6DE'  # VistaColors.accent
 FIGMA_MARKET = '#9685E0'  # the purple Figma used for the market page
@@ -108,3 +112,8 @@ print(f'wrote {OUT} ({len(dots)} grid dots)')
 
 DOTS.write_text(DOTS.read_text().replace(FIGMA_MARKET, MARKET))
 print(f'recoloured {DOTS}')
+
+solo = re.sub(r'<path id="market line" [^>]*/>\n?', '', svg)
+assert solo != svg, 'market line not found in the export'
+SOLO.write_text(solo)
+print(f'wrote {SOLO}')

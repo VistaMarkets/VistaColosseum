@@ -135,7 +135,7 @@ class _PortfolioPagerState extends State<PortfolioPager>
                   ),
                 ),
                 const SizedBox(height: VistaSpace.sm),
-                _Chart(progress: p),
+                _Chart(progress: p, hasMarket: widget.hasMarket),
               ],
             );
           },
@@ -231,9 +231,12 @@ class _NumberPage extends StatelessWidget {
 
 /// Both chart states on one 370×170 box, crossfaded by [progress].
 class _Chart extends StatelessWidget {
-  const _Chart({required this.progress});
+  const _Chart({required this.progress, required this.hasMarket});
 
   final double progress;
+
+  /// Without a market there is no second line to show behind the portfolio.
+  final bool hasMarket;
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +271,9 @@ class _Chart extends StatelessWidget {
                       clipBehavior: Clip.none,
                       children: [
                         layer(
-                          VistaAssets.portfolioChart,
+                          hasMarket
+                              ? VistaAssets.portfolioChart
+                              : VistaAssets.portfolioChartSolo,
                           const Rect.fromLTWH(-5, 0, 381, 176),
                         ),
                       ],
