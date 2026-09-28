@@ -197,6 +197,7 @@ VistaColosseum/
 │   │   │   ├── opponent_avatar_short.svg
 │   │   │   ├── pager_dots.svg
 │   │   │   ├── pager_dots_market.svg
+│   │   │   ├── people_in_button.svg
 │   │   │   ├── person_avatar.svg
 │   │   │   ├── portfolio_avatar.svg
 │   │   │   ├── portfolio_chart.svg
@@ -368,6 +369,7 @@ VistaColosseum/
 │   │   │   │   ├── home_screen.dart
 │   │   │   │   ├── live_fills_stream.dart
 │   │   │   │   ├── mock_trade_idea.dart
+│   │   │   │   ├── people_in_sheet.dart
 │   │   │   │   ├── replay_script.dart
 │   │   │   │   ├── replay_timeline.dart
 │   │   │   │   ├── signal_replay_chart.dart

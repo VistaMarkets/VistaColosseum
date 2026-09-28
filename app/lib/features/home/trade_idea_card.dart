@@ -7,6 +7,7 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../share/share_call_sheet.dart';
 import 'mock_trade_idea.dart';
+import 'people_in_sheet.dart';
 import 'replay_timeline.dart';
 import 'signal_replay_chart.dart';
 
@@ -348,10 +349,12 @@ class _ChartWithRail extends StatelessWidget {
                     semanticLabel: 'Like',
                   ),
                   const SizedBox(height: VistaSpace.lg),
+                  // Who's in the call: a count, not an action.
                   VistaRailButton(
-                    asset: VistaAssets.traders,
-                    label: idea.traders,
-                    semanticLabel: 'Traders',
+                    asset: VistaAssets.peopleIn,
+                    label: '${idea.traders} in',
+                    semanticLabel: 'People in',
+                    onPressed: () => showPeopleInSheet(context, idea),
                   ),
                   const SizedBox(height: VistaSpace.lg),
                   VistaRailButton(

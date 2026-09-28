@@ -28,6 +28,7 @@ import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
 import 'package:vista_colosseum/features/home/trade_idea_card.dart';
+import 'package:vista_colosseum/features/home/people_in_sheet.dart';
 import 'package:vista_colosseum/features/share/share_call_sheet.dart';
 import 'package:vista_colosseum/main.dart';
 
@@ -1893,6 +1894,59 @@ void main() {
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('sheet renders without overflow on $name', (tester) async {
         await openShare(tester, size, padding);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('people in', () {
+    Future<void> openPeopleIn(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1.2k in').first);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the rail shows the people-in count and opens who is in', (
+      tester,
+    ) async {
+      await openPeopleIn(tester);
+      // No repost: the count replaces it, under like.
+      expect(find.bySemanticsLabel(RegExp('Repost|Traders,')), findsNothing);
+      expect(find.byType(PeopleInSheet), findsOneWidget);
+      expect(find.text("People in kaito.eth's ETH call"), findsOneWidget);
+      // No long/short split bar; people rows with their side.
+      expect(find.textContaining('% long'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(PeopleInSheet),
+          matching: find.byType(VistaSplitBar),
+        ),
+        findsNothing,
+      );
+      expect(find.text('LATEST IN'), findsOneWidget);
+      expect(find.text('Sizes stay private'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PeopleInSheet),
+          matching: find.byType(VistaPersonRow),
+        ),
+        findsWidgets,
+      );
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('sheet renders without overflow on $name', (tester) async {
+        await openPeopleIn(tester, size, padding);
         expect(tester.takeException(), isNull);
       });
     }
