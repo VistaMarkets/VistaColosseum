@@ -25,6 +25,9 @@ abstract final class VistaAssets {
 
   // Social rail buttons (circle + glyph).
   static const String like = '$_dir/like_button.svg';
+
+  /// The rail's Like before it is pressed: the heart as an outline.
+  static const String likeOutline = '$_dir/like_outline_button.svg';
   static const String traders = '$_dir/traders_button.svg';
 
   /// The rail's "people in" count: who has joined a call.

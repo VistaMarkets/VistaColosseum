@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
@@ -7,6 +8,7 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../share/share_call_sheet.dart';
 import 'mock_trade_idea.dart';
+import 'likes_state.dart';
 import 'people_in_sheet.dart';
 import 'replay_timeline.dart';
 import 'signal_replay_chart.dart';
@@ -343,11 +345,7 @@ class _ChartWithRail extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: Column(
                 children: [
-                  VistaRailButton(
-                    asset: VistaAssets.like,
-                    label: idea.likes,
-                    semanticLabel: 'Like',
-                  ),
+                  _LikeButton(idea: idea),
                   const SizedBox(height: VistaSpace.lg),
                   // Who's in the call: a count, not an action.
                   VistaRailButton(
@@ -369,6 +367,57 @@ class _ChartWithRail extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Like: an outlined heart until pressed, then the red heart, with a quick
+/// pop. Shared across cards for the same call; simulated.
+class _LikeButton extends StatelessWidget {
+  const _LikeButton({required this.idea});
+
+  final TradeIdea idea;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: LikesState.liked,
+      builder: (context, _, _) {
+        final liked = LikesState.isLiked(idea);
+        return Semantics(
+          button: true,
+          toggled: liked,
+          label: 'Like, ${LikesState.count(idea)}',
+          excludeSemantics: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              LikesState.toggle(idea);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TweenAnimationBuilder<double>(
+                  // Restarts on each change: a small overshoot on like.
+                  key: ValueKey(liked),
+                  tween: Tween(begin: liked ? 0.7 : 1, end: 1),
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeOutBack,
+                  builder: (context, scale, child) =>
+                      Transform.scale(scale: scale, child: child),
+                  child: VistaIcon(
+                    liked ? VistaAssets.like : VistaAssets.likeOutline,
+                    size: VistaSize.railButton,
+                  ),
+                ),
+                const SizedBox(height: VistaSpace.xxs),
+                Text(LikesState.count(idea), style: VistaType.label),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

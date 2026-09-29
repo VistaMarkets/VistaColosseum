@@ -28,6 +28,7 @@ import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
 import 'package:vista_colosseum/features/home/trade_idea_card.dart';
+import 'package:vista_colosseum/features/home/likes_state.dart';
 import 'package:vista_colosseum/features/home/people_in_sheet.dart';
 import 'package:vista_colosseum/features/share/share_call_sheet.dart';
 import 'package:vista_colosseum/main.dart';
@@ -68,6 +69,7 @@ void main() {
   // group below starts without one.
   setUp(() {
     AccountState.reset(withMarket: true);
+    LikesState.reset();
     SettingsState.reset();
     WatchlistState.reset();
     OrdersState.reset();
@@ -1754,9 +1756,16 @@ void main() {
       await tester.tap(find.text('Long').last);
       await tester.pumpAndSettle();
       expect(find.byType(OrderTicket), findsOneWidget);
-      expect(find.text('Place limit long'), findsOneWidget);
+      // Opens as a market order with take profit / stop loss off.
+      expect(find.text('Place market long'), findsOneWidget);
+      expect(find.text('Take profit'), findsNothing);
       expect(find.text('Cross · 10x'), findsOneWidget);
-      expect(find.text('Fee (maker 0.02%)'), findsOneWidget);
+      expect(find.text('Fee (taker 0.05%)'), findsOneWidget);
+
+      // Ticking TP/SL shows the exits.
+      await tester.tap(find.text('Take profit / Stop loss'));
+      await tester.pumpAndSettle();
+      expect(find.text('Take profit'), findsOneWidget);
 
       // Short + Market re-labels the order and the fee.
       await tester.tap(find.bySemanticsLabel('Short').last);
@@ -1792,7 +1801,7 @@ void main() {
         of: find.byType(OrderTicket),
         matching: find.byType(TextField),
       );
-      await tester.enterText(size.at(1), '5');
+      await tester.enterText(size.at(0), '5'); // market: no price field
       await tester.pump();
       expect(find.text('Not enough margin'), findsOneWidget);
       final before = OrdersState.open.value.length;
@@ -1813,7 +1822,7 @@ void main() {
 
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
-      expect(find.text('Place limit long'), findsOneWidget);
+      expect(find.text('Place market long'), findsOneWidget);
       Navigator.of(tester.element(find.byType(OrderTicket))).pop();
       await tester.pumpAndSettle();
 
@@ -1821,13 +1830,47 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text("I'm with Bear").first);
       await tester.pumpAndSettle();
-      expect(find.text('Place limit short'), findsOneWidget);
+      expect(find.text('Place market short'), findsOneWidget);
+    });
+
+    testWidgets('leverage is picked on a horizontal slider', (tester) async {
+      await pumpBtc(tester);
+      await tester.tap(find.text('Long').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cross · 10x'));
+      await tester.pumpAndSettle();
+      expect(find.text('Leverage'), findsOneWidget);
+      expect(find.text('Set 10x'), findsOneWidget);
+      // Round stops under the track; tapping one jumps there.
+      await tester.tap(find.text('20x').last); // the sheet's, over the page
+      await tester.pumpAndSettle();
+      expect(find.text('Set 20x'), findsOneWidget);
+      // Drag the thumb to the far right: the market's cap.
+      final slider = find.bySemanticsLabel('Leverage').last;
+      await tester.drag(slider, const Offset(600, 0));
+      await tester.pumpAndSettle();
+      final max = RegExp(r'Set (\d+)x');
+      final label = tester
+          .widgetList<Text>(find.textContaining(max))
+          .first
+          .data!;
+      final cap = int.parse(max.firstMatch(label)!.group(1)!);
+      expect(cap, greaterThan(10));
+      // − steps down by one; Set applies it to the ticket.
+      await tester.tap(find.bySemanticsLabel('Lower leverage'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set ${cap - 1}x'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cross · ${cap - 1}x'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('ticket renders without overflow on $name', (tester) async {
         await pumpBtc(tester, size, padding);
         await tester.tap(find.text('Long').last);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('Cross · 10x'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
@@ -1942,6 +1985,28 @@ void main() {
         ),
         findsWidgets,
       );
+    });
+
+    testWidgets('Like starts as an outline and turns red when pressed', (
+      tester,
+    ) async {
+      await openPeopleIn(tester);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      SvgPicture heart() => tester.widget<SvgPicture>(
+        find.descendant(
+          of: find.bySemanticsLabel(RegExp(r'^Like, 4\.4k')).first,
+          matching: find.byType(SvgPicture),
+        ),
+      );
+      String asset() => (heart().bytesLoader as SvgAssetLoader).assetName;
+      expect(asset(), VistaAssets.likeOutline);
+      await tester.tap(find.bySemanticsLabel(RegExp(r'^Like, ')).first);
+      await tester.pumpAndSettle();
+      expect(asset(), VistaAssets.like);
+      await tester.tap(find.bySemanticsLabel(RegExp(r'^Like, ')).first);
+      await tester.pumpAndSettle();
+      expect(asset(), VistaAssets.likeOutline);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {

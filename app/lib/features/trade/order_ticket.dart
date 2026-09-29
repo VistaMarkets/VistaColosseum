@@ -76,9 +76,10 @@ class OrderTicket extends StatefulWidget {
 class _OrderTicketState extends State<OrderTicket> {
   late final _market = _Market.of(widget.symbol);
   late TradeSide _side = widget.side;
-  OrderKind _kind = OrderKind.limit;
+  // Opens as a plain market order; limit, stop and exits are opt-in.
+  OrderKind _kind = OrderKind.market;
   late int _leverage = math.min(10, _market.maxLeverage);
-  bool _exits = true;
+  bool _exits = false;
   bool _reduceOnly = false;
   bool _sizeInUsd = false;
 
@@ -263,8 +264,7 @@ class _OrderTicketState extends State<OrderTicket> {
     final entry = _entry;
     double pct(String text) =>
         entry == 0 ? 0 : (_parse(text) - entry) / entry * 100;
-    final liquidation =
-        entry * (_long ? 1 - 1 / _leverage + 0.005 : 1 + 1 / _leverage - 0.005);
+    final liquidation = _liquidation(entry, _leverage);
     final taker = _kind != OrderKind.limit;
     final fee = _notional * (taker ? 0.0005 : 0.0002);
     final problem = _problem;
@@ -369,7 +369,12 @@ class _OrderTicketState extends State<OrderTicket> {
           ],
         ),
         gap,
-        _SizeSlider(fraction: _fraction, onChanged: _onSlider),
+        _TicketSlider(
+          fraction: _fraction,
+          onChanged: _onSlider,
+          label: 'Size',
+          value: '${(_fraction * 100).round()}% of available',
+        ),
         gap,
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -377,7 +382,10 @@ class _OrderTicketState extends State<OrderTicket> {
             _check(
               'Take profit / Stop loss',
               _exits,
-              () => setState(() => _exits = !_exits),
+              () => setState(() {
+                _exits = !_exits;
+                if (_exits) _resetExits();
+              }),
             ),
             _check(
               'Reduce only',
@@ -562,52 +570,53 @@ class _OrderTicketState extends State<OrderTicket> {
     );
   }
 
-  /// "Cross · 10x": picks leverage up to the market's cap.
+  /// "Cross · 10x": opens the leverage slider, up to the market's cap.
   Widget _leveragePill() {
-    final options = [
-      for (final l in const [1, 2, 3, 5, 10, 20, 50])
-        if (l <= _market.maxLeverage) l,
-    ];
-    return PopupMenuButton<int>(
-      tooltip: 'Leverage',
-      color: VistaColors.surfaceRaised,
-      position: PopupMenuPosition.under,
-      initialValue: _leverage,
-      onSelected: (l) => setState(() => _leverage = l),
-      itemBuilder: (_) => [
-        for (final l in options)
-          PopupMenuItem(
-            value: l,
-            child: Text(
-              '${l}x',
-              style: VistaType.body.copyWith(
-                color: l == _leverage
-                    ? VistaColors.textPrimary
-                    : VistaColors.textSecondary,
+    return Semantics(
+      button: true,
+      label: 'Leverage, ${_leverage}x',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () async {
+          final l = await showModalBottomSheet<int>(
+            context: context,
+            backgroundColor: Colors.transparent,
+            barrierColor: const Color(0x73000000),
+            builder: (_) => _LeverageSheet(
+              initial: _leverage,
+              max: _market.maxLeverage,
+              liquidation: (l) => _liquidation(_entry, l),
+            ),
+          );
+          if (l != null && mounted) setState(() => _leverage = l);
+        },
+        child: SizedBox(
+          height: 44,
+          child: Center(
+            child: Container(
+              height: 30,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: VistaColors.surfaceRaised,
+                borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
-            ),
-          ),
-      ],
-      child: SizedBox(
-        height: 44,
-        child: Center(
-          child: Container(
-            height: 30,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: VistaColors.surfaceRaised,
-              borderRadius: BorderRadius.circular(VistaRadius.pill),
-            ),
-            child: Text(
-              'Cross · ${_leverage}x',
-              style: VistaType.body.copyWith(fontSize: 14),
+              child: Text(
+                'Cross · ${_leverage}x',
+                style: VistaType.body.copyWith(fontSize: 14),
+              ),
             ),
           ),
         ),
       ),
     );
   }
+
+  /// Rough liquidation price at [leverage]: entry less the margin, plus a
+  /// half-percent maintenance buffer (flipped for a short).
+  double _liquidation(double entry, int leverage) =>
+      entry * (_long ? 1 - 1 / leverage + 0.005 : 1 + 1 / leverage - 0.005);
 
   Widget _chip(String label, VoidCallback onTap) {
     return Semantics(
@@ -783,31 +792,48 @@ class _OrderTicketState extends State<OrderTicket> {
   }
 }
 
-/// Size as a share of what the account can take: a track with stops at
-/// 0, 25, 50, 75 and 100%, filled to the thumb. Drag or tap anywhere.
-class _SizeSlider extends StatelessWidget {
-  const _SizeSlider({required this.fraction, required this.onChanged});
+/// A share from 0 to 1 (size of what the account can take, or leverage
+/// across its range): a track with stops at quarters, filled to the thumb.
+/// Drag or tap anywhere.
+class _TicketSlider extends StatelessWidget {
+  const _TicketSlider({
+    required this.fraction,
+    required this.onChanged,
+    required this.label,
+    required this.value,
+    this.stops = const [0, 0.25, 0.5, 0.75, 1],
+  });
 
   final double fraction;
   final ValueChanged<double> onChanged;
+  final String label;
+  final String value;
+
+  /// Where the stop dots sit, as shares of the track.
+  final List<double> stops;
+
+  /// The thumb's radius; the track's ends are inset by it so the thumb,
+  /// the stops and any labels under them line up.
+  static const double inset = 12;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       slider: true,
-      label: 'Size',
-      value: '${(fraction * 100).round()}% of available',
+      label: label,
+      value: value,
       child: LayoutBuilder(
         builder: (context, c) {
           final w = c.maxWidth;
-          void at(double dx) => onChanged((dx / w).clamp(0.0, 1.0));
+          void at(double dx) =>
+              onChanged(((dx - inset) / (w - 2 * inset)).clamp(0.0, 1.0));
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (d) => at(d.localPosition.dx),
             onHorizontalDragUpdate: (d) => at(d.localPosition.dx),
             child: SizedBox(
               height: 44,
-              child: CustomPaint(painter: _SliderPainter(fraction)),
+              child: CustomPaint(painter: _SliderPainter(fraction, stops)),
             ),
           );
         },
@@ -817,16 +843,18 @@ class _SizeSlider extends StatelessWidget {
 }
 
 class _SliderPainter extends CustomPainter {
-  const _SliderPainter(this.fraction);
+  const _SliderPainter(this.fraction, this.stops);
 
   final double fraction;
+  final List<double> stops;
 
   @override
   void paint(Canvas canvas, Size size) {
     final cy = size.height / 2;
     final track = Paint()..color = VistaColors.surfaceRaised;
     final fill = Paint()..color = VistaColors.accent;
-    final x = size.width * fraction;
+    const inset = _TicketSlider.inset;
+    final x = inset + (size.width - 2 * inset) * fraction;
     canvas
       ..drawRRect(
         RRect.fromLTRBR(
@@ -842,25 +870,186 @@ class _SliderPainter extends CustomPainter {
         RRect.fromLTRBR(0, cy - 2, x, cy + 2, const Radius.circular(2)),
         fill,
       );
-    for (var i = 0; i < 5; i++) {
-      final dx = 12 + (size.width - 24) * i / 4;
+    for (final f in stops) {
+      final dx = inset + (size.width - 2 * inset) * f;
       canvas.drawCircle(Offset(dx, cy), 4, dx <= x ? fill : track);
     }
     canvas
       ..drawCircle(
-        Offset(x.clamp(12, size.width - 12), cy + 1),
+        Offset(x, cy + 1),
         12,
         Paint()
           ..color = const Color(0x40000000)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
       )
-      ..drawCircle(
-        Offset(x.clamp(12, size.width - 12), cy),
-        12,
-        Paint()..color = VistaColors.textPrimary,
-      );
+      ..drawCircle(Offset(x, cy), 12, Paint()..color = VistaColors.textPrimary);
   }
 
   @override
-  bool shouldRepaint(_SliderPainter old) => old.fraction != fraction;
+  bool shouldRepaint(_SliderPainter old) =>
+      old.fraction != fraction || old.stops != stops;
+}
+
+/// Picks leverage with a horizontal slider from 1x to the market's cap,
+/// with − / + for single steps and the liquidation price it implies.
+class _LeverageSheet extends StatefulWidget {
+  const _LeverageSheet({
+    required this.initial,
+    required this.max,
+    required this.liquidation,
+  });
+
+  final int initial;
+  final int max;
+  final double Function(int leverage) liquidation;
+
+  @override
+  State<_LeverageSheet> createState() => _LeverageSheetState();
+}
+
+class _LeverageSheetState extends State<_LeverageSheet> {
+  late int _l = widget.initial;
+
+  double get _fraction => widget.max <= 1 ? 1 : (_l - 1) / (widget.max - 1);
+
+  void _set(int l) {
+    final next = l.clamp(1, widget.max);
+    if (next == _l) return;
+    HapticFeedback.selectionClick();
+    setState(() => _l = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final safe = MediaQuery.paddingOf(context).bottom;
+    // Round stops: 1x, then every 10x on a 50x market, 5x on 20x, ...
+    final max = widget.max;
+    final step = max >= 40
+        ? 10
+        : max >= 20
+        ? 5
+        : max >= 10
+        ? 2
+        : 1;
+    final marks = [
+      1,
+      for (var m = step; m < max; m += step)
+        if (m > 1) m,
+      max,
+    ];
+    double at(int m) => max <= 1 ? 1 : (m - 1) / (max - 1);
+    return Container(
+      decoration: const BoxDecoration(
+        color: VistaColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Center(child: VistaDragHandle()),
+          const SizedBox(height: 12),
+          Text('Leverage', style: VistaType.subhead.copyWith(fontSize: 20)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              VistaStepButton(
+                glyph: '−',
+                semanticLabel: 'Lower leverage',
+                onPressed: () => _set(_l - 1),
+              ),
+              Expanded(
+                child: Text(
+                  '${_l}x',
+                  textAlign: TextAlign.center,
+                  style: VistaType.display,
+                ),
+              ),
+              VistaStepButton(
+                glyph: '+',
+                semanticLabel: 'Raise leverage',
+                onPressed: () => _set(_l + 1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _TicketSlider(
+            fraction: _fraction,
+            onChanged: (f) => _set(1 + (f * (widget.max - 1)).round()),
+            label: 'Leverage',
+            value: '${_l}x',
+            stops: [for (final m in marks) at(m)],
+          ),
+          // Each label centred under its stop; tapping one jumps there.
+          LayoutBuilder(
+            builder: (context, c) {
+              const inset = _TicketSlider.inset;
+              final track = c.maxWidth - 2 * inset;
+              return SizedBox(
+                height: 44,
+                child: Stack(
+                  children: [
+                    for (final m in marks)
+                      Positioned(
+                        left: inset + track * at(m) - 22,
+                        width: 44,
+                        top: 0,
+                        bottom: 0,
+                        child: Semantics(
+                          button: true,
+                          label: '${m}x',
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _set(m),
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: Text(
+                                '${m}x',
+                                style: VistaType.meta.copyWith(
+                                  color: m == _l
+                                      ? VistaColors.textPrimary
+                                      : VistaColors.textMuted,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Est. liquidation',
+                  style: VistaType.body.copyWith(
+                    color: VistaColors.textSecondary,
+                  ),
+                ),
+              ),
+              Text(
+                MarketPrices.format(widget.liquidation(_l)),
+                style: VistaType.body.copyWith(fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Higher leverage moves liquidation closer to entry.',
+            style: VistaType.meta.copyWith(color: VistaColors.textMuted),
+          ),
+          const SizedBox(height: 20),
+          VistaPrimaryButton(
+            label: 'Set ${_l}x',
+            onPressed: () => Navigator.of(context).pop(_l),
+          ),
+        ],
+      ),
+    );
+  }
 }

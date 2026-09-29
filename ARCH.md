@@ -162,6 +162,7 @@ VistaColosseum/
 │   │   │   ├── holders_avatars.svg
 │   │   │   ├── initials_avatar_36.svg
 │   │   │   ├── like_button.svg
+│   │   │   ├── like_outline_button.svg
 │   │   │   ├── live_dot_small.svg
 │   │   │   ├── lock.svg
 │   │   │   ├── lock_notice.svg
@@ -367,6 +368,7 @@ VistaColosseum/
 │   │   │   ├── home/  — Home swipe feed: one call card per market Explore offers (5 assets + 7 trader markets; ETH is the Figma card), each with its own `ReplayScript` (price path, call line, events; generated from a seed for all but ETH) played by the signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back; candles grow in a wave; paced by `replay_timeline.dart`, ringed entrances, haptics, labels placed clear of each other and the activity rows; header price and % since call replay in step; then live on the market's price); Details opens the asset or trader market (mock data)
 │   │   │   │   ├── active_replay.dart
 │   │   │   │   ├── home_screen.dart
+│   │   │   │   ├── likes_state.dart
 │   │   │   │   ├── live_fills_stream.dart
 │   │   │   │   ├── mock_trade_idea.dart
 │   │   │   │   ├── people_in_sheet.dart
