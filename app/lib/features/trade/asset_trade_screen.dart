@@ -8,6 +8,7 @@ import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
 import '../watchlist/watchlist_state.dart';
 import '../profile/profile_screen.dart';
+import 'asset_alerts.dart';
 import 'caller_play_screen.dart';
 import 'caller_thread.dart';
 import 'candle_chart.dart';
@@ -89,6 +90,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         ChartSheetPanel('Market', _marketPanel()),
         ChartSheetPanel('Book', _bookPanel()),
         ChartSheetPanel('Callers', _callersPanel()),
+        ChartSheetPanel('Alerts', AssetAlertsPanel(ticker: _quote.ticker)),
       ],
     );
   }
@@ -343,21 +345,8 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Text('Book', style: tabStyle),
-            const SizedBox(width: VistaSpace.xxl),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _notBuilt('Trades'),
-              child: Text(
-                'Trades',
-                style: tabStyle.copyWith(color: VistaColors.textMuted),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: VistaSpace.xs),
+        Text('Book', style: tabStyle),
+        const SizedBox(height: VistaSpace.lg),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -394,38 +383,6 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
             ],
           ),
         ],
-        const SizedBox(height: VistaSpace.xs),
-        const VistaHairline(),
-        const SizedBox(height: VistaSpace.xs),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Bids ${TradeMock.bidTotal} ${_quote.ticker}',
-              style: VistaType.chip.copyWith(color: VistaColors.long),
-            ),
-            Text(
-              'Asks ${TradeMock.askTotal} ${_quote.ticker}',
-              style: VistaType.chip.copyWith(color: VistaColors.short),
-            ),
-          ],
-        ),
-        const SizedBox(height: VistaSpace.xs),
-        VistaSplitBar(
-          leftFraction:
-              double.parse(TradeMock.bidTotal) /
-              (double.parse(TradeMock.bidTotal) +
-                  double.parse(TradeMock.askTotal)),
-          height: 6,
-        ),
-        const SizedBox(height: VistaSpace.sm),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(TradeMock.slippageLabel, style: _rowLabel),
-            Text(TradeMock.slippage, style: _rowValue),
-          ],
-        ),
       ],
     );
   }

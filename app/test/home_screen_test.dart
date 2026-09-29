@@ -1040,6 +1040,10 @@ void main() {
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
       await tester.pumpAndSettle();
       expect(visible('Book'), findsOneWidget);
+      // Just the book: no Trades tab, no market-buy slippage line.
+      expect(find.text('Trades'), findsNothing);
+      expect(find.text(r'Market buy $10,000'), findsNothing);
+      expect(find.textContaining('Bids 11.58'), findsNothing);
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
       await tester.pumpAndSettle();
       expect(visible('Callers in ETH'), findsOneWidget);
@@ -2145,5 +2149,43 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  testWidgets('trade page Alerts lists the feed alerts on that market', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const AssetTradeScreen(ticker: 'ETH'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 3; i++) {
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('Alerts on ETH'), findsOneWidget);
+    // The ETH card's events, fills and call, newest first.
+    for (final t in [
+      '3 people joined',
+      r'0xreal shorted $1.2k',
+      r'Broke $2,950',
+      r'Whale long $4.2M',
+      'Funding flipped +',
+      r'kaito.eth called long at $2,801.10',
+    ]) {
+      expect(find.text(t), findsOneWidget, reason: t);
+    }
+    final joined = tester.getTopLeft(find.text('3 people joined')).dy;
+    final call = tester.getTopLeft(
+      find.text(r'kaito.eth called long at $2,801.10'),
+    );
+    expect(joined, lessThan(call.dy));
+    expect(tester.takeException(), isNull);
   });
 }
