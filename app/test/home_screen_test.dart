@@ -1043,6 +1043,9 @@ void main() {
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
       await tester.pumpAndSettle();
       expect(visible('Callers in ETH'), findsOneWidget);
+      // No long/short tally or split bar over the thread.
+      expect(find.text('8 long'), findsNothing);
+      expect(find.text('4 short'), findsNothing);
 
       // Callers are a post thread: why they traded, over their order, in
       // this market's own prices; no like, repost or share.
@@ -1820,10 +1823,12 @@ void main() {
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
 
+      // Home's Long opens the first-time feed ticket.
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
-      expect(find.text('Place market long'), findsOneWidget);
-      Navigator.of(tester.element(find.byType(OrderTicket))).pop();
+      expect(find.byType(FeedOrderTicket), findsOneWidget);
+      expect(find.text(r'Long $200 · 2x'), findsOneWidget);
+      Navigator.of(tester.element(find.byType(FeedOrderTicket))).pop();
       await tester.pumpAndSettle();
 
       await tester.tap(find.bySemanticsLabel('Arena'));
@@ -2012,6 +2017,131 @@ void main() {
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('sheet renders without overflow on $name', (tester) async {
         await openPeopleIn(tester, size, padding);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('feed order ticket', () {
+    Future<void> openFeedTicket(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+      await tester.pumpAndSettle();
+    }
+
+    Finder inTicket(Finder f) =>
+        find.descendant(of: find.byType(FeedOrderTicket), matching: f);
+
+    testWidgets(r'opens simple: market, 2x, $200, TP/SL on', (tester) async {
+      await openFeedTicket(tester);
+      expect(inTicket(find.text('Market')), findsOneWidget);
+      expect(inTicket(find.text('Limit')), findsOneWidget);
+      expect(inTicket(find.text('Stop')), findsNothing);
+      expect(inTicket(find.text('Short')), findsNothing); // the card's side
+      for (final l in ['2x', '5x', '10x', 'custom']) {
+        expect(inTicket(find.text(l)), findsOneWidget);
+      }
+      expect(
+        inTicket(find.text(r'$400 of ETH at 2x · 0.1348 ETH')),
+        findsOneWidget,
+      );
+      expect(inTicket(find.text(r'If ETH falls to $1,499')), findsOneWidget);
+      expect(inTicket(find.text(r'you lose the $200')), findsOneWidget);
+      // TP/SL opens on, with the track at the design's defaults.
+      expect(inTicket(find.text('STOP LOSS')), findsOneWidget);
+      expect(inTicket(find.text('ENTRY')), findsOneWidget);
+      expect(inTicket(find.text(r'$2,906')), findsOneWidget);
+      expect(inTicket(find.text(r'$3,176')), findsOneWidget);
+      expect(inTicket(find.text(r'−2.1% · −$8.40')), findsOneWidget);
+      expect(inTicket(find.text(r'+7.0% · +$28.00')), findsOneWidget);
+
+      // Dragging the stop's thumb left widens the stop.
+      await tester.drag(
+        find.bySemanticsLabel('Stop loss').last,
+        const Offset(-30, 0),
+      );
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text(r'−2.1% · −$8.40')), findsNothing);
+
+      // 5x updates what it buys and where it liquidates.
+      await tester.tap(inTicket(find.text('5x')));
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text(r'Long $200 · 5x')), findsOneWidget);
+      expect(
+        inTicket(find.text(r'$1,000 of ETH at 5x · 0.3369 ETH')),
+        findsOneWidget,
+      );
+
+      // Unticking hides the track.
+      await tester.tap(inTicket(find.text('Take profit / Stop loss')));
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text('STOP LOSS')), findsNothing);
+    });
+
+    testWidgets('custom opens the leverage slider', (tester) async {
+      await openFeedTicket(tester);
+      await tester.tap(inTicket(find.text('custom')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Raise leverage'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set 3x'));
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text(r'Long $200 · 3x')), findsOneWidget);
+    });
+
+    testWidgets('a limit order lands in Open orders', (tester) async {
+      await openFeedTicket(tester);
+      await tester.tap(inTicket(find.text('Limit')));
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text('Limit price')), findsOneWidget);
+      final before = OrdersState.open.value.length;
+      await tester.tap(inTicket(find.text(r'Long $200 · 2x')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FeedOrderTicket), findsNothing);
+      expect(OrdersState.open.value.length, before + 1);
+      expect(OrdersState.open.value.first.leverage, 2);
+      expect(
+        find.text('Limit long placed · in Open orders (simulated)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the amount slider snaps to its 20% stops', (tester) async {
+      await openFeedTicket(tester);
+      final slider = find.bySemanticsLabel('Amount').last;
+      final box = tester.getRect(slider);
+      // A tap just past 40% lands on 40%: $400 of $1,000.
+      await tester.tapAt(
+        Offset(box.left + 12 + (box.width - 24) * 0.43, box.center.dy),
+      );
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text(r'Long $400 · 2x')), findsOneWidget);
+      // Dragging to the far right snaps to Max.
+      await tester.drag(slider, const Offset(600, 0));
+      await tester.pumpAndSettle();
+      expect(inTicket(find.text(r'Long $1,000 · 2x')), findsOneWidget);
+    });
+
+    testWidgets('an amount over the balance blocks the order', (tester) async {
+      await openFeedTicket(tester);
+      await tester.enterText(inTicket(find.byType(TextField)).first, '5000');
+      await tester.pump();
+      expect(inTicket(find.text('Not enough balance')), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('renders without overflow on $name', (tester) async {
+        await openFeedTicket(tester, size, padding); // TP/SL on
         expect(tester.takeException(), isNull);
       });
     }

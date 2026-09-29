@@ -40,10 +40,11 @@ class CallerPlayScreen extends StatelessWidget {
                 onCaller: () =>
                     Navigator.of(context)
                         .push(ProfileScreen.route(idea.callerHandle)),
-                onTrade: () => showOrderTicket(
+                onTrade: () => showFeedOrderTicket(
                   context,
                   symbol: idea.ticker,
                   side: idea.side,
+                  onDetails: () => Navigator.of(context).maybePop(),
                 ),
               ),
             ),

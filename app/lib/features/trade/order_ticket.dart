@@ -12,6 +12,8 @@ import '../portfolio/orders_state.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'trade_mock.dart';
 
+part 'feed_order_ticket.dart';
+
 /// Opens the order ticket for [symbol] (an asset ticker or a trader
 /// market's handle) on [side] as a sheet sliding up over the page (Figma
 /// "Order · C — pro", 218:608). Simulated: placing a limit or stop order

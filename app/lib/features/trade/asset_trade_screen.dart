@@ -502,28 +502,6 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           ),
         ),
         gap,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '$long long',
-              style: VistaType.chip.copyWith(
-                fontWeight: FontWeight.w700,
-                color: VistaColors.long,
-              ),
-            ),
-            Text(
-              '$short short',
-              style: VistaType.chip.copyWith(
-                fontWeight: FontWeight.w700,
-                color: VistaColors.short,
-              ),
-            ),
-          ],
-        ),
-        gap,
-        const VistaSplitBar(leftFraction: long / (long + short), height: 6),
-        gap,
         CallerThread(
           ticker: _quote.ticker,
           // Following: people the user follows; Everyone: all callers.

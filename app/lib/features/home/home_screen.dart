@@ -81,11 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   onCaller: () =>
                       Navigator.of(context)
                           .push(ProfileScreen.route(mockFeed[i].callerHandle)),
-                  // Opens the order ticket on the call's side (simulated).
-                  onTrade: () => showOrderTicket(
+                  // The first-time ticket, on the call's side (simulated);
+                  // its Details is the card's.
+                  onTrade: () => showFeedOrderTicket(
                     context,
                     symbol: mockFeed[i].ticker,
                     side: mockFeed[i].side,
+                    onDetails: () => Navigator.of(context).push(
+                      mockFeed[i].traderMarket
+                          ? TraderMarketScreen.route(mockFeed[i].ticker)
+                          : AssetTradeScreen.route(mockFeed[i].ticker),
+                    ),
                   ),
                 ),
               ),
