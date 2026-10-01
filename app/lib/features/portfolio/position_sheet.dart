@@ -14,15 +14,9 @@ import 'series_chart.dart';
 /// Slides the position sheet up from the bottom (Figma 104:110, "Position
 /// sheet · as built → P/L-led, portfolio chart").
 Future<void> showPositionSheet(BuildContext context, PortfolioPosition p) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: VistaColors.background,
-    barrierColor: const Color(0x99000000),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-    ),
-    clipBehavior: Clip.antiAlias,
+  return showVistaSheet<void>(
+    context,
+    color: VistaColors.background,
     builder: (_) => PositionSheet(position: p),
   );
 }
@@ -102,16 +96,7 @@ class _PositionSheetState extends State<PositionSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: VistaColors.surfaceRaised,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            Center(child: VistaDragHandle()),
             gap,
             Row(
               children: [
@@ -225,20 +210,29 @@ class _PositionSheetState extends State<PositionSheet> {
                   ? 'Save take profit and stop loss'
                   : 'Close position',
               excludeSemantics: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
+              child: VistaPressable(
                 onTap: _edited ? _saveEdits : _close,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: VistaMotion.state,
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: _edited ? VistaColors.accent : VistaColors.short,
+                    color: _edited || _justSaved
+                        ? VistaColors.accent
+                        : VistaColors.short,
                     borderRadius: BorderRadius.circular(VistaRadius.pill),
                   ),
-                  child: Text(
-                    _edited ? 'Edit' : 'Close',
-                    style: VistaType.headline,
+                  child: AnimatedSwitcher(
+                    duration: VistaMotion.state,
+                    child: Text(
+                      _justSaved
+                          ? 'Saved ✓'
+                          : _edited
+                          ? 'Save changes'
+                          : 'Close',
+                      key: ValueKey('$_justSaved$_edited'),
+                      style: VistaType.headline,
+                    ),
                   ),
                 ),
               ),
@@ -249,19 +243,21 @@ class _PositionSheetState extends State<PositionSheet> {
     );
   }
 
+  /// Briefly true after saving: the button reads "Saved ✓" in place.
+  bool _justSaved = false;
+
   void _saveEdits() {
-    // Simulated only: the new levels live in this sheet.
+    // Simulated only: the new levels live in this sheet. Confirmed on the
+    // button itself rather than a toast behind the scrim.
+    HapticFeedback.mediumImpact();
     setState(() {
       _savedTp = _tp;
       _savedSl = _sl;
+      _justSaved = true;
     });
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Take profit and stop loss updated (simulated)'),
-        ),
-      );
+    Future.delayed(VistaMotion.confirmHold * 2, () {
+      if (mounted) setState(() => _justSaved = false);
+    });
   }
 
   void _close() {

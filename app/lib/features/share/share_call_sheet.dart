@@ -11,11 +11,8 @@ import 'share_call_card.dart';
 /// the call's link preview), share targets, and two options. Simulated: the
 /// demo copies the link or confirms; nothing is sent.
 Future<void> showShareCallSheet(BuildContext context, TradeIdea idea) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000),
+  return showVistaSheet<void>(
+    context,
     builder: (_) => ShareCallSheet(idea: idea),
   );
 }
@@ -81,23 +78,16 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: VistaColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(VistaRadius.sheet),
+        ),
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0x40FFFFFF),
-                  borderRadius: BorderRadius.circular(VistaRadius.pill),
-                ),
-              ),
-            ),
+            Center(child: VistaDragHandle()),
             gap,
             Row(
               children: [

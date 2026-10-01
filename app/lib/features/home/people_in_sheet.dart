@@ -8,11 +8,8 @@ import 'mock_trade_idea.dart';
 /// latest people to join the call, as the app's people rows, with sizes kept
 /// private. Simulated from a steady per-call seed.
 Future<void> showPeopleInSheet(BuildContext context, TradeIdea idea) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000),
+  return showVistaSheet<void>(
+    context,
     builder: (_) => PeopleInSheet(idea: idea),
   );
 }
@@ -65,7 +62,9 @@ class PeopleInSheet extends StatelessWidget {
         // avatars would sink into the raised surface.
         decoration: const BoxDecoration(
           color: VistaColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(VistaRadius.sheet),
+          ),
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(0, 10, 0, 16 + safe),

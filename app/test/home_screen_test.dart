@@ -1227,20 +1227,22 @@ void main() {
       expect(find.text('+3.5%'), findsOneWidget);
       expect(tester.getTopLeft(find.text(r'TP $3,004')).dy, lessThan(tpBefore));
 
-      // An edited level turns Close into Edit; saving turns it back.
+      // An edited level turns Close into Save changes; saving confirms on
+      // the button, then it reads Close again.
       expect(find.bySemanticsLabel('Close position'), findsNothing);
+      expect(find.text('Save changes'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Save take profit and stop loss'));
       await tester.pump();
-      expect(
-        find.text('Take profit and stop loss updated (simulated)'),
-        findsOneWidget,
-      );
+      expect(find.text('Saved ✓'), findsOneWidget);
       expect(find.bySemanticsLabel('Close position'), findsOneWidget);
+      await tester.pump(VistaMotion.confirmHold * 2);
+      await tester.pumpAndSettle();
+      expect(find.text('Close'), findsOneWidget);
 
       // Nudging back and forth to the saved value also restores Close.
       await tester.tap(find.bySemanticsLabel('Lower Stop loss'));
       await tester.pump();
-      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Save changes'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Raise Stop loss'));
       await tester.pumpAndSettle();
       expect(find.text('Close'), findsOneWidget);
@@ -1364,7 +1366,7 @@ void main() {
       await tester.tap(find.text(r'Create $MACRO'));
       await tester.pumpAndSettle();
 
-      // 3 · Live, with the confetti burst.
+      // 3 · Live, with a check stamped on the market.
       expect(find.text('Your market is open'), findsOneWidget);
       expect(find.text(r'$10,000'), findsOneWidget);
       expect(AccountState.hasMarket.value, isTrue);
@@ -1809,6 +1811,10 @@ void main() {
       await tester.pumpAndSettle();
       final before = OrdersState.open.value.length;
       await tester.tap(find.text('Place limit long'));
+      await tester.pump();
+      // Confirmed on the button, then the sheet closes.
+      expect(find.text('Placed ✓'), findsOneWidget);
+      await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
       expect(find.byType(OrderTicket), findsNothing);
       expect(OrdersState.open.value.length, before + 1);
@@ -2132,6 +2138,9 @@ void main() {
       expect(inTicket(find.text('Limit price')), findsOneWidget);
       final before = OrdersState.open.value.length;
       await tester.tap(inTicket(find.text(r'Long $200 · 2x')));
+      await tester.pump();
+      expect(inTicket(find.text('Placed ✓')), findsOneWidget);
+      await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
       expect(find.byType(FeedOrderTicket), findsNothing);
       expect(OrdersState.open.value.length, before + 1);
@@ -2163,6 +2172,12 @@ void main() {
       await tester.enterText(inTicket(find.byType(TextField)).first, '5000');
       await tester.pump();
       expect(inTicket(find.text('Not enough balance')), findsOneWidget);
+      // Tapping it shakes instead of placing.
+      final before = OrdersState.open.value.length;
+      await tester.tap(inTicket(find.text('Not enough balance')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FeedOrderTicket), findsOneWidget);
+      expect(OrdersState.open.value.length, before);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {

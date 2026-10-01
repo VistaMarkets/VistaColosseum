@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_state.dart';
-import 'confetti_burst.dart';
 import 'make_market_mock.dart';
 
 /// Make a market: create (Figma 338:102) → before you list (329:102) →
@@ -26,6 +25,9 @@ enum _Step { create, consent, live }
 
 class _MakeMarketFlowState extends State<MakeMarketFlow> {
   _Step _step = _Step.create;
+
+  /// The last step change went back (consent → create).
+  bool _back = false;
   final _ticker = TextEditingController(text: MakeMarketMock.defaultTicker);
   final _pitch = TextEditingController(text: MakeMarketMock.defaultPitch);
   final _agreed = List<bool>.filled(MakeMarketMock.consents.length + 1, false);
@@ -57,7 +59,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
   void _create() {
     // Simulated: records the market in app state only.
     AccountState.listMarket(_symbol);
-    setState(() => _step = _Step.live);
+    setState(() {
+      _back = false;
+      _step = _Step.live;
+    });
   }
 
   @override
@@ -65,7 +70,12 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
     return PopScope(
       canPop: _step != _Step.consent,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) setState(() => _step = _Step.create);
+        if (!didPop) {
+          setState(() {
+            _back = true;
+            _step = _Step.create;
+          });
+        }
       },
       child: Scaffold(
         body: AnimatedSwitcher(
@@ -75,7 +85,9 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
             opacity: anim,
             child: SlideTransition(
               position: Tween(
-                begin: const Offset(0.08, 0),
+                // Forward steps arrive from the right; going back, from the
+                // left.
+                begin: Offset(_back ? -0.08 : 0.08, 0),
                 end: Offset.zero,
               ).animate(anim),
               child: child,
@@ -217,7 +229,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               enabled: _tickerOk,
               onPressed: () {
                 FocusScope.of(context).unfocus();
-                setState(() => _step = _Step.consent);
+                setState(() {
+                  _back = false;
+                  _step = _Step.consent;
+                });
               },
             ),
           ]),
@@ -580,7 +595,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
           _topBar(
             title: 'Before you list',
             close: false,
-            onLeading: () => setState(() => _step = _Step.create),
+            onLeading: () => setState(() {
+              _back = true;
+              _step = _Step.create;
+            }),
           ),
           const Padding(
             padding: EdgeInsets.only(top: 4, bottom: 8),
@@ -799,6 +817,41 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                           alignment: Alignment.center,
                           children: [
                             const VistaIcon(VistaAssets.mmLiveAvatar, size: 88),
+                            // A calm check stamped on as it opens (no
+                            // confetti: nothing celebrates a financial step).
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: 1),
+                                duration: const Duration(milliseconds: 420),
+                                curve: VistaMotion.pop,
+                                builder: (context, t, child) => Opacity(
+                                  opacity: t.clamp(0.0, 1.0),
+                                  child: Transform.scale(
+                                    scale: 0.6 + 0.4 * t,
+                                    child: child,
+                                  ),
+                                ),
+                                child: Container(
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                    color: VistaColors.long,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: VistaColors.background,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    size: 16,
+                                    color: VistaColors.ink,
+                                  ),
+                                ),
+                              ),
+                            ),
                             Text(
                               _symbol.isEmpty ? '?' : _symbol[0],
                               style: VistaType.displayLarge.copyWith(
@@ -874,8 +927,6 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
             ],
           ),
         ),
-        // Burst from the market image (Figma frame units).
-        const Positioned.fill(child: ConfettiBurst(origin: Offset(201, 158))),
       ],
     );
   }

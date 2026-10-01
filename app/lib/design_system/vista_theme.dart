@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'tokens/vista_colors.dart';
@@ -24,6 +25,13 @@ abstract final class VistaTheme {
       scaffoldBackgroundColor: VistaColors.background,
       fontFamily: VistaType.fontFamily,
       splashFactory: NoSplash.splashFactory,
+      // One page transition everywhere: the iOS slide, with its edge swipe.
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final p in TargetPlatform.values)
+            p: const CupertinoPageTransitionsBuilder(),
+        },
+      ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: VistaColors.surfaceRaised,
         contentTextStyle: VistaType.body,

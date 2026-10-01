@@ -16,6 +16,7 @@ export 'components/vista_pressable.dart';
 export 'components/vista_profile.dart';
 export 'components/vista_rolling_number.dart';
 export 'components/vista_settings.dart';
+export 'components/vista_sheet.dart';
 export 'tokens/vista_colors.dart';
 export 'tokens/vista_metrics.dart';
 export 'tokens/vista_motion.dart';

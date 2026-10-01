@@ -24,11 +24,8 @@ Future<void> showOrderTicket(
   required String symbol,
   required TradeSide side,
 }) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000), // Figma scrim: black at 45%
+  return showVistaSheet<void>(
+    context,
     builder: (_) => OrderTicket(symbol: symbol, side: side),
   );
 }
@@ -193,8 +190,19 @@ class _OrderTicketState extends State<OrderTicket> {
     return '';
   }
 
+  /// Bumped to shake the Place button when the order can't go through.
+  int _shakes = 0;
+
+  /// Set once placed: the button reads "Placed ✓" before the sheet closes.
+  bool _placed = false;
+
   void _place() {
-    if (_problem.isNotEmpty) return;
+    if (_placed) return;
+    if (_problem.isNotEmpty) {
+      HapticFeedback.heavyImpact();
+      setState(() => _shakes++);
+      return;
+    }
     HapticFeedback.mediumImpact();
     final kind = _kind.name;
     final side = _side.label.toLowerCase();
@@ -219,19 +227,25 @@ class _OrderTicketState extends State<OrderTicket> {
         ),
       );
     }
-    Navigator.of(context).pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            _kind == OrderKind.market
-                ? 'Market $side filled (simulated)'
-                : '${kind[0].toUpperCase()}${kind.substring(1)} $side placed · '
-                      'in Open orders (simulated)',
+    // Confirm on the button itself, then close.
+    setState(() => _placed = true);
+    final navigator = Navigator.of(context);
+    Future.delayed(VistaMotion.confirmHold, () {
+      if (!mounted) return;
+      navigator.pop();
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              _kind == OrderKind.market
+                  ? 'Market $side filled (simulated)'
+                  : '${kind[0].toUpperCase()}${kind.substring(1)} $side placed · '
+                        'in Open orders (simulated)',
+            ),
           ),
-        ),
-      );
+        );
+    });
   }
 
   @override
@@ -241,15 +255,23 @@ class _OrderTicketState extends State<OrderTicket> {
     return Padding(
       padding: EdgeInsets.only(bottom: inset),
       child: Container(
+        // Never taller than most of the screen, so the scrim stays visible
+        // and the sheet reads as a sheet even with the keyboard up.
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        ),
         decoration: const BoxDecoration(
           color: VistaColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(VistaRadius.sheet),
+          ),
         ),
         child: SafeArea(
           top: false,
           bottom: false,
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: ValueListenableBuilder(
               valueListenable: MarketPrices.of(widget.symbol),
               builder: (context, _, _) => _content(),
@@ -274,16 +296,7 @@ class _OrderTicketState extends State<OrderTicket> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(
-          child: Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0x40FFFFFF),
-              borderRadius: BorderRadius.circular(VistaRadius.pill),
-            ),
-          ),
-        ),
+        Center(child: VistaDragHandle()),
         gap,
         Row(
           children: [
@@ -420,24 +433,33 @@ class _OrderTicketState extends State<OrderTicket> {
         Semantics(
           button: true,
           enabled: problem.isEmpty,
-          child: GestureDetector(
-            onTap: _place,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: problem.isEmpty ? side : VistaColors.surfaceRaised,
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-              ),
-              child: Text(
-                problem.isEmpty
-                    ? 'Place ${_kind.name} ${_side.label.toLowerCase()}'
-                    : problem,
-                style: VistaType.headline.copyWith(
-                  color: problem.isEmpty
-                      ? VistaColors.onAccent
-                      : VistaColors.textMuted,
+          child: VistaShake(
+            count: _shakes,
+            child: VistaPressable(
+              onTap: _place,
+              child: AnimatedContainer(
+                duration: VistaMotion.state,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: problem.isEmpty ? side : VistaColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(VistaRadius.pill),
+                ),
+                child: AnimatedSwitcher(
+                  duration: VistaMotion.state,
+                  child: Text(
+                    _placed
+                        ? 'Placed ✓'
+                        : problem.isEmpty
+                        ? 'Place ${_kind.name} ${_side.label.toLowerCase()}'
+                        : problem,
+                    key: ValueKey(_placed),
+                    style: VistaType.headline.copyWith(
+                      color: problem.isEmpty
+                          ? VistaColors.onAccent
+                          : VistaColors.textMuted,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -581,10 +603,9 @@ class _OrderTicketState extends State<OrderTicket> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () async {
-          final l = await showModalBottomSheet<int>(
-            context: context,
-            backgroundColor: Colors.transparent,
-            barrierColor: const Color(0x73000000),
+          final l = await showVistaSheet<int>(
+            context,
+            scrollControlled: false,
             builder: (_) => _LeverageSheet(
               initial: _leverage,
               max: _market.maxLeverage,
@@ -655,6 +676,8 @@ class _OrderTicketState extends State<OrderTicket> {
       style: style,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+      // The decimal pad has no return key: tapping anywhere else closes it.
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
       cursorColor: VistaColors.accent,
       decoration: const InputDecoration(
         isDense: true,
@@ -933,7 +956,9 @@ class _LeverageSheetState extends State<_LeverageSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: VistaColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(VistaRadius.sheet),
+        ),
       ),
       padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),
       child: Column(

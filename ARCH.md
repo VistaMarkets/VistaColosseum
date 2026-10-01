@@ -339,7 +339,8 @@ VistaColosseum/
 │   │   │   │   ├── vista_pressable.dart
 │   │   │   │   ├── vista_profile.dart
 │   │   │   │   ├── vista_rolling_number.dart
-│   │   │   │   └── vista_settings.dart
+│   │   │   │   ├── vista_settings.dart
+│   │   │   │   └── vista_sheet.dart
 │   │   │   ├── tokens/
 │   │   │   │   ├── vista_colors.dart
 │   │   │   │   ├── vista_metrics.dart
@@ -373,7 +374,6 @@ VistaColosseum/
 │   │   │   │   ├── live_feed.dart
 │   │   │   │   └── market_prices.dart
 │   │   │   ├── make_market/  — make-a-market flow (create → before you list → live with confetti burst), opened from Portfolio when the user has no market
-│   │   │   │   ├── confetti_burst.dart
 │   │   │   │   ├── make_market_flow.dart
 │   │   │   │   └── make_market_mock.dart
 │   │   │   ├── market/  — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)

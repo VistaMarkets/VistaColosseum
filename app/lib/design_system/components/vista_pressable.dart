@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../tokens/vista_motion.dart';
@@ -49,6 +51,31 @@ class _VistaPressableState extends State<VistaPressable> {
           child: widget.child,
         ),
       ),
+    );
+  }
+}
+
+/// Shakes [child] sideways once each time [count] goes up: the answer to a
+/// tap that can't go through (an order missing an amount, say). Pair it with
+/// a heavy haptic.
+class VistaShake extends StatelessWidget {
+  const VistaShake({super.key, required this.count, required this.child});
+
+  final int count;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (count == 0) return child;
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(count),
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 300),
+      builder: (context, t, child) => Transform.translate(
+        offset: Offset(math.sin(t * math.pi * 6) * 6 * (1 - t), 0),
+        child: child,
+      ),
+      child: child,
     );
   }
 }

@@ -12,11 +12,8 @@ Future<void> showFeedOrderTicket(
   required TradeSide side,
   VoidCallback? onDetails,
 }) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000),
+  return showVistaSheet<void>(
+    context,
     builder: (_) =>
         FeedOrderTicket(symbol: symbol, side: side, onDetails: onDetails),
   );
@@ -118,10 +115,9 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   });
 
   Future<void> _custom() async {
-    final l = await showModalBottomSheet<int>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: const Color(0x73000000),
+    final l = await showVistaSheet<int>(
+      context,
+      scrollControlled: false,
       builder: (_) => _LeverageSheet(
         initial: _leverage,
         max: _market.maxLeverage,
@@ -132,8 +128,19 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     if (l != null && mounted) _setLeverage(l);
   }
 
+  /// Bumped to shake the order button when the order can't go through.
+  int _shakes = 0;
+
+  /// Set once placed: the button reads "Placed ✓" before the sheet closes.
+  bool _placed = false;
+
   void _place() {
-    if (_problem != null) return;
+    if (_placed) return;
+    if (_problem != null) {
+      HapticFeedback.heavyImpact();
+      setState(() => _shakes++);
+      return;
+    }
     HapticFeedback.mediumImpact();
     final side = widget.side.label.toLowerCase();
     final messenger = ScaffoldMessenger.of(context);
@@ -158,18 +165,24 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
         ),
       );
     }
-    Navigator.of(context).pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            _limit
-                ? 'Limit $side placed · in Open orders (simulated)'
-                : 'Market $side filled (simulated)',
+    // Confirm on the button itself, then close.
+    setState(() => _placed = true);
+    final navigator = Navigator.of(context);
+    Future.delayed(VistaMotion.confirmHold, () {
+      if (!mounted) return;
+      navigator.pop();
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              _limit
+                  ? 'Limit $side placed · in Open orders (simulated)'
+                  : 'Market $side filled (simulated)',
+            ),
           ),
-        ),
-      );
+        );
+    });
   }
 
   /// The price [pct] away from entry on the winning ([gain]) or losing side.
@@ -203,7 +216,9 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
         child: Container(
           decoration: const BoxDecoration(
             color: VistaColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(VistaRadius.sheet),
+            ),
           ),
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + safe),
@@ -470,6 +485,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
                   style: value,
+                  // The decimal pad has no return key: tapping anywhere else closes it.
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   cursorColor: VistaColors.accent,
                   decoration: const InputDecoration(
                     isDense: true,
@@ -597,18 +614,20 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
 
   Widget _buttons() {
     final problem = _problem;
-    final label =
-        problem ?? '${widget.side.label} \$${_fmtUsd(_margin)} · ${_leverage}x';
+    final label = _placed
+        ? 'Placed ✓'
+        : problem ??
+              '${widget.side.label} \$${_fmtUsd(_margin)} · ${_leverage}x';
     Widget button(String text, Color bg, Color fg, VoidCallback? onTap) =>
         Expanded(
           child: Semantics(
             button: true,
             label: text,
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
               onTap: onTap,
-              child: Container(
+              child: AnimatedContainer(
+                duration: VistaMotion.state,
                 height: 52,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -617,9 +636,13 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                 ),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
-                    text,
-                    style: VistaType.headline.copyWith(color: fg),
+                  child: AnimatedSwitcher(
+                    duration: VistaMotion.state,
+                    child: Text(
+                      text,
+                      key: ValueKey(text == 'Placed ✓'),
+                      style: VistaType.headline.copyWith(color: fg),
+                    ),
                   ),
                 ),
               ),
@@ -638,11 +661,25 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
           },
         ),
         const SizedBox(width: 10),
-        button(
-          label,
-          problem == null ? widget.side.color : VistaColors.surfaceRaised,
-          problem == null ? VistaColors.onAccent : VistaColors.textMuted,
-          problem == null ? _place : null,
+        // Always tappable: an order that can't go through shakes instead.
+        Expanded(
+          child: VistaShake(
+            count: _shakes,
+            child: Row(
+              children: [
+                button(
+                  label,
+                  problem == null
+                      ? widget.side.color
+                      : VistaColors.surfaceRaised,
+                  problem == null
+                      ? VistaColors.onAccent
+                      : VistaColors.textMuted,
+                  _place,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
