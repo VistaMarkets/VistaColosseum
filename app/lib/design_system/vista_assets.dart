@@ -47,16 +47,6 @@ abstract final class VistaAssets {
   static const String portfolioAvatar = '$_dir/portfolio_avatar.svg';
   static const String pagerDots = '$_dir/pager_dots.svg';
   static const String pagerDotsMarket = '$_dir/pager_dots_market.svg';
-  static const String portfolioChart = '$_dir/portfolio_chart.svg';
-
-  /// [portfolioChart] with the user's market in focus; derived from it by
-  /// `tool/derive_market_focus_chart.py` so the two crossfade cleanly.
-  /// [portfolioChart] without the muted market line, for accounts with no
-  /// market; derived by the same tool.
-  static const String portfolioChartSolo = '$_dir/portfolio_chart_solo.svg';
-
-  static const String portfolioChartMarketFocus =
-      '$_dir/portfolio_chart_market_focus.svg';
   // Your market (Figma 168:110): market-cap chart on a 370×150 box, holder
   // avatars and record timeline rails.
   static const String marketDotLattice = '$_dir/market_dot_lattice.svg';
@@ -116,8 +106,6 @@ abstract final class VistaAssets {
   static const String railRecordOpen = '$_dir/rail_record_open.svg';
   static const String railRecordRight = '$_dir/rail_record_right.svg';
   static const String railRecordWrong = '$_dir/rail_record_wrong.svg';
-  static const String holderAvatarLong = '$_dir/holder_avatar_long.svg';
-  static const String holderAvatarShort = '$_dir/holder_avatar_short.svg';
   // Markets (Figma 185:110 Assets, 222:110 Traders). Coins come at 20pt for
   // the favourites rail and 22pt for list rows.
   static const String coinBtcRail = '$_dir/coin_btc_rail.svg';
@@ -147,11 +135,8 @@ abstract final class VistaAssets {
   static const String callerAvatarShort = '$_dir/caller_avatar_short_32.svg';
   // Position sheet (Figma 104:110).
   static const String positionAvatarEth = '$_dir/position_avatar_eth.svg';
-  static const String positionLattice = '$_dir/position_lattice.svg';
   static const String positionTpLine = '$_dir/position_tp_line.svg';
   static const String positionSlLine = '$_dir/position_sl_line.svg';
-  static const String positionClipAbove = '$_dir/position_clip_above.svg';
-  static const String positionClipBelow = '$_dir/position_clip_below.svg';
   // Make a market (Figma 175:218 button, 338:102 create, 329:102 consent,
   // 348:624 live).
   static const String makeMarketButtonDots =

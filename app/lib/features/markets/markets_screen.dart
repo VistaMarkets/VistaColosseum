@@ -154,31 +154,32 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: 150,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: gutter,
-                      itemCount: favItems.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(width: VistaSpace.lg),
-                      itemBuilder: (context, i) {
-                        final m = favItems[i];
-                        return ValueListenableBuilder(
-                          valueListenable: MarketPrices.of(m.id),
-                          builder: (context, price, _) => VistaMarketCard(
-                            icon: m.railIcon,
-                            name: m.name,
-                            badge: m.badge ?? '',
-                            price: MarketPrices.format(price, compact: true),
-                            changePct: m.changePct,
-                            sparkAsset: m.spark,
-                            footLeft: m.footLeft,
-                            footRight: m.footRight,
-                            onPressed: () => _open(m),
+                  // Sized by its cards, so they hug their content rather
+                  // than stretching to a fixed rail height.
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: gutter,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final (i, m) in favItems.indexed) ...[
+                          if (i > 0) const SizedBox(width: VistaSpace.lg),
+                          ValueListenableBuilder(
+                            valueListenable: MarketPrices.of(m.id),
+                            builder: (context, price, _) => VistaMarketCard(
+                              icon: m.railIcon,
+                              name: m.name,
+                              badge: m.badge ?? '',
+                              price: MarketPrices.format(price, compact: true),
+                              changePct: m.changePct,
+                              sparkAsset: m.spark,
+                              footLeft: m.footLeft,
+                              footRight: m.footRight,
+                              onPressed: () => _open(m),
+                            ),
                           ),
-                        );
-                      },
+                        ],
+                      ],
                     ),
                   ),
                 ],

@@ -12,6 +12,7 @@ import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
@@ -582,17 +583,21 @@ void main() {
 
     Finder visible(String text) => find.text(text).hitTestable();
 
-    testWidgets('opens on the Market panel, then Portfolio, Record, Holders', (
+    testWidgets('opens on the Market panel, then Portfolio and Record', (
       tester,
     ) async {
       await openMarket(tester);
       expect(visible('Longs pay shorts'), findsOneWidget);
 
-      for (final next in ['Shared live by kaito.eth', 'Record', 'Holders']) {
+      for (final next in ['Shared live by kaito.eth', 'Record']) {
         await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
         await tester.pumpAndSettle();
         expect(visible(next), findsOneWidget);
       }
+      // No Holders panel after Record.
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
+      await tester.pumpAndSettle();
+      expect(find.text('Holders'), findsNothing);
     });
 
     testWidgets('dragging the handle down opens the chart, up brings panels', (
@@ -1286,6 +1291,24 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('the span drives the portfolio chart and its change', (
+      tester,
+    ) async {
+      await openWallet(tester);
+      expect(find.text(r'+$91 (0.73%)'), findsOneWidget);
+      // Both pages (balance and market cap) cover the chosen span.
+      expect(find.text('Last 24 hours'), findsNWidgets(2));
+      final day = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
+      await tester.tap(find.text('1W'));
+      await tester.pumpAndSettle();
+      expect(find.text(r'+$412 (3.41%)'), findsOneWidget);
+      expect(find.text('Past week'), findsNWidgets(2));
+      final week = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
+      // A different window, ending at the same balance.
+      expect(week.first, isNot(day.first));
+      expect(week.last, closeTo(12480, 0.01));
+    });
+
     testWidgets('without a market Portfolio offers Make a market', (
       tester,
     ) async {
@@ -1293,17 +1316,11 @@ void main() {
       expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
       expect(find.text('Your market'), findsNothing);
       // The chart has no muted market line behind the portfolio.
-      Finder chartArt(String asset) => find.byWidgetPredicate(
-        (w) =>
-            w is SvgPicture &&
-            w.bytesLoader is SvgAssetLoader &&
-            (w.bytesLoader as SvgAssetLoader).assetName == asset,
-      );
-      expect(chartArt(VistaAssets.portfolioChartSolo), findsOneWidget);
-      expect(chartArt(VistaAssets.portfolioChart), findsNothing);
+      final chart = tester.widget<SeriesChart>(find.byType(SeriesChart));
+      expect(chart.muted, isNull);
       // No market-cap page to swipe to.
-      final chart = tester.getCenter(pagerBalance) + const Offset(0, 150);
-      await tester.flingFrom(chart, const Offset(-250, 0), 1000);
+      final under = tester.getCenter(pagerBalance) + const Offset(0, 150);
+      await tester.flingFrom(under, const Offset(-250, 0), 1000);
       await tester.pumpAndSettle();
       expect(find.text(r'$MAYA market cap').hitTestable(), findsNothing);
     });

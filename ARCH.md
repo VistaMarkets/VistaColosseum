@@ -54,7 +54,7 @@ real financial execution out of the demo.
 - `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 - `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 - `app/lib/features/profile/` — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
-- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
+- `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart (`series_chart.dart`: drawn from simulated history over the chosen span, the balance ending at its live value, in the Home line style), spans, fees, positions; tapping a position slides up its P/L sheet, whose chart is that market's price over the span ending at the live price, with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
 - `app/lib/features/live/` — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125); `MarketPrices` is the one live price per market that every screen reads, so any two screens always agree
 - `app/lib/features/make_market/` — make-a-market flow (create → before you list → live with confetti burst), opened from Portfolio when the user has no market
 - `app/lib/features/markets/` — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
@@ -157,8 +157,6 @@ VistaColosseum/
 │   │   │   ├── fill_avatar_1.svg
 │   │   │   ├── fill_avatar_2.svg
 │   │   │   ├── fill_avatar_3.svg
-│   │   │   ├── holder_avatar_long.svg
-│   │   │   ├── holder_avatar_short.svg
 │   │   │   ├── holders_avatars.svg
 │   │   │   ├── initials_avatar_36.svg
 │   │   │   ├── like_button.svg
@@ -200,13 +198,7 @@ VistaColosseum/
 │   │   │   ├── people_in_button.svg
 │   │   │   ├── person_avatar.svg
 │   │   │   ├── portfolio_avatar.svg
-│   │   │   ├── portfolio_chart.svg
-│   │   │   ├── portfolio_chart_market_focus.svg
-│   │   │   ├── portfolio_chart_solo.svg
 │   │   │   ├── position_avatar_eth.svg
-│   │   │   ├── position_clip_above.svg
-│   │   │   ├── position_clip_below.svg
-│   │   │   ├── position_lattice.svg
 │   │   │   ├── position_sl_line.svg
 │   │   │   ├── position_tp_line.svg
 │   │   │   ├── profile_avatar.svg
@@ -395,13 +387,14 @@ VistaColosseum/
 │   │   │   ├── people/  — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 │   │   │   │   ├── follow_list_screen.dart
 │   │   │   │   └── follow_mock.dart
-│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart, spans, fees, positions; tapping a position slides up its P/L sheet with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
+│   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart (`series_chart.dart`: drawn from simulated history over the chosen span, the balance ending at its live value, in the Home line style), spans, fees, positions; tapping a position slides up its P/L sheet, whose chart is that market's price over the span ending at the live price, with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data)
 │   │   │   │   ├── open_order_card.dart
 │   │   │   │   ├── orders_state.dart
 │   │   │   │   ├── portfolio_mock.dart
 │   │   │   │   ├── portfolio_pager.dart
 │   │   │   │   ├── portfolio_screen.dart
-│   │   │   │   └── position_sheet.dart
+│   │   │   │   ├── position_sheet.dart
+│   │   │   │   └── series_chart.dart
 │   │   │   ├── profile/  — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data)
 │   │   │   │   ├── holdings_table.dart
 │   │   │   │   ├── private_profile_screen.dart
@@ -434,12 +427,11 @@ VistaColosseum/
 │   │   ├── replay_live_test.dart
 │   │   └── rolling_number_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
-│   │   ├── app_icon/
-│   │   │   ├── app_icon_1024.png
-│   │   │   ├── make_icons.py
-│   │   │   ├── mark_fill.svg
-│   │   │   └── render_app_icon_test.dart
-│   │   └── derive_market_focus_chart.py
+│   │   └── app_icon/
+│   │       ├── app_icon_1024.png
+│   │       ├── make_icons.py
+│   │       ├── mark_fill.svg
+│   │       └── render_app_icon_test.dart
 │   ├── .gitignore
 │   ├── .metadata
 │   ├── analysis_options.yaml

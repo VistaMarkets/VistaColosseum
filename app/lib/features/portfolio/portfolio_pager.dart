@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import 'portfolio_mock.dart';
+import 'series_chart.dart';
 
 /// "My portfolio" number and chart, swipeable to the user's own market cap.
 ///
@@ -13,15 +14,23 @@ import 'portfolio_mock.dart';
 /// line in focus to the market line in focus, following the finger.
 ///
 /// Figma: portfolio page 174:110; market page and mid-swipe from the
-/// "Swipe numbers" storyboard (160:110 → 160:146 → 160:180). The market-focus
-/// chart gets the same fill and dot-grid treatment as the portfolio one — see
-/// `tool/derive_market_focus_chart.py`.
+/// "Swipe numbers" storyboard (160:110 → 160:146 → 160:180).
+///
+/// The chart is drawn from the data: the balance over the chosen [span]
+/// ending at the live balance, and the market cap over the same span. Each
+/// page puts its own line in focus with the other muted behind it, and the
+/// change under the number is measured over that span. Simulated history.
 class PortfolioPager extends StatefulWidget {
   const PortfolioPager({
     super.key,
     this.hasMarket = true,
     this.ticker = 'MAYA',
+    this.span = PortfolioMock.defaultSpan,
   });
+
+  /// Index into [PortfolioMock.spans]: the window the chart and the change
+  /// cover.
+  final int span;
 
   /// Without a market there is no market-cap page: the pager stays on the
   /// portfolio and ignores swipes.
@@ -37,9 +46,32 @@ class PortfolioPager extends StatefulWidget {
 /// How far a page travels sideways between in-focus and gone.
 const double _slide = 24;
 
-/// Chart box size in Figma; layers are placed in these units.
+/// Chart box size in Figma.
 const double _chartWidth = 370;
 const double _chartHeight = 170;
+
+/// What the balance and the market cap moved by over each span (1h, 4h,
+/// 1D, 1W, 1M, All), ending at today's figures. 1D is the design's
+/// +$91 / +$1.8M. Mock.
+const _balanceMoves = [-15.0, 26.0, 91.0, 412.0, 937.0, 3920.0];
+const _capMoves = [-0.21e6, 0.35e6, 1.8e6, 5.6e6, -2.3e6, 31.2e6];
+
+final double _balance = parseUsd(PortfolioMock.balance);
+const double _cap = 44.0e6;
+
+/// The balance, live.
+ValueListenable<double> get _liveBalance =>
+    LiveFeed.watch('portfolio', _balance, 9);
+
+/// "+$91 (0.73%)" or "+$1.8M (4.27%)" for a move from [start] to [end].
+String _change(double start, double end, {bool millions = false}) {
+  final d = end - start;
+  final amount = millions
+      ? '\$${(d.abs() / 1e6).toStringAsFixed(1)}M'
+      : formatUsd(d.abs());
+  return '${d < 0 ? '−' : '+'}$amount '
+      '(${(d.abs() / start * 100).toStringAsFixed(2)}%)';
+}
 
 /// Opacity of the outgoing page at progress 0 → 0.5 → 1 (Figma mid-swipe
 /// shows 35% outgoing and 65% incoming).
@@ -111,12 +143,21 @@ class _PortfolioPagerState extends State<PortfolioPager>
                           _slid(
                             dx: -_slide * p,
                             opacity: _outgoing(p),
-                            child: _NumberPage(
-                              caption: 'My portfolio',
-                              dots: VistaAssets.pagerDots,
-                              value: PortfolioMock.balance,
-                              live: true,
-                              change: PortfolioMock.change24h,
+                            child: ValueListenableBuilder(
+                              valueListenable: _liveBalance,
+                              builder: (context, live, _) {
+                                final start =
+                                    _balance - _balanceMoves[widget.span];
+                                return _NumberPage(
+                                  caption: 'My portfolio',
+                                  dots: VistaAssets.pagerDots,
+                                  value: PortfolioMock.balance,
+                                  live: true,
+                                  change: _change(start, live),
+                                  up: live >= start,
+                                  window: spanWindows[widget.span],
+                                );
+                              },
                             ),
                           ),
                           _slid(
@@ -126,7 +167,13 @@ class _PortfolioPagerState extends State<PortfolioPager>
                               caption: '\$${widget.ticker} market cap',
                               dots: VistaAssets.pagerDotsMarket,
                               value: PortfolioMock.marketCap,
-                              change: PortfolioMock.marketCapChange24h,
+                              change: _change(
+                                _cap - _capMoves[widget.span],
+                                _cap,
+                                millions: true,
+                              ),
+                              up: _capMoves[widget.span] >= 0,
+                              window: spanWindows[widget.span],
                             ),
                           ),
                         ],
@@ -135,7 +182,11 @@ class _PortfolioPagerState extends State<PortfolioPager>
                   ),
                 ),
                 const SizedBox(height: VistaSpace.sm),
-                _Chart(progress: p, hasMarket: widget.hasMarket),
+                _Chart(
+                  progress: p,
+                  hasMarket: widget.hasMarket,
+                  span: widget.span,
+                ),
               ],
             );
           },
@@ -169,6 +220,8 @@ class _NumberPage extends StatelessWidget {
     required this.dots,
     required this.value,
     required this.change,
+    required this.up,
+    required this.window,
     this.live = false,
   });
 
@@ -179,6 +232,10 @@ class _NumberPage extends StatelessWidget {
   /// Roll the value with the live feed (the portfolio balance).
   final bool live;
   final String change;
+  final bool up;
+
+  /// The span the change covers, e.g. "Last 24 hours".
+  final String window;
 
   @override
   Widget build(BuildContext context) {
@@ -219,9 +276,11 @@ class _NumberPage extends StatelessWidget {
           children: [
             Text(
               change,
-              style: VistaType.bodyMedium.copyWith(color: VistaColors.long),
+              style: VistaType.bodyMedium.copyWith(
+                color: up ? VistaColors.long : VistaColors.short,
+              ),
             ),
-            Text('Last 24 hours', style: VistaType.bodyMedium),
+            Text(window, style: VistaType.bodyMedium),
           ],
         ),
       ],
@@ -229,68 +288,57 @@ class _NumberPage extends StatelessWidget {
   }
 }
 
-/// Both chart states on one 370×170 box, crossfaded by [progress].
+/// Both chart states on one 370×170 box, crossfaded by [progress]: the
+/// balance in focus with the market cap muted behind it, then the reverse.
 class _Chart extends StatelessWidget {
-  const _Chart({required this.progress, required this.hasMarket});
+  const _Chart({
+    required this.progress,
+    required this.hasMarket,
+    required this.span,
+  });
 
   final double progress;
 
   /// Without a market there is no second line to show behind the portfolio.
   final bool hasMarket;
+  final int span;
 
   @override
   Widget build(BuildContext context) {
+    final cap = bridgeSeries('cap/$span', _cap - _capMoves[span], _cap);
+    final history = bridgeSeries(
+      'portfolio/$span',
+      _balance - _balanceMoves[span],
+      _balance,
+    );
     return SizedBox(
       height: _chartHeight,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final sx = c.maxWidth / _chartWidth;
-
-            // A vector placed in Figma chart units; x stretches with width.
-            Widget layer(String asset, Rect r) => Positioned(
-              left: r.left * sx,
-              top: r.top,
-              width: r.width * sx,
-              height: r.height,
-              child: SvgPicture.asset(asset, fit: BoxFit.fill),
-            );
-
+        child: ValueListenableBuilder(
+          valueListenable: _liveBalance,
+          builder: (context, live, _) {
+            final balance = endAt(history, live);
             // Linear crossfade keeps the chart's weight mid-swipe; the
             // numbers use the steeper Figma fade since they overlap.
             final market = progress;
             final portfolio = 1 - progress;
             return Stack(
+              fit: StackFit.expand,
               clipBehavior: Clip.none,
               children: [
                 if (portfolio > 0)
                   Opacity(
                     opacity: portfolio,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        layer(
-                          hasMarket
-                              ? VistaAssets.portfolioChart
-                              : VistaAssets.portfolioChartSolo,
-                          const Rect.fromLTWH(-5, 0, 381, 176),
-                        ),
-                      ],
+                    child: SeriesChart(
+                      focus: balance,
+                      muted: hasMarket ? cap : null,
                     ),
                   ),
                 if (market > 0)
                   Opacity(
                     opacity: market,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        layer(
-                          VistaAssets.portfolioChartMarketFocus,
-                          const Rect.fromLTWH(-5, 0, 381, 176),
-                        ),
-                      ],
-                    ),
+                    child: SeriesChart(focus: cap, muted: balance),
                   ),
               ],
             );

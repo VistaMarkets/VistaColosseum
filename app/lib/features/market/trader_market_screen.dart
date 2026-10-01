@@ -18,7 +18,7 @@ import 'trader_market_mock.dart';
 /// swiped-up panels 237:373 / 241:102 / 237:530 / 237:694).
 ///
 /// Opens with the panels up on Market. Panels swipe sideways in the order
-/// Market → Portfolio → Record → Holders; dragging the handle (or the chart)
+/// Market → Portfolio → Record; dragging the handle (or the chart)
 /// down opens the chart full height, and dragging up brings the panels back.
 class TraderMarketScreen extends StatefulWidget {
   const TraderMarketScreen({super.key, required this.handle});
@@ -82,7 +82,6 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
         ChartSheetPanel('Market', _marketPanel()),
         ChartSheetPanel('Portfolio', _portfolioPanel()),
         ChartSheetPanel('Record', _recordPanel()),
-        ChartSheetPanel('Holders', _holdersPanel()),
       ],
     );
   }
@@ -408,108 +407,6 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
             ],
           ),
         ],
-      ],
-    );
-  }
-
-  Widget _holdersPanel() {
-    const gap = SizedBox(height: VistaSpace.lg);
-    const long = TraderMarketMock.holdersLong;
-    const short = TraderMarketMock.holdersShort;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        chartSheetTitle(
-          'Holders',
-          Text(
-            TraderMarketMock.holdersChange,
-            style: VistaType.body.copyWith(color: VistaColors.long),
-          ),
-        ),
-        gap,
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              TraderMarketMock.holders,
-              style: VistaType.display.copyWith(fontSize: 28),
-            ),
-            const SizedBox(width: VistaSpace.md),
-            Text(
-              'open positions',
-              style: VistaType.bodyMedium.copyWith(
-                fontSize: 14,
-                color: VistaColors.textMuted,
-              ),
-            ),
-          ],
-        ),
-        gap,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '$long long',
-              style: VistaType.bodyStrong.copyWith(color: VistaColors.long),
-            ),
-            Text(
-              '$short short',
-              style: VistaType.bodyStrong.copyWith(color: VistaColors.short),
-            ),
-          ],
-        ),
-        gap,
-        const VistaSplitBar(leftFraction: long / (long + short), height: 6),
-        gap,
-        const VistaHairline(),
-        gap,
-        Text(
-          'PEOPLE YOU FOLLOW',
-          style: VistaType.labelStrong.copyWith(
-            color: VistaColors.textSecondary,
-          ),
-        ),
-        for (final h in TraderMarketMock.followed) ...[
-          gap,
-          Row(
-            children: [
-              VistaIcon(h.avatar, size: 30),
-              const SizedBox(width: VistaSpace.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(h.handle, style: VistaType.subhead),
-                    const SizedBox(height: VistaSpace.xxs),
-                    Text(
-                      '${h.side.label} · from ${h.from}',
-                      style: VistaType.chip.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: VistaColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                h.pnl,
-                style: VistaType.subhead.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: h.inProfit ? VistaColors.long : VistaColors.short,
-                ),
-              ),
-            ],
-          ),
-        ],
-        gap,
-        Text(
-          "Everyone else's positions stay private.",
-          style: VistaType.chip.copyWith(
-            fontWeight: FontWeight.w500,
-            color: VistaColors.textSecondary,
-          ),
-        ),
       ],
     );
   }

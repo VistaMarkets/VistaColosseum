@@ -2,26 +2,6 @@ import 'package:flutter/painting.dart';
 
 import '../../design_system/design_system.dart';
 
-/// A followed trader's position in this market (Holders panel).
-class FollowedHolder {
-  const FollowedHolder({
-    required this.handle,
-    required this.side,
-    required this.from,
-    required this.pnl,
-  });
-
-  final String handle;
-  final TradeSide side;
-  final String from;
-  final String pnl;
-
-  bool get inProfit => !pnl.startsWith('−');
-  String get avatar => side == TradeSide.long
-      ? VistaAssets.holderAvatarLong
-      : VistaAssets.holderAvatarShort;
-}
-
 /// One entry in the Record panel.
 class RecordCall {
   const RecordCall(
@@ -117,31 +97,5 @@ abstract final class TraderMarketMock {
       ('All-time high', r'$0.5120 · Aug 30'),
       ('Since listing Mar 12', '+46.7%'),
     ],
-  ];
-
-  // Holders.
-  static const holders = '142';
-  static const holdersLong = 82;
-  static const holdersShort = 60;
-  static const holdersChange = '+9 this week';
-  static const followed = [
-    FollowedHolder(
-      handle: '0xreal',
-      side: TradeSide.short,
-      from: r'$0.4520',
-      pnl: '+2.7%',
-    ),
-    FollowedHolder(
-      handle: 'lunaq',
-      side: TradeSide.long,
-      from: r'$0.4310',
-      pnl: '+2.1%',
-    ),
-    FollowedHolder(
-      handle: 'kilo.sol',
-      side: TradeSide.long,
-      from: r'$0.4460',
-      pnl: '−1.3%',
-    ),
   ];
 }

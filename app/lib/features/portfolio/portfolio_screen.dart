@@ -69,7 +69,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         children: [
           Padding(padding: gutter, child: _profile()),
           gap,
-          PortfolioPager(hasMarket: hasMarket, ticker: ticker),
+          PortfolioPager(hasMarket: hasMarket, ticker: ticker, span: _span),
           gap,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: VistaSpace.xl),

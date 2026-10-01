@@ -1,10 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
+import '../home/signal_replay_chart.dart';
 import 'portfolio_mock.dart';
+import 'series_chart.dart';
 
 /// Slides the position sheet up from the bottom (Figma 104:110, "Position
 /// sheet · as built → P/L-led, portfolio chart").
@@ -169,13 +173,15 @@ class _PositionSheetState extends State<PositionSheet> {
             SizedBox(
               height: 180,
               child: _PositionChart(
+                symbol: _d.symbol,
+                span: _span,
                 long: _long,
                 entry: _d.entry,
                 takeProfit: _tp,
                 stopLoss: _sl,
-                // The designed chart's scale: its top line (TP on a long,
-                // SL on a short) at the original level.
-                topReference: _long ? _d.takeProfit : _d.stopLoss,
+                // The scale holds the levels as saved, so nudging one moves
+                // its line rather than rescaling the chart.
+                scaleLevels: (_d.takeProfit, _d.stopLoss),
                 tpLabel: 'TP ${_usd(_tp)}',
                 entryLabel: 'Entry ${_usd(_d.entry)}',
                 slLabel: 'SL ${_usd(_sl)}',
@@ -332,35 +338,39 @@ class _PositionSheetState extends State<PositionSheet> {
   }
 }
 
-/// Price since entry against the take-profit, entry and stop-loss lines.
-///
-/// The curve and lattice are the static Figma vectors on a 370×180 box
-/// (x stretches). The TP / SL lines sit at their prices on the chart's price
-/// scale — taken from the design, where the top line (TP on a long, SL on a
-/// short) is 82.4pt above entry — so nudging a level moves its line.
+/// The market's price over the chosen [span], ending at its live price,
+/// against the entry, take-profit and stop-loss lines on the same price
+/// scale. The line is the app's line style split at entry: green on the
+/// winning side, red on the losing side (flipped for a short); a dotted
+/// line marks the current price. Simulated history.
 class _PositionChart extends StatelessWidget {
   const _PositionChart({
+    required this.symbol,
+    required this.span,
     required this.long,
     required this.entry,
     required this.takeProfit,
     required this.stopLoss,
-    required this.topReference,
+    required this.scaleLevels,
     required this.tpLabel,
     required this.entryLabel,
     required this.slLabel,
   });
 
+  final String symbol;
+  final int span;
   final bool long;
   final double entry;
   final double takeProfit;
   final double stopLoss;
-  final double topReference;
+  final (double, double) scaleLevels;
   final String tpLabel;
   final String entryLabel;
   final String slLabel;
 
-  static const double _entryY = 103.74;
-  static const double _topY = 21.31;
+  /// Where the window starts relative to today's price, per span (1h, 4h,
+  /// 1D, 1W, 1M); All starts at entry. Mock.
+  static const _spanMoves = [0.002, -0.004, 0.012, 0.035, 0.07];
 
   /// Lines stay inside the chart with room for their labels.
   static const double _minY = 4;
@@ -368,90 +378,123 @@ class _PositionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pointsPerUnit = (_entryY - _topY) / (topReference - entry).abs();
-    double y(double price) =>
-        (_entryY - (price - entry) * pointsPerUnit).clamp(_minY, _maxY);
     final label = VistaType.label;
     const move = Duration(milliseconds: 180);
-    return LayoutBuilder(
-      builder: (context, c) {
-        final sx = c.maxWidth / 370;
-        Widget layer(
-          String asset,
-          double left,
-          double top,
-          double w,
-          double h,
-        ) => Positioned(
-          left: left * sx,
-          top: top,
-          width: w * sx,
-          height: h,
-          child: SvgPicture.asset(asset, fit: BoxFit.fill),
-        );
-
-        // A dotted level line with its label: below the line when it's in
-        // the top half, above it in the bottom half.
-        List<Widget> level(double lineY, String asset, String text, Color c) {
-          final below = lineY < _entryY;
-          return [
-            AnimatedPositioned(
-              duration: move,
-              curve: Curves.easeOut,
-              left: 0,
-              width: 370 * sx,
-              top: lineY - 1.5,
-              height: 1.5,
-              child: SvgPicture.asset(asset, fit: BoxFit.fill),
-            ),
-            AnimatedPositioned(
-              duration: move,
-              curve: Curves.easeOut,
-              left: 0,
-              top: below ? lineY + 3 : lineY - 16,
-              child: Text(text, style: label.copyWith(color: c)),
-            ),
-          ];
+    final base = MarketPrices.base(symbol);
+    final history = bridgeSeries(
+      '$symbol/$span',
+      span >= _spanMoves.length ? entry : base * (1 - _spanMoves[span]),
+      base,
+    );
+    return ValueListenableBuilder(
+      valueListenable: MarketPrices.of(symbol),
+      builder: (context, live, _) {
+        final series = endAt(history, live);
+        // One price scale for the line and the levels, with some air.
+        final all = [...series, entry, scaleLevels.$1, scaleLevels.$2];
+        final lo = all.reduce(math.min);
+        final hi = all.reduce(math.max);
+        final pad = (hi - lo) * 0.06;
+        double y(double price) {
+          final f = (price - (lo - pad)) / ((hi + pad) - (lo - pad));
+          return (_maxY - f * (_maxY - _minY)).clamp(_minY, _maxY);
         }
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            layer(VistaAssets.positionLattice, 0, 0, 370, 180),
-            layer(VistaAssets.marketBaseline, 0, _entryY - 1, 370, 1),
-            layer(VistaAssets.positionClipAbove, -5, 0, 380, 103.737),
-            layer(VistaAssets.positionClipBelow, -5, _entryY, 380, 82.263),
-            ...level(
-              y(takeProfit),
-              VistaAssets.positionTpLine,
-              tpLabel,
-              VistaColors.long,
-            ),
-            ...level(
-              y(stopLoss),
-              VistaAssets.positionSlLine,
-              slLabel,
-              VistaColors.short,
-            ),
-            Positioned(
-              left: c.maxWidth - 6.5,
-              top: 34.85,
-              child: const VistaIcon(VistaAssets.marketLiveHalo, size: 13),
-            ),
-            Positioned(
-              left: c.maxWidth - 3.5,
-              top: 37.85,
-              child: const VistaIcon(VistaAssets.markerLive, size: 7),
-            ),
-            Positioned(
-              left: 0,
-              top: _entryY + 3,
-              child: Text(
-                entryLabel,
-                style: label.copyWith(color: VistaColors.textMuted),
-              ),
-            ),
-          ],
+        final entryY = y(entry);
+        final nowY = y(live);
+        final winning = long ? live >= entry : live <= entry;
+        return LayoutBuilder(
+          builder: (context, c) {
+            final sx = c.maxWidth / 360;
+            final sy = c.maxHeight / 403;
+            final points = [
+              for (var k = 0; k < series.length; k++)
+                Offset(k / (series.length - 1) * 360, y(series[k]) / sy),
+            ];
+
+            // A dotted level line with its label: below the line when it's
+            // in the top half, above it in the bottom half.
+            List<Widget> level(
+              double lineY,
+              String asset,
+              String text,
+              Color tone,
+            ) {
+              final below = lineY < entryY;
+              return [
+                AnimatedPositioned(
+                  duration: move,
+                  curve: Curves.easeOut,
+                  left: 0,
+                  width: c.maxWidth,
+                  top: lineY - 1.5,
+                  height: 1.5,
+                  child: SvgPicture.asset(asset, fit: BoxFit.fill),
+                ),
+                AnimatedPositioned(
+                  duration: move,
+                  curve: Curves.easeOut,
+                  left: 0,
+                  top: below ? lineY + 3 : lineY - 16,
+                  child: Text(text, style: label.copyWith(color: tone)),
+                ),
+              ];
+            }
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: LevelLine(entryY, VistaColors.textMuted),
+                  ),
+                ),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: ReplayLinePainter(
+                      points: points,
+                      entryY: entryY / sy,
+                      revealX: null,
+                      latticeShift: 0,
+                      sx: sx,
+                      sy: sy,
+                      screenLattice: true,
+                      invert: !long,
+                    ),
+                  ),
+                ),
+                ...level(
+                  y(takeProfit),
+                  VistaAssets.positionTpLine,
+                  tpLabel,
+                  VistaColors.long,
+                ),
+                ...level(
+                  y(stopLoss),
+                  VistaAssets.positionSlLine,
+                  slLabel,
+                  VistaColors.short,
+                ),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: LevelLine(
+                      nowY,
+                      winning ? VistaColors.long : VistaColors.short,
+                      dotted: true,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: entryY + 3,
+                  child: Text(
+                    entryLabel,
+                    style: label.copyWith(color: VistaColors.textMuted),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

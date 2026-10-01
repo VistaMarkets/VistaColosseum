@@ -701,10 +701,14 @@ class ReplayLinePainter extends CustomPainter {
     required this.sx,
     required this.sy,
     this.screenLattice = false,
+    this.invert = false,
   });
 
   final List<Offset> points;
   final bool screenLattice;
+
+  /// Red above the line and green below, for a short (where up is a loss).
+  final bool invert;
 
   /// The call line's height, in canvas units, as the camera shows it.
   final double entryY;
@@ -778,16 +782,18 @@ class ReplayLinePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
+    final up = invert ? VistaColors.short : VistaColors.long;
+    final down = invert ? VistaColors.long : VistaColors.short;
     canvas
       ..save()
       ..clipRect(above)
-      ..drawPath(under, fill(VistaColors.long, true))
-      ..drawPath(path, stroke(VistaColors.long))
+      ..drawPath(under, fill(up, true))
+      ..drawPath(path, stroke(up))
       ..restore()
       ..save()
       ..clipRect(below)
-      ..drawPath(over, fill(VistaColors.short, false))
-      ..drawPath(path, stroke(VistaColors.short))
+      ..drawPath(over, fill(down, false))
+      ..drawPath(path, stroke(down))
       ..restore()
       ..restore();
   }
@@ -796,6 +802,7 @@ class ReplayLinePainter extends CustomPainter {
   bool shouldRepaint(ReplayLinePainter old) =>
       !listEquals(old.points, points) ||
       old.entryY != entryY ||
+      old.invert != invert ||
       old.revealX != revealX ||
       old.latticeShift != latticeShift ||
       old.sx != sx ||
