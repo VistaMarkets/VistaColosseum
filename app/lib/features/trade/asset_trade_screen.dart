@@ -340,7 +340,21 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
     );
   }
 
-  Widget _bookPanel() {
+  /// The book around the market's live price (the one price shown
+  /// everywhere), moving with it.
+  Widget _bookPanel() => ValueListenableBuilder(
+    valueListenable: MarketPrices.of(_quote.ticker),
+    builder: (context, price, _) => _book(TradeMock.book(price)),
+  );
+
+  Widget _book(
+    ({
+      List<(String, String, double)> bids,
+      List<(String, String, double)> asks,
+      String spread,
+    })
+    book,
+  ) {
     final tabStyle = VistaType.headline;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -358,7 +372,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
               ),
             ),
             Text(
-              TradeMock.spread,
+              book.spread,
               style: VistaType.label.copyWith(
                 fontWeight: FontWeight.w500,
                 color: VistaColors.textSecondary,
@@ -373,13 +387,13 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
             ),
           ],
         ),
-        for (var i = 0; i < TradeMock.bids.length; i++) ...[
+        for (var i = 0; i < book.bids.length; i++) ...[
           const SizedBox(height: VistaSpace.xs),
           Row(
             children: [
-              Expanded(child: _bookSide(TradeMock.bids[i], bid: true)),
+              Expanded(child: _bookSide(book.bids[i], bid: true)),
               const SizedBox(width: VistaSpace.sm),
-              Expanded(child: _bookSide(TradeMock.asks[i], bid: false)),
+              Expanded(child: _bookSide(book.asks[i], bid: false)),
             ],
           ),
         ],

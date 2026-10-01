@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/painting.dart';
+
+import '../../charting/charting.dart';
 
 import '../../design_system/design_system.dart';
 
@@ -187,33 +191,94 @@ abstract final class TradeMock {
   static const rangePosition = 212 / 370;
   static const fundingSummary = 'Longs paid 8 of 9';
 
-  // Book panel: (price, size, depth fraction of the half-row).
-  static const spread = 'Spread 0.5';
-  // Depth bars are cumulative size, as a share of the deepest row.
-  static const bids = [
-    ('67,412.0', '0.88', 14 / 230),
-    ('67,411.5', '2.10', 47 / 230),
-    ('67,410.0', '0.53', 55 / 230),
-    ('67,408.5', '3.40', 109 / 230),
-    ('67,406.0', '1.27', 129 / 230),
-    ('67,405.0', '0.74', 140 / 230),
-    ('67,403.5', '2.66', 182 / 230),
-    ('67,402.0', '1.05', 196 / 230),
-    ('67,400.5', '3.12', 214 / 230),
-    ('67,399.0', '0.90', 230 / 230),
+  // Book panel. The design's BTC book (at $67,412, ticks of 0.5) as a
+  // template: each level's distance from the best bid in ticks, its size in
+  // BTC, and its depth bar (cumulative size as a share of the deepest row).
+  static const _bidTicks = [0, -1, -4, -7, -12, -14, -17, -20, -23, -26];
+  static const _askTicks = [1, 2, 5, 8, 13, 14, 19, 22, 25, 28];
+  static const _bidSizes = [
+    0.88,
+    2.10,
+    0.53,
+    3.40,
+    1.27,
+    0.74,
+    2.66,
+    1.05,
+    3.12,
+    0.90,
   ];
-  static const asks = [
-    ('67,412.5', '1.12', 18 / 230),
-    ('67,413.0', '0.41', 24 / 230),
-    ('67,414.5', '2.95', 70 / 230),
-    ('67,416.0', '0.62', 80 / 230),
-    ('67,418.5', '1.84', 109 / 230),
-    ('67,419.0', '0.95', 124 / 230),
-    ('67,421.5', '1.60', 149 / 230),
-    ('67,423.0', '2.04', 170 / 230),
-    ('67,424.5', '0.77', 185 / 230),
-    ('67,426.0', '3.25', 205 / 230),
+  static const _askSizes = [
+    1.12,
+    0.41,
+    2.95,
+    0.62,
+    1.84,
+    0.95,
+    1.60,
+    2.04,
+    0.77,
+    3.25,
   ];
+  static const _bidDepth = [14, 47, 55, 109, 129, 140, 182, 196, 214, 230];
+  static const _askDepth = [18, 24, 70, 80, 109, 124, 149, 170, 185, 205];
+  static const _designPrice = 67412.0;
+
+  /// The book around [price]: the template's shape with a tick that suits
+  /// the price (0.5 at BTC's, 0.02 at ETH's; at least a cent above $10 and a
+  /// hundredth of a cent below) and sizes holding the same dollar depth.
+  /// Rows are (price, size, depth fraction). Mock.
+  static ({
+    List<(String, String, double)> bids,
+    List<(String, String, double)> asks,
+    String spread,
+  })
+  book(double price) {
+    final raw = price * 0.5 / _designPrice;
+    final unit = math.pow(10, (math.log(raw) / math.ln10).floor()).toDouble();
+    var tick = [
+      1,
+      2,
+      5,
+      10,
+    ].map((m) => m * unit).firstWhere((t) => t >= raw * 0.7);
+    tick = math.max(tick, price >= 10 ? 0.01 : 0.0001);
+    // Decimals the tick needs (0.5 → 1, 0.02 → 2), guarded against float
+    // error in the log.
+    final decimals = math.max(0, (-(math.log(tick) / math.ln10) - 1e-6).ceil());
+    final shown = math.max(decimals, price >= 1000 ? 1 : 2);
+    final bestBid = (price / tick + 1e-9).floor() * tick;
+    final scale = _designPrice / price;
+    String size(double btc) {
+      final v = btc * scale;
+      return groupDigits(
+        v,
+        v >= 100
+            ? 0
+            : v >= 10
+            ? 1
+            : 2,
+      );
+    }
+
+    List<(String, String, double)> side(
+      List<int> ticks,
+      List<double> sizes,
+      List<int> depth,
+    ) => [
+      for (var k = 0; k < ticks.length; k++)
+        (
+          groupDigits(bestBid + ticks[k] * tick, shown),
+          size(sizes[k]),
+          depth[k] / 230,
+        ),
+    ];
+    return (
+      bids: side(_bidTicks, _bidSizes, _bidDepth),
+      asks: side(_askTicks, _askSizes, _askDepth),
+      spread: 'Spread ${groupDigits(tick, decimals)}',
+    );
+  }
 
   // Callers panel.
   static const callersLong = 8;

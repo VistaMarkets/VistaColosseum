@@ -1049,6 +1049,11 @@ void main() {
       expect(find.text('Trades'), findsNothing);
       expect(find.text(r'Market buy $10,000'), findsNothing);
       expect(find.textContaining('Bids 11.58'), findsNothing);
+      // ETH's own book, around its live price.
+      expect(find.text('2,968.40'), findsOneWidget);
+      expect(find.text('2,968.42'), findsOneWidget);
+      expect(find.text('Spread 0.02'), findsOneWidget);
+      expect(find.text('67,412.0'), findsNothing);
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
       await tester.pumpAndSettle();
       expect(visible('Callers in ETH'), findsOneWidget);
