@@ -101,12 +101,7 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
             gap,
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    'Share call',
-                    style: VistaType.subhead.copyWith(fontSize: 20),
-                  ),
-                ),
+                Expanded(child: Text('Share call', style: VistaType.title)),
                 Semantics(
                   button: true,
                   child: GestureDetector(

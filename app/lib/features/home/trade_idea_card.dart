@@ -139,8 +139,7 @@ class _CallHeader extends StatelessWidget {
                         const SizedBox(width: VistaSpace.xs),
                         Text(
                           '›',
-                          style: VistaType.body.copyWith(
-                            fontSize: 14,
+                          style: VistaType.row.copyWith(
                             color: VistaColors.textSecondary,
                           ),
                         ),

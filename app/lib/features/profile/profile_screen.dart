@@ -76,9 +76,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 children: [
                   Padding(padding: gutter, child: _header()),
-                  const SizedBox(height: 18 + 16),
+                  const SizedBox(height: VistaSpace.sectionLg),
                   _market(),
-                  const SizedBox(height: 8 + 22),
+                  const SizedBox(height: VistaSpace.sectionLg),
                   const Padding(
                     padding: gutter,
                     child: VistaSectionHead(
@@ -86,14 +86,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       note: 'Shared live',
                     ),
                   ),
-                  const SizedBox(height: 4 + 8),
+                  const SizedBox(height: VistaSpace.xl),
                   Padding(
                     padding: gutter,
                     child: HoldingsTable(
                       onRowTap: () => _notBuilt('Call details'),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: VistaSpace.sectionLg),
                   Padding(padding: gutter, child: _calls()),
                 ],
               ),
@@ -121,8 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Text(
             initial,
-            style: VistaType.body.copyWith(
-              fontSize: 26,
+            style: VistaType.displayMedium.copyWith(
               color: VistaColors.textSecondary,
             ),
           ),
@@ -216,10 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
-                ProfileMock.price,
-                style: VistaType.displayNumber.copyWith(fontSize: 24),
-              ),
+              Text(ProfileMock.price, style: VistaType.displaySmall),
               const SizedBox(width: VistaSpace.sm),
               Expanded(
                 child: Text(

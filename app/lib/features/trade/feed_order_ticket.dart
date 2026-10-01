@@ -306,15 +306,14 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                     Text(
                       'If ${widget.symbol} ${_long ? 'falls' : 'rises'} to '
                       '${MarketPrices.format(_liquidation, compact: true)}',
-                      style: VistaType.body.copyWith(
-                        fontSize: 14,
+                      style: VistaType.row.copyWith(
                         color: VistaColors.textMuted,
                       ),
                     ),
                     const Spacer(),
                     Text(
                       'you lose the \$${_fmtUsd(_margin)}',
-                      style: VistaType.body.copyWith(fontSize: 14),
+                      style: VistaType.row,
                     ),
                   ],
                 ),
@@ -439,7 +438,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     required ValueChanged<String> onChanged,
     String? prefix,
   }) {
-    final value = VistaType.body.copyWith(fontSize: 17);
+    final value = VistaType.tab;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
@@ -524,10 +523,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                     : null,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Take profit / Stop loss',
-                style: VistaType.body.copyWith(fontSize: 14),
-              ),
+              Text('Take profit / Stop loss', style: VistaType.row),
               const SizedBox(width: 10),
               Flexible(
                 child: Text(

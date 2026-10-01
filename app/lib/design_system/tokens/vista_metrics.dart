@@ -10,6 +10,13 @@ abstract final class VistaSpace {
 
   /// Horizontal page gutter.
   static const double gutter = 16;
+
+  /// Between sections of a page (header to body, block to block).
+  static const double section = 24;
+
+  /// A stronger break, e.g. before a destructive action; pair it with a
+  /// divider or label rather than leaving it bare.
+  static const double sectionLg = 32;
 }
 
 /// Corner radii.
@@ -18,6 +25,9 @@ abstract final class VistaRadius {
   static const double sm = 6;
   static const double md = 8;
   static const double card = 20;
+
+  /// Top corners of every bottom sheet.
+  static const double sheet = 24;
   static const double pill = 999;
 }
 

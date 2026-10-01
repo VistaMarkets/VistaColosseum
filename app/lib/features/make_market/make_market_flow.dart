@@ -339,8 +339,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
           Center(
             child: Text(
               initial,
-              style: VistaType.display.copyWith(
-                fontSize: 28,
+              style: VistaType.displayMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: VistaColors.textPrimary.withValues(alpha: 0.85),
               ),
@@ -370,7 +369,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
         : _taken
         ? ('× Taken', VistaColors.short)
         : ('✓ Available', VistaColors.long);
-    final big = VistaType.displayNumber.copyWith(fontSize: 22);
+    final big = VistaType.displaySmall;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -598,7 +597,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               children: [
                 Text(
                   'Your market has two sides',
-                  style: VistaType.displayNumber.copyWith(fontSize: 22),
+                  style: VistaType.displaySmall,
                 ),
                 const SizedBox(height: VistaSpace.lg),
                 IntrinsicHeight(
@@ -626,7 +625,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                   child: Text(
                     'You earn 40% of the fees from both',
                     textAlign: TextAlign.center,
-                    style: VistaType.bodyStrong.copyWith(fontSize: 14),
+                    style: VistaType.rowStrong,
                   ),
                 ),
                 Container(
@@ -802,8 +801,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                             const VistaIcon(VistaAssets.mmLiveAvatar, size: 88),
                             Text(
                               _symbol.isEmpty ? '?' : _symbol[0],
-                              style: VistaType.display.copyWith(
-                                fontSize: 34,
+                              style: VistaType.displayLarge.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: VistaColors.textPrimary.withValues(
                                   alpha: 0.85,
@@ -823,7 +821,6 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                         child: Text(
                           t,
                           style: VistaType.display.copyWith(
-                            fontSize: 40,
                             letterSpacing: -1.5,
                           ),
                         ),
@@ -837,16 +834,12 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               const SizedBox(height: 12),
               Text(
                 'Your market cap is',
-                style: VistaType.bodyMedium.copyWith(
-                  fontSize: 14,
+                style: VistaType.rowMedium.copyWith(
                   color: VistaColors.textMuted,
                 ),
               ),
               const SizedBox(height: VistaSpace.xxs),
-              Text(
-                MakeMarketMock.startingCap,
-                style: VistaType.display.copyWith(fontSize: 34),
-              ),
+              Text(MakeMarketMock.startingCap, style: VistaType.displayLarge),
               const Spacer(),
               _footer([
                 VistaPrimaryButton(

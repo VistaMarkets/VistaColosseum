@@ -64,10 +64,14 @@ class VistaListRow extends StatelessWidget {
         onTap: onPressed,
         child: Container(
           constraints: const BoxConstraints(minHeight: 59),
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: VistaSpace.gutter,
+            vertical: VistaSpace.xl,
+          ),
           decoration: BoxDecoration(
             color: VistaColors.surface,
             borderRadius: BorderRadius.circular(VistaRadius.card),
+            border: Border.all(color: VistaColors.hairline),
           ),
           child: Row(
             children: [

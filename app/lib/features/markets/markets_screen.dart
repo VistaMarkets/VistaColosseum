@@ -234,7 +234,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                 ),
                 if (rows.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 24),
+                    padding: const EdgeInsets.only(top: VistaSpace.section),
                     child: Center(
                       child: Text('No matches', style: VistaType.bodyRegular),
                     ),

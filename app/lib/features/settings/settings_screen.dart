@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _say('Wallet address copied');
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: VistaSpace.section),
                     _notifications(),
                     const VistaSettingsDivider(),
                     _display(),
@@ -109,7 +109,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _legal(),
                     const VistaSettingsDivider(),
                     _help(),
-                    const SizedBox(height: 32),
+                    const VistaSettingsDivider(),
+                    const SizedBox(height: VistaSpace.section),
                     VistaSettingRow(
                       title: 'Log out',
                       titleColor: VistaColors.short,

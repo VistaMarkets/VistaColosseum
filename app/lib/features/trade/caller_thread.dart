@@ -147,8 +147,7 @@ class _Post extends StatelessWidget {
                   const SizedBox(height: VistaSpace.xs),
                   Text(
                     p.message,
-                    style: VistaType.bodyRegular.copyWith(
-                      fontSize: 14,
+                    style: VistaType.rowRegular.copyWith(
                       height: 1.35,
                       color: VistaColors.textPrimary,
                     ),

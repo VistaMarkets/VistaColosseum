@@ -189,7 +189,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
                           base: MarketPrices.base(q.ticker),
                           step: MarketPrices.step(q.ticker),
                           decimals: 2,
-                          style: VistaType.display.copyWith(fontSize: 32),
+                          style: VistaType.displayLarge,
                         ),
                         const SizedBox(width: 3),
                         Text(
@@ -203,10 +203,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
                 const SizedBox(width: VistaSpace.md),
                 Text(
                   q.pctLabel,
-                  style: VistaType.displayNumber.copyWith(
-                    fontSize: 24,
-                    color: q.color,
-                  ),
+                  style: VistaType.displaySmall.copyWith(color: q.color),
                 ),
               ],
             ),
@@ -222,9 +219,9 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
   );
 
   TextStyle get _rowLabel =>
-      VistaType.bodyMedium.copyWith(fontSize: 14, color: VistaColors.textMuted);
+      VistaType.rowMedium.copyWith(color: VistaColors.textMuted);
 
-  TextStyle get _rowValue => VistaType.body.copyWith(fontSize: 14);
+  TextStyle get _rowValue => VistaType.row;
 
   Widget _marketPanel() {
     const gap = SizedBox(height: 9);
@@ -406,14 +403,8 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
   Widget _bookSide((String, String, double) level, {required bool bid}) {
     final (price, size, depth) = level;
     final colour = bid ? VistaColors.long : VistaColors.short;
-    final priceText = Text(
-      price,
-      style: VistaType.body.copyWith(fontSize: 14, color: colour),
-    );
-    final sizeText = Text(
-      size,
-      style: VistaType.bodyMedium.copyWith(fontSize: 14),
-    );
+    final priceText = Text(price, style: VistaType.row.copyWith(color: colour));
+    final sizeText = Text(size, style: VistaType.rowMedium);
     return SizedBox(
       height: 26,
       child: Stack(
@@ -498,10 +489,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
                 Expanded(
                   child: Text(
                     'All ${long + short} callers in ${_quote.ticker}',
-                    style: VistaType.body.copyWith(
-                      fontSize: 14,
-                      color: VistaColors.textMuted,
-                    ),
+                    style: VistaType.row.copyWith(color: VistaColors.textMuted),
                   ),
                 ),
                 Text(

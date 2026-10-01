@@ -448,7 +448,7 @@ class _OrderTicketState extends State<OrderTicket> {
   }
 
   TextStyle get _unitStyle =>
-      VistaType.body.copyWith(fontSize: 14, color: VistaColors.textMuted);
+      VistaType.row.copyWith(color: VistaColors.textMuted);
 
   Widget _sideButton(TradeSide s) {
     final on = s == _side;
@@ -604,10 +604,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 color: VistaColors.surfaceRaised,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
-              child: Text(
-                'Cross · ${_leverage}x',
-                style: VistaType.body.copyWith(fontSize: 14),
-              ),
+              child: Text('Cross · ${_leverage}x', style: VistaType.row),
             ),
           ),
         ),
@@ -639,7 +636,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 color: VistaColors.surfaceRaised,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
-              child: Text(label, style: VistaType.body.copyWith(fontSize: 14)),
+              child: Text(label, style: VistaType.row),
             ),
           ),
         ),
@@ -722,11 +719,7 @@ class _OrderTicketState extends State<OrderTicket> {
               children: [
                 Text(label, style: _fieldLabel, maxLines: 1),
                 const SizedBox(height: 2),
-                _input(
-                  c,
-                  (_) => setState(() {}),
-                  VistaType.subhead.copyWith(fontSize: 16),
-                ),
+                _input(c, (_) => setState(() {}), VistaType.tab),
               ],
             ),
           ),
@@ -768,7 +761,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(label, style: VistaType.body.copyWith(fontSize: 14)),
+              Text(label, style: VistaType.row),
             ],
           ),
         ),
@@ -782,13 +775,10 @@ class _OrderTicketState extends State<OrderTicket> {
         Expanded(
           child: Text(
             label,
-            style: VistaType.bodyMedium.copyWith(
-              fontSize: 14,
-              color: VistaColors.textMuted,
-            ),
+            style: VistaType.rowMedium.copyWith(color: VistaColors.textMuted),
           ),
         ),
-        Text(value, style: VistaType.body.copyWith(fontSize: 14)),
+        Text(value, style: VistaType.row),
       ],
     );
   }
@@ -952,7 +942,7 @@ class _LeverageSheetState extends State<_LeverageSheet> {
         children: [
           const Center(child: VistaDragHandle()),
           const SizedBox(height: 12),
-          Text('Leverage', style: VistaType.subhead.copyWith(fontSize: 20)),
+          Text('Leverage', style: VistaType.title),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -1036,7 +1026,7 @@ class _LeverageSheetState extends State<_LeverageSheet> {
               ),
               Text(
                 MarketPrices.format(widget.liquidation(_l)),
-                style: VistaType.body.copyWith(fontSize: 14),
+                style: VistaType.row,
               ),
             ],
           ),

@@ -86,7 +86,7 @@ class PeopleInSheet extends StatelessWidget {
                         Expanded(
                           child: Text(
                             '${idea.traders} in',
-                            style: VistaType.subhead.copyWith(fontSize: 20),
+                            style: VistaType.title,
                           ),
                         ),
                         Semantics(

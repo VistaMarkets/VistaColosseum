@@ -17,6 +17,7 @@ export 'components/vista_rolling_number.dart';
 export 'components/vista_settings.dart';
 export 'tokens/vista_colors.dart';
 export 'tokens/vista_metrics.dart';
+export 'tokens/vista_motion.dart';
 export 'tokens/vista_typography.dart';
 export 'vista_assets.dart';
 export 'vista_theme.dart';

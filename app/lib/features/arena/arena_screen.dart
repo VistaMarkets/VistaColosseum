@@ -67,7 +67,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
               children: [
                 for (final b in ArenaMock.battles)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                    // A clear gap between battles so each reads as its own.
+                    padding: const EdgeInsets.fromLTRB(
+                      7,
+                      0,
+                      7,
+                      VistaSpace.section,
+                    ),
                     child: ValueListenableBuilder(
                       valueListenable: DisplayPrefs.longOnRight,
                       builder: (context, longOnRight, _) => VistaBattleCard(

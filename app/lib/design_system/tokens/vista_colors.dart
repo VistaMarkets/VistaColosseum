@@ -8,8 +8,10 @@ import 'package:flutter/painting.dart';
 abstract final class VistaColors {
   // Surfaces, darkest to lightest.
   static const Color background = Color(0xFF161616);
-  static const Color surface = Color(0xFF1F1F1F);
-  static const Color surfaceOverlay = Color(0xEB1F1F1F); // surface at 92%
+  // One clear step above the page (#161616) so cards read as cards; the
+  // Figma #1F1F1F was ~3% lighter and cards blended into the page.
+  static const Color surface = Color(0xFF252525);
+  static const Color surfaceOverlay = Color(0xEB252525); // surface at 92%
   static const Color surfaceRaised = Color(0xFF333333);
   static const Color surfaceSelected = Color(0xFF858585);
 
@@ -29,6 +31,9 @@ abstract final class VistaColors {
 
   // Lines.
   static const Color divider = Color(0x33FFFFFF); // white at 20%
+
+  /// Behind every bottom sheet: black at 45%.
+  static const Color scrim = Color(0x73000000);
   static const Color hairline = Color(0x14FFFFFF); // white at 8%
 
   // Brand and trade direction.

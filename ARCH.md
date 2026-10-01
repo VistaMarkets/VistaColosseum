@@ -342,6 +342,7 @@ VistaColosseum/
 │   │   │   ├── tokens/
 │   │   │   │   ├── vista_colors.dart
 │   │   │   │   ├── vista_metrics.dart
+│   │   │   │   ├── vista_motion.dart
 │   │   │   │   └── vista_typography.dart
 │   │   │   ├── design_system.dart
 │   │   │   ├── vista_assets.dart

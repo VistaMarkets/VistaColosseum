@@ -49,8 +49,7 @@ class VistaDetailHeader extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '‹',
-                      style: VistaType.body.copyWith(
-                        fontSize: 26,
+                      style: VistaType.displayMedium.copyWith(
                         fontWeight: FontWeight.w400,
                       ),
                     ),

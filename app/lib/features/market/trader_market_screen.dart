@@ -220,7 +220,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                               valueListenable: MarketPrices.of(widget.handle),
                               builder: (context, price, _) => Text(
                                 TraderMarketMock.capFor(price),
-                                style: VistaType.display.copyWith(fontSize: 32),
+                                style: VistaType.displayLarge,
                               ),
                             ),
                             const SizedBox(width: 3),
@@ -237,8 +237,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                     const SizedBox(width: VistaSpace.md),
                     Text(
                       TraderMarketMock.change24h,
-                      style: VistaType.displayNumber.copyWith(
-                        fontSize: 24,
+                      style: VistaType.displaySmall.copyWith(
                         color: VistaColors.long,
                       ),
                     ),
@@ -288,10 +287,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
             onTap: () => _notBuilt('All receipts'),
             child: Text(
               'All receipts ›',
-              style: VistaType.body.copyWith(
-                fontSize: 14,
-                color: VistaColors.accent,
-              ),
+              style: VistaType.row.copyWith(color: VistaColors.accent),
             ),
           ),
         ),
@@ -364,8 +360,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                 children: [
                   Text(
                     'Longs pay shorts',
-                    style: VistaType.bodyMedium.copyWith(
-                      fontSize: 14,
+                    style: VistaType.rowMedium.copyWith(
                       color: VistaColors.textMuted,
                     ),
                   ),
@@ -376,10 +371,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
             ),
             Text(
               TraderMarketMock.fundingRate,
-              style: VistaType.body.copyWith(
-                fontSize: 14,
-                color: VistaColors.short,
-              ),
+              style: VistaType.row.copyWith(color: VistaColors.short),
             ),
           ],
         ),
