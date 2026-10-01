@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="10" height="76" viewBox="0 0 10 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame" clip-path="url(#clip0_0_120)">
+<circle id="Ellipse" cx="5" cy="5" r="4.25" fill="#161616" stroke="#F5F3FF" stroke-width="1.5"/>
+<rect id="Rectangle" x="4" y="10" width="2" height="66" rx="1" fill="white" fill-opacity="0.12"/>
+</g>
+<defs>
+<clipPath id="clip0_0_120">
+<rect width="10" height="76" fill="white"/>
+</clipPath>
+</defs>
+</svg>
