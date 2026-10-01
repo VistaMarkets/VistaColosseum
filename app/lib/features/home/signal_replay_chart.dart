@@ -25,9 +25,9 @@ import 'replay_timeline.dart';
 /// the app returns to the foreground) the line traces from the call to now.
 /// A camera ([_Camera]) opens close on the first candle and pulls back as the
 /// tip moves until the whole designed frame is in view.
-/// A head dot rides the tip, the fills reveal behind it, and each event
-/// marker pops in with a ring as the tip reaches it (with a haptic tick), its
-/// label rising in just after. The breakout gets a double ring and a firmer
+/// A dotted current-price line follows the tip, the fills reveal behind it,
+/// and each event marker pops in with a ring as the tip reaches it (with a
+/// haptic tick), its label rising in just after. The breakout gets a double ring and a firmer
 /// haptic. Timing is in [ReplayTimeline]. The finished frame is the design.
 ///
 /// Then it stays live. Each [livePrice] tick eases the newest point to the
@@ -574,7 +574,7 @@ class _SignalReplayChartState extends State<SignalReplayChart>
               final entry = at(Offset(4, _entryY));
 
               // Each event: its marker, a ring as it lands, and its label.
-              // The payoff gets the halo, two wider rings and a tinted tag.
+              // The payoff gets two wider rings and a tinted tag.
               List<Widget> event(ReplayEvent e) {
                 final c = at(_line[e.vertex]);
                 final ms0 = _eventMs(e.kind);
@@ -591,14 +591,6 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                     payoff ? 4.5 : 3.2,
                   ),
                   if (payoff) ring(c, 12, ringAt(ms0 + 220), tone, 4.5),
-                  if (payoff)
-                    marker(
-                      VistaAssets.markerBreakoutHalo,
-                      c,
-                      26,
-                      pop: pop(ms0),
-                      tint: e.favourable ? null : tone,
-                    ),
                   marker(
                     switch (e.kind) {
                       ReplayEventKind.funding => VistaAssets.markerFunding,
@@ -667,13 +659,20 @@ class _SignalReplayChartState extends State<SignalReplayChart>
                     child: VistaTag(label: _s.callTag, dense: true),
                   ),
                   for (final e in _s.events) ...event(e),
-                  // Live dot: rides the tip while tracing, then "now".
+                  // Current price: a dotted line across the chart at the tip's
+                  // level, green above the call line and red below it.
                   if (t > 0)
                     Positioned(
-                      left: tip.dx * sx - 7,
-                      top: tip.dy * sy - 7,
-                      child: _LiveDot(
-                        tint: tip.dy > entryY ? VistaColors.short : null,
+                      left: 0,
+                      right: 0,
+                      top: tip.dy * sy - 1,
+                      height: 2,
+                      child: CustomPaint(
+                        painter: _PriceLine(
+                          tip.dy > entryY
+                              ? VistaColors.short
+                              : VistaColors.long,
+                        ),
                       ),
                     ),
                 ],
@@ -960,36 +959,21 @@ class _Rise extends StatelessWidget {
   }
 }
 
-/// The live-price marker (halo + dot); [tint] recolours it below the entry.
-class _LiveDot extends StatelessWidget {
-  const _LiveDot({this.tint});
+/// The current-price line: 2pt round dots every 6pt across the chart.
+class _PriceLine extends CustomPainter {
+  const _PriceLine(this.color);
 
-  final Color? tint;
+  final Color color;
 
   @override
-  Widget build(BuildContext context) {
-    final filter = tint == null
-        ? null
-        : ColorFilter.mode(tint!, BlendMode.srcIn);
-    return SizedBox.square(
-      dimension: 14,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SvgPicture.asset(
-            VistaAssets.markerLiveHalo,
-            width: 14,
-            height: 14,
-            colorFilter: filter,
-          ),
-          SvgPicture.asset(
-            VistaAssets.markerLive,
-            width: 7,
-            height: 7,
-            colorFilter: filter,
-          ),
-        ],
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final cy = size.height / 2;
+    for (var x = 1.0; x < size.width; x += 6) {
+      canvas.drawCircle(Offset(x, cy), 1, paint);
+    }
   }
+
+  @override
+  bool shouldRepaint(_PriceLine old) => old.color != color;
 }

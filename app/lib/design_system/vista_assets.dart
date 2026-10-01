@@ -178,7 +178,6 @@ abstract final class VistaAssets {
   static const String markerEntry = '$_dir/marker_entry.svg';
   static const String markerFunding = '$_dir/marker_funding.svg';
   static const String markerWhale = '$_dir/marker_whale.svg';
-  static const String markerBreakoutHalo = '$_dir/marker_breakout_halo.svg';
   static const String markerBreakout = '$_dir/marker_breakout.svg';
   static const String markerLiveHalo = '$_dir/marker_live_halo.svg';
   static const String markerLive = '$_dir/marker_live.svg';

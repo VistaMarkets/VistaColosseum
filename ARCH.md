@@ -170,7 +170,6 @@ VistaColosseum/
 │   │   │   ├── long_arrow.svg
 │   │   │   ├── make_market_button_dots.svg
 │   │   │   ├── marker_breakout.svg
-│   │   │   ├── marker_breakout_halo.svg
 │   │   │   ├── marker_entry.svg
 │   │   │   ├── marker_funding.svg
 │   │   │   ├── marker_live.svg
