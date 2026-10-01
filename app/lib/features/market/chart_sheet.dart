@@ -1,6 +1,8 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
 import '../settings/settings_state.dart';
@@ -19,6 +21,10 @@ class ChartSheetPanel {
 ///
 /// Opens with the panels up on the first panel. Dragging the handle (or the
 /// chart) down opens the chart full height; dragging up brings the panels
+
+/// Settles a dragged panel: critically damped, carrying the fling's speed.
+const _settleSpring = SpringDescription(mass: 1, stiffness: 500, damping: 45);
+
 /// back. Builders receive `collapse`: 0 = chart open, 1 = panels up.
 class ChartSheet extends StatefulWidget {
   const ChartSheet({
@@ -96,7 +102,20 @@ class _ChartSheetState extends State<ChartSheet>
         : v < -400
         ? 1.0
         : _sheet.value.roundToDouble();
-    _settle(target);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _settle(target);
+      return;
+    }
+    if ((target - _sheet.value).abs() > 0.5) HapticFeedback.lightImpact();
+    // The spring keeps the finger's speed, so a fast fling stays fast.
+    _sheet
+        .animateWith(
+          SpringSimulation(_settleSpring, _sheet.value, target, -v / _travel),
+        )
+        // Land exactly on the page; a spring stops a hair short.
+        .then((_) {
+          if (mounted) _sheet.value = target;
+        });
   }
 
   void _settle(double target) {

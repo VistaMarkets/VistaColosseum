@@ -38,9 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  bool _onScrollEnd(ScrollEndNotification n) {
-    final page = _pages.page?.round() ?? 0;
-    if (page != _settledPage) setState(() => _settledPage = page);
+  /// The replay starts once the card has all but landed (within 2% of a
+  /// page), not only when the scroll fully ends, so there's no dead beat
+  /// after a swipe.
+  bool _onScroll(ScrollNotification n) {
+    final p = _pages.page;
+    if (p == null) return false;
+    final near = (p - p.round()).abs() < 0.02;
+    if ((near || n is ScrollEndNotification) && p.round() != _settledPage) {
+      setState(() => _settledPage = p.round());
+    }
     return false;
   }
 
@@ -62,8 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: VistaSpace.md),
           Expanded(
-            child: NotificationListener<ScrollEndNotification>(
-              onNotification: _onScrollEnd,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScroll,
               child: PageView.builder(
                 controller: _pages,
                 scrollDirection: Axis.vertical,

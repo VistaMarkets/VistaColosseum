@@ -169,9 +169,20 @@ class _OrderTicketState extends State<OrderTicket> {
     setState(() => _units = _sizeInUsd ? (_entry == 0 ? 0 : v / _entry) : v);
   }
 
+  /// The quarter stop the size slider last sat on, for its haptic tick.
+  double? _sizeStop;
+
   void _onSlider(double fraction) {
     if (_entry <= 0) return;
-    setState(() => _setUnits(_maxNotional * fraction / _entry));
+    // Magnetic stops: within 3% of a quarter, snap to it and tick once.
+    double? stop;
+    for (final q in const [0.0, 0.25, 0.5, 0.75, 1.0]) {
+      if ((fraction - q).abs() <= 0.03) stop = q;
+    }
+    if (stop != null && stop != _sizeStop) HapticFeedback.selectionClick();
+    _sizeStop = stop;
+    final f = stop ?? fraction;
+    setState(() => _setUnits(_maxNotional * f / _entry));
   }
 
   void _switchSide(TradeSide side) {
@@ -927,17 +938,8 @@ class _LeverageSheetState extends State<_LeverageSheet> {
 
   double get _fraction => widget.max <= 1 ? 1 : (_l - 1) / (widget.max - 1);
 
-  void _set(int l) {
-    final next = l.clamp(1, widget.max);
-    if (next == _l) return;
-    HapticFeedback.selectionClick();
-    setState(() => _l = next);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final safe = MediaQuery.paddingOf(context).bottom;
-    // Round stops: 1x, then every 10x on a 50x market, 5x on 20x, ...
+  /// Round stops: 1x, then every 10x on a 50x market, 5x on 20x, ...
+  List<int> get _marks {
     final max = widget.max;
     final step = max >= 40
         ? 10
@@ -946,12 +948,32 @@ class _LeverageSheetState extends State<_LeverageSheet> {
         : max >= 10
         ? 2
         : 1;
-    final marks = [
+    return [
       1,
       for (var m = step; m < max; m += step)
         if (m > 1) m,
       max,
     ];
+  }
+
+  void _set(int l) {
+    final next = l.clamp(1, widget.max);
+    if (next == _l) return;
+    // Tick on the marked stops only (not every step of a 50x drag), and a
+    // firmer tap at the market's cap.
+    if (next == widget.max) {
+      HapticFeedback.lightImpact();
+    } else if (_marks.contains(next)) {
+      HapticFeedback.selectionClick();
+    }
+    setState(() => _l = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final safe = MediaQuery.paddingOf(context).bottom;
+    final max = widget.max;
+    final marks = _marks;
     double at(int m) => max <= 1 ? 1 : (m - 1) / (max - 1);
     return Container(
       decoration: const BoxDecoration(

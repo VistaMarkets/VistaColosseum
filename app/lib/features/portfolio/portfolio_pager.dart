@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
@@ -42,6 +44,9 @@ class PortfolioPager extends StatefulWidget {
   @override
   State<PortfolioPager> createState() => _PortfolioPagerState();
 }
+
+/// Settles a swipe: critically damped, carrying the fling's speed.
+const _settleSpring = SpringDescription(mass: 1, stiffness: 500, damping: 45);
 
 /// How far a page travels sideways between in-focus and gone.
 const double _slide = 24;
@@ -102,7 +107,21 @@ class _PortfolioPagerState extends State<PortfolioPager>
         : v > 300
         ? 0.0
         : _page.value.roundToDouble();
-    _settle(target);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _settle(target);
+      return;
+    }
+    if ((target - _page.value).abs() > 0.5) HapticFeedback.selectionClick();
+    final width = context.size?.width ?? _chartWidth;
+    // The spring keeps the finger's speed, so a fast flick stays fast.
+    _page
+        .animateWith(
+          SpringSimulation(_settleSpring, _page.value, target, -v / width),
+        )
+        // Land exactly on the page; a spring stops a hair short.
+        .then((_) {
+          if (mounted) _page.value = target;
+        });
   }
 
   void _settle(double target) {
@@ -315,9 +334,9 @@ class _Chart extends StatelessWidget {
       height: _chartHeight,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
-        child: ValueListenableBuilder(
-          valueListenable: _liveBalance,
-          builder: (context, live, _) {
+        child: EasedValue(
+          listenable: _liveBalance,
+          builder: (context, live) {
             final balance = endAt(history, live);
             // Linear crossfade keeps the chart's weight mid-swipe; the
             // numbers use the steeper Figma fade since they overlap.

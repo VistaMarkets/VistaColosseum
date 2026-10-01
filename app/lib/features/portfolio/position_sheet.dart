@@ -384,9 +384,9 @@ class _PositionChart extends StatelessWidget {
       span >= _spanMoves.length ? entry : base * (1 - _spanMoves[span]),
       base,
     );
-    return ValueListenableBuilder(
-      valueListenable: MarketPrices.of(symbol),
-      builder: (context, live, _) {
+    return EasedValue(
+      listenable: MarketPrices.of(symbol),
+      builder: (context, live) {
         final series = endAt(history, live);
         // One price scale for the line and the levels, with some air.
         final all = [...series, entry, scaleLevels.$1, scaleLevels.$2];

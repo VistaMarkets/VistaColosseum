@@ -318,12 +318,15 @@ class _ChartWithRail extends StatelessWidget {
           top: 0,
           bottom: 0,
           right: _chartRightInset,
-          child: SignalReplayChart(
-            active: active,
-            frame: frame,
-            // The same live price as the header, so both show one number.
-            livePrice: _livePrice(idea),
-            script: idea.script,
+          child: RepaintBoundary(
+            // The replay repaints every frame; keep that to the chart.
+            child: SignalReplayChart(
+              active: active,
+              frame: frame,
+              // The same live price as the header, so both show one number.
+              livePrice: _livePrice(idea),
+              script: idea.script,
+            ),
           ),
         ),
         // Live fills stream; older entries fade.

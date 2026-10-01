@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
@@ -191,4 +192,33 @@ class _MutedLine extends CustomPainter {
   @override
   bool shouldRepaint(_MutedLine old) =>
       old.points != points || old.sx != sx || old.sy != sy;
+}
+
+/// Builds from a live value, easing to each new figure (450ms) rather than
+/// jumping on the tick, inside a repaint boundary so the rest of the screen
+/// doesn't repaint with it. For live charts.
+class EasedValue extends StatelessWidget {
+  const EasedValue({
+    super.key,
+    required this.listenable,
+    required this.builder,
+  });
+
+  final ValueListenable<double> listenable;
+  final Widget Function(BuildContext context, double value) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: ValueListenableBuilder(
+        valueListenable: listenable,
+        builder: (context, live, _) => TweenAnimationBuilder<double>(
+          tween: Tween(end: live),
+          duration: VistaMotion.live,
+          curve: VistaMotion.enter,
+          builder: (context, eased, _) => builder(context, eased),
+        ),
+      ),
+    );
+  }
 }
