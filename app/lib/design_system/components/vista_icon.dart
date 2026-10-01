@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'vista_pressable.dart';
+
 /// Renders an exported Figma vector at an explicit size.
 class VistaIcon extends StatelessWidget {
   const VistaIcon(
@@ -58,8 +60,8 @@ class VistaIconButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticLabel,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.9,
         onTap: onPressed,
         child: SizedBox.square(
           dimension: 44,

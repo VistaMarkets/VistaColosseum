@@ -12,6 +12,7 @@ export 'components/vista_list_row.dart';
 export 'components/vista_market.dart';
 export 'components/vista_navigation.dart';
 export 'components/vista_people.dart';
+export 'components/vista_pressable.dart';
 export 'components/vista_profile.dart';
 export 'components/vista_rolling_number.dart';
 export 'components/vista_settings.dart';

@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
+import 'vista_pressable.dart';
 
 /// Step indicator for a multi-screen flow: done steps are dim dots, the
 /// current step a 16×5 pill, upcoming steps faint dots.
@@ -70,8 +72,8 @@ class VistaPrimaryButton extends StatelessWidget {
       enabled: enabled,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.97,
         onTap: enabled ? onPressed : null,
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
@@ -130,9 +132,12 @@ class VistaCheckRow extends StatelessWidget {
     return Semantics(
       checked: checked,
       label: semanticLabel,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(!checked),
+      child: VistaPressable(
+        scale: 0.97,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onChanged(!checked);
+        },
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 28),
           child: Row(

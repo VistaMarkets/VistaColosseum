@@ -4,6 +4,7 @@ import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 enum VistaPillVariant { neutral, long, short, accent }
 
@@ -39,8 +40,8 @@ class VistaPillButton extends StatelessWidget {
       button: true,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.97,
         onTap: onPressed,
         child: Container(
           constraints: const BoxConstraints(minHeight: VistaSize.pillButton),
@@ -93,8 +94,8 @@ class VistaRailButton extends StatelessWidget {
       button: true,
       label: '$semanticLabel, $label',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.9,
         onTap: onPressed,
         child: Column(
           mainAxisSize: MainAxisSize.min,

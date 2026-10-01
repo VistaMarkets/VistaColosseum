@@ -4,6 +4,7 @@ import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Header for a pushed detail screen: back chevron, avatar, title over a
 /// subtitle, and an optional round trailing action. 56 tall.
@@ -41,8 +42,8 @@ class VistaDetailHeader extends StatelessWidget {
               button: true,
               label: 'Back',
               excludeSemantics: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
+              child: VistaPressable(
+                scale: 0.92,
                 onTap: onBack,
                 child: SizedBox.square(
                   dimension: VistaSize.tapTarget,
@@ -89,8 +90,8 @@ class VistaDetailHeader extends StatelessWidget {
                 button: true,
                 label: actionLabel,
                 excludeSemantics: true,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
+                child: VistaPressable(
+                  scale: 0.92,
                   onTap: onAction,
                   child: Container(
                     width: VistaSize.tapTarget,
@@ -207,8 +208,8 @@ class VistaSectionHead extends StatelessWidget {
             button: true,
             excludeSemantics: true,
             label: linkLabel,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
+              scale: 0.92,
               onTap: onLink,
               // Pads the small link out to a usable tap target.
               child: Padding(

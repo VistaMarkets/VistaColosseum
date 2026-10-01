@@ -5,6 +5,7 @@ import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Top bar with a back chevron, an optional centred title, and optional
 /// trailing actions. Without actions an empty 44pt slot keeps the title
@@ -144,8 +145,8 @@ class VistaFollowButton extends StatelessWidget {
       toggled: following,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.96,
         onTap: onPressed,
         child: SizedBox(
           height: VistaSize.tapTarget,
@@ -235,8 +236,8 @@ class VistaPersonRow extends StatelessWidget {
       fontWeight: FontWeight.w500,
       color: VistaColors.textSecondary,
     );
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return VistaPressable(
+      scale: 0.98,
       onTap: onPressed,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),

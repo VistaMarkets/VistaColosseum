@@ -1,9 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Text glyph (e.g. "↗", "•••") centred in a 44pt tap target.
 class VistaGlyphButton extends StatelessWidget {
@@ -26,8 +28,8 @@ class VistaGlyphButton extends StatelessWidget {
       button: true,
       label: semanticLabel,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.95,
         onTap: onPressed,
         child: SizedBox.square(
           dimension: VistaSize.tapTarget,
@@ -87,11 +89,7 @@ class VistaCountStat extends StatelessWidget {
       button: true,
       label: '$value $label',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: body,
-      ),
+      child: VistaPressable(scale: 0.95, onTap: onPressed, child: body),
     );
   }
 }
@@ -120,9 +118,12 @@ class VistaFilterChip extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
+      child: VistaPressable(
+        scale: 0.95,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onPressed();
+        },
         child: SizedBox(
           height: VistaSize.tapTarget,
           child: Center(

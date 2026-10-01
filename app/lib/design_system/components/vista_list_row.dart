@@ -4,6 +4,7 @@ import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Rounded card row: leading mark, title over a coloured tag, a spark chart,
 /// and a coloured value over its percentage. Used for positions.
@@ -59,8 +60,8 @@ class VistaListRow extends StatelessWidget {
       button: onPressed != null,
       label: '$title, $tag, $value, $change',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.98,
         onTap: onPressed,
         child: Container(
           constraints: const BoxConstraints(minHeight: 59),

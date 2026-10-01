@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Two-colour proportion bar (longs vs shorts) with a 2px gap.
 class VistaSplitBar extends StatelessWidget {
@@ -81,8 +83,8 @@ class VistaIntervalSelector extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.95,
         onTap: onTap,
         child: SizedBox(
           height: VistaSize.tapTarget,
@@ -121,7 +123,10 @@ class VistaIntervalSelector extends StatelessWidget {
                     tab(
                       label: intervals[i],
                       selected: i == selectedIndex,
-                      onTap: () => onChanged(i),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        onChanged(i);
+                      },
                       child: Text(
                         intervals[i],
                         style: i == selectedIndex
@@ -145,8 +150,8 @@ class VistaIntervalSelector extends StatelessWidget {
             button: true,
             label: 'Indicators',
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
+              scale: 0.95,
               onTap: onIndicators,
               child: Container(
                 height: 32,
@@ -165,8 +170,8 @@ class VistaIntervalSelector extends StatelessWidget {
             button: true,
             label: 'Chart type',
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
+              scale: 0.95,
               onTap: onChartType,
               child: VistaIcon(chartTypeAsset, size: 60, height: 37),
             ),
@@ -246,8 +251,8 @@ class VistaStarButton extends StatelessWidget {
       toggled: starred,
       label: 'Favorite',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.9,
         onTap: onPressed,
         child: SizedBox(
           width: 28,
@@ -312,8 +317,8 @@ class _VistaWatchButtonState extends State<VistaWatchButton>
       toggled: widget.watched,
       label: 'Favorite',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.9,
         onTap: widget.onPressed,
         child: SizedBox.square(
           dimension: VistaSize.tapTarget,
@@ -377,8 +382,8 @@ class VistaMarketCard extends StatelessWidget {
       button: true,
       label: '$name, $price, ${vistaChangeLabel(changePct)}',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.98,
         onTap: onPressed,
         child: Container(
           width: 176,
@@ -509,8 +514,8 @@ class VistaMarketRow extends StatelessWidget {
         child: FittedBox(fit: BoxFit.scaleDown, child: child),
       ),
     );
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return VistaPressable(
+      scale: 0.98,
       onTap: onPressed,
       child: Container(
         height: 48,

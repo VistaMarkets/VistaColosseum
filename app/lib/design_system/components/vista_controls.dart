@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
+import 'vista_pressable.dart';
+import '../tokens/vista_motion.dart';
 
 /// Wraps [child] in a tappable, labelled button with at least a 44pt target.
 class _Tappable extends StatelessWidget {
@@ -25,11 +28,7 @@ class _Tappable extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: child,
-      ),
+      child: VistaPressable(scale: 0.95, onTap: onPressed, child: child),
     );
   }
 }
@@ -239,7 +238,10 @@ class VistaSpanSelector extends StatelessWidget {
     return _Tappable(
       label: labels[i],
       selected: selected,
-      onPressed: () => onChanged(i),
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        onChanged(i);
+      },
       child: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(
@@ -288,26 +290,34 @@ class VistaUnderlineTabs extends StatelessWidget {
     return _Tappable(
       label: labels[i],
       selected: selected,
-      onPressed: () => onChanged(i),
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        onChanged(i);
+      },
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: VistaSize.tapTarget),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              labels[i],
+            AnimatedDefaultTextStyle(
+              duration: VistaMotion.state,
+              curve: VistaMotion.enter,
               style: VistaType.tab.copyWith(
                 color: selected
                     ? VistaColors.textPrimary
                     : VistaColors.textMuted,
               ),
+              child: Text(labels[i]),
             ),
             const SizedBox(height: VistaSpace.md),
-            Container(
-              width: 52,
+            // The bar grows out from the centre of the picked tab.
+            AnimatedContainer(
+              duration: VistaMotion.state,
+              curve: VistaMotion.enter,
+              width: selected ? 52 : 0,
               height: 2,
               decoration: BoxDecoration(
-                color: selected ? VistaColors.textPrimary : null,
+                color: VistaColors.textPrimary,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
             ),

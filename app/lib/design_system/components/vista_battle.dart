@@ -6,6 +6,7 @@ import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
 import 'vista_buttons.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// One side of a battle: its lead caller, their thesis and the side's crowd.
 class VistaBattleSide {
@@ -152,8 +153,8 @@ class VistaBattleCard extends StatelessWidget {
               button: true,
               label: moreOpinions,
               excludeSemantics: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
+              child: VistaPressable(
+                scale: 0.98,
                 onTap: onOpinions,
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 36),
@@ -253,8 +254,8 @@ class _Side extends StatelessWidget {
         children: [
           Text(label, style: VistaType.labelStrong.copyWith(color: color)),
           const SizedBox(height: VistaSpace.md),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          VistaPressable(
+            scale: 0.98,
             onTap: onCaller == null ? null : () => onCaller!(side.caller),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -405,8 +406,8 @@ class VistaSideDetail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          VistaPressable(
+            scale: 0.98,
             onTap: onCaller,
             child: Row(
               children: [

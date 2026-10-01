@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
+import 'vista_pressable.dart';
 
 /// Settings building blocks (Figma "Settings · 2 — open" 442:102 and
 /// "Settings 3 · Notifications open in place" 442:772).
@@ -204,9 +206,12 @@ class VistaSwitch extends StatelessWidget {
       toggled: value,
       button: true,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(!value),
+      child: VistaPressable(
+        scale: 0.95,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onChanged(!value);
+        },
         child: SizedBox.square(
           dimension: VistaSize.tapTarget,
           child: Center(
@@ -288,9 +293,12 @@ class VistaSegmentedToggle extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(i),
+      child: VistaPressable(
+        scale: 0.95,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onChanged(i);
+        },
         child: SizedBox(
           height: VistaSize.tapTarget,
           child: Center(

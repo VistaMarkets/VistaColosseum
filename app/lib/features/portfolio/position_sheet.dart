@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
@@ -69,6 +70,7 @@ class _PositionSheetState extends State<PositionSheet> {
   /// Moves a level, keeping take-profit on the winning side of entry and
   /// stop-loss on the losing side.
   void _nudge({required bool takeProfit, required int dir}) {
+    HapticFeedback.selectionClick();
     setState(() {
       final winAbove = _long;
       if (takeProfit) {
