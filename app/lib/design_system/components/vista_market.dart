@@ -391,7 +391,6 @@ class VistaMarketCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: VistaColors.surface,
             borderRadius: BorderRadius.circular(VistaRadius.card),
-            border: Border.all(color: VistaColors.hairline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
