@@ -47,6 +47,7 @@ real financial execution out of the demo.
 - `README.md` — project presentation and animated Vista logo
 - `CONTEXT.md` — project acronyms, vocabulary, and reference repositories
 - `docs/agents/` — issue tracker, triage labels, and domain-document configuration
+- `docs/prd/` — hackathon requirements, delivery roadmap, and dated evidence register
 - `docs/assets/` — animated Vista logo and reduced-motion fallback
 - `app/` — Flutter demo app (iOS and Android)
 - `app/lib/design_system/` — Vista tokens, theme and shared components; import `design_system.dart`
@@ -446,6 +447,10 @@ VistaColosseum/
 │   ├── assets/  — animated Vista logo and reduced-motion fallback
 │   │   ├── vista-logo-animated.gif
 │   │   └── vista-logo-static.png
+│   ├── prd/  — hackathon requirements, delivery roadmap, and dated evidence register
+│   │   ├── 2026-10-01-vc-hackathon-evidence.md
+│   │   ├── 2026-10-01-vc-hackathon-master-prd.md
+│   │   └── 2026-10-01-vc-hackathon-roadmap.md
 │   └── prompts/
 │       └── social-market-demo-brief-prompt.md
 ├── .gitignore
