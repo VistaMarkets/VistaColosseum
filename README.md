@@ -47,3 +47,9 @@ others copy their orders, while spectators get the context to form their own
 view of who is improving and who is losing form.
 
 The demo uses simulated financial actions; it does not place real trades.
+
+## Hackathon planning
+
+- [Master PRD](docs/prd/2026-10-01-vc-hackathon-master-prd.md) — demo scope, requirements, acceptance criteria and reuse boundaries.
+- [10-day product roadmap](docs/prd/2026-10-01-vc-hackathon-roadmap.md) — milestone order, exit criteria and implementation-spec packages.
+- [Evidence register](docs/prd/2026-10-01-vc-hackathon-evidence.md) — video observations, repository verification and unresolved reference gaps.
