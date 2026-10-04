@@ -1,10 +1,10 @@
 # baton-runner run br-2026-10-04-p0-queue
-status: RUNNING
+status: PAUSED
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
 phase: 3 of 8  unit: REVIEW  review_iter: 2 of 3
 current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T162846-phase3-fix-iter1.md
 units_used: 14
-pause_reason: -
+pause_reason: auto-mode classifier denied the phase 3 REVIEW iter 2 Agent spawn three times (Data Exfiltration x1, Auto-Mode Bypass x2) on the same prompt shape that passed six review/fix spawns earlier. Resume point - spawn phase 3 REVIEW iter 2 from fix baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T162846-phase3-fix-iter1.md; base feat/br-2026-10-04-p0-queue/phase-2; gate dir gate-phase-3-iter-2; report review-phase-3-iter-2.md. Phase 3 branch pushed, no PR yet (not CLEAN).
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 notes:
   - Gate: scripts/gate.sh <log-dir> (Flutter: analyze + test + pubspec frozen). Prints GATE: PASS|FAIL, exit 0|1. No GATE_PROFILE in this repo; every iteration runs the full gate.
