@@ -1,9 +1,9 @@
 # baton-runner run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 3 of 8  unit: WORK  review_iter: 0 of 3
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T150315-phase2-review-iter3.md
-units_used: 11
+phase: 3 of 8  unit: REVIEW  review_iter: 1 of 3
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T151800-phase3-simulation-indicator.md
+units_used: 12
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 notes:
@@ -18,7 +18,7 @@ phases:
   - id: phase-2  spec: docs/specs/02-truthful-order-confirm.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-2  base: feat/br-2026-10-04-p0-queue/phase-1  pr: https://github.com/VistaMarkets/VistaColosseum/pull/11  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-2.md  units: 6  state: DONE
   - id: phase-3  spec: docs/specs/03-simulation-indicator.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-3  base: feat/br-2026-10-04-p0-queue/phase-2  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-3.md  units: 0  state: RUNNING
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-3  base: feat/br-2026-10-04-p0-queue/phase-2  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-3.md  units: 1  state: RUNNING
   - id: phase-4  spec: docs/specs/04-arena-sort-filter-join.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: feat/br-2026-10-04-p0-queue/phase-3  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 0  state: PENDING
   - id: phase-5  spec: docs/specs/05-maker-suggestion-card.md  readiness: READY  work_agent: general-purpose
