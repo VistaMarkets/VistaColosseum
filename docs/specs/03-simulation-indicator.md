@@ -1,4 +1,8 @@
-# 03 — Persistent simulation indicator
+# 03: Persistent simulation indicator
+
+## Rules for this unit
+
+Common rules for every unit: original lightweight code (CONTEXT.md), no new pub dependencies, money as `int` minor units or fixed-decimal strings (never new `double` money), every success message describes something that actually happened, keep the existing "— not in the demo yet" toast for anything you don't build. Run `scripts/gate.sh <log-dir>` before returning; it must print `GATE: PASS`. Every acceptance criterion names its test as `app/test/<file>.dart: <test name>` or is marked `manual, waived`; add the tests the spec names.
 
 **PRD:** VC-DEM-003. **Gap:** "simulated" appears only in transient toasts.
 

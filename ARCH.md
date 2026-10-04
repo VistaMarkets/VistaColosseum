@@ -465,6 +465,8 @@ VistaColosseum/
 │       ├── 06-fee-ledger-and-receipts.md
 │       ├── 07-trader-record-panel.md
 │       └── 08-list-empty-failed-states.md
+├── scripts/
+│   └── gate.sh
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories
