@@ -28,3 +28,5 @@
 2026-10-04T20:01:55Z return: phase 2 FIX iter 1 COMPLETE; NOTES fixed H1/1 M2/8 L1/18, L1 refuted; files 6; gate PASS 201; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T125834-phase2-fix-iter1.md; units 8/75
 2026-10-04T20:01:55Z commit: b4a7db7 fix(phase-2) iter 1
 2026-10-04T20:01:55Z spawn: phase 2 REVIEW unit iter 2 (opus, general-purpose)
+2026-10-04T20:55:19Z return: phase 2 REVIEW iter 2 COMPLETE; VERDICT ISSUES; gate PASS (201); findings C0/H2/M6/L12 in baton-runner/br-2026-10-04-p0-queue/review-phase-2-iter-2.md; H-1 int64 overflow in funds check; H-2 AC1 Wallet cash whole dollars; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T135405-phase2-review-iter2.md; units 9/75
+2026-10-04T20:55:19Z spawn: phase 2 FIX unit iter 2 (opus, general-purpose); review iter 3 is the last within cap
