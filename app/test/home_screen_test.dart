@@ -14,12 +14,13 @@ import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/arena/opinions_screen.dart';
 import 'package:vista_colosseum/features/arena/take_card.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
 import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
 import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
 import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
 import 'package:vista_colosseum/features/arena/battle_builder.dart';
-import 'package:vista_colosseum/features/arena/arena_mock.dart';
 import 'package:vista_colosseum/features/calls/calls_store.dart';
+import 'package:vista_colosseum/features/home/home_feed.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
@@ -229,8 +230,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
       expect(feed.pixels, closeTo(feed.viewportDimension, 1));
       // The next card is another market, with its own replay story.
-      final next = mockFeed[1];
-      expect(next.ticker, isNot(mockFeed.first.ticker));
+      final ranked = HomeFeed.following(CallsStore.all.value);
+      final next = HomeFeed.ideaOf(ranked[1]);
+      expect(next.ticker, isNot(HomeFeed.ideaOf(ranked.first).ticker));
       final payoff = find.text(next.script.events.last.label);
       // Swipe has settled; the new card has only just started tracing.
       expect(payoff.hitTestable(), findsNothing);
@@ -1227,7 +1229,7 @@ void main() {
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
-      expect(CallsStore.all.value.length, ArenaMock.takes.length);
+      expect(CallsStore.all.value.where((t) => t.age == 'now'), isEmpty);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -2109,13 +2111,145 @@ void main() {
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
       final feed = tester.widget<PageView>(find.byType(PageView).first);
-      final index = mockFeed.indexWhere((i) => i.traderMarket);
+      // Home's default tab (Following), in its ranked order.
+      final ideas = [
+        for (final t in HomeFeed.following(CallsStore.all.value))
+          HomeFeed.ideaOf(t),
+      ];
+      final index = ideas.indexWhere((i) => i.traderMarket);
       feed.controller!.jumpToPage(index);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Details').hitTestable());
       await tester.pumpAndSettle();
       expect(find.byType(TraderMarketScreen), findsOneWidget);
-      expect(find.text(mockFeed[index].ticker), findsWidgets);
+      expect(find.text(ideas[index].ticker), findsWidgets);
+    });
+  });
+
+  group('home feed', () {
+    test('Following is only people you follow; For You is everyone', () {
+      final calls = CallsStore.all.value;
+      final following = HomeFeed.following(calls);
+      expect(
+        following.every((t) => HomeFeed.followed.contains(t.handle)),
+        isTrue,
+      );
+      final forYou = HomeFeed.forYou(calls);
+      expect(forYou.length, calls.length);
+      expect(forYou.any((t) => !HomeFeed.followed.contains(t.handle)), isTrue);
+    });
+
+    test('popularity and freshness rank; following boosts For You', () {
+      const big = Take(
+        handle: 'x',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '5h',
+        ticker: 'BTC',
+        body: '',
+        likes: 4000,
+        joined: 1000,
+      );
+      const small = Take(
+        handle: 'y',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '5h',
+        ticker: 'BTC',
+        body: '',
+        likes: 40,
+      );
+      const stale = Take(
+        handle: 'x',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '3d',
+        ticker: 'BTC',
+        body: '',
+        likes: 4000,
+        joined: 1000,
+      );
+      expect(HomeFeed.score(big), greaterThan(HomeFeed.score(small)));
+      expect(HomeFeed.score(big), greaterThan(HomeFeed.score(stale)));
+      final followed = HomeFeed.followed.first;
+      const base = Take(
+        handle: 'nobody',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '1h',
+        ticker: 'BTC',
+        body: '',
+        likes: 100,
+      );
+      final mine = Take(
+        handle: followed,
+        side: TradeSide.long,
+        accuracy: '',
+        age: '1h',
+        ticker: 'BTC',
+        body: '',
+        likes: 100,
+      );
+      expect(HomeFeed.score(mine), closeTo(HomeFeed.score(base) * 1.5, 1e-9));
+    });
+
+    testWidgets('a call posted in Arena is the first card on Home', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'ETH/BTC bottomed.');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      final first = tester.widget<TradeIdeaCard>(
+        find.byType(TradeIdeaCard).first,
+      );
+      expect(first.idea.callerHandle, 'maya.eth');
+      expect(first.idea.ticker, 'ETH');
+      // For You leads with it too.
+      await tester.tap(find.text('For You'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TradeIdeaCard>(find.byType(TradeIdeaCard).first)
+            .idea
+            .callerHandle,
+        'maya.eth',
+      );
+    });
+
+    testWidgets('the tabs switch feeds and start at the top', (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      String firstHandle() => tester
+          .widget<TradeIdeaCard>(find.byType(TradeIdeaCard).first)
+          .idea
+          .callerHandle;
+      expect(
+        firstHandle(),
+        HomeFeed.following(CallsStore.all.value).first.handle,
+      );
+      await tester.tap(find.text('For You'));
+      await tester.pumpAndSettle();
+      expect(firstHandle(), HomeFeed.forYou(CallsStore.all.value).first.handle);
+      expect(tester.takeException(), isNull);
     });
   });
 

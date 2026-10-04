@@ -104,9 +104,11 @@ with battles, and Callers filters them to one asset.
 
 Arena takes and trade-page Callers already share one list:
 `app/lib/features/calls/calls_store.dart` (`CallsStore`). Arena shows every
-call; a trade page's Callers shows the backed calls on its asset. Home still
-reads its own mock (`mockFeed`, `TradeIdea`) and is the one view left to move
-onto the shared calls.
+call; a trade page's Callers shows the backed calls on its asset; Home ranks
+them into its Following and For You tabs (`app/lib/features/home/home_feed.dart`).
+The ranking is a demo stand-in for the backend's: √(agrees + 3 × joined) ×
+1/(hours + 2)^0.8, ×1.5 for people you follow, ×1.2 when backed, your
+just-posted call first. `GET /v1/feed?type=following|for-you` replaces it.
 
 A Home card needs more than Arena's row does: the call's entry time and
 price for the replay, the market events tagged along it (funding, whale,

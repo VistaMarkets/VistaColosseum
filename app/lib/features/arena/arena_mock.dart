@@ -1,4 +1,5 @@
 import '../../design_system/design_system.dart';
+import '../home/mock_trade_idea.dart';
 import '../trade/trade_mock.dart';
 
 /// A live battle in the carousel: a yes/no question on a market and how the
@@ -49,6 +50,7 @@ class Take {
     this.battle,
     this.call,
     this.joined,
+    this.idea,
   });
 
   final String handle;
@@ -69,6 +71,11 @@ class Take {
 
   /// People who joined from this take.
   final int? joined;
+
+  /// The Home card for this call, when it has its own replay (entry,
+  /// market events, fills). Calls without one get a card built from their
+  /// entry (`HomeFeed.ideaOf`).
+  final TradeIdea? idea;
 
   bool get backed => call != null;
 

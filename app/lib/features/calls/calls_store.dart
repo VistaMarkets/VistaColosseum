@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../arena/arena_mock.dart';
+import '../home/mock_trade_idea.dart';
 import '../trade/trade_mock.dart';
 
 /// Every published call, in one list for every page: Arena shows all of
@@ -10,7 +11,40 @@ import '../trade/trade_mock.dart';
 abstract final class CallsStore {
   static final all = ValueNotifier<List<Take>>(_seed());
 
-  static List<Take> _seed() => _ordered(ArenaMock.takes);
+  static List<Take> _seed() =>
+      _ordered([...ArenaMock.takes, for (final i in mockFeed) _fromIdea(i)]);
+
+  /// A Home feed card as a call: its question is the call's text and its
+  /// replay rides along for Home. Mock records for the callers.
+  static Take _fromIdea(TradeIdea i) => Take(
+    handle: i.callerHandle,
+    side: i.side,
+    accuracy: _records[i.callerHandle] ?? '60% right',
+    age: i.age,
+    ticker: i.ticker,
+    body: i.question,
+    likes: _count(i.likes),
+    joined: _count(i.traders),
+    idea: i,
+  );
+
+  static const _records = {
+    'kaito.eth': '74% right',
+    '0xreal': '68% right',
+    'kilo.sol': '69% right',
+    'lunaq': '58% right',
+    'nara': '64% right',
+    'deltaone': '72% right',
+    'kestrel': '57% right',
+    'maya.eth': '82% right',
+  };
+
+  /// "4.4k" → 4400, "860" → 860.
+  static int _count(String s) {
+    final k = s.endsWith('k');
+    final n = double.tryParse(k ? s.substring(0, s.length - 1) : s) ?? 0;
+    return (k ? n * 1000 : n).round();
+  }
 
   /// Adds a newly posted take.
   static void add(Take t) => all.value = _ordered([t, ...all.value]);

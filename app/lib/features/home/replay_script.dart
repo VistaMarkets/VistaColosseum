@@ -171,7 +171,8 @@ class ReplayScript {
       path: path,
       entryY: entryY,
       callTag:
-          'Called ${MarketPrices.format(callPrice, compact: true)} · $age ago',
+          'Called ${MarketPrices.format(callPrice, compact: true)} · '
+          '${age == 'now' ? 'just now' : '$age ago'}',
       events: [
         ReplayEvent(ReplayEventKind.funding, 'Funding flipped $funding'),
         ReplayEvent(ReplayEventKind.whale, 'Whale $whaleSide $whale'),
