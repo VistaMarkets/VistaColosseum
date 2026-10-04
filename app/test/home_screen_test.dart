@@ -909,14 +909,14 @@ void main() {
       );
     });
 
-    testWidgets('takes on a battle link it; plain calls link the market', (
+    testWidgets('takes on a battle link it; plain calls show no chip', (
       tester,
     ) async {
       await openArena(tester);
       // renatafx's take is on the BTC battle and backed.
       expect(find.text(r'BTC · Reclaims $72,000 by Fri'), findsNWidgets(2));
       expect(find.text('✓ Backed'), findsWidgets);
-      // kilo.sol's is a plain call: no battle, the market and its price.
+      // kilo.sol's is a plain call: nothing between the header and the text.
       await tester.scrollUntilVisible(
         find.text('kilo.sol'),
         300,
@@ -930,16 +930,16 @@ void main() {
         matching: find.byType(TakeItem),
       );
       expect(
-        find.descendant(of: call, matching: find.textContaining('SOL · \$')),
-        findsOneWidget,
+        find.descendant(of: call, matching: find.textContaining(' · ')),
+        findsNWidgets(2), // "69% right · 25m" and the position's levels
       );
-      await tester.ensureVisible(call);
+      expect(find.descendant(of: call, matching: find.text('›')), findsNothing);
+      // The battle chip opens the battle.
+      await tester.drag(find.byType(ListView).last, const Offset(0, 2000));
       await tester.pumpAndSettle();
-      await tester.tap(
-        find.descendant(of: call, matching: find.textContaining('SOL · \$')),
-      );
+      await tester.tap(find.text(r'BTC · Reclaims $72,000 by Fri').first);
       await tester.pumpAndSettle();
-      expect(find.byType(AssetTradeScreen), findsOneWidget);
+      expect(find.byType(OpinionsScreen), findsOneWidget);
     });
 
     testWidgets('agree toggles; Join opens the ticket on the take\'s side', (

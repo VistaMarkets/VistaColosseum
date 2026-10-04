@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
-import '../trade/asset_trade_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
@@ -12,7 +11,8 @@ import 'take_card.dart';
 
 /// Arena tab (Figma 505:204, "Arena — takes feed"): live battles in a
 /// sideways carousel, then an X-style feed of takes. A take is either on a
-/// battle or a plain call on a market; backed takes carry their position.
+/// battle (with a chip linking it) or a plain call on a market (no chip);
+/// backed takes carry their position.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt});
 
@@ -136,7 +136,6 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         take: t,
                         onCaller: () => _push(ProfileScreen.route(t.handle)),
                         onBattle: () => _push(OpinionsScreen.route()),
-                        onMarket: () => _push(AssetTradeScreen.route(t.ticker)),
                         onCall: t.call == null
                             ? null
                             : () => _push(

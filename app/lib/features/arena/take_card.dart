@@ -178,8 +178,8 @@ class BattleTile extends StatelessWidget {
 }
 
 /// One take in the feed, flush with a hairline under it: avatar ringed in
-/// the side's colour, handle, side and record; the battle it's on (or, for
-/// a plain call, the market); the text; the position behind it when backed;
+/// the side's colour, handle, side and record; the battle it's on (a plain
+/// call has none); the text; the position behind it when backed;
 /// then agree, joined and Join.
 class TakeItem extends StatelessWidget {
   const TakeItem({
@@ -187,7 +187,6 @@ class TakeItem extends StatelessWidget {
     required this.take,
     this.onCaller,
     this.onBattle,
-    this.onMarket,
     this.onCall,
     this.onJoin,
   });
@@ -197,9 +196,6 @@ class TakeItem extends StatelessWidget {
 
   /// Opens the battle the take is on.
   final VoidCallback? onBattle;
-
-  /// Opens the market, for a plain call.
-  final VoidCallback? onMarket;
 
   /// Opens the play behind a backed take.
   final VoidCallback? onCall;
@@ -277,25 +273,17 @@ class TakeItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                // The chip sits in a 44pt tap row; its own gaps are folded
-                // into the row's height.
+                // A take on a battle links it; a plain call shows nothing
+                // here. The chip sits in a 44pt tap row; its own gaps are
+                // folded into the row's height.
                 if (t.battle != null)
-                  _ContextChip(
+                  _BattleChip(
                     label: '${t.ticker} · ${t.battle}',
                     semantics: 'Open the battle: ${t.battle}',
                     onTap: onBattle,
                   )
                 else
-                  ValueListenableBuilder(
-                    valueListenable: MarketPrices.of(t.ticker),
-                    builder: (context, price, _) => _ContextChip(
-                      label:
-                          '${t.ticker} · '
-                          '${MarketPrices.format(price, compact: true)}',
-                      semantics: 'Open ${t.ticker}',
-                      onTap: onMarket,
-                    ),
-                  ),
+                  const SizedBox(height: VistaSpace.md),
                 Text(t.body, style: _takeBody),
                 if (t.call case final call?) ...[
                   const SizedBox(height: VistaSpace.md),
@@ -476,10 +464,9 @@ class _Tag extends StatelessWidget {
   }
 }
 
-/// What the take is about: the battle ("BTC · Reclaims $72,000 by Fri ›")
-/// or, for a plain call, the market and its live price.
-class _ContextChip extends StatelessWidget {
-  const _ContextChip({
+/// The battle a take is on: "BTC · Reclaims $72,000 by Fri ›".
+class _BattleChip extends StatelessWidget {
+  const _BattleChip({
     required this.label,
     required this.semantics,
     this.onTap,
@@ -595,7 +582,8 @@ class _AgreeButton extends StatelessWidget {
   }
 }
 
-/// "Join long" / "Join short" in the side's tint: opens the order ticket.
+/// "Join long" / "Join short", solid in the side's colour (Figma 506:236):
+/// opens the order ticket.
 class _JoinButton extends StatelessWidget {
   const _JoinButton({required this.side, this.onTap});
 
@@ -620,12 +608,12 @@ class _JoinButton extends StatelessWidget {
                 vertical: 7,
               ),
               decoration: BoxDecoration(
-                color: side.color.withValues(alpha: 0.16),
+                color: side.color,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
               child: Text(
                 label,
-                style: VistaType.body.copyWith(color: side.color),
+                style: VistaType.body.copyWith(color: VistaColors.onAccent),
               ),
             ),
           ),
