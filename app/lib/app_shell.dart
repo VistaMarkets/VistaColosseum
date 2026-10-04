@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'design_system/design_system.dart';
@@ -54,9 +56,15 @@ class _AppShellState extends State<AppShell> {
     // page so its icons stay legible over whatever scrolls underneath.
     // Tabs are told how much room it takes at the bottom (as safe-area
     // padding) so fixed content keeps clear while lists scroll beneath it.
+    // The pill sits low, like iOS's floating tab bar: ~12pt into the home
+    // indicator's safe area (28pt off the edge on a 34pt inset), or 10pt
+    // off the edge on phones without one.
+    final navBottom = bottomInset > 0
+        ? math.max(bottomInset - 12, VistaSpace.lg)
+        : VistaSpace.lg;
     final navSpace = typing
         ? 0.0
-        : VistaSize.navBar + VistaSpace.sm * 2 + bottomInset;
+        : VistaSize.navBar + VistaSpace.sm + navBottom;
     final media = MediaQuery.of(context);
     return Scaffold(
       body: Stack(
@@ -119,7 +127,7 @@ class _AppShellState extends State<AppShell> {
                   VistaSpace.gutter,
                   VistaSpace.sm,
                   VistaSpace.gutter,
-                  VistaSpace.sm + bottomInset,
+                  navBottom,
                 ),
                 child: VistaBottomNav(
                   items: _navItems,
