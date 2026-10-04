@@ -242,15 +242,23 @@ class TakeItem extends StatelessWidget {
             button: true,
             label: "${t.handle}'s profile",
             excludeSemantics: true,
-            child: GestureDetector(
+            // Looks like a profile (their initial until avatars come from
+            // the backend) and presses like a button.
+            child: VistaPressable(
+              scale: 0.9,
               onTap: onCaller,
               child: Container(
                 width: VistaSize.avatarLarge,
                 height: VistaSize.avatarLarge,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: VistaColors.surfaceRaised,
                   shape: BoxShape.circle,
                   border: Border.all(color: color, width: 2),
+                ),
+                child: Text(
+                  t.handle.isEmpty ? '' : t.handle[0].toUpperCase(),
+                  style: VistaType.subhead.copyWith(height: 1),
                 ),
               ),
             ),
@@ -263,13 +271,18 @@ class TakeItem extends StatelessWidget {
                 Row(
                   children: [
                     Flexible(
-                      child: GestureDetector(
-                        onTap: onCaller,
-                        child: Text(
-                          t.handle,
-                          style: VistaType.subhead,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      child: Semantics(
+                        button: true,
+                        label: "${t.handle}'s profile",
+                        excludeSemantics: true,
+                        child: VistaPressable(
+                          onTap: onCaller,
+                          child: Text(
+                            t.handle,
+                            style: VistaType.subhead,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ),
