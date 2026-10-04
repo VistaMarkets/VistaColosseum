@@ -19,3 +19,7 @@
 2026-10-04T18:47:42Z pr: phase 1 draft https://github.com/VistaMarkets/VistaColosseum/pull/10 (base main)
 2026-10-04T18:47:42Z branch: feat/br-2026-10-04-p0-queue/phase-2 created from phase-1 tip
 2026-10-04T18:47:42Z spawn: phase 2 WORK unit (opus, general-purpose) spec docs/specs/02-truthful-order-confirm.md; continuity digest-phase-1.md
+2026-10-04T19:07:51Z return: phase 2 WORK unit COMPLETE; NOTES progress=criteria 5/5; files 11; GATE PASS 195 tests; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T120621-phase2-truthful-order-confirm.md; units 6/75
+2026-10-04T19:07:51Z containment: unit reported a stray tee file at /home/alex/VistaColosseum/.claude/worktrees/x, self-deleted; manager verified gone, main checkout untouched. Continuing.
+2026-10-04T19:07:51Z commit: 742f1b0 feat(phase-2)
+2026-10-04T19:07:51Z spawn: phase 2 REVIEW unit iter 1 (opus, general-purpose); base feat/br-2026-10-04-p0-queue/phase-1
