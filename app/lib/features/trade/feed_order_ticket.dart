@@ -4,8 +4,9 @@ part of 'order_ticket.dart';
 /// (Figma "sheet · first-time ticket", 472:1359): the card's side, Market or
 /// Limit, three leverage choices plus custom, an amount in dollars, and
 /// take profit / stop loss on one track anchored at entry. [onDetails] is the
-/// card's own Details. Simulated: a market order just confirms; a limit
-/// order goes to Portfolio › Open orders. Nothing is sent.
+/// card's own Details. Simulated: a market order is reviewed, then fills
+/// into Wallet; a limit order goes to Portfolio › Open orders. Nothing is
+/// sent.
 Future<void> showFeedOrderTicket(
   BuildContext context, {
   required String symbol,
@@ -46,11 +47,15 @@ class FeedOrderTicket extends StatefulWidget {
 }
 
 class _FeedOrderTicketState extends State<FeedOrderTicket> {
+  final _actionId = _newActionId();
   late final _market = _Market.of(widget.symbol);
+
+  /// The order under review, once a market order's button is tapped.
+  OrderIntent? _review;
   bool _limit = false;
   int _leverage = 2;
-  // Opens on the first stop, 20% of what's available.
-  double _margin = OrderTicket.available * 0.2;
+  // Opens on the design's first-time stake, $200.
+  int _marginCents = 20000;
   // Opens with take profit / stop loss on, as the design shows.
   bool _exits = true;
   double _slPct = 2.1;
@@ -70,7 +75,30 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     return double.tryParse(_price.text.replaceAll(',', '')) ?? 0;
   }
 
+  double get _margin => _marginCents / 100;
   double get _notional => _margin * _leverage;
+  int get _cash => Scenario.cashCents.value;
+
+  OrderIntent get _intent => OrderIntent(
+    actionId: _actionId,
+    symbol: widget.symbol,
+    name: _market.name,
+    side: widget.side,
+    units: _entry <= 0 ? 0 : _notional / _entry,
+    price: _entry,
+    leverage: _leverage,
+    kind: _limit ? OrderKind.limit : OrderKind.market,
+    icon: _market.icon,
+    takeProfit: _exits ? _exitPrice(_tpPct, gain: true) : null,
+    stopLoss: _exits ? _exitPrice(_slPct, gain: false) : null,
+  );
+
+  /// "1,234.5" → 123450, without going through `double`.
+  static int _parseCents(String text) {
+    final [whole, ...rest] = '${text.replaceAll(',', '')}.'.split('.');
+    final frac = '${rest.first}00'.substring(0, 2);
+    return (int.tryParse(whole) ?? 0) * 100 + (int.tryParse(frac) ?? 0);
+  }
 
   /// Liquidation as a share of entry: the margin, less a half-percent
   /// maintenance buffer.
@@ -99,15 +127,14 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   }
 
   String? get _problem {
-    if (_margin <= 0) return 'Enter an amount';
-    if (_margin > OrderTicket.available) return 'Not enough balance';
+    if (_marginCents <= 0) return 'Enter an amount';
     if (_limit && _entry <= 0) return 'Enter a limit price';
-    return null;
+    return Scenario.problem(_intent);
   }
 
-  void _setMargin(double m, {bool fromField = false}) {
+  void _setMargin(int cents, {bool fromField = false}) {
     setState(() {
-      _margin = math.max(0, m);
+      _marginCents = math.max(0, cents);
       if (!fromField) _amount.text = _fmtUsd(_margin);
     });
   }
@@ -132,44 +159,12 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     if (l != null && mounted) _setLeverage(l);
   }
 
+  /// A market order goes to review; a limit rests at once.
   void _place() {
     if (_problem != null) return;
     HapticFeedback.mediumImpact();
-    final side = widget.side.label.toLowerCase();
-    final messenger = ScaffoldMessenger.of(context);
-    if (_limit) {
-      final units = _notional / _entry;
-      OrdersState.add(
-        OpenOrder(
-          id: 'o-${DateTime.now().microsecondsSinceEpoch}',
-          asset: _market.name,
-          symbol: widget.symbol,
-          coinAsset: _market.icon,
-          side: widget.side,
-          leverage: _leverage,
-          limitPrice: _entry,
-          quantity: units,
-          filled: 0,
-          decimals: _priceDecimals,
-          quantityDecimals: _entry >= 1000 ? 4 : 2,
-          takeProfit: _exits ? _exitPrice(_tpPct, gain: true) : null,
-          stopLoss: _exits ? _exitPrice(_slPct, gain: false) : null,
-          reduceOnly: false,
-        ),
-      );
-    }
-    Navigator.of(context).pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            _limit
-                ? 'Limit $side placed · in Open orders (simulated)'
-                : 'Market $side filled (simulated)',
-          ),
-        ),
-      );
+    if (_limit) return _rest(context, _intent);
+    setState(() => _review = _intent);
   }
 
   /// The price [pct] away from entry on the winning ([gain]) or losing side.
@@ -208,120 +203,133 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + safe),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Center(child: VistaDragHandle()),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    _tab(
-                      'Market',
-                      !_limit,
-                      () => setState(() => _limit = false),
-                    ),
-                    const SizedBox(width: 18),
-                    _tab('Limit', _limit, () => setState(() => _limit = true)),
-                  ],
-                ),
-                if (_limit) ...[
-                  _field(
-                    label: 'Limit price',
-                    controller: _price,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  gap,
-                ],
-                Row(
-                  children: [
-                    Text(
-                      'Leverage',
-                      style: muted12.copyWith(color: VistaColors.textSecondary),
-                    ),
-                    const Spacer(),
-                    Text('Higher moves faster, both ways', style: muted12),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                _leverageRow(),
-                gap,
-                _field(
-                  label:
-                      'Amount · you have '
-                      '\$${_fmtUsd(OrderTicket.available)}',
-                  controller: _amount,
-                  prefix: r'$',
-                  onChanged: (t) => _setMargin(
-                    double.tryParse(t.replaceAll(',', '')) ?? 0,
-                    fromField: true,
-                  ),
-                ),
-                gap,
-                _TicketSlider(
-                  fraction: (_margin / OrderTicket.available).clamp(0.0, 1.0),
-                  onChanged: (f) {
-                    final stop = FeedOrderTicket.amountStops.reduce(
-                      (a, b) => (f - a).abs() <= (f - b).abs() ? a : b,
-                    );
-                    final m = OrderTicket.available * stop;
-                    if (m == _margin) return;
-                    HapticFeedback.selectionClick();
-                    _setMargin(m);
-                  },
-                  stops: FeedOrderTicket.amountStops,
-                  label: 'Amount',
-                  value:
-                      '${(_margin / OrderTicket.available * 100).round()}% '
-                      'of available',
-                ),
-                gap,
-                Text(
-                  '\$${_fmtUsd(_notional)} of ${widget.symbol} at '
-                  '${_leverage}x · $_units',
-                  style: muted12,
-                ),
-                _exitsCheck(muted12),
-                if (_exits) ...[
-                  _TpSlTrack(
-                    slPct: _slPct,
-                    tpPct: _tpPct,
-                    slMax: _slMax,
-                    slPrice: MarketPrices.format(
-                      _exitPrice(_slPct, gain: false),
-                      compact: true,
-                    ),
-                    tpPrice: MarketPrices.format(
-                      _exitPrice(_tpPct, gain: true),
-                      compact: true,
-                    ),
-                    onStop: (v) => setState(() => _slPct = v),
-                    onTarget: (v) => setState(() => _tpPct = v),
-                  ),
-                  gap,
-                  _exitsSummary(),
-                ],
-                gap,
-                Row(
-                  children: [
-                    Text(
-                      'If ${widget.symbol} ${_long ? 'falls' : 'rises'} to '
-                      '${MarketPrices.format(_liquidation, compact: true)}',
-                      style: VistaType.body.copyWith(
-                        fontSize: 14,
-                        color: VistaColors.textMuted,
+            child: _review != null
+                ? _ReviewPanel(intent: _review!)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Center(child: VistaDragHandle()),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          _tab(
+                            'Market',
+                            !_limit,
+                            () => setState(() => _limit = false),
+                          ),
+                          const SizedBox(width: 18),
+                          _tab(
+                            'Limit',
+                            _limit,
+                            () => setState(() => _limit = true),
+                          ),
+                        ],
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'you lose the \$${_fmtUsd(_margin)}',
-                      style: VistaType.body.copyWith(fontSize: 14),
-                    ),
-                  ],
-                ),
-                gap,
-                _buttons(),
-              ],
-            ),
+                      if (_limit) ...[
+                        _field(
+                          label: 'Limit price',
+                          controller: _price,
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        gap,
+                      ],
+                      Row(
+                        children: [
+                          Text(
+                            'Leverage',
+                            style: muted12.copyWith(
+                              color: VistaColors.textSecondary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'Higher moves faster, both ways',
+                            style: muted12,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _leverageRow(),
+                      gap,
+                      _field(
+                        label: 'Amount · you have ${formatCents(_cash)}',
+                        controller: _amount,
+                        prefix: r'$',
+                        onChanged: (t) =>
+                            _setMargin(_parseCents(t), fromField: true),
+                      ),
+                      gap,
+                      _TicketSlider(
+                        fraction: _cash <= 0
+                            ? 0
+                            : (_marginCents / _cash).clamp(0.0, 1.0),
+                        onChanged: (f) {
+                          final stop = FeedOrderTicket.amountStops.reduce(
+                            (a, b) => (f - a).abs() <= (f - b).abs() ? a : b,
+                          );
+                          // Max leaves room for the fee, so it can be placed.
+                          final m = math.min(
+                            (_cash * stop).round(),
+                            Scenario.maxMarginCents(_leverage, _intent.feeBps),
+                          );
+                          if (m == _marginCents) return;
+                          HapticFeedback.selectionClick();
+                          _setMargin(m);
+                        },
+                        stops: FeedOrderTicket.amountStops,
+                        label: 'Amount',
+                        value:
+                            '${_cash <= 0 ? 0 : (_marginCents * 100 / _cash).round()}% '
+                            'of available',
+                      ),
+                      gap,
+                      Text(
+                        '\$${_fmtUsd(_notional)} of ${widget.symbol} at '
+                        '${_leverage}x · $_units',
+                        style: muted12,
+                      ),
+                      _exitsCheck(muted12),
+                      if (_exits) ...[
+                        _TpSlTrack(
+                          slPct: _slPct,
+                          tpPct: _tpPct,
+                          slMax: _slMax,
+                          slPrice: MarketPrices.format(
+                            _exitPrice(_slPct, gain: false),
+                            compact: true,
+                          ),
+                          tpPrice: MarketPrices.format(
+                            _exitPrice(_tpPct, gain: true),
+                            compact: true,
+                          ),
+                          onStop: (v) => setState(() => _slPct = v),
+                          onTarget: (v) => setState(() => _tpPct = v),
+                        ),
+                        gap,
+                        _exitsSummary(),
+                      ],
+                      gap,
+                      Row(
+                        children: [
+                          Text(
+                            'If ${widget.symbol} ${_long ? 'falls' : 'rises'} to '
+                            '${MarketPrices.format(_liquidation, compact: true)}',
+                            style: VistaType.body.copyWith(
+                              fontSize: 14,
+                              color: VistaColors.textMuted,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'you lose the \$${_fmtUsd(_margin)}',
+                            style: VistaType.body.copyWith(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      gap,
+                      _buttons(),
+                    ],
+                  ),
           ),
         ),
       ),

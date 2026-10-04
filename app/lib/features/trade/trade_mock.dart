@@ -67,6 +67,14 @@ class CallerPost {
 /// ("Trade — BTC"). The chart and panels are the BTC sample for every
 /// asset; the header uses each asset's own quote. Simulated.
 abstract final class TradeMock {
+  /// Trading fees in basis points: taker 0.05%, maker 0.02%.
+  static const takerFeeBps = 5;
+  static const makerFeeBps = 2;
+
+  /// The scripted failure: AVAX's price context starts expired, so a market
+  /// order on it fails with "Price expired" until Retry refreshes it.
+  static const stalePrices = {'AVAX'};
+
   static const quotes = {
     'BTC': AssetQuote(
       ticker: 'BTC',

@@ -37,6 +37,8 @@ List<Object?> state() => [
   Scenario.following.value,
   Scenario.followed.value,
   Scenario.clock.value,
+  Scenario.receipts.value,
+  Scenario.stalePrices.value,
 ];
 
 /// Changes every field, through the app's own helpers where they exist.
@@ -55,7 +57,21 @@ void mutateEverything() {
   Scenario.following.value = const [];
   Scenario.followed.value = {...Scenario.followed.value, 'zed'};
   Scenario.clock.value = Scenario.clock.value.add(const Duration(hours: 1));
+  Scenario.refreshPrice('AVAX');
+  Scenario.placeOrder(ethLong('mutate', units: 0.01));
 }
+
+/// A market long on ETH at its session price, 10x unless told otherwise.
+OrderIntent ethLong(String actionId, {double units = 0.12345, int lev = 10}) =>
+    OrderIntent(
+      actionId: actionId,
+      symbol: 'ETH',
+      name: 'Ethereum',
+      side: TradeSide.long,
+      units: units,
+      price: 2968.40,
+      leverage: lev,
+    );
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
@@ -213,6 +229,122 @@ void main() {
       expect(find.text('MAYA'), findsNothing);
     },
   );
+
+  testWidgets('placeOrder rounds once and review, receipt and Wallet totals '
+      'reconcile', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final seedPositions = Scenario.positions.value.length;
+    // 0.12345 ETH at $2,968.40 is $366.44898: rounds to 36645 cents. Margin
+    // comes from those rounded cents (3664.5 → 3665), not the raw 3664.49.
+    final intent = ethLong('a-1');
+    // What the review sheet shows, before anything is placed.
+    expect(intent.notionalCents, 36645);
+    expect(intent.marginCents, 3665);
+    expect(intent.feeCents, 18); // 36645 × 5 bps, rounded down
+    expect(intent.totalCents, 3683);
+    expect(Scenario.cashCents.value, PortfolioMock.cashCents);
+
+    final result = Scenario.placeOrder(intent);
+    final receipt = (result as OrderFilled).receipt;
+    expect(
+      [receipt.notionalCents, receipt.marginCents, receipt.feeCents],
+      [36645, 3665, 18],
+    );
+    expect(receipt.totalCents, intent.totalCents);
+    expect(Scenario.receipts.value, [receipt]);
+    expect(Scenario.cashCents.value, PortfolioMock.cashCents - 3683);
+    expect(Scenario.positions.value, hasLength(seedPositions + 1));
+    final position = Scenario.positions.value.first;
+    expect(position.id, 'a-1');
+    expect([position.notionalCents, position.marginCents], [36645, 3665]);
+
+    // Wallet: one more position, its size the stored cents.
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    expect(find.text('Positions · ${seedPositions + 1}'), findsOneWidget);
+    await tester.ensureVisible(find.text('Ethereum').first);
+    await tester.tap(find.text('Ethereum').first);
+    await tester.pumpAndSettle();
+    expect(find.text(r'$366.45 position'), findsOneWidget);
+  });
+
+  test('placeOrder with a repeated actionId returns the first result', () {
+    final seedPositions = Scenario.positions.value.length;
+    final first = Scenario.placeOrder(ethLong('a-1')) as OrderFilled;
+    final cash = Scenario.cashCents.value;
+    final second = Scenario.placeOrder(ethLong('a-1'));
+    expect((second as OrderFilled).receipt, same(first.receipt));
+    expect(Scenario.positions.value, hasLength(seedPositions + 1));
+    expect(Scenario.receipts.value, hasLength(1));
+    expect(Scenario.cashCents.value, cash);
+  });
+
+  test(
+    'a stale price fails with no change; refreshed, the action fills once',
+    () {
+      final avax = OrderIntent(
+        actionId: 'a-avax',
+        symbol: 'AVAX',
+        name: 'Avalanche',
+        side: TradeSide.long,
+        units: 10,
+        price: 38.20,
+        leverage: 5,
+      );
+      final before = state();
+      expect(
+        Scenario.placeOrder(avax),
+        isA<OrderFailed>().having((f) => f.reason, 'reason', 'Price expired'),
+      );
+      expect(state(), equals(before));
+      Scenario.refreshPrice('AVAX');
+      expect(Scenario.placeOrder(avax), isA<OrderFilled>());
+      expect(Scenario.placeOrder(avax), isA<OrderFilled>());
+      expect(Scenario.receipts.value, hasLength(1));
+      expect(
+        Scenario.positions.value,
+        hasLength((before[1]! as List).length + 1),
+      );
+    },
+  );
+
+  test('more than cash covers fails and changes nothing', () {
+    final before = state();
+    final big = ethLong('a-big', units: 100); // $296,840 at 10x: $29,684
+    expect(
+      Scenario.placeOrder(big),
+      isA<OrderFailed>().having((f) => f.reason, 'reason', notEnoughFunds),
+    );
+    expect(state(), equals(before));
+  });
+
+  test('a limit intent rests in Open orders and moves no cash', () {
+    final limit = OrderIntent(
+      actionId: 'a-limit',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      side: TradeSide.long,
+      units: 0.5,
+      price: 2900,
+      leverage: 5,
+      kind: OrderKind.limit,
+    );
+    final result = Scenario.placeOrder(limit) as OrderResting;
+    expect(result.order.id, 'a-limit');
+    expect(Scenario.openOrders.value.first, same(result.order));
+    expect(Scenario.cashCents.value, PortfolioMock.cashCents);
+    expect(Scenario.positions.value, PortfolioMock.positions);
+    expect(Scenario.placeOrder(limit), isA<OrderResting>());
+    expect(
+      Scenario.openOrders.value,
+      hasLength(OpenOrdersMock.orders.length + 1),
+    );
+  });
 
   testWidgets('Follow buttons read and write the follows in Scenario', (
     tester,
