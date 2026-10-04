@@ -71,6 +71,9 @@ class Take {
   final int? joined;
 
   bool get backed => call != null;
+
+  /// Identifies the take for likes (mock: no server id yet).
+  String get id => '$handle/$ticker/$age';
 }
 
 /// Mock content from Figma 505:204 ("Arena — takes feed"). Simulated.
@@ -146,7 +149,9 @@ abstract final class ArenaMock {
     return list;
   }
 
-  /// Backed takes first, then the rest; each group newest first.
+  /// Every call in the demo, in no particular order: takes on battles,
+  /// plain calls, and the posts the trade pages' Callers show. `CallsStore`
+  /// orders them (backed first, newest first) and serves both pages.
   static const takes = [
     Take(
       handle: 'renatafx',
@@ -240,6 +245,183 @@ abstract final class ArenaMock {
       ticker: 'BTC',
       body: 'Weekly open held twice. Looking for a long on the next retest.',
       likes: 4,
+    ),
+    // Callers on the trade pages (plain calls, all backed).
+    Take(
+      handle: 'vega',
+      side: TradeSide.short,
+      accuracy: '61% right',
+      age: '15m',
+      ticker: 'ETH',
+      body:
+          'Third tap of the same ceiling today and volume is fading each '
+          'time. Short with a stop just above it.',
+      call: CallerPost(
+        handle: 'vega',
+        age: '15m',
+        side: TradeSide.short,
+        leverage: 5,
+        entryRatio: 1.0021,
+        size: 900,
+        takeProfit: 0.98,
+        stopLoss: 1.01,
+        message: '',
+        following: false,
+      ),
+      likes: 6,
+    ),
+    Take(
+      handle: 'lunaq',
+      side: TradeSide.long,
+      accuracy: '58% right',
+      age: '40m',
+      ticker: 'ETH',
+      body: 'Big bids stacked just under price. Quick one with a tight stop.',
+      call: CallerPost(
+        handle: 'lunaq',
+        age: '40m',
+        side: TradeSide.long,
+        leverage: 10,
+        entryRatio: 0.9983,
+        size: 600,
+        takeProfit: 1.012,
+        stopLoss: 0.994,
+        message: '',
+      ),
+      likes: 11,
+    ),
+    Take(
+      handle: 'maya.eth',
+      side: TradeSide.long,
+      accuracy: '82% right',
+      age: '2h',
+      ticker: 'ETH',
+      body:
+          'Reclaimed the range high on real volume. Longing the retest, '
+          'stop under the prior low. Not chasing if it loses the level.',
+      call: CallerPost(
+        handle: 'maya.eth',
+        age: '2h',
+        side: TradeSide.long,
+        leverage: 5,
+        entryRatio: 0.9924,
+        size: 2400,
+        takeProfit: 1.03,
+        stopLoss: 0.985,
+        message: '',
+      ),
+      likes: 64,
+    ),
+    Take(
+      handle: 'orbit.eth',
+      side: TradeSide.long,
+      accuracy: '66% right',
+      age: '3h',
+      ticker: 'ETH',
+      body:
+          'Bought the dip into support I have been watching all week. '
+          'Adding more only if it holds on the daily close.',
+      call: CallerPost(
+        handle: 'orbit.eth',
+        age: '3h',
+        side: TradeSide.long,
+        leverage: 3,
+        entryRatio: 0.9871,
+        size: 1800,
+        takeProfit: 1.05,
+        stopLoss: 0.975,
+        message: '',
+        following: false,
+      ),
+      likes: 19,
+    ),
+    Take(
+      handle: '0xreal',
+      side: TradeSide.short,
+      accuracy: '68% right',
+      age: '5h',
+      ticker: 'BTC',
+      body:
+          'Funding is running hot and open interest keeps climbing into '
+          'resistance. Fading it, small size, out if we close above.',
+      call: CallerPost(
+        handle: '0xreal',
+        age: '5h',
+        side: TradeSide.short,
+        leverage: 3,
+        entryRatio: 1.008,
+        size: 1200,
+        takeProfit: 0.97,
+        stopLoss: 1.015,
+        message: '',
+      ),
+      likes: 27,
+    ),
+    Take(
+      handle: 'sam.sol',
+      side: TradeSide.long,
+      accuracy: '55% right',
+      age: '8h',
+      ticker: 'SOL',
+      body: 'Scalp. Liquidity swept below the lows and snapped straight back.',
+      call: CallerPost(
+        handle: 'sam.sol',
+        age: '8h',
+        side: TradeSide.long,
+        leverage: 20,
+        entryRatio: 0.9960,
+        size: 400,
+        takeProfit: 1.01,
+        stopLoss: 0.996,
+        message: '',
+        following: false,
+      ),
+      likes: 5,
+    ),
+    Take(
+      handle: 'deltaone',
+      side: TradeSide.short,
+      accuracy: '72% right',
+      age: '1d',
+      ticker: 'BTC',
+      body:
+          'The weekly close looks weak to me. Holding the short until the '
+          'chart proves otherwise.',
+      call: CallerPost(
+        handle: 'deltaone',
+        age: '1d',
+        side: TradeSide.short,
+        leverage: 2,
+        entryRatio: 0.9909,
+        size: 3000,
+        takeProfit: 0.95,
+        stopLoss: 1.03,
+        message: '',
+      ),
+      likes: 38,
+    ),
+    Take(
+      handle: 'mirin',
+      side: TradeSide.short,
+      accuracy: '63% right',
+      age: '2d',
+      ticker: 'BTC',
+      body:
+          'Macro short, not a trade for this week. Rates and liquidity both '
+          'point the same way to me.',
+      call: CallerPost(
+        handle: 'mirin',
+        age: '2d',
+        side: TradeSide.short,
+        leverage: 2,
+        entryRatio: 1.0150,
+        size: 2500,
+        takeProfit: 0.94,
+        stopLoss: 1.04,
+        message: '',
+        following: false,
+      ),
+      likes: 14,
     ),
   ];
 }

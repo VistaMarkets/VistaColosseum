@@ -4,6 +4,7 @@ import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
+import '../calls/calls_store.dart';
 import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
 import '../watchlist/watchlist_state.dart';
@@ -440,8 +441,6 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
 
   Widget _callersPanel() {
     const gap = SizedBox(height: VistaSpace.xl);
-    const long = TradeMock.callersLong;
-    const short = TradeMock.callersShort;
     Widget toggle(String label, bool on) => GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _followingOnly = label == 'Following'),
@@ -452,6 +451,26 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         ),
       ),
     );
+    // The same calls Arena shows: the backed ones on this asset.
+    return ValueListenableBuilder(
+      valueListenable: CallsStore.all,
+      builder: (context, _, _) {
+        final all = CallsStore.callersOn(_quote.ticker);
+        final posts = [
+          for (final p in all)
+            if (!_followingOnly || p.following) p,
+        ];
+        return _callersColumn(gap, toggle, all.length, posts);
+      },
+    );
+  }
+
+  Widget _callersColumn(
+    Widget gap,
+    Widget Function(String, bool) toggle,
+    int total,
+    List<CallerPost> posts,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -467,19 +486,23 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           ),
         ),
         gap,
-        CallerThread(
-          ticker: _quote.ticker,
-          // Following: people the user follows; Everyone: all callers.
-          posts: [
-            for (final p in TradeMock.callers)
-              if (!_followingOnly || p.following) p,
-          ],
-          onCaller: (handle) =>
-              Navigator.of(context).push(ProfileScreen.route(handle)),
-          onPlay: (post) =>
-              Navigator.of(context)
-                  .push(CallerPlayScreen.route(post, _quote.ticker)),
-        ),
+        if (posts.isEmpty)
+          Text(
+            _followingOnly && total > 0
+                ? 'No one you follow has called ${_quote.ticker} yet'
+                : 'No calls on ${_quote.ticker} yet',
+            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+          )
+        else
+          CallerThread(
+            ticker: _quote.ticker,
+            posts: posts,
+            onCaller: (handle) =>
+                Navigator.of(context).push(ProfileScreen.route(handle)),
+            onPlay: (post) =>
+                Navigator.of(context)
+                    .push(CallerPlayScreen.route(post, _quote.ticker)),
+          ),
         gap,
         const VistaHairline(),
         GestureDetector(
@@ -491,7 +514,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'All ${long + short} callers in ${_quote.ticker}',
+                    'All $total callers in ${_quote.ticker}',
                     style: VistaType.row.copyWith(color: VistaColors.textMuted),
                   ),
                 ),

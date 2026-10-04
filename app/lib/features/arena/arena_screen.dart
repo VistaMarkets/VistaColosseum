@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
+import '../calls/calls_store.dart';
 import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
-import 'compose_take_screen.dart';
 import 'live_battles_screen.dart';
 import 'opinions_screen.dart';
 import 'pick_position_screen.dart';
@@ -38,7 +38,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   /// new take goes to the top of the feed.
   Future<void> _newTake() async {
     final take = await Navigator.of(context).push(PickPositionScreen.route());
-    if (take != null) PostedTakes.add(take);
+    if (take != null) CallsStore.add(take);
   }
 
   @override
@@ -88,10 +88,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 ),
               ),
               Expanded(
-                // Takes the viewer posted go on top.
+                // Every call, shared with the trade pages' Callers.
                 child: ValueListenableBuilder(
-                  valueListenable: PostedTakes.posted,
-                  builder: (context, posted, _) => ListView(
+                  valueListenable: CallsStore.all,
+                  builder: (context, takes, _) => ListView(
                     // Room to scroll the last take clear of the + button and
                     // nav.
                     padding: EdgeInsets.only(
@@ -156,7 +156,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                           ),
                         ),
                       ),
-                      for (final t in [...posted, ...ArenaMock.takes])
+                      for (final t in takes)
                         TakeItem(
                           take: t,
                           onCaller: () => _push(ProfileScreen.route(t.handle)),
@@ -164,7 +164,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
                           onCall: t.call == null
                               ? null
                               : () => _push(
-                                  CallerPlayScreen.route(t.call!, t.ticker),
+                                  CallerPlayScreen.route(
+                                    CallsStore.postOf(t),
+                                    t.ticker,
+                                  ),
                                 ),
                           // Simulated only: joining places nothing real.
                           onJoin: () => showOrderTicket(

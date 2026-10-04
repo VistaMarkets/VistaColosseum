@@ -8,17 +8,6 @@ import '../trade/trade_mock.dart';
 import 'arena_mock.dart';
 import 'take_card.dart';
 
-/// Takes the viewer posted this session, newest first. In memory only: the
-/// demo sends nothing.
-abstract final class PostedTakes {
-  static final posted = ValueNotifier<List<Take>>(const []);
-
-  static void add(Take t) =>
-      posted.value = List.unmodifiable([t, ...posted.value]);
-
-  static void reset() => posted.value = const [];
-}
-
 /// Writing a take, like writing a post on X: Cancel and Post on top, the
 /// viewer's avatar beside the text, and under the text the position that
 /// backs it, live. Pops with the new [Take] on Post.

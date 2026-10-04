@@ -17,15 +17,15 @@ final _takeBody = VistaType.subheadMuted.copyWith(
   height: 21 / 15,
 );
 
-/// Takes the viewer agreed with, by handle. In memory only.
+/// Takes the viewer agreed with, by take id. In memory only.
 abstract final class TakeLikes {
   static final liked = ValueNotifier<Set<String>>(const {});
 
-  static void toggle(String handle) {
-    final on = !liked.value.contains(handle);
+  static void toggle(String id) {
+    final on = !liked.value.contains(id);
     liked.value = on
-        ? Set.unmodifiable({...liked.value, handle})
-        : Set.unmodifiable(liked.value.where((h) => h != handle));
+        ? Set.unmodifiable({...liked.value, id})
+        : Set.unmodifiable(liked.value.where((h) => h != id));
   }
 
   static void reset() => liked.value = const {};
@@ -557,7 +557,7 @@ class _AgreeButton extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: TakeLikes.liked,
       builder: (context, liked, _) {
-        final on = liked.contains(take.handle);
+        final on = liked.contains(take.id);
         final count = take.likes + (on ? 1 : 0);
         return Semantics(
           button: true,
@@ -568,7 +568,7 @@ class _AgreeButton extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               HapticFeedback.lightImpact();
-              TakeLikes.toggle(take.handle);
+              TakeLikes.toggle(take.id);
             },
             child: SizedBox(
               height: VistaSize.tapTarget,

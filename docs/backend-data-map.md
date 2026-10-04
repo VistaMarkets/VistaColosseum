@@ -97,11 +97,16 @@ in-app trades.
 
 A published trade idea. Six models in the app describe it:
 
+Arena takes and trade-page Callers already share one list:
+`app/lib/features/calls/calls_store.dart` (`CallsStore`). Arena shows every
+call; a trade page's Callers shows the backed calls on its asset. Wire that
+store to the backend and both pages follow.
+
 | Model | File | Page |
 | --- | --- | --- |
 | `TradeIdea` | `home/mock_trade_idea.dart` | Home feed card, share card, caller play |
-| `CallerPost` | `trade/trade_mock.dart` | Trade page Callers, caller play, Arena backed takes, battle opinions |
-| `Take` | `arena/arena_mock.dart` | Arena feed |
+| `CallerPost` | `trade/trade_mock.dart` | The position behind a call (Callers posts and backed takes are built from `CallsStore`), caller play, battle opinions |
+| `Take` | `arena/arena_mock.dart` | Every call in `CallsStore`: Arena feed and trade-page Callers |
 | `Opinion` | `arena/opinions_mock.dart` | Battle detail |
 | `ProfileReceipt` | `profile/profile_mock.dart` | Profile calls timeline |
 | `RecordCall`, `RecordEntry` | `market/*_mock.dart` | Trader market record |
@@ -222,7 +227,7 @@ gates TPX behind #885/#886. Keep these on mock data until that lands.
 ## Device-only (no backend)
 
 `SettingsState`, `DisplayPrefs` (long on the right, chart prefs), and the
-demo's `PostedTakes` until posting is wired. Private position notes are
+demo's `CallsStore` until posting is wired. Private position notes are
 device-only by VMBE's decision.
 
 ---

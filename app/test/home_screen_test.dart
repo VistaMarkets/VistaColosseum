@@ -17,6 +17,8 @@ import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
 import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
 import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/calls/calls_store.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
@@ -95,7 +97,7 @@ void main() {
     AccountState.reset(withMarket: true);
     LikesState.reset();
     TakeLikes.reset();
-    PostedTakes.reset();
+    CallsStore.reset();
     SettingsState.reset();
     WatchlistState.reset();
     OrdersState.reset();
@@ -881,6 +883,15 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    // The feed's vertical list (the carousel and chips scroll sideways).
+    final feed = find.byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    );
+    Future<void> scrollTo(WidgetTester tester, Finder f) async {
+      await tester.scrollUntilVisible(f, 200, scrollable: feed);
+      await tester.pumpAndSettle();
+    }
+
     testWidgets('Arena tab is a feed: live battles, then takes', (
       tester,
     ) async {
@@ -917,21 +928,8 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
-      // renatafx's take is on the BTC battle and backed.
-      expect(find.text(r'Reclaims $72,000 by Fri'), findsNWidgets(2));
-      // Every take names its asset next to the side, plain calls too.
-      expect(find.text('LONG BTC'), findsWidgets);
-      expect(find.text('SHORT BTC'), findsOneWidget);
-      expect(find.text('✓ Backed'), findsWidgets);
       // kilo.sol's is a plain call: nothing between the header and the text.
-      await tester.scrollUntilVisible(
-        find.text('kilo.sol'),
-        300,
-        scrollable: find.byWidgetPredicate(
-          (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-        ),
-      );
-      await tester.pumpAndSettle();
+      await scrollTo(tester, find.text('kilo.sol'));
       final call = find.ancestor(
         of: find.text('kilo.sol'),
         matching: find.byType(TakeItem),
@@ -941,9 +939,18 @@ void main() {
         findsNWidgets(2), // "69% right · 25m" and the position's levels
       );
       expect(find.descendant(of: call, matching: find.text('›')), findsNothing);
+      expect(
+        find.descendant(of: call, matching: find.text('SHORT SOL')),
+        findsOneWidget,
+      );
+      // renatafx's take is on the BTC battle and backed; every take names
+      // its asset next to the side.
+      await scrollTo(tester, find.text('renatafx'));
+      expect(find.text(r'Reclaims $72,000 by Fri'), findsWidgets);
+      expect(find.text('LONG BTC'), findsWidgets);
+      expect(find.text('SHORT BTC'), findsWidgets);
+      expect(find.text('✓ Backed'), findsWidgets);
       // The battle chip opens the battle.
-      await tester.drag(find.byType(ListView).last, const Offset(0, 2000));
-      await tester.pumpAndSettle();
       await tester.tap(find.text(r'Reclaims $72,000 by Fri').first);
       await tester.pumpAndSettle();
       expect(find.byType(OpinionsScreen), findsOneWidget);
@@ -953,6 +960,7 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
+      await scrollTo(tester, find.bySemanticsLabel('Agree, 48'));
       await tester.tap(find.bySemanticsLabel('Agree, 48'));
       await tester.pumpAndSettle();
       expect(find.bySemanticsLabel('Agree, 49'), findsOneWidget);
@@ -1043,6 +1051,35 @@ void main() {
       );
     });
 
+    testWidgets('a take posted in Arena shows in that asset\'s Callers', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Add your take'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Solana'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Fading the unlock.');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      // The same list the trade pages read: SOL's callers now start with it.
+      final sol = CallsStore.callersOn('SOL');
+      expect(sol.first.handle, 'maya.eth');
+      expect(sol.first.message, 'Fading the unlock.');
+      expect(
+        CallsStore.callersOn('ETH').map((p) => p.message),
+        isNot(contains('Fading the unlock.')),
+      );
+      // Trade pages and Arena share the calls: ETH's are the ETH takes.
+      expect(CallsStore.callersOn('ETH').map((p) => p.handle), [
+        'vega',
+        'lunaq',
+        'maya.eth',
+        'orbit.eth',
+      ]);
+    });
+
     testWidgets('Cancel leaves the composer without posting', (tester) async {
       await openArena(tester);
       await tester.tap(find.bySemanticsLabel('Add your take'));
@@ -1053,7 +1090,7 @@ void main() {
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
-      expect(PostedTakes.posted.value, isEmpty);
+      expect(CallsStore.all.value.length, ArenaMock.takes.length);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1080,6 +1117,7 @@ void main() {
 
     testWidgets('tapping a caller opens their profile', (tester) async {
       await openArena(tester);
+      await scrollTo(tester, find.text('voskov'));
       await tester.tap(find.text('voskov').first);
       await tester.pumpAndSettle();
       expect(find.byType(ProfileScreen), findsOneWidget);
