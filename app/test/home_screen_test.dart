@@ -16,6 +16,7 @@ import 'package:vista_colosseum/features/arena/opinions_screen.dart';
 import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
 import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
+import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
@@ -94,6 +95,7 @@ void main() {
     AccountState.reset(withMarket: true);
     LikesState.reset();
     TakeLikes.reset();
+    PostedTakes.reset();
     SettingsState.reset();
     WatchlistState.reset();
     OrdersState.reset();
@@ -996,19 +998,74 @@ void main() {
       });
     }
 
-    testWidgets('+ opens your positions; tapping one goes on', (tester) async {
+    testWidgets('+ → pick a position → write → post: it tops the feed', (
+      tester,
+    ) async {
       await openArena(tester);
       await tester.tap(find.bySemanticsLabel('Add your take'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
       expect(find.text("What's your take on?"), findsOneWidget);
       expect(find.text('YOUR POSITIONS · 3'), findsOneWidget);
-      expect(find.text('Continue'), findsNothing);
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+
+      // The composer: the position card sits under the text field.
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      expect(find.text('LONG ETH'), findsOneWidget);
+      expect(find.text('LONG 5x'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byType(BackedPositionCard)).dy,
+        greaterThan(tester.getBottomLeft(find.byType(TextField)).dy),
+      );
+      // Post waits for text.
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'ETH/BTC bottomed.');
+      await tester.pump();
+      expect(find.text('263'), findsOneWidget); // characters left
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+
+      // Back on Arena with the new take first.
+      expect(find.byType(ComposeTakeScreen), findsNothing);
+      expect(find.byType(PickPositionScreen), findsNothing);
+      final first = find.byType(TakeItem).first;
+      await tester.ensureVisible(first);
+      expect(
+        find.descendant(of: first, matching: find.text('ETH/BTC bottomed.')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: first, matching: find.text('maya.eth')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Cancel leaves the composer without posting', (tester) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Add your take'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Solana'));
       await tester.pumpAndSettle();
-      expect(find.byType(PickPositionScreen), findsNothing);
-      expect(find.textContaining('Writing a take on Solana'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Not yet.');
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      expect(PostedTakes.posted.value, isEmpty);
     });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('composer renders without overflow on $name', (tester) async {
+        await openArena(tester, size, padding);
+        await tester.tap(find.bySemanticsLabel('Add your take'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('0xreal'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('position picker renders without overflow on $name', (

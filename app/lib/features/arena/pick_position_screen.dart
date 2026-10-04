@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../portfolio/portfolio_mock.dart';
+import 'arena_mock.dart';
+import 'compose_take_screen.dart';
 
 /// First step of a new take, opened from the Arena +: the viewer's open
-/// positions. Tapping one goes on with it: the page pops with that
-/// position.
+/// positions. Tapping one goes on to write the take; the page pops with
+/// the posted take.
 class PickPositionScreen extends StatelessWidget {
   const PickPositionScreen({super.key});
 
-  static Route<PortfolioPosition> route() =>
+  static Route<Take> route() =>
       MaterialPageRoute(builder: (_) => const PickPositionScreen());
 
   @override
@@ -96,8 +98,15 @@ class PickPositionScreen extends StatelessWidget {
                       value: p.pnl,
                       change: p.pnlPercent,
                       valueColor: p.pnlColor,
-                      // Tapping a position goes straight on with it.
-                      onPressed: () => Navigator.of(context).pop(p),
+                      // Tapping a position goes straight on to writing the
+                      // take; a posted take comes back through here.
+                      onPressed: () async {
+                        final take = await Navigator.of(context)
+                            .push(ComposeTakeScreen.route(p));
+                        if (take != null && context.mounted) {
+                          Navigator.of(context).pop(take);
+                        }
+                      },
                     ),
                   ],
                 ],

@@ -6,6 +6,7 @@ import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
+import 'compose_take_screen.dart';
 import 'live_battles_screen.dart';
 import 'opinions_screen.dart';
 import 'pick_position_screen.dart';
@@ -31,15 +32,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   int _sort = 0;
 
-  void _notBuilt(String what) => widget.onNotBuilt?.call(what);
-
   void _push(Route<void> route) => Navigator.of(context).push(route);
 
-  /// The + : pick the position to back the take with. Writing the take
-  /// itself comes next and isn't built yet.
+  /// The + : pick the position to back the take, write it, post it. The
+  /// new take goes to the top of the feed.
   Future<void> _newTake() async {
-    final picked = await Navigator.of(context).push(PickPositionScreen.route());
-    if (picked != null) _notBuilt('Writing a take on ${picked.title}');
+    final take = await Navigator.of(context).push(PickPositionScreen.route());
+    if (take != null) PostedTakes.add(take);
   }
 
   @override
@@ -89,89 +88,93 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  // Room to scroll the last take clear of the + button and
-                  // nav.
-                  padding: EdgeInsets.only(
-                    bottom: VistaSpace.gutter + _composerSpace + navSpace,
-                  ),
-                  children: [
-                    ArenaSectionHead(
-                      title: 'Live battles',
-                      // "See all" sits in a 44pt tap row; the head's
-                      // padding gives back the extra height.
-                      top: VistaSpace.md,
-                      bottom: 0,
-                      trailing: Semantics(
-                        button: true,
-                        label: 'See all live battles',
-                        excludeSemantics: true,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _push(LiveBattlesScreen.route()),
-                          child: SizedBox(
-                            height: VistaSize.tapTarget,
-                            child: Center(
-                              child: Text(
-                                'See all',
-                                style: VistaType.subhead.copyWith(
-                                  color: VistaColors.accent,
+                // Takes the viewer posted go on top.
+                child: ValueListenableBuilder(
+                  valueListenable: PostedTakes.posted,
+                  builder: (context, posted, _) => ListView(
+                    // Room to scroll the last take clear of the + button and
+                    // nav.
+                    padding: EdgeInsets.only(
+                      bottom: VistaSpace.gutter + _composerSpace + navSpace,
+                    ),
+                    children: [
+                      ArenaSectionHead(
+                        title: 'Live battles',
+                        // "See all" sits in a 44pt tap row; the head's
+                        // padding gives back the extra height.
+                        top: VistaSpace.md,
+                        bottom: 0,
+                        trailing: Semantics(
+                          button: true,
+                          label: 'See all live battles',
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _push(LiveBattlesScreen.route()),
+                            child: SizedBox(
+                              height: VistaSize.tapTarget,
+                              child: Center(
+                                child: Text(
+                                  'See all',
+                                  style: VistaType.subhead.copyWith(
+                                    color: VistaColors.accent,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: VistaSpace.gutter,
-                      ),
-                      // Tiles share the tallest one's height.
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            for (final (i, b)
-                                in ArenaMock.battles.take(3).indexed) ...[
-                              if (i > 0) const SizedBox(width: VistaSpace.lg),
-                              BattleTile(
-                                battle: b,
-                                onTap: () => _push(OpinionsScreen.route()),
-                              ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: VistaSpace.gutter,
+                        ),
+                        // Tiles share the tallest one's height.
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (final (i, b)
+                                  in ArenaMock.battles.take(3).indexed) ...[
+                                if (i > 0) const SizedBox(width: VistaSpace.lg),
+                                BattleTile(
+                                  battle: b,
+                                  onTap: () => _push(OpinionsScreen.route()),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                    ArenaSectionHead(
-                      title: 'Takes',
-                      trailing: Text(
-                        'Backed first',
-                        style: VistaType.bodyMedium.copyWith(
-                          color: VistaColors.textMuted,
+                      ArenaSectionHead(
+                        title: 'Takes',
+                        trailing: Text(
+                          'Backed first',
+                          style: VistaType.bodyMedium.copyWith(
+                            color: VistaColors.textMuted,
+                          ),
                         ),
                       ),
-                    ),
-                    for (final t in ArenaMock.takes)
-                      TakeItem(
-                        take: t,
-                        onCaller: () => _push(ProfileScreen.route(t.handle)),
-                        onBattle: () => _push(OpinionsScreen.route()),
-                        onCall: t.call == null
-                            ? null
-                            : () => _push(
-                                CallerPlayScreen.route(t.call!, t.ticker),
-                              ),
-                        // Simulated only: joining places nothing real.
-                        onJoin: () => showOrderTicket(
-                          context,
-                          symbol: t.ticker,
-                          side: t.side,
+                      for (final t in [...posted, ...ArenaMock.takes])
+                        TakeItem(
+                          take: t,
+                          onCaller: () => _push(ProfileScreen.route(t.handle)),
+                          onBattle: () => _push(OpinionsScreen.route()),
+                          onCall: t.call == null
+                              ? null
+                              : () => _push(
+                                  CallerPlayScreen.route(t.call!, t.ticker),
+                                ),
+                          // Simulated only: joining places nothing real.
+                          onJoin: () => showOrderTicket(
+                            context,
+                            symbol: t.ticker,
+                            side: t.side,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
