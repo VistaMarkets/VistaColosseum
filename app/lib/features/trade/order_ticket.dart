@@ -286,8 +286,10 @@ class _OrderTicketState extends State<OrderTicket> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * 0.92,
         ),
+        // A dark sheet with its boxes lifted onto it (cards on the page
+        // colour), rather than a lighter slab with boxes cut in.
         decoration: const BoxDecoration(
-          color: VistaColors.surface,
+          color: VistaColors.background,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(VistaRadius.sheet),
           ),
@@ -727,7 +729,7 @@ class _OrderTicketState extends State<OrderTicket> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       duration: VistaMotion.state,
       decoration: BoxDecoration(
-        color: VistaColors.background,
+        color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
         // Red when a refused order points here; clear otherwise (same width
         // either way, so nothing shifts).
@@ -766,7 +768,7 @@ class _OrderTicketState extends State<OrderTicket> {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: VistaColors.background,
+        color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -816,7 +818,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: on ? VistaColors.accent : VistaColors.background,
+                  color: on ? VistaColors.accent : VistaColors.surface,
                   borderRadius: BorderRadius.circular(5),
                   border: on
                       ? null
