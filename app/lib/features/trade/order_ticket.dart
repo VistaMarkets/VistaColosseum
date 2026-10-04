@@ -822,7 +822,8 @@ void _rest(BuildContext context, OrderIntent intent) {
 
 /// Review, then the result, of a market order, inside the ticket's sheet.
 /// Confirm calls [Scenario.placeOrder] once per action; a fill shows its
-/// receipt's stored cents, a failure its reason and Retry. Cancel and Done
+/// receipt's stored cents, a failure its reason (and Retry, for a stale
+/// price). Cancel and Done
 /// close the ticket and touch nothing.
 class _ReviewPanel extends StatefulWidget {
   const _ReviewPanel({required this.intent, required this.requote});
@@ -866,13 +867,17 @@ class _ReviewPanelState extends State<_ReviewPanel> {
     );
   }
 
-  /// Refreshes the price context, then confirms the same action again at
-  /// the live price, never the one that expired.
+  /// Refreshes the price context and re-quotes the same action at the live
+  /// price, never the one that expired. Only the order as reviewed fills at
+  /// once; at a moved price the new figures go back to review first.
   void _retry() {
-    if (_busy) return;
+    if (_result is! OrderFailed) return;
     Scenario.refreshPrice(_intent.symbol);
-    _intent = widget.requote();
-    _confirm();
+    final next = widget.requote();
+    final reviewed = next.price == _intent.price && next.units == _intent.units;
+    _intent = next;
+    if (reviewed) return _confirm();
+    setState(() => _result = null);
   }
 
   @override
@@ -934,7 +939,9 @@ class _ReviewPanelState extends State<_ReviewPanel> {
         'View in Wallet',
         () => _showWallet(Navigator.of(context)),
       ),
-      OrderFailed() => ('Retry', _retry),
+      // Only a stale price can come right by trying again.
+      OrderFailed(reason: priceExpired) => ('Retry', _retry),
+      OrderFailed() => (null, null),
       _ => ('Confirm', _busy ? null : _confirm),
     };
     return Column(
@@ -971,8 +978,10 @@ class _ReviewPanelState extends State<_ReviewPanel> {
         Row(
           children: [
             button(left, quiet.$1, quiet.$2, leftTap),
-            const SizedBox(width: 10),
-            button(right, loud.$1, loud.$2, rightTap),
+            if (right != null) ...[
+              const SizedBox(width: 10),
+              button(right, loud.$1, loud.$2, rightTap),
+            ],
           ],
         ),
       ],

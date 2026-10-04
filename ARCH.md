@@ -456,9 +456,26 @@ VistaColosseum/
 │       ├── 2026-10-04T120621-phase2-truthful-order-confirm.md
 │       ├── 2026-10-04T124925-phase2-review-iter1.md
 │       ├── 2026-10-04T125834-phase2-fix-iter1.md
-│       └── 2026-10-04T135405-phase2-review-iter2.md
+│       ├── 2026-10-04T135405-phase2-review-iter2.md
+│       └── 2026-10-04T140130-phase2-fix-iter2.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
+│       ├── fix-phase-2-iter-2/
+│       │   ├── gate/
+│       │   │   ├── flutter-analyze.log
+│       │   │   ├── flutter-test.log
+│       │   │   └── pubspec-frozen.log
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   ├── green-targeted.log
+│       │   ├── mutant-A-confirm-guard.log
+│       │   ├── mutant-B-retry-guard.log
+│       │   ├── mutant-C-market-only-notBuilt.log
+│       │   ├── mutant-D-fee-round.log
+│       │   ├── mutant-E-units-isFinite.log
+│       │   ├── mutant-F-retry-any-failure.log
+│       │   └── red.log
 │       ├── gate-phase-1-iter-1/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log

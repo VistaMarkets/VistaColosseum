@@ -1,0 +1,33 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: a dust, non-finite or unlevered order fails and changes nothing
+00:00 +0 -1: a dust, non-finite or unlevered order fails and changes nothing [E]
+  Expected: <Instance of 'OrderFailed'> with `reason`: 'Enter a size'
+    Actual: <Instance of 'OrderFailed'>
+     Which: has `reason` with value 'Size too small' which is different.
+            Expected: Enter a si ...
+              Actual: Size too s ...
+                      ^
+             Differ at offset 0
+  a-inf
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 501:7                       main.<fn>
+  
+00:00 +0 -1: (tearDownAll)
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a dust, non-finite or unlevered order fails and changes nothing

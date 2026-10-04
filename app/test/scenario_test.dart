@@ -9,6 +9,7 @@ import 'package:vista_colosseum/features/account/account_top_bar.dart';
 import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/home/likes_state.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
+import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/people/follow_list_screen.dart';
 import 'package:vista_colosseum/features/people/follow_mock.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
@@ -168,7 +169,7 @@ void main() {
 
       // Home: the top-bar cash and the first call's like.
       expect(
-        find.descendant(of: topBar, matching: find.text(r'$10,000')),
+        find.descendant(of: topBar, matching: find.text(r'$10,000.00')),
         findsOneWidget,
       );
       expect(
@@ -180,7 +181,7 @@ void main() {
       Scenario.cashCents.value = 1234500;
       await tester.pumpAndSettle();
       expect(
-        find.descendant(of: topBar, matching: find.text(r'$12,345')),
+        find.descendant(of: topBar, matching: find.text(r'$12,345.00')),
         findsOneWidget,
       );
 
@@ -214,8 +215,8 @@ void main() {
       // listed market.
       await tester.tap(find.bySemanticsLabel('Wallet'));
       await tester.pumpAndSettle();
-      expect(find.text(r'$12,345'), findsNWidgets(2));
-      expect(find.text(r'$12,480'), findsNothing);
+      expect(find.text(r'$12,345.00'), findsNWidgets(2));
+      expect(find.text(r'$12,480.00'), findsNothing);
       expect(find.text('Positions · 1'), findsOneWidget);
       expect(find.text('Ethereum'), findsNothing);
       expect(find.text(r'$ZED market cap'), findsOneWidget);
@@ -267,6 +268,18 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Wallet'));
     await tester.pumpAndSettle();
     expect(find.text('Positions · ${seedPositions + 1}'), findsOneWidget);
+    // Cash less margin + fee, to the cent, in the top bar and the headline;
+    // a live tick of the balance feed doesn't move it off the store.
+    expect(formatCents(Scenario.cashCents.value), r'$12,443.17');
+    expect(find.text(r'$12,443.17'), findsNWidgets(2));
+    final feed = LiveFeed.watch(
+      'portfolio',
+      Scenario.cashCents.value / 100,
+      9,
+    ) as ValueNotifier<double>;
+    feed.value += 9;
+    await tester.pump();
+    expect(find.text(r'$12,443.17'), findsNWidgets(2));
     await tester.ensureVisible(find.text('Ethereum').first);
     await tester.tap(find.text('Ethereum').first);
     await tester.pumpAndSettle();
@@ -323,6 +336,113 @@ void main() {
     expect(state(), equals(before));
   });
 
+  test('a size the cent math cannot hold fails and changes nothing', () {
+    final before = state();
+    // BTC 1.37e12 units at 1x: ~$92 quadrillion, past int64 cents once a
+    // fee is added. It must fail as unaffordable, never wrap and credit.
+    final huge = OrderIntent(
+      actionId: 'a-huge',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      side: TradeSide.long,
+      units: 1.37e12,
+      price: 67412,
+      leverage: 1,
+    );
+    expect(huge.totalCents, greaterThan(Scenario.cashCents.value));
+    expect(
+      Scenario.placeOrder(huge),
+      isA<OrderFailed>().having((f) => f.reason, 'reason', notEnoughFunds),
+    );
+    // The same size at a leverage that shrinks its margin under cash: the
+    // notional itself is past what the store holds.
+    final levered = OrderIntent(
+      actionId: 'a-levered',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      side: TradeSide.long,
+      units: 1.37e12,
+      price: 67412,
+      leverage: 1 << 50,
+    );
+    expect(levered.marginCents, lessThan(Scenario.cashCents.value));
+    expect(levered.totalCents, greaterThan(0));
+    expect(
+      Scenario.placeOrder(levered),
+      isA<OrderFailed>().having((f) => f.reason, 'reason', 'Size too large'),
+    );
+    expect(state(), equals(before));
+  });
+
+  test('the fee rounds down, once (VC-ORD-003)', () {
+    // 2 ETH at $2,968.40 is $5,936.80; 5 bps of it is 296.84 cents, which
+    // a round-half-up would make 297.
+    final intent = ethLong('a-fee', units: 2);
+    expect([intent.notionalCents, intent.marginCents], [593680, 59368]);
+    expect(intent.feeCents, 296);
+    final receipt = (Scenario.placeOrder(intent) as OrderFilled).receipt;
+    expect(receipt.feeCents, 296);
+    expect(Scenario.cashCents.value, PortfolioMock.cashCents - 59368 - 296);
+  });
+
+  test('a reduce-only market order is refused; a reduce-only limit rests', () {
+    OrderIntent intent(OrderKind kind) => OrderIntent(
+      actionId: 'a-reduce-${kind.name}',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      side: TradeSide.long,
+      units: 0.5,
+      price: 2900,
+      leverage: 5,
+      kind: kind,
+      reduceOnly: true,
+    );
+    final before = state();
+    expect(
+      Scenario.placeOrder(intent(OrderKind.market)),
+      isA<OrderFailed>().having(
+        (f) => f.reason,
+        'reason',
+        'Reduce only — not in the demo yet',
+      ),
+    );
+    expect(state(), equals(before));
+    final rested = Scenario.placeOrder(intent(OrderKind.limit));
+    expect((rested as OrderResting).order.reduceOnly, isTrue);
+  });
+
+  test('an unset or non-finite take profit or stop loss is refused', () {
+    OrderIntent intent(String id, {double? tp, double? sl}) => OrderIntent(
+      actionId: id,
+      symbol: 'ETH',
+      name: 'Ethereum',
+      side: TradeSide.long,
+      units: 0.1,
+      price: 2968.40,
+      leverage: 10,
+      takeProfit: tp,
+      stopLoss: sl,
+    );
+    final before = state();
+    for (final (i, reason) in [
+      (intent('a-tp0', tp: 0, sl: 2900), 'Enter a take profit'),
+      (intent('a-tpnan', tp: double.nan, sl: 2900), 'Enter a take profit'),
+      (intent('a-sl0', tp: 3100, sl: 0), 'Enter a stop loss'),
+      (intent('a-slinf', tp: 3100, sl: double.infinity), 'Enter a stop loss'),
+    ]) {
+      expect(
+        Scenario.placeOrder(i),
+        isA<OrderFailed>().having((f) => f.reason, 'reason', reason),
+        reason: i.actionId,
+      );
+    }
+    expect(state(), equals(before));
+    expect(
+      Scenario.placeOrder(intent('a-exits', tp: 3100, sl: 2900)),
+      isA<OrderFilled>(),
+    );
+  });
+
   test('a trader-index intent is refused on every order kind and changes '
       'nothing', () {
     final before = state();
@@ -355,7 +475,7 @@ void main() {
     final before = state();
     final cases = <(OrderIntent, String)>[
       // 4 cents of ETH at 10x: the margin rounds to 0 cents.
-      (ethLong('a-dust', units: 0.04 / 2968.40), 'Enter a size'),
+      (ethLong('a-dust', units: 0.04 / 2968.40), 'Size too small'),
       (ethLong('a-inf', units: double.infinity), 'Enter a size'),
       (ethLong('a-nan', units: double.nan), 'Enter a size'),
       (
