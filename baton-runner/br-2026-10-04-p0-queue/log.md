@@ -25,3 +25,6 @@
 2026-10-04T19:07:51Z spawn: phase 2 REVIEW unit iter 1 (opus, general-purpose); base feat/br-2026-10-04-p0-queue/phase-1
 2026-10-04T19:50:57Z return: phase 2 REVIEW iter 1 COMPLETE; VERDICT ISSUES; gate PASS (195; HAS_MARKET=true 195); findings C0/H1/M8/L18 in baton-runner/br-2026-10-04-p0-queue/review-phase-2-iter-1.md; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T124925-phase2-review-iter1.md; units 7/75
 2026-10-04T19:50:57Z spawn: phase 2 FIX unit iter 1 (opus, general-purpose)
+2026-10-04T20:01:55Z return: phase 2 FIX iter 1 COMPLETE; NOTES fixed H1/1 M2/8 L1/18, L1 refuted; files 6; gate PASS 201; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T125834-phase2-fix-iter1.md; units 8/75
+2026-10-04T20:01:55Z commit: b4a7db7 fix(phase-2) iter 1
+2026-10-04T20:01:55Z spawn: phase 2 REVIEW unit iter 2 (opus, general-purpose)
