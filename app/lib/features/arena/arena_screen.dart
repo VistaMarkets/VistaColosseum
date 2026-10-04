@@ -8,6 +8,7 @@ import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
 import 'live_battles_screen.dart';
 import 'opinions_screen.dart';
+import 'pick_position_screen.dart';
 import 'take_card.dart';
 
 /// Arena tab (Figma 505:204, "Arena — takes feed"): live battles in a
@@ -33,6 +34,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
   void _notBuilt(String what) => widget.onNotBuilt?.call(what);
 
   void _push(Route<void> route) => Navigator.of(context).push(route);
+
+  /// The + : pick the position to back the take with. Writing the take
+  /// itself comes next and isn't built yet.
+  Future<void> _newTake() async {
+    final picked = await Navigator.of(context).push(PickPositionScreen.route());
+    if (picked != null) _notBuilt('Writing a take on ${picked.title}');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +180,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
           Positioned(
             right: VistaSpace.gutter,
             bottom: navSpace + VistaSpace.md,
-            child: _AddTakeButton(onTap: () => _notBuilt('Add your take')),
+            child: _AddTakeButton(onTap: _newTake),
           ),
         ],
       ),
@@ -180,7 +188,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   }
 }
 
-/// The floating + in the lower right: where a take or a call starts.
+/// The floating + in the lower right: starts a take by picking a position.
 class _AddTakeButton extends StatelessWidget {
   const _AddTakeButton({required this.onTap});
 

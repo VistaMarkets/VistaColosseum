@@ -15,6 +15,7 @@ import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/arena/opinions_screen.dart';
 import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
+import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
@@ -990,6 +991,36 @@ void main() {
       ) async {
         await openArena(tester, size, padding);
         await tester.tap(find.text('See all'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('+ opens your positions; pick one to continue', (tester) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Add your take'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      expect(find.text('Your positions · 3'), findsOneWidget);
+      expect(find.text('Ethereum'), findsOneWidget);
+      // Continue waits for a pick.
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      await tester.tap(find.text('Solana'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PickPositionScreen), findsNothing);
+      expect(find.textContaining('Writing a take on Solana'), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('position picker renders without overflow on $name', (
+        tester,
+      ) async {
+        await openArena(tester, size, padding);
+        await tester.tap(find.bySemanticsLabel('Add your take'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
