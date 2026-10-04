@@ -915,7 +915,10 @@ void main() {
     ) async {
       await openArena(tester);
       // renatafx's take is on the BTC battle and backed.
-      expect(find.text(r'BTC · Reclaims $72,000 by Fri'), findsNWidgets(2));
+      expect(find.text(r'Reclaims $72,000 by Fri'), findsNWidgets(2));
+      // Every take names its asset next to the side, plain calls too.
+      expect(find.text('LONG BTC'), findsWidgets);
+      expect(find.text('SHORT BTC'), findsOneWidget);
       expect(find.text('✓ Backed'), findsWidgets);
       // kilo.sol's is a plain call: nothing between the header and the text.
       await tester.scrollUntilVisible(
@@ -938,7 +941,7 @@ void main() {
       // The battle chip opens the battle.
       await tester.drag(find.byType(ListView).last, const Offset(0, 2000));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(r'BTC · Reclaims $72,000 by Fri').first);
+      await tester.tap(find.text(r'Reclaims $72,000 by Fri').first);
       await tester.pumpAndSettle();
       expect(find.byType(OpinionsScreen), findsOneWidget);
     });

@@ -198,7 +198,7 @@ class BattleTile extends StatelessWidget {
 }
 
 /// One take in the feed, flush with a hairline under it: avatar ringed in
-/// the side's colour, handle, side and record; the battle it's on (a plain
+/// the side's colour, handle, side and asset ("LONG BTC"), record; the battle it's on (a plain
 /// call has none); the text; the position behind it when backed;
 /// then agree, joined and Join.
 class TakeItem extends StatelessWidget {
@@ -275,7 +275,8 @@ class TakeItem extends StatelessWidget {
                     ),
                     const SizedBox(width: VistaSpace.sm),
                     _Tag(
-                      t.side.label.toUpperCase(),
+                      // The side and the asset: "LONG BTC".
+                      '${t.side.label.toUpperCase()} ${t.ticker}',
                       color: color,
                       fill: color.withValues(alpha: 0.16),
                       style: VistaType.labelStrong,
@@ -298,7 +299,7 @@ class TakeItem extends StatelessWidget {
                 // folded into the row's height.
                 if (t.battle != null)
                   _BattleChip(
-                    label: '${t.ticker} · ${t.battle}',
+                    label: t.battle!,
                     semantics: 'Open the battle: ${t.battle}',
                     onTap: onBattle,
                   )
@@ -484,7 +485,7 @@ class _Tag extends StatelessWidget {
   }
 }
 
-/// The battle a take is on: "BTC · Reclaims $72,000 by Fri ›".
+/// The battle a take is on: "Reclaims $72,000 by Fri ›".
 class _BattleChip extends StatelessWidget {
   const _BattleChip({required this.label, required this.semantics, this.onTap});
 
