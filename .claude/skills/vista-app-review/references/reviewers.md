@@ -23,6 +23,14 @@ Material:
   design_system/components, screens in features/*, nav in app_shell.dart).
   Architecture map: {ROOT}/ARCH.md.
 
+The app runs on mock data. Treat every number, name and price as a
+placeholder that the backend will replace: do NOT report whether a mock value
+is right, matches another screen, or belongs to the right asset/person. Judge
+the design and the information design instead — what each page chooses to
+show, in what order and form, what a real user would want there that's
+missing, and what's there that they don't need. Only mention data when the
+layout itself breaks (e.g. a long value overflows).
+
 Context to respect in recommendations: it is demo code (prefer small,
 targeted fixes); every money action is simulated and must stay that way; no
 gamification of trading (no confetti or rewards for trades — reward accuracy
@@ -83,6 +91,23 @@ won't know). Grep heavily.
 Deliver the top 10–15 findings ranked, a "current → suggested" table for the
 8–10 weakest strings, and the 3 consolidations that would tighten the system
 most.
+```
+
+## Lens: Page content (what users want to see)
+
+```
+Your lens: INFORMATION DESIGN, page by page. For each main screen (Home
+card, order tickets, trade page and each panel, Explore, Arena, Portfolio and
+the position sheet, profile, trader market, settings): who comes here and
+what they're trying to decide; what information they need to decide it; what
+the page shows today; what's missing; what's noise or premature; and whether
+the hierarchy puts the most decision-relevant figure first. Benchmark against
+how Robinhood, Coinbase, Hyperliquid, Phantom and X/Threads lay out the same
+kind of screen. Remember the numbers are placeholders — judge which figures
+and elements belong on the page, not their values.
+Deliver: a short table per screen (needs / has / missing / cut), then the
+top 10 content changes ranked by how much they'd help a user decide, and the
+3 pages whose content most needs rethinking.
 ```
 
 ## Lens: UX & flow

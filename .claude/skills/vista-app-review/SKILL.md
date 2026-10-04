@@ -12,7 +12,7 @@ Reviewing is read-only — nothing in the repo changes during a review.
 
 ## 1. Pick the panel
 
-Default to all seven lenses in `references/reviewers.md`:
+Default to all eight lenses in `references/reviewers.md`:
 
 | Lens | Answers |
 |---|---|
@@ -20,15 +20,21 @@ Default to all seven lenses in `references/reviewers.md`:
 | Spacing & layout | Rhythm, alignment, dead space, small phones, tap targets |
 | Motion & interaction | Press feedback, transitions, haptics, jank on live ticks |
 | Consistency & copy | Same thing done two ways, tokens bypassed, weak wording |
+| Page content | What each page shows vs what a user wants there |
 | UX & flow | Core loop, dead ends, order-entry safety, feedback |
 | Professional mobile developer | Navigation map; reach / use / understand scores |
 | First-time user | Where a newcomer gets confused, nervous or quits |
 
 Narrow the panel when the request is narrow — "how's the flow / is it easy to
-use" → UX & flow, professional developer, first-time user; "does it look
+use" → UX & flow, page content, professional developer, first-time user; "does it look
 premium" → visual, spacing, motion, consistency. If the user names reviewers,
 use exactly those. Seven parallel agents is expensive, so don't run lenses
 the question doesn't need.
+
+The app runs on mock data. Reviews are about the design and what each page
+should show, not whether the sample numbers are correct — the backend will
+replace them. Keep "this mock value is wrong / mismatched" findings out of the
+synthesis entirely unless the user asks about data.
 
 ## 2. Render the current build
 
@@ -101,6 +107,6 @@ what the user sees on screen.
   report that first — a review of a broken build isn't useful.
 - Renders are static. Motion and haptics come from reading code, so say so
   when a motion finding hasn't been seen running.
-- Reviewers see the demo's mock data; treat "this number is wrong" findings
-  as data-wiring bugs worth checking (one review caught BTC prices on the
-  ETH page).
+- Reviewers see the demo's mock data. Drop findings about mock values being
+  wrong or inconsistent — the user wants the design and the page content
+  judged, not the placeholder data.
