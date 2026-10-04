@@ -177,7 +177,7 @@ class BattleTile extends StatelessWidget {
                     style: VistaType.chip.copyWith(color: VistaColors.long),
                   ),
                   Text(
-                    '${b.takes} calls',
+                    '${b.takes} ${b.takes == 1 ? 'call' : 'calls'}',
                     style: VistaType.chip.copyWith(
                       fontWeight: FontWeight.w500,
                       color: VistaColors.textMuted,

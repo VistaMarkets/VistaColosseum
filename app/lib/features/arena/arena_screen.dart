@@ -136,7 +136,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               for (final (i, b)
-                                  in ArenaMock.battles.take(3).indexed) ...[
+                                  in BattlesStore.all.value
+                                      .take(3)
+                                      .indexed) ...[
                                 if (i > 0) const SizedBox(width: VistaSpace.lg),
                                 BattleTile(
                                   battle: b,

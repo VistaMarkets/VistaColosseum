@@ -66,3 +66,15 @@ abstract final class CallsStore {
     };
   }
 }
+
+/// Every live battle, seeded from mock data; a battle started from the
+/// composer joins it. In memory only.
+abstract final class BattlesStore {
+  static final all = ValueNotifier<List<LiveBattle>>(ArenaMock.battles);
+
+  /// Newest first: a started battle leads the carousel.
+  static void add(LiveBattle b) =>
+      all.value = List.unmodifiable([b, ...all.value]);
+
+  static void reset() => all.value = ArenaMock.battles;
+}

@@ -5,7 +5,10 @@ import '../../design_system/design_system.dart';
 import '../live/market_prices.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../trade/trade_mock.dart';
+import '../calls/calls_store.dart';
+import '../markets/markets_mock.dart';
 import 'arena_mock.dart';
+import 'battle_builder.dart';
 import 'take_card.dart';
 
 /// Writing a take, like writing a post on X: Cancel and Post on top, the
@@ -46,6 +49,9 @@ class ComposeTakeScreen extends StatefulWidget {
 class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   final _text = TextEditingController();
 
+  /// Set while the call is also starting a battle.
+  BattleDraft? _battle;
+
   @override
   void initState() {
     super.initState();
@@ -55,14 +61,38 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   @override
   void dispose() {
     _text.dispose();
+    _battle?.dispose();
     super.dispose();
   }
 
-  bool get _canPost => _text.text.trim().isNotEmpty;
+  void _makeBattle() {
+    final d = BattleDraft(widget.position.detail.symbol)
+      ..addListener(() => setState(() {}))
+      ..level.addListener(() => setState(() {}));
+    setState(() => _battle = d);
+  }
+
+  void _removeBattle() {
+    final d = _battle;
+    setState(() => _battle = null);
+    d?.dispose();
+  }
+
+  bool get _canPost => _text.text.trim().isNotEmpty && (_battle?.valid ?? true);
 
   void _post() {
     final p = widget.position;
+    final battle = _battle;
     HapticFeedback.lightImpact();
+    // Starting a battle: it goes live with this call as its first.
+    if (battle != null) {
+      BattlesStore.add(
+        battle.start(
+          change: _changeOf(p.detail.symbol),
+          long: p.side == TradeSide.long,
+        ),
+      );
+    }
     Navigator.of(context).pop(
       Take(
         handle: PortfolioMock.handle,
@@ -73,8 +103,20 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
         body: _text.text.trim(),
         likes: 0,
         call: ComposeTakeScreen.backing(p),
+        battle: battle?.question,
       ),
     );
+  }
+
+  /// The market's day change as the battle tiles show it ("+1.2%").
+  static String _changeOf(String ticker) {
+    for (final m in MarketsMock.assets) {
+      if (m.id == ticker) {
+        final c = m.changePct;
+        return '${c >= 0 ? '+' : '−'}${c.abs().toStringAsFixed(1)}%';
+      }
+    }
+    return '+0.0%';
   }
 
   @override
@@ -118,7 +160,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                     Semantics(
                       button: true,
                       enabled: _canPost,
-                      label: 'Post',
+                      label: _battle == null ? 'Post' : 'Start battle',
                       excludeSemantics: true,
                       child: VistaPressable(
                         onTap: _canPost ? _post : null,
@@ -140,7 +182,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Post',
+                                  _battle == null ? 'Post' : 'Start battle',
                                   style: VistaType.subhead.copyWith(
                                     color: VistaColors.onAccent,
                                   ),
@@ -224,6 +266,12 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                             post: ComposeTakeScreen.backing(p),
                             ticker: p.detail.symbol,
                           ),
+                          const SizedBox(height: VistaSpace.xl),
+                          // A call by default; this turns it into a battle.
+                          if (_battle case final d?)
+                            BattleBuilder(draft: d, onRemove: _removeBattle)
+                          else
+                            MakeBattleButton(onTap: _makeBattle),
                           const SizedBox(height: VistaSpace.md),
                           Align(
                             alignment: Alignment.centerRight,

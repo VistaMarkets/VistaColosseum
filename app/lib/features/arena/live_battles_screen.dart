@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../calls/calls_store.dart';
 import 'arena_mock.dart';
 import 'opinions_screen.dart';
 import 'take_card.dart';
@@ -23,7 +24,14 @@ class _LiveBattlesScreenState extends State<LiveBattlesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final battles = ArenaMock.sortedBattles(_sort);
+    return ValueListenableBuilder(
+      valueListenable: BattlesStore.all,
+      builder: (context, all, _) =>
+          _page(context, ArenaMock.sortedBattles(_sort, all)),
+    );
+  }
+
+  Widget _page(BuildContext context, List<LiveBattle> battles) {
     return Scaffold(
       body: SafeArea(
         bottom: false,

@@ -134,9 +134,9 @@ abstract final class ArenaMock {
   /// Ways to order the Live battles page.
   static const battleSorts = ['Most calls', 'Closing soon', 'Closest split'];
 
-  /// [battles] in the order of [battleSorts] at [sort].
-  static List<LiveBattle> sortedBattles(int sort) {
-    final list = [...battles];
+  /// [from] in the order of [battleSorts] at [sort].
+  static List<LiveBattle> sortedBattles(int sort, List<LiveBattle> from) {
+    final list = [...from];
     switch (sort) {
       case 1:
         list.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
