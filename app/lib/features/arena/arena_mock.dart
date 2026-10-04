@@ -25,7 +25,7 @@ class Battle {
 
 /// Mock content from Figma 33:2 ("Arena — screen"). Simulated.
 abstract final class ArenaMock {
-  static const sorts = ['Volume', 'Change', 'Funding'];
+  static const sorts = ['Popular', 'Recent', 'Volume', 'Change', 'Funding'];
 
   static const _btc = Battle(
     ticker: 'BTC',

@@ -50,27 +50,28 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
               const SizedBox(height: VistaSpace.md),
               // Sort chips stay put while the battles scroll.
-              Padding(
+              // One row that scrolls sideways when the chips outrun the
+              // screen.
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.fromLTRB(
                   VistaSpace.gutter,
                   0,
                   VistaSpace.gutter,
                   VistaSpace.xs,
                 ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: VistaSpace.md,
-                    children: [
-                      for (var i = 0; i < ArenaMock.sorts.length; i++)
-                        VistaFilterChip(
-                          label: ArenaMock.sorts[i],
-                          accent: true,
-                          selected: i == _sort,
-                          onPressed: () => setState(() => _sort = i),
-                        ),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < ArenaMock.sorts.length; i++) ...[
+                      if (i > 0) const SizedBox(width: VistaSpace.md),
+                      VistaFilterChip(
+                        label: ArenaMock.sorts[i],
+                        accent: true,
+                        selected: i == _sort,
+                        onPressed: () => setState(() => _sort = i),
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
               Expanded(
