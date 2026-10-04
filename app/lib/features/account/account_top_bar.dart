@@ -45,10 +45,9 @@ class AccountTopBar extends StatelessWidget {
                   label: 'Portfolio balance',
                   child: ValueListenableBuilder(
                     valueListenable: Scenario.cashCents,
-                    builder: (context, cents, _) => LiveUsd(
-                      feedKey: 'portfolio',
-                      base: cents / 100,
-                      step: 9,
+                    // The stored cash to the cent, rolling when it moves.
+                    builder: (context, cents, _) => VistaRollingNumber(
+                      formatCents(cents),
                       style: VistaType.body.copyWith(
                         color: VistaColors.textSecondary,
                       ),

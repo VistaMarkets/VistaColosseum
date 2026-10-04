@@ -37,7 +37,7 @@ import 'package:vista_colosseum/scenario/scenario.dart';
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
 Finder get pagerBalance => find.descendant(
   of: find.byType(PortfolioPager),
-  matching: find.text(r'$12,480'),
+  matching: find.text(r'$12,480.00'),
 );
 
 /// The breakout label is the last event the trace reaches.
@@ -270,7 +270,7 @@ void main() {
         )
         .opacity;
 
-    const portfolio = r'$12,480';
+    const portfolio = r'$12,480.00';
     const market = r'$44.0M';
 
     testWidgets('swiping the chart moves to the market cap and back', (
@@ -1015,7 +1015,7 @@ void main() {
       Finder inBar(String text) =>
           find.descendant(of: bar, matching: find.text(text));
       final handle = tester.getRect(inBar('maya.eth'));
-      final balance = tester.getRect(inBar(r'$12,480'));
+      final balance = tester.getRect(inBar(r'$12,480.00'));
       expect(balance.top, greaterThanOrEqualTo(handle.bottom - 1));
       expect(balance.left, closeTo(handle.left, 1));
 

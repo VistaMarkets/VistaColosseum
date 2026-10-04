@@ -95,17 +95,34 @@ abstract final class Scenario {
   static bool tradable(String symbol) => TradeMock.quotes.containsKey(symbol);
 
   /// Why [intent] can't be placed, or null. Tickets show it on their
-  /// button; [placeOrder] refuses with it, so no caller places a trader
-  /// index, a non-finite or sub-cent size, or a leverage under 1x.
+  /// button, except a trader index, whose ticket closes with a toast
+  /// instead. [placeOrder] refuses with it, so no caller places a trader
+  /// index, a bad size, price or exit, a leverage under 1x, a reduce-only
+  /// market order, or more than cash covers.
   static String? problem(OrderIntent intent) {
     if (!tradable(intent.symbol)) return traderIndexNotBuilt;
     if (intent.leverage < 1) return 'Choose a leverage';
     if (!(intent.units > 0) || !intent.units.isFinite) return 'Enter a size';
     if (!(intent.price > 0) || !intent.price.isFinite) return 'Enter a price';
-    if (intent.marginCents <= 0) return 'Enter a size';
+    if (!_level(intent.takeProfit)) return 'Enter a take profit';
+    if (!_level(intent.stopLoss)) return 'Enter a stop loss';
+    // There is no position to reduce, so it would open one.
+    if (intent.reduceOnly && intent.kind == OrderKind.market) {
+      return 'Reduce only — not in the demo yet';
+    }
+    // Margin alone first: past cash, margin + fee need not fit an int.
+    if (intent.marginCents > cashCents.value) return notEnoughFunds;
+    if (intent.notionalCents > OrderIntent.maxNotionalCents) {
+      return 'Size too large';
+    }
+    if (intent.marginCents <= 0) return 'Size too small';
     if (intent.totalCents > cashCents.value) return notEnoughFunds;
     return null;
   }
+
+  /// An exit is unset, or a real price.
+  static bool _level(double? price) =>
+      price == null || (price > 0 && price.isFinite);
 
   /// The most margin cash covers at [leverage], leaving room for the fee.
   static int maxMarginCents(int leverage, int feeBps) =>
@@ -149,7 +166,7 @@ abstract final class Scenario {
       return OrderResting(order);
     }
     if (stalePrices.value.contains(intent.symbol)) {
-      return const OrderFailed('Price expired');
+      return const OrderFailed(priceExpired);
     }
     final long = intent.side == TradeSide.long;
     final receipt = OrderReceipt(
@@ -225,6 +242,9 @@ enum OrderKind { market, limit, stop }
 /// The funds failure, worded the same on both tickets and in the store.
 const notEnoughFunds = 'Not enough funds';
 
+/// The stale-price failure, the one a ticket offers Retry for.
+const priceExpired = 'Price expired';
+
 /// What a trader-index ticket says instead of placing (VC-MKT-005).
 const traderIndexNotBuilt = 'Trader-index ticket — not in the demo yet';
 
@@ -284,9 +304,16 @@ class OrderIntent {
   late final int marginCents = (notionalCents / leverage).round();
   late final int feeCents = notionalCents * feeBps ~/ 10000;
 
+  /// The largest notional the store takes, about $9 billion: times any fee
+  /// rate the cent math stays under 2^53, exact as an `int` on every
+  /// platform, so no cost wraps.
+  static const maxNotionalCents = 900719925474;
+
   /// A non-finite size or price costs nothing here, so a ticket still
-  /// renders; [Scenario.problem] refuses it.
-  static int _cents(double usd) => usd.isFinite ? (usd * 100).round() : 0;
+  /// renders; [Scenario.problem] refuses it. A notional past
+  /// [maxNotionalCents] is held just past it, for the same reason.
+  static int _cents(double usd) =>
+      usd.isFinite ? (usd * 100).clamp(0, maxNotionalCents + 1).round() : 0;
 
   /// Paper funds required: what a fill takes from cash.
   int get totalCents => marginCents + feeCents;
