@@ -462,7 +462,8 @@ VistaColosseum/
 │       ├── 2026-10-04T140130-phase2-fix-iter2.md
 │       ├── 2026-10-04T150315-phase2-review-iter3.md
 │       ├── 2026-10-04T151112-phase3-simulation-indicator-checkpoint.md
-│       └── 2026-10-04T151800-phase3-simulation-indicator.md
+│       ├── 2026-10-04T151800-phase3-simulation-indicator.md
+│       └── 2026-10-04T161405-phase3-review-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -552,6 +553,11 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-3-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
@@ -567,6 +573,8 @@ VistaColosseum/
 │       ├── review-phase-2-iter-2-prelude.md
 │       ├── review-phase-2-iter-2.md
 │       ├── review-phase-2-iter-3.md
+│       ├── review-phase-3-iter-1-prelude.md
+│       ├── review-phase-3-iter-1.md
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
