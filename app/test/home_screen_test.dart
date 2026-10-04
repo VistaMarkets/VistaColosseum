@@ -1099,19 +1099,39 @@ void main() {
       // Its own page; a long gets the upside statements, the first picked.
       expect(find.byType(BattleSetupScreen), findsOneWidget);
       expect(find.text('Closes above'), findsOneWidget);
+      expect(find.text('Stays above'), findsOneWidget);
       expect(find.text('Ends higher'), findsOneWidget);
       expect(find.text('Closes below'), findsNothing);
-      expect(find.text(r'ETH closes above $… by Friday'), findsOneWidget);
-      // The level is typed; Add waits for it.
+      expect(find.textContaining('LONG ETH'), findsWidgets);
+      // The sentence: ETH [closes above] [$…] by [Fri 16:00].
+      expect(find.text('closes above'), findsOneWidget);
+      expect(find.text(r'$…'), findsOneWidget);
+      expect(find.text('Fri 16:00'), findsOneWidget);
+      // The level is typed (grouped as you type); Add waits for it.
       await tester.tap(find.text('Add battle'));
       await tester.pumpAndSettle();
       expect(find.byType(BattleSetupScreen), findsOneWidget);
       await tester.enterText(find.byType(TextField), '3200');
       await tester.pump();
-      expect(find.text(r'ETH closes above $3,200 by Friday'), findsOneWidget);
+      expect(find.text('3,200'), findsOneWidget);
+      expect(find.text(r'$3,200'), findsOneWidget);
+      // A shortcut fills it; then back to a typed level.
+      await tester.tap(find.text('+10%'));
+      await tester.pump();
+      expect(find.text('3,265'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), '3200');
+      await tester.pump();
+      // Tapping the deadline part moves to the next deadline.
+      await tester.tap(find.text('Fri 16:00'));
+      await tester.pump();
+      expect(find.text('next Fri'), findsOneWidget);
+      await tester.tap(find.text('Fri'));
+      await tester.pump();
       await tester.tap(find.text('Touches'));
       await tester.pump();
-      expect(find.text(r'ETH touches $3,200 before Friday'), findsOneWidget);
+      expect(find.text('touches'), findsOneWidget);
+      expect(find.text('before'), findsOneWidget);
+      await tester.ensureVisible(find.text('Add battle'));
       await tester.tap(find.text('Add battle'));
       await tester.pumpAndSettle();
 
@@ -1151,8 +1171,10 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Make it a battle'));
       await tester.pumpAndSettle();
       expect(find.text('Closes below'), findsOneWidget);
+      expect(find.text('Stays below'), findsOneWidget);
       expect(find.text('Ends lower'), findsOneWidget);
       expect(find.text('Closes above'), findsNothing);
+      expect(find.textContaining('SHORT SOL'), findsWidgets);
       await tester.tap(find.text('Ends lower')); // no level needed
       await tester.pump();
       await tester.tap(find.text('Add battle'));
