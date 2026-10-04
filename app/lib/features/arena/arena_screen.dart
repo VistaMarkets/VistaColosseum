@@ -25,8 +25,8 @@ class ArenaScreen extends StatefulWidget {
 }
 
 class _ArenaScreenState extends State<ArenaScreen> {
-  /// Height the floating composer takes above the nav (pill plus margins).
-  static const double _composerSpace = 60;
+  /// Height the floating + button takes above the nav (button plus margins).
+  static const double _composerSpace = 68;
 
   int _sort = 0;
 
@@ -37,7 +37,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   @override
   Widget build(BuildContext context) {
     // The list runs to the bottom of the screen and scrolls under the
-    // floating composer and nav, which sit over it with nothing behind them.
+    // floating + button and nav, which sit over it with nothing behind them.
     final navSpace = MediaQuery.paddingOf(context).bottom;
     return SafeArea(
       bottom: false,
@@ -82,7 +82,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
               Expanded(
                 child: ListView(
-                  // Room to scroll the last take clear of the composer and
+                  // Room to scroll the last take clear of the + button and
                   // nav.
                   padding: EdgeInsets.only(
                     bottom: VistaSpace.gutter + _composerSpace + navSpace,
@@ -168,12 +168,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
             ],
           ),
-          // The composer floats just above the nav.
+          // The + floats in the lower right, just above the nav.
           Positioned(
-            left: VistaSpace.gutter,
             right: VistaSpace.gutter,
-            bottom: navSpace + VistaSpace.sm,
-            child: _Composer(onTap: () => _notBuilt('Add your take')),
+            bottom: navSpace + VistaSpace.md,
+            child: _AddTakeButton(onTap: () => _notBuilt('Add your take')),
           ),
         ],
       ),
@@ -181,9 +180,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
   }
 }
 
-/// The floating "+ Add your take…" pill: where a take or a call starts.
-class _Composer extends StatelessWidget {
-  const _Composer({required this.onTap});
+/// The floating + in the lower right: where a take or a call starts.
+class _AddTakeButton extends StatelessWidget {
+  const _AddTakeButton({required this.onTap});
+
+  static const double size = 56;
 
   final VoidCallback onTap;
 
@@ -194,44 +195,28 @@ class _Composer extends StatelessWidget {
       label: 'Add your take',
       excludeSemantics: true,
       child: VistaPressable(
-        scale: 0.98,
         onTap: onTap,
-        child: VistaGlass(
-          height: 48,
-          padding: const EdgeInsets.only(
-            left: VistaSpace.md,
-            right: VistaSpace.gutter,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: VistaColors.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  '+',
-                  style: VistaType.title.copyWith(
-                    color: VistaColors.onAccent,
-                    height: 1,
-                  ),
-                ),
-              ),
-              const SizedBox(width: VistaSpace.lg),
-              Expanded(
-                child: Text(
-                  'Add your take…',
-                  style: VistaType.subheadMuted.copyWith(
-                    color: VistaColors.textMuted,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: VistaColors.accent,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x59000000),
+                offset: Offset(0, 6),
+                blurRadius: 18,
               ),
             ],
+          ),
+          child: Text(
+            '+',
+            style: VistaType.displayMedium.copyWith(
+              color: VistaColors.onAccent,
+              height: 1,
+            ),
           ),
         ),
       ),

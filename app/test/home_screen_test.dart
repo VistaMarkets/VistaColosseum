@@ -889,7 +889,7 @@ void main() {
       expect(find.byType(VistaBattleCard), findsNothing);
       // The account bar on top (with settings), the composer at the bottom.
       expect(find.bySemanticsLabel('Settings'), findsOneWidget);
-      expect(find.text('Add your take…'), findsOneWidget);
+      expect(find.bySemanticsLabel('Add your take'), findsOneWidget);
     });
 
     testWidgets('sort chips stay fixed while the feed scrolls', (tester) async {
