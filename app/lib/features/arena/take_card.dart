@@ -68,12 +68,19 @@ class ArenaSectionHead extends StatelessWidget {
 /// A live battle in the carousel: market and live price, the question, the
 /// long/short split and how many takes it has.
 class BattleTile extends StatelessWidget {
-  const BattleTile({super.key, required this.battle, this.onTap});
+  const BattleTile({super.key, required this.battle, this.onTap})
+    : flush = false;
+
+  /// The same battle as a full-width row with a hairline under it, for the
+  /// Live battles page.
+  const BattleTile.row({super.key, required this.battle, this.onTap})
+    : flush = true;
 
   static const double width = 244;
 
   final LiveBattle battle;
   final VoidCallback? onTap;
+  final bool flush;
 
   @override
   Widget build(BuildContext context) {
@@ -87,12 +94,24 @@ class BattleTile extends StatelessWidget {
         scale: 0.98,
         onTap: onTap,
         child: Container(
-          width: width,
-          padding: const EdgeInsets.all(VistaSpace.xxl),
-          decoration: BoxDecoration(
-            color: VistaColors.surface,
-            borderRadius: BorderRadius.circular(VistaRadius.card),
-          ),
+          width: flush ? double.infinity : width,
+          padding: flush
+              ? const EdgeInsets.symmetric(
+                  horizontal: VistaSpace.gutter + VistaSpace.xs,
+                  vertical: VistaSpace.gutter,
+                )
+              : const EdgeInsets.all(VistaSpace.xxl),
+          decoration: flush
+              ? const BoxDecoration(
+                  color: VistaColors.background,
+                  border: Border(
+                    bottom: BorderSide(color: VistaColors.hairline),
+                  ),
+                )
+              : BoxDecoration(
+                  color: VistaColors.surface,
+                  borderRadius: BorderRadius.circular(VistaRadius.card),
+                ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -141,11 +160,12 @@ class BattleTile extends StatelessWidget {
               const SizedBox(height: VistaSpace.lg),
               Text(
                 b.question,
-                style: VistaType.subhead,
-                maxLines: 2,
+                style: flush ? VistaType.tab : VistaType.subhead,
+                maxLines: flush ? 3 : 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const Spacer(),
+              // Tiles in the carousel share a height; push the bar down.
+              if (!flush) const Spacer(),
               const SizedBox(height: VistaSpace.lg),
               VistaSplitBar(leftFraction: b.longShare, height: 6),
               const SizedBox(height: VistaSpace.lg),
@@ -466,11 +486,7 @@ class _Tag extends StatelessWidget {
 
 /// The battle a take is on: "BTC · Reclaims $72,000 by Fri ›".
 class _BattleChip extends StatelessWidget {
-  const _BattleChip({
-    required this.label,
-    required this.semantics,
-    this.onTap,
-  });
+  const _BattleChip({required this.label, required this.semantics, this.onTap});
 
   final String label;
   final String semantics;

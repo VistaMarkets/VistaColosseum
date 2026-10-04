@@ -9,7 +9,7 @@ class LiveBattle {
     required this.change,
     required this.question,
     required this.longShare,
-    required this.timeLeft,
+    required this.minutesLeft,
     required this.takes,
   });
 
@@ -21,8 +21,17 @@ class LiveBattle {
 
   /// Share of takes on the long side, 0–1.
   final double longShare;
-  final String timeLeft;
+
+  /// Time until the battle settles.
+  final int minutesLeft;
   final int takes;
+
+  /// "45m left", "4h left", "2d left".
+  String get timeLeft => minutesLeft < 60
+      ? '${minutesLeft}m left'
+      : minutesLeft < 1440
+      ? '${minutesLeft ~/ 60}h left'
+      : '${minutesLeft ~/ 1440}d left';
 }
 
 /// One person's take in the feed. A take on a battle carries [battle]; a
@@ -74,7 +83,7 @@ abstract final class ArenaMock {
       change: '+1.2%',
       question: r"Reclaims $72,000 before Friday's expiry",
       longShare: 0.63,
-      timeLeft: '4h left',
+      minutesLeft: 252,
       takes: 41,
     ),
     LiveBattle(
@@ -82,7 +91,7 @@ abstract final class ArenaMock {
       change: '−0.4%',
       question: r'Flips $3,200 before the weekly close',
       longShare: 0.41,
-      timeLeft: '1d left',
+      minutesLeft: 1530,
       takes: 28,
     ),
     LiveBattle(
@@ -90,10 +99,52 @@ abstract final class ArenaMock {
       change: '+3.8%',
       question: r'Holds $200 through the Fed minutes',
       longShare: 0.55,
-      timeLeft: '2d left',
+      minutesLeft: 3100,
       takes: 17,
     ),
+    LiveBattle(
+      ticker: 'BTC',
+      change: '+1.2%',
+      question: 'Funding flips negative before Monday',
+      longShare: 0.35,
+      minutesLeft: 2280,
+      takes: 22,
+    ),
+    LiveBattle(
+      ticker: 'ARB',
+      change: '+0.9%',
+      question: r'Breaks $1.20 this week',
+      longShare: 0.48,
+      minutesLeft: 45,
+      takes: 9,
+    ),
+    LiveBattle(
+      ticker: 'AVAX',
+      change: '−2.1%',
+      question: r'Back above $40 by Sunday',
+      longShare: 0.52,
+      minutesLeft: 610,
+      takes: 14,
+    ),
   ];
+
+  /// Ways to order the Live battles page.
+  static const battleSorts = ['Most takes', 'Closing soon', 'Closest split'];
+
+  /// [battles] in the order of [battleSorts] at [sort].
+  static List<LiveBattle> sortedBattles(int sort) {
+    final list = [...battles];
+    switch (sort) {
+      case 1:
+        list.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
+      case 2:
+        double gap(LiveBattle b) => (b.longShare - 0.5).abs();
+        list.sort((a, b) => gap(a).compareTo(gap(b)));
+      default:
+        list.sort((a, b) => b.takes.compareTo(a.takes));
+    }
+    return list;
+  }
 
   /// Backed takes first, then the rest; each group newest first.
   static const takes = [

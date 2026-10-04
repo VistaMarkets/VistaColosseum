@@ -6,6 +6,7 @@ import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
+import 'live_battles_screen.dart';
 import 'opinions_screen.dart';
 import 'take_card.dart';
 
@@ -89,14 +90,27 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   children: [
                     ArenaSectionHead(
                       title: 'Live battles',
-                      top: VistaSpace.gutter + VistaSpace.xs,
-                      bottom: VistaSpace.xl,
-                      trailing: GestureDetector(
-                        onTap: () => _notBuilt('All battles'),
-                        child: Text(
-                          'See all',
-                          style: VistaType.subhead.copyWith(
-                            color: VistaColors.accent,
+                      // "See all" sits in a 44pt tap row; the head's
+                      // padding gives back the extra height.
+                      top: VistaSpace.md,
+                      bottom: 0,
+                      trailing: Semantics(
+                        button: true,
+                        label: 'See all live battles',
+                        excludeSemantics: true,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _push(LiveBattlesScreen.route()),
+                          child: SizedBox(
+                            height: VistaSize.tapTarget,
+                            child: Center(
+                              child: Text(
+                                'See all',
+                                style: VistaType.subhead.copyWith(
+                                  color: VistaColors.accent,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -111,7 +125,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            for (final (i, b) in ArenaMock.battles.indexed) ...[
+                            for (final (i, b)
+                                in ArenaMock.battles.take(3).indexed) ...[
                               if (i > 0) const SizedBox(width: VistaSpace.lg),
                               BattleTile(
                                 battle: b,

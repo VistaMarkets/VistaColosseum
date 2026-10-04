@@ -14,6 +14,7 @@ import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/arena/opinions_screen.dart';
 import 'package:vista_colosseum/features/arena/take_card.dart';
+import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
@@ -953,6 +954,43 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Place market long'), findsOneWidget);
     });
+
+    testWidgets('See all opens Live battles; sorts; a row opens it', (
+      tester,
+    ) async {
+      await openArena(tester);
+      expect(find.byType(BattleTile), findsNWidgets(3)); // carousel: top 3
+      await tester.tap(find.text('See all'));
+      await tester.pumpAndSettle();
+      expect(find.byType(LiveBattlesScreen), findsOneWidget);
+      expect(find.text('6 live'), findsOneWidget);
+      String firstQuestion() => tester
+          .widgetList<BattleTile>(find.byType(BattleTile))
+          .first
+          .battle
+          .question;
+      expect(firstQuestion(), r"Reclaims $72,000 before Friday's expiry");
+      await tester.tap(find.text('Closing soon'));
+      await tester.pumpAndSettle();
+      expect(firstQuestion(), r'Breaks $1.20 this week'); // 45m left
+      await tester.tap(find.text('Closest split'));
+      await tester.pumpAndSettle();
+      expect(firstQuestion(), r'Breaks $1.20 this week'); // 48 / 52
+      await tester.tap(find.byType(BattleTile).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(OpinionsScreen), findsOneWidget);
+    });
+
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('Live battles renders without overflow on $name', (
+        tester,
+      ) async {
+        await openArena(tester, size, padding);
+        await tester.tap(find.text('See all'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     testWidgets('tapping a caller opens their profile', (tester) async {
       await openArena(tester);
