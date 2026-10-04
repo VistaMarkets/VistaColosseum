@@ -1,0 +1,742 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/silent-failure-hunter/sfh_probe_test.dart
+00:00 +0: FEED typed=184467440737095717
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#c12e9 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#1da32] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d97f5] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#d93ed] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#5a36f relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#1da32] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d97f5] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#d93ed] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#b49d2 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#1da32] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d97f5] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#d93ed] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED typed=184467440737095717 field="184467440737095717" labels=[$401.68 of ETH at 2x · 0.1353 ETH, Long $200.84 · 2x]
+FEED typed=184467440737095717 receipts=[[20084, 20, 20104]] cash=1227896
+00:01 +1: FEED typed=184467440737095517
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#ed918 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#799d7] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#6432b] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#5c7d3] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#d23c9 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#799d7] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#6432b] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#5c7d3] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#38d35 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#799d7] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#6432b] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#5c7d3] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED typed=184467440737095517 field="184467440737095517" labels=[$1.68 of ETH at 2x · 0.0006 ETH, Long $0.84 · 2x]
+FEED typed=184467440737095517 receipts=[[84, 0, 84]] cash=1247916
+00:01 +2: FEED typed=92233720368547759
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#6e284 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9913f] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d4f0d] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#07c1f] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#c3482 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9913f] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d4f0d] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#07c1f] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#8c906 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9913f] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d4f0d] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#07c1f] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED typed=92233720368547759 field="92233720368547759" labels=[$0 of ETH at 2x · 0.0000 ETH, Enter an amount]
+FEED typed=92233720368547759 receipts=[] cash=1248000
+00:01 +3: FEED typed=99999999999999999999
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#66eff relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#f2f05] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#61d73] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#d65a6] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#9fb45 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#f2f05] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#61d73] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#d65a6] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#20627 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#f2f05] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#61d73] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#d65a6] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED typed=99999999999999999999 field="99999999999999999999" labels=[$0 of ETH at 2x · 0.0000 ETH, Enter an amount]
+FEED typed=99999999999999999999 receipts=[] cash=1248000
+00:02 +4: FEED typed=1.2.3
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#8672e relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9ca3b] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#58f70] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#8a4e6] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#e9e2e relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9ca3b] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#58f70] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#8a4e6] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#0d1cf relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9ca3b] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#58f70] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#8a4e6] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED typed=1.2.3 field="1.2.3" labels=[$2.40 of ETH at 2x · 0.0008 ETH, Long $1.20 · 2x]
+FEED typed=1.2.3 receipts=[[120, 0, 120]] cash=1247880
+00:02 +5: FEED typed=1,5
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#1558b relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#7a6e8] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d2c06] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#91da8] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#3fca4 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#7a6e8] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d2c06] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#91da8] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#d69c9 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#7a6e8] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#d2c06] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#91da8] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED typed=1,5 field="1,5" labels=[$30 of ETH at 2x · 0.0101 ETH, Long $15 · 2x]
+FEED typed=1,5 receipts=[[1500, 1, 1501]] cash=1246499
+00:02 +6: OT 200000 BTC: margin/fee rows vs true cents
+OT200k shown=[Size · at $67,412.00, $900,719,925.48 · $61,008, $4,503,599.62, Not enough funds]
+OT200k intent notional=900719925475 margin=90071992548 fee=450359962 true notional=1348240000000 trueMargin=134824000000 trueFee=674120000
+00:02 +7: OT 306-digit BTC size: infinite product
+OTINF shown=[Size · at $67,412.00, Size too small]
+00:03 +8: store: wrong-side TP/SL on a long fills
+WRONGSIDE result=OrderFilled entry=2968.4 tp=2000.0 sl=3500.0
+00:03 +9: Retry at moved price, then Cancel: stale flag consumed
+RETRYCANCEL stale before={AVAX} after={} equal=false cash=1248000 receipts=0
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 167 pixels on the right.
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#903e5 DISPOSED OVERFLOWING:
+  creator: MultiChildRenderObjectElement#87d96(DEFUNCT) ← MultiChildRenderObjectElement#8607d(DEFUNCT)
+    ← StatefulElement#ccc39(DEFUNCT)
+  parentData: offset=Offset(0.0, 252.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 44.0)
+  direction: horizontal
+  mainAxisAlignment: spaceBetween
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +9 -1: Retry at moved price, then Cancel: stale flag consumed [E]
+  Test failed. See exception logs above.
+  The test description was: Retry at moved price, then Cancel: stale flag consumed
+  
+══╡ EXCEPTION CAUGHT BY WIDGET INSPECTOR ╞══════════════════════════════════════════════════════════
+The following assertion was thrown:
+Looking up a deactivated widget's ancestor is unsafe.
+At this point the state of the widget's element tree is no longer stable.
+To safely refer to a widget's ancestor in its dispose() method, save a reference to the ancestor by
+calling dependOnInheritedWidgetOfExactType() in the widget's didChangeDependencies() method.
+
+When the exception was thrown, this was the stack:
+#0      Element._debugCheckStateIsActiveForAncestorLookup.<anonymous closure> (package:flutter/src/widgets/framework.dart:5062:9)
+#1      Element._debugCheckStateIsActiveForAncestorLookup (package:flutter/src/widgets/framework.dart:5076:6)
+#2      Element.visitAncestorElements (package:flutter/src/widgets/framework.dart:5187:12)
+#3      _describeRelevantUserCode (package:flutter/src/widgets/widget_inspector.dart:4342:13)
+#4      _parseDiagnosticsNode (package:flutter/src/widgets/widget_inspector.dart:4261:12)
+#5      debugTransformDebugCreator (package:flutter/src/widgets/widget_inspector.dart:4240:21)
+#6      _FlutterErrorDetailsNode.builder (package:flutter/src/foundation/assertions.dart:1300:31)
+#7      DiagnosticableNode.getProperties (package:flutter/src/foundation/diagnostics.dart:2943:68)
+#8      TextTreeRenderer._debugRender (package:flutter/src/foundation/diagnostics.dart:1270:63)
+#9      TextTreeRenderer.render (package:flutter/src/foundation/diagnostics.dart:1137:14)
+#10     FlutterError.dumpErrorToConsole (package:flutter/src/foundation/assertions.dart:1030:13)
+#11     _defaultTestExceptionReporter (package:flutter_test/src/test_exception_reporter.dart:29:16)
+#12     TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1714:28)
+<asynchronous suspension>
+(elided 8 frames from dart:async and package:stack_trace)
+
+This exception was caught while trying to describe the user-relevant code of another error.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY WIDGET INSPECTOR ╞══════════════════════════════════════════════════════════
+The following assertion was thrown:
+Looking up a deactivated widget's ancestor is unsafe.
+At this point the state of the widget's element tree is no longer stable.
+To safely refer to a widget's ancestor in its dispose() method, save a reference to the ancestor by
+calling dependOnInheritedWidgetOfExactType() in the widget's didChangeDependencies() method.
+
+When the exception was thrown, this was the stack:
+#0      Element._debugCheckStateIsActiveForAncestorLookup.<anonymous closure> (package:flutter/src/widgets/framework.dart:5062:9)
+#1      Element._debugCheckStateIsActiveForAncestorLookup (package:flutter/src/widgets/framework.dart:5076:6)
+#2      Element.visitAncestorElements (package:flutter/src/widgets/framework.dart:5187:12)
+#3      _describeRelevantUserCode (package:flutter/src/widgets/widget_inspector.dart:4342:13)
+#4      _parseDiagnosticsNode (package:flutter/src/widgets/widget_inspector.dart:4261:12)
+#5      debugTransformDebugCreator (package:flutter/src/widgets/widget_inspector.dart:4240:21)
+#6      _FlutterErrorDetailsNode.builder (package:flutter/src/foundation/assertions.dart:1300:31)
+#7      DiagnosticableNode.emptyBodyDescription (package:flutter/src/foundation/diagnostics.dart:2939:45)
+#8      TextTreeRenderer._debugRender (package:flutter/src/foundation/diagnostics.dart:1307:14)
+#9      TextTreeRenderer.render (package:flutter/src/foundation/diagnostics.dart:1137:14)
+#10     FlutterError.dumpErrorToConsole (package:flutter/src/foundation/assertions.dart:1030:13)
+#11     _defaultTestExceptionReporter (package:flutter_test/src/test_exception_reporter.dart:29:16)
+#12     TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1714:28)
+<asynchronous suspension>
+(elided 8 frames from dart:async and package:stack_trace)
+
+This exception was caught while trying to describe the user-relevant code of another error.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +9 -1: Wallet change line after a fill
+CHANGE before=[$12,480.00, $12,480.00, +$91 (0.73%), +$1.8M (4.27%)]
+CHANGE after 1x 2 ETH fill (cash 654024)=[+$91 (1.41%), +$1.8M (4.27%)]
+00:03 +10 -1: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/silent-failure-hunter/sfh_probe_test.dart: Retry at moved price, then Cancel: stale flag consumed

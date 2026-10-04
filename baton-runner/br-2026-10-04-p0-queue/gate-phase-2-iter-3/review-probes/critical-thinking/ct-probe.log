@@ -1,0 +1,110 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/critical-thinking/ct_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: P1 OrderTicket overflow: default vs 13-digit size, fonts loaded
+P1 after open: exceptions=0
+P1 after 13 digits: exceptions=0 labels=[Not enough funds]
+00:00 +1: P2 Feed overflow: default vs 18-digit amount, fonts loaded
+P2 after open: exceptions=0
+P2 after 18 digits: exceptions=0 labels=[Long $0.84 · 2x]
+00:01 +2: P3 Feed: an 18-digit amount that wraps to exactly 200 dollars
+P3 field texts=[184467440737095716.16] labels=[Long $200 · 2x]
+P3 receipt margin=20000 total=20020 cash=1227980 exceptions=0
+00:01 +3: P4 smallest phone: reduce-only and empty-TP refusal labels
+P4 open exceptions=0
+P4 reduce-only labels=[Reduce only, Reduce only — not in the demo yet] exceptions=0
+P4 reduce-only button rect=Rect.fromLTRB(32.6, 574.0, 327.4, 594.0)
+P4 fields with exits on=[0.4605, 72,131, 65,996]
+P4 empty TP labels=[Enter a take profit] exceptions=0
+00:01 +4: P5 Retry at a moved price keeps absolute exits; review hides them
+P5 fields=[812.69, 40.87, 37.40]
+P5 review rows mentioning exits=[]
+P5 re-review rows mentioning exits=[]
+P5 filled Avalanche TradeSide.long entry=45.0 tp=40.87 sl=37.4 tpBelowEntryOnLong=true
+00:02 +5: P6 Retry then Cancel: the store moved on a cancelled flow
+P6 stalePrices before Retry={AVAX} after Cancel={} receipts=0
+00:02 +6: P7 Feed: a 16-digit amount and the slider semantics
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 89 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#ff8f6 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9721e] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#86bec] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#4ac82] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 42 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#8553f relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#9721e] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#86bec] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#4ac82] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+  exception: Multiple exceptions (2) were detected during the running of the current test, and at least one was unexpected.
+P7 slider value="-6768224418037% of available" labels=[Not enough funds] exceptions=1
+00:02 +7: P8 store: product overflows to +inf -> message
+P8 problem=Size too small formatCents(max)=$9,007,199,254.74
+00:02 +8: (tearDownAll)
+00:02 +8: All tests passed!
