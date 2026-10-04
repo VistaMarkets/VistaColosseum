@@ -1,0 +1,25 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-2/h1-probe/h1_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: Home card maya.eth: feed ticket call side x Market/Limit refused
+00:01 +1: Home card 0xreal: feed ticket call side x Market/Limit refused
+00:02 +2: Home card lunaq: feed ticket call side x Market/Limit refused
+00:02 +3: Home card deltaone: feed ticket call side x Market/Limit refused
+00:02 +4: Home card kestrel: feed ticket call side x Market/Limit refused
+00:03 +5: Home card kilo.sol: feed ticket call side x Market/Limit refused
+00:03 +6: Home card nara: feed ticket call side x Market/Limit refused
+00:03 +7: Home card maya.eth -> Details (trader page) Market/Limit/Stop refused
+00:04 +8: Arena -> caller maya.eth -> Profile -> Market page refused
+00:04 +9: store refuses every trader handle on every kind
+00:04 +10: (tearDownAll)
+00:04 +10: All tests passed!
