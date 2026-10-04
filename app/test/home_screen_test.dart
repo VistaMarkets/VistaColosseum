@@ -1880,7 +1880,7 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text("I'm with Bear").first);
+      await tester.tap(find.text('Join shorts').first);
       await tester.pumpAndSettle();
       expect(find.text('Place market short'), findsOneWidget);
     });

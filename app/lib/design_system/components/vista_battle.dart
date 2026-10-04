@@ -191,12 +191,12 @@ class VistaBattleCard extends StatelessWidget {
             child: VistaSidePair(
               longOnRight: longOnRight,
               long: VistaPillButton(
-                label: "I'm with Bull",
+                label: 'Join longs',
                 variant: VistaPillVariant.long,
                 onPressed: onBull,
               ),
               short: VistaPillButton(
-                label: "I'm with Bear",
+                label: 'Join shorts',
                 variant: VistaPillVariant.short,
                 onPressed: onBear,
               ),
