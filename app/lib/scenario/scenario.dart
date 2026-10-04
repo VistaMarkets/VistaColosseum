@@ -68,6 +68,14 @@ abstract final class Scenario {
       if (value) key,
   });
 
+  /// Follows or unfollows [handle]. Local only: nothing is sent anywhere.
+  static void toggleFollow(String handle) {
+    final f = followed.value;
+    followed.value = Set.unmodifiable(
+      f.contains(handle) ? f.where((h) => h != handle) : {...f, handle},
+    );
+  }
+
   /// Puts every value back to the fixture seed.
   static void reset() {
     cashCents.value = PortfolioMock.cashCents;

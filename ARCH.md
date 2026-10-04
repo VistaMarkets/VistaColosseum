@@ -445,7 +445,9 @@ VistaColosseum/
 ├── baton-pass/
 │   └── br-2026-10-04-p0-queue/
 │       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
-│       └── 2026-10-04T095757-phase1-scenario-store-half1.md
+│       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
+│       ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
+│       └── 2026-10-04T101019-phase1-scenario-store-half2.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── log.md

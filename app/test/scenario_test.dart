@@ -3,11 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
+import 'package:vista_colosseum/features/account/account_top_bar.dart';
 import 'package:vista_colosseum/features/home/likes_state.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
+import 'package:vista_colosseum/features/people/follow_list_screen.dart';
+import 'package:vista_colosseum/features/people/follow_mock.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
+import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
+import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/watchlist/watchlist_state.dart';
 import 'package:vista_colosseum/main.dart';
@@ -113,5 +119,137 @@ void main() {
     expect(find.textContaining('Positions · '), findsOneWidget);
     expect(find.text('Positions · 1'), findsOneWidget);
     expect(find.text('Ethereum'), findsNothing);
+  });
+
+  testWidgets(
+    'Home, detail, Arena and Wallet read one position from Scenario',
+    (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      // One set of values, written only to the store.
+      Scenario.cashCents.value = 1000000; // $10,000
+      Scenario.positions.value = [PortfolioMock.positions.last];
+      AccountState.listMarket('ZED');
+      LikesState.toggle(mockFeed.first);
+      Scenario.favoriteAssets.value = const [
+        'BTC',
+      ]; // ETH, the first call, unstarred
+      final topBar = find.byType(AccountTopBar);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+
+      // Home: the top-bar cash and the first call's like.
+      expect(
+        find.descendant(of: topBar, matching: find.text(r'$10,000')),
+        findsOneWidget,
+      );
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Like, 4.4k').first),
+        isSemantics(isToggled: true),
+      );
+
+      // Cash moves while the app is up; what is shown follows it.
+      Scenario.cashCents.value = 1234500;
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: topBar, matching: find.text(r'$12,345')),
+        findsOneWidget,
+      );
+
+      // Detail: the star is the store's favourite.
+      await tester.tap(find.text('Details').first);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<VistaWatchButton>(find.byType(VistaWatchButton)).watched,
+        isFalse,
+      );
+      Navigator.of(tester.element(find.byType(VistaWatchButton))).pop();
+      await tester.pumpAndSettle();
+
+      // Arena shows none of these values itself; nothing stale shows there.
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      expect(find.text(r'$12,480'), findsNothing);
+
+      // Wallet: cash in the top bar and the pager, the one position, the
+      // listed market.
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      expect(find.text(r'$12,345'), findsNWidgets(2));
+      expect(find.text(r'$12,480'), findsNothing);
+      expect(find.text('Positions · 1'), findsOneWidget);
+      expect(find.text('Ethereum'), findsNothing);
+      expect(find.text(r'$ZED market cap'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Follow buttons read and write the follows in Scenario', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    Scenario.followers.value = FollowMock.followers.take(2).toList();
+    Scenario.followed.value = const {}; // not even lunaq, followed in the seed
+    await tester.pumpWidget(const MaterialApp(home: FollowListScreen()));
+    await tester.pumpAndSettle();
+
+    bool following(String handle) => tester
+        .widget<VistaFollowButton>(
+          find.descendant(
+            of: find.ancestor(
+              of: find.text(handle),
+              matching: find.byType(VistaPersonRow),
+            ),
+            matching: find.byType(VistaFollowButton),
+          ),
+        )
+        .following;
+
+    // The list and the buttons are the store's.
+    expect(find.text('sam.sol'), findsNothing);
+    expect(following('lunaq'), isFalse);
+
+    // Following someone in the list writes the store; their profile agrees.
+    await tester.tap(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('0xreal'),
+          matching: find.byType(VistaPersonRow),
+        ),
+        matching: find.byType(VistaFollowButton),
+      ),
+    );
+    await tester.pump();
+    expect(Scenario.followed.value, contains('0xreal'));
+    await tester.tap(find.text('0xreal'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ProfileScreen), findsOneWidget);
+    final profileButton = find.byType(VistaFollowButton);
+    expect(tester.widget<VistaFollowButton>(profileButton).following, isTrue);
+
+    // Unfollowing on the profile writes the store too.
+    await tester.tap(profileButton);
+    await tester.pump();
+    expect(Scenario.followed.value, isNot(contains('0xreal')));
+
+    // A private profile reads the same follows.
+    Scenario.followed.value = const {'nara'};
+    await tester.pumpWidget(
+      const MaterialApp(
+        key: ValueKey('fresh app'), // a new navigator, not the list's
+        home: PrivateProfileScreen(handle: 'nara'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<VistaFollowButton>(find.byType(VistaFollowButton))
+          .following,
+      isTrue,
+    );
   });
 }

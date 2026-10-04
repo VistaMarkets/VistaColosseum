@@ -492,7 +492,8 @@ void main() {
       await openFromFollowers(tester, 'lunaq');
       expect(find.text('HOLDING NOW'), findsOneWidget);
       expect(find.text('L'), findsOneWidget); // avatar initial
-      expect(find.text('Follow'), findsOneWidget);
+      // The user follows lunaq in the fixture; the profile agrees.
+      expect(find.text('Following'), findsOneWidget);
 
       // Filters: Arena shows only arena receipts.
       final arenaChip = find.text('Arena 14');

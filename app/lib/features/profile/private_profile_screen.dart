@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../people/follow_list_screen.dart';
 import 'profile_mock.dart';
 
@@ -16,8 +17,6 @@ class PrivateProfileScreen extends StatefulWidget {
 }
 
 class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
-  bool _following = false;
-
   PrivateProfile get _p => privateProfiles[widget.handle]!;
 
   void _notBuilt(String what) {
@@ -165,11 +164,13 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
           style: VistaType.bodyRegular.copyWith(height: 1.35),
         ),
         gap,
-        VistaFollowButton(
-          following: _following,
-          expand: true,
-          // Local only: nothing is sent anywhere.
-          onPressed: () => setState(() => _following = !_following),
+        ValueListenableBuilder(
+          valueListenable: Scenario.followed,
+          builder: (context, followed, _) => VistaFollowButton(
+            following: followed.contains(widget.handle),
+            expand: true,
+            onPressed: () => Scenario.toggleFollow(widget.handle),
+          ),
         ),
       ],
     );

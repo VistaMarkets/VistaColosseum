@@ -69,9 +69,8 @@ class PositionDetail {
 /// Mock content from the Figma frame (174:110). Simulated.
 abstract final class PortfolioMock {
   static const handle = 'maya.eth';
-  static const balance = r'$12,480';
 
-  /// The user's cash, the Scenario seed (the balance above, in cents).
+  /// The user's cash, the Scenario seed: $12,480 in cents.
   static const cashCents = 1248000;
   static const change24h = r'+$91 (0.73%)';
   static const fees = r'$42.80';
