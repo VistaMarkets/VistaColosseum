@@ -133,6 +133,34 @@ void main() {
     expect(DisplayPrefs.longOnRight.value, isFalse);
   });
 
+  testWidgets('the simulated pill explains itself; its Reset demo is the '
+      'Settings reset', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    mutateEverything();
+    SettingsState.tradingPermission.value = false;
+    DisplayPrefs.longOnRight.value = true;
+    await tester.pumpAndSettle();
+
+    const note =
+        'All prices, fills, balances and results are simulated. '
+        'Nothing leaves this device.';
+    await tester.tap(find.text('Simulated · fixture-v1'));
+    await tester.pumpAndSettle();
+    expect(find.text(note), findsOneWidget);
+    await tester.tap(find.text('Reset demo'));
+    await tester.pumpAndSettle();
+    expect(find.text(note), findsNothing); // the note closes
+    expect(find.text('Demo reset to fixture-v1'), findsOneWidget);
+    expect(state(), equals(seed));
+    expect(SettingsState.tradingPermission.value, isTrue);
+    expect(DisplayPrefs.longOnRight.value, isFalse);
+  });
+
   testWidgets('Wallet lists the positions held in Scenario', (tester) async {
     tester.view
       ..physicalSize = const Size(402, 874) * 3

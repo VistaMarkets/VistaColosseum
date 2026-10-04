@@ -408,6 +408,8 @@ VistaColosseum/
 │   │   │   ├── share/  — Share call (Figma 462:474): the Home card's Share opens a sheet previewing exactly what the recipient gets (`ShareCallCard`, the 1.91:1 link-preview image with the Vista mark, drawn with the replay line painter, over its title and link), and Messages, Telegram, X and Copy link targets; sending is simulated (Copy link copies)
 │   │   │   │   ├── share_call_card.dart
 │   │   │   │   └── share_call_sheet.dart
+│   │   │   ├── simulation/
+│   │   │   │   └── simulation_indicator.dart
 │   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers / Alerts panels (`asset_alerts.dart`: the Home feed's alerts on that market — the call, its replay events and live fills — as a newest-first timeline); Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) filtered to Following or Everyone; tapping a post's order opens `CallerPlayScreen`, that call as a Home-style trade card (mock data); `order_ticket.dart` is the pro order sheet (Figma 218:608) that Long/Short opens on the trade pages and Arena (Bull = long, Bear = short): side, Market/Limit/Stop, leverage up to the market's cap, price with Mid, size in units or USD with a 0–100% slider, TP/SL, reduce-only, live margin, liquidation and fee; placing is simulated and limit/stop orders land in Portfolio › Open orders via `OrdersState`; `feed_order_ticket.dart` (a part of it) is the first-time ticket Home feed cards open (Figma 472:1359): the card's side, Market/Limit, 2x/5x/10x/custom leverage, a dollar amount, an entry-anchored TP/SL track and the price where the margin is lost
 │   │   │   │   ├── asset_alerts.dart
 │   │   │   │   ├── asset_trade_screen.dart
@@ -458,7 +460,9 @@ VistaColosseum/
 │       ├── 2026-10-04T125834-phase2-fix-iter1.md
 │       ├── 2026-10-04T135405-phase2-review-iter2.md
 │       ├── 2026-10-04T140130-phase2-fix-iter2.md
-│       └── 2026-10-04T150315-phase2-review-iter3.md
+│       ├── 2026-10-04T150315-phase2-review-iter3.md
+│       ├── 2026-10-04T151112-phase3-simulation-indicator-checkpoint.md
+│       └── 2026-10-04T151800-phase3-simulation-indicator.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -545,6 +549,10 @@ VistaColosseum/
 │       │   │   │   └── wrap.dart
 │       │   │   └── tdd-guide/
 │       │   │       └── tdd_probe_test.dart
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log

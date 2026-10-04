@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
-import '../../scenario/scenario.dart';
 import '../people/follow_mock.dart';
+import '../simulation/simulation_indicator.dart';
 import 'settings_mock.dart';
 import 'settings_state.dart';
 
@@ -120,11 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     VistaSettingRow(
                       title: 'Reset demo',
                       verticalPadding: 13,
-                      onTap: () {
-                        Scenario.reset();
-                        SettingsState.reset();
-                        _say('Demo reset to ${Scenario.fixtureVersion}');
-                      },
+                      onTap: () => resetDemo(context),
                     ),
                   ],
                 ),
