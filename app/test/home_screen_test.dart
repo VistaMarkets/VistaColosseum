@@ -29,10 +29,10 @@ import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
 import 'package:vista_colosseum/features/home/trade_idea_card.dart';
-import 'package:vista_colosseum/features/home/likes_state.dart';
 import 'package:vista_colosseum/features/home/people_in_sheet.dart';
 import 'package:vista_colosseum/features/share/share_call_sheet.dart';
 import 'package:vista_colosseum/main.dart';
+import 'package:vista_colosseum/scenario/scenario.dart';
 
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
 Finder get pagerBalance => find.descendant(
@@ -69,11 +69,9 @@ void main() {
   // Most screens assume the user already has a market; the make-a-market
   // group below starts without one.
   setUp(() {
-    AccountState.reset(withMarket: true);
-    LikesState.reset();
+    Scenario.reset();
+    AccountState.listMarket('MAYA');
     SettingsState.reset();
-    WatchlistState.reset();
-    OrdersState.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1278,7 +1276,7 @@ void main() {
   });
 
   group('make a market', () {
-    setUp(() => AccountState.reset(withMarket: false));
+    setUp(Scenario.reset);
 
     Future<void> openWallet(
       WidgetTester tester, [

@@ -11,6 +11,7 @@ import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
 import 'open_order_card.dart';
 import 'orders_state.dart';
+import '../../scenario/scenario.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
@@ -224,34 +225,36 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   Widget _positions() {
-    const positions = PortfolioMock.positions;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
-          child: Text(
-            'Positions · ${positions.length}',
-            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+    return ValueListenableBuilder(
+      valueListenable: Scenario.positions,
+      builder: (context, positions, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
+            child: Text(
+              'Positions · ${positions.length}',
+              style: VistaType.body.copyWith(color: VistaColors.textMuted),
+            ),
           ),
-        ),
-        for (final p in positions) ...[
-          const SizedBox(height: VistaSpace.sm),
-          VistaListRow(
-            leading: p.coinAsset != null
-                ? VistaListRow.coin(p.coinAsset!)
-                : VistaListRow.initial(p.initial!),
-            title: p.title,
-            tag: p.tag,
-            tagColor: p.side.color,
-            sparkAsset: p.sparkAsset,
-            value: p.pnl,
-            change: p.pnlPercent,
-            valueColor: p.pnlColor,
-            onPressed: () => showPositionSheet(context, p),
-          ),
+          for (final p in positions) ...[
+            const SizedBox(height: VistaSpace.sm),
+            VistaListRow(
+              leading: p.coinAsset != null
+                  ? VistaListRow.coin(p.coinAsset!)
+                  : VistaListRow.initial(p.initial!),
+              title: p.title,
+              tag: p.tag,
+              tagColor: p.side.color,
+              sparkAsset: p.sparkAsset,
+              value: p.pnl,
+              change: p.pnlPercent,
+              valueColor: p.pnlColor,
+              onPressed: () => showPositionSheet(context, p),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
