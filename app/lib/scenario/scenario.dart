@@ -90,11 +90,19 @@ abstract final class Scenario {
   static void refreshPrice(String symbol) => stalePrices.value =
       Set.unmodifiable(stalePrices.value.where((s) => s != symbol));
 
+  /// Whether [symbol] is an asset with a quote. A trader market's handle
+  /// is not: trader-index tickets are not built (VC-MKT-005).
+  static bool tradable(String symbol) => TradeMock.quotes.containsKey(symbol);
+
   /// Why [intent] can't be placed, or null. Tickets show it on their
-  /// button; [placeOrder] refuses with it.
+  /// button; [placeOrder] refuses with it, so no caller places a trader
+  /// index, a non-finite or sub-cent size, or a leverage under 1x.
   static String? problem(OrderIntent intent) {
-    if (intent.units <= 0) return 'Enter a size';
-    if (intent.price <= 0) return 'Enter a price';
+    if (!tradable(intent.symbol)) return traderIndexNotBuilt;
+    if (intent.leverage < 1) return 'Choose a leverage';
+    if (!(intent.units > 0) || !intent.units.isFinite) return 'Enter a size';
+    if (!(intent.price > 0) || !intent.price.isFinite) return 'Enter a price';
+    if (intent.marginCents <= 0) return 'Enter a size';
     if (intent.totalCents > cashCents.value) return notEnoughFunds;
     return null;
   }
@@ -217,6 +225,9 @@ enum OrderKind { market, limit, stop }
 /// The funds failure, worded the same on both tickets and in the store.
 const notEnoughFunds = 'Not enough funds';
 
+/// What a trader-index ticket says instead of placing (VC-MKT-005).
+const traderIndexNotBuilt = 'Trader-index ticket — not in the demo yet';
+
 /// One order as a ticket asks for it. [actionId] is minted once when the
 /// ticket opens and reused on every confirm of it. Costs are rounded once
 /// here, in int cents (VC-ORD-003), the only conversion from `double`: the
@@ -273,7 +284,8 @@ class OrderIntent {
   late final int marginCents = (notionalCents / leverage).round();
   late final int feeCents = notionalCents * feeBps ~/ 10000;
 
-  /// A ticket with no usable price (a trader index) costs nothing.
+  /// A non-finite size or price costs nothing here, so a ticket still
+  /// renders; [Scenario.problem] refuses it.
   static int _cents(double usd) => usd.isFinite ? (usd * 100).round() : 0;
 
   /// Paper funds required: what a fill takes from cash.

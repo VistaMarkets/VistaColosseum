@@ -126,9 +126,14 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     return '${groupDigits(u, d)} ${_market.unit}';
   }
 
+  /// A trader market's ticket (its symbol is a handle): not built yet.
+  bool get _traderIndex => !Scenario.tradable(widget.symbol);
+
   String? get _problem {
     if (_marginCents <= 0) return 'Enter an amount';
     if (_limit && _entry <= 0) return 'Enter a limit price';
+    // A trader index says so when Place is tapped.
+    if (_traderIndex) return null;
     return Scenario.problem(_intent);
   }
 
@@ -159,10 +164,12 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     if (l != null && mounted) _setLeverage(l);
   }
 
-  /// A market order goes to review; a limit rests at once.
+  /// A market order goes to review; a limit rests at once. A trader index
+  /// never reaches the store.
   void _place() {
     if (_problem != null) return;
     HapticFeedback.mediumImpact();
+    if (_traderIndex) return _notBuilt(context);
     if (_limit) return _rest(context, _intent);
     setState(() => _review = _intent);
   }
@@ -204,7 +211,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
             padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + safe),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: _review != null
-                ? _ReviewPanel(intent: _review!)
+                ? _ReviewPanel(intent: _review!, requote: () => _intent)
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
