@@ -451,8 +451,22 @@ VistaColosseum/
 │   │   ├── 2026-10-01-vc-hackathon-evidence.md
 │   │   ├── 2026-10-01-vc-hackathon-master-prd.md
 │   │   └── 2026-10-01-vc-hackathon-roadmap.md
-│   └── prompts/
-│       └── social-market-demo-brief-prompt.md
+│   ├── prompts/
+│   │   └── social-market-demo-brief-prompt.md
+│   ├── reviews/
+│   │   └── 2026-10-04-spec-00-baton-queue-review.md
+│   └── specs/
+│       ├── 00-baton-queue.md
+│       ├── 01-scenario-store.md
+│       ├── 02-truthful-order-confirm.md
+│       ├── 03-simulation-indicator.md
+│       ├── 04-arena-sort-filter-join.md
+│       ├── 05-maker-suggestion-card.md
+│       ├── 06-fee-ledger-and-receipts.md
+│       ├── 07-trader-record-panel.md
+│       └── 08-list-empty-failed-states.md
+├── scripts/
+│   └── gate.sh
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories
