@@ -50,30 +50,70 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
+    // The nav floats over the tabs: no bar behind it, just a fade into the
+    // page so its icons stay legible over whatever scrolls underneath.
+    // Tabs are told how much room it takes at the bottom (as safe-area
+    // padding) so fixed content keeps clear while lists scroll beneath it.
+    final navSpace = typing
+        ? 0.0
+        : VistaSize.navBar + VistaSpace.sm * 2 + bottomInset;
+    final media = MediaQuery.of(context);
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _FadeThroughStack(
-              index: _tab,
-              children: [
-                HomeScreen(visible: _tab == _home, onNotBuilt: _notBuilt),
-                MarketsScreen(onNotBuilt: _notBuilt),
-                ArenaScreen(onNotBuilt: _notBuilt),
-                PortfolioScreen(onNotBuilt: _notBuilt),
-              ],
+          Positioned.fill(
+            child: MediaQuery(
+              data: media.copyWith(
+                padding: media.padding.copyWith(bottom: navSpace),
+                viewPadding: media.viewPadding.copyWith(bottom: navSpace),
+              ),
+              child: _FadeThroughStack(
+                index: _tab,
+                children: [
+                  HomeScreen(visible: _tab == _home, onNotBuilt: _notBuilt),
+                  MarketsScreen(onNotBuilt: _notBuilt),
+                  ArenaScreen(onNotBuilt: _notBuilt),
+                  PortfolioScreen(onNotBuilt: _notBuilt),
+                ],
+              ),
+            ),
+          ),
+          // The fade under the nav (not a box: it melts into the page).
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            // Only the nav's own band, so fixed content above it (Home's
+            // Details / Long) is never dimmed.
+            height: navSpace,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      VistaColors.background.withValues(alpha: 0),
+                      VistaColors.background.withValues(alpha: 0.92),
+                    ],
+                    stops: const [0, 0.35],
+                  ),
+                ),
+              ),
             ),
           ),
           // While typing (the bottom search on Explore and Arena) the nav
           // steps aside so the field sits right on the keyboard. One nav for
           // every tab, so it never moves between parents (its sliding pill
           // keeps animating).
-          ClipRect(
-            child: AnimatedAlign(
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AnimatedSlide(
               duration: _dock,
               curve: _dockCurve,
-              alignment: Alignment.topCenter,
-              heightFactor: typing ? 0 : 1,
+              offset: typing ? const Offset(0, 1.5) : Offset.zero,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   VistaSpace.gutter,

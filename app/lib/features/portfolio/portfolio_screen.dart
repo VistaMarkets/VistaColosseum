@@ -64,8 +64,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     const gap = SizedBox(height: VistaSpace.sm);
     return SafeArea(
       bottom: false,
+      // Scrolls under the floating nav; the end clears it.
       child: ListView(
-        padding: const EdgeInsets.only(top: 9, bottom: VistaSpace.gutter),
+        padding: EdgeInsets.only(
+          top: 9,
+          bottom: VistaSpace.gutter + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           Padding(padding: gutter, child: _profile()),
           gap,

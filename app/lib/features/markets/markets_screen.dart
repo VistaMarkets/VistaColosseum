@@ -97,8 +97,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
     final rows = _sorted();
     const gutter = EdgeInsets.symmetric(horizontal: VistaSpace.gutter);
 
+    // Bottom: clear of the floating nav (the shell's safe-area padding).
     return SafeArea(
-      bottom: false,
       child: Column(
         children: [
           // The same account bar as Home and Portfolio.

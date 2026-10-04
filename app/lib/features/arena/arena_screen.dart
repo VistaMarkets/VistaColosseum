@@ -26,8 +26,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Bottom: clear of the floating nav (the shell's safe-area padding).
     return SafeArea(
-      bottom: false,
       child: Column(
         children: [
           // The same account bar as Home and Portfolio.

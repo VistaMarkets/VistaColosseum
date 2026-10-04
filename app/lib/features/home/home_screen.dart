@@ -53,8 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Bottom: clear of the floating nav (the shell's safe-area padding).
     return SafeArea(
-      bottom: false,
       child: Column(
         children: [
           Padding(
