@@ -217,8 +217,8 @@ class _ChartSheetState extends State<ChartSheet>
                   opacity: t,
                   child: IgnorePointer(
                     ignoring: t < 0.5,
-                    // Nothing to lay out until there is room for the dots.
-                    child: panelH < 16 ? const SizedBox.shrink() : _panels(),
+                    // Nothing to lay out until there is room for the tabs.
+                    child: panelH < 52 ? const SizedBox.shrink() : _panels(),
                   ),
                 ),
               ),
@@ -230,14 +230,25 @@ class _ChartSheetState extends State<ChartSheet>
   }
 
   Widget _panels() {
-    final n = widget.panels.length;
     return Column(
       children: [
+        // One tap to any panel (swiping still works): the panels' names as
+        // tabs, following the page.
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: VistaSpace.xs),
-          child: Semantics(
-            label: 'Panel ${_page + 1} of $n, ${widget.panels[_page].title}',
-            child: VistaPageDots(count: n, index: _page),
+          padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+          child: VistaUnderlineTabs(
+            labels: [for (final p in widget.panels) p.title],
+            selectedIndex: _page,
+            onChanged: (i) {
+              if (i == _page) return;
+              setState(() => _page = i);
+              final instant = MediaQuery.disableAnimationsOf(context);
+              _pages.animateToPage(
+                i,
+                duration: instant ? Duration.zero : VistaMotion.sheetIn,
+                curve: VistaMotion.enter,
+              );
+            },
           ),
         ),
         Expanded(

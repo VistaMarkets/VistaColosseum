@@ -609,7 +609,7 @@ void main() {
       for (final next in ['Shared live by kaito.eth', 'Record']) {
         await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
         await tester.pumpAndSettle();
-        expect(visible(next), findsOneWidget);
+        expect(visible(next), findsWidgets); // Record: its tab and its title
       }
       // No Holders panel after Record.
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
@@ -1059,9 +1059,23 @@ void main() {
       expect(visible('Ethereum'), findsOneWidget); // the card is ETH
       expect(visible('Longs pay shorts'), findsOneWidget);
 
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-      await tester.pumpAndSettle();
-      expect(visible('Book'), findsOneWidget);
+      // One tap to any panel: the tabs, Book last.
+      Future<void> panel(String name) async {
+        await tester.tap(
+          find.descendant(
+            of: find.byType(VistaUnderlineTabs),
+            matching: find.text(name),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      final tabs = tester.widget<VistaUnderlineTabs>(
+        find.byType(VistaUnderlineTabs),
+      );
+      expect(tabs.labels, ['Market', 'Callers', 'Alerts', 'Book']);
+      await panel('Book');
+      expect(visible('Spread 0.02'), findsOneWidget);
       // Just the book: no Trades tab, no market-buy slippage line.
       expect(find.text('Trades'), findsNothing);
       expect(find.text(r'Market buy $10,000'), findsNothing);
@@ -1071,8 +1085,7 @@ void main() {
       expect(find.text('2,968.42'), findsOneWidget);
       expect(find.text('Spread 0.02'), findsOneWidget);
       expect(find.text('67,412.0'), findsNothing);
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-      await tester.pumpAndSettle();
+      await panel('Callers');
       expect(visible('Callers in ETH'), findsOneWidget);
       // No long/short tally or split bar over the thread.
       expect(find.text('8 long'), findsNothing);
@@ -2226,10 +2239,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    for (var i = 0; i < 3; i++) {
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-      await tester.pumpAndSettle();
-    }
+    await tester.tap(
+      find.descendant(
+        of: find.byType(VistaUnderlineTabs),
+        matching: find.text('Alerts'),
+      ),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Alerts on ETH'), findsOneWidget);
     // The ETH card's events, fills and call, newest first.
     for (final t in [

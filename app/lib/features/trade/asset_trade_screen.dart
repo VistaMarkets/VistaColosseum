@@ -87,10 +87,11 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           showOrderTicket(context, symbol: _quote.ticker, side: side),
       onNotBuilt: _notBuilt,
       panels: [
+        // What people come for first; the raw book last.
         ChartSheetPanel('Market', _marketPanel()),
-        ChartSheetPanel('Book', _bookPanel()),
         ChartSheetPanel('Callers', _callersPanel()),
         ChartSheetPanel('Alerts', AssetAlertsPanel(ticker: _quote.ticker)),
+        ChartSheetPanel('Book', _bookPanel()),
       ],
     );
   }
