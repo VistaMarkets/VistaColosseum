@@ -252,7 +252,21 @@ class _VistaBottomNavState extends State<VistaBottomNav>
     return Container(
       height: VistaSize.navBar,
       padding: const EdgeInsets.all(VistaSpace.md),
-      // No bar behind the items: the selected pill alone marks the tab.
+      // A floating pill holding all four tabs (the same on every tab): the
+      // card colour, a hairline edge and a soft shadow lift it off whatever
+      // scrolls underneath; the selected tab's pill sits inside it.
+      decoration: BoxDecoration(
+        color: VistaColors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(VistaRadius.pill),
+        border: Border.all(color: VistaColors.hairline),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x59000000),
+            offset: Offset(0, 8),
+            blurRadius: 24,
+          ),
+        ],
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) => AnimatedBuilder(
           animation: _move,
