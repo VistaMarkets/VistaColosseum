@@ -85,9 +85,10 @@ class VistaSearchField extends StatelessWidget {
         horizontal: bordered ? VistaSpace.xl : VistaSpace.xxl,
       ),
       decoration: BoxDecoration(
-        color: VistaColors.surface,
+        // The bottom search is outline only; the inline variant is filled.
+        color: bordered ? null : VistaColors.surface,
         borderRadius: BorderRadius.circular(VistaRadius.pill),
-        border: bordered ? Border.all(color: VistaColors.hairline) : null,
+        border: bordered ? Border.all(color: VistaColors.divider) : null,
       ),
       child: Row(
         children: [

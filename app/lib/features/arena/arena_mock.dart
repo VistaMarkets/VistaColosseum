@@ -62,22 +62,6 @@ abstract final class ArenaMock {
   /// battles are designed.
   static const battles = [_btc, _btc];
 
-  /// Battles per crowd-split bucket, 50/50 (left) to 100/0 (right) in 5%
-  /// steps. Bar heights follow Figma; the selected 70/30+ buckets sum to
-  /// its "41 battles".
-  static const crowdBuckets = [
-    15.0,
-    19.0,
-    17.0,
-    14.0,
-    11.0,
-    9.0,
-    7.0,
-    6.0,
-    5.0,
-    3.0,
-  ];
-
   /// Figma's selection: from the 70/30 bucket to the end.
   static const defaultStart = 0.4;
 }

@@ -873,32 +873,16 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Arena tab shows the battles with the crowd filter', (
+    testWidgets('Arena tab shows the battles, without a crowd panel', (
       tester,
     ) async {
       await openArena(tester);
       expect(find.byType(VistaBattleCard), findsWidgets);
-      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
-      expect(find.text('41 battles'), findsOneWidget);
-
-      // Drag the lower thumb all the way left: every split is included.
-      final slider = tester.getRect(find.byType(RangeSlider));
-      final startThumb = Offset(
-        slider.left + 12 + 0.4 * (slider.width - 24),
-        slider.center.dy,
-      );
-      await tester.dragFrom(startThumb, Offset(-slider.width, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
-      expect(find.text('106 battles'), findsOneWidget);
-
-      // Other tabs fold the panel away (kept, so its filter survives).
-      await tester.tap(find.bySemanticsLabel('Home'));
-      await tester.pumpAndSettle();
-      expect(find.byType(RangeSlider).hitTestable(), findsNothing);
-      await tester.tap(find.bySemanticsLabel('Arena'));
-      await tester.pumpAndSettle();
-      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
+      expect(find.textContaining('Crowd split'), findsNothing);
+      expect(find.byType(RangeSlider), findsNothing);
+      // The account bar on top (with settings), the ask field at the bottom.
+      expect(find.bySemanticsLabel('Settings'), findsOneWidget);
+      expect(find.text('Ask about a market'), findsOneWidget);
     });
 
     testWidgets('sort chips stay fixed while battles scroll', (tester) async {
@@ -1013,22 +997,17 @@ void main() {
       expect(balance.top, greaterThanOrEqualTo(handle.bottom - 1));
       expect(balance.left, closeTo(handle.left, 1));
 
-      // Settings gear only on Portfolio, right of Deposit.
+      // The settings gear on every tab's bar, right of Deposit.
       final settings = find.descendant(
         of: bar,
         matching: find.byType(VistaIconButton),
       );
       final deposit = tester.getRect(inBar('Deposit'));
-      if (wallet) {
-        expect(settings, findsOneWidget);
-        expect(tester.getRect(settings).left, greaterThan(deposit.left));
-        await tester.tap(settings);
-        await tester.pumpAndSettle();
-        expect(find.byType(SettingsScreen), findsOneWidget);
-      } else {
-        expect(settings, findsNothing);
-        expect(deposit.right, greaterThan(402 - 16 - 20));
-      }
+      expect(settings, findsOneWidget);
+      expect(tester.getRect(settings).left, greaterThan(deposit.left));
+      await tester.tap(settings);
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsScreen), findsOneWidget);
     });
   }
 

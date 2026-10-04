@@ -59,7 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
-            child: AccountTopBar(onNotBuilt: widget.onNotBuilt),
+            child: AccountTopBar(
+              onNotBuilt: widget.onNotBuilt,
+              showSettings: true,
+            ),
           ),
           const SizedBox(height: VistaSpace.md),
           VistaSegmentedTabs(

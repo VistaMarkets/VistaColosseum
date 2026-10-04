@@ -8,9 +8,7 @@ import '../profile/profile_screen.dart';
 import 'arena_mock.dart';
 import 'opinions_screen.dart';
 
-/// Arena tab (Figma 33:2): battles between a Bull and a Bear caller. The
-/// crowd-split filter lives in [CrowdFilterPanel], which the app shell draws
-/// around the bottom nav on this tab.
+/// Arena tab (Figma 33:2): battles between a Bull and a Bear caller.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt});
 

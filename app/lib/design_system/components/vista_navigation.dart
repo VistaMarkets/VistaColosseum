@@ -252,10 +252,7 @@ class _VistaBottomNavState extends State<VistaBottomNav>
     return Container(
       height: VistaSize.navBar,
       padding: const EdgeInsets.all(VistaSpace.md),
-      decoration: BoxDecoration(
-        color: VistaColors.surface,
-        borderRadius: BorderRadius.circular(VistaRadius.pill),
-      ),
+      // No bar behind the items: the selected pill alone marks the tab.
       child: LayoutBuilder(
         builder: (context, constraints) => AnimatedBuilder(
           animation: _move,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'design_system/design_system.dart';
 import 'features/arena/arena_screen.dart';
-import 'features/arena/crowd_filter_panel.dart';
 import 'features/home/home_screen.dart';
 import 'features/markets/markets_screen.dart';
 import 'features/portfolio/portfolio_screen.dart';
@@ -18,7 +17,6 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   static const _home = 0;
-  static const _arena = 2;
   static const _wallet = 3;
 
   static const _navItems = [
@@ -51,7 +49,6 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final arena = _tab == _arena;
     final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       body: Column(
@@ -67,73 +64,27 @@ class _AppShellState extends State<AppShell> {
               ],
             ),
           ),
-          // While typing (the bottom search on Explore and Arena) the dock
-          // steps aside so the field sits right on the keyboard.
-          // One dock for every tab, so the nav never moves between parents
-          // (its sliding pill keeps animating). On the Arena tab the crowd
-          // panel folds open above the nav and the sheet eases in behind it.
+          // While typing (the bottom search on Explore and Arena) the nav
+          // steps aside so the field sits right on the keyboard. One nav for
+          // every tab, so it never moves between parents (its sliding pill
+          // keeps animating).
           ClipRect(
             child: AnimatedAlign(
               duration: _dock,
               curve: _dockCurve,
               alignment: Alignment.topCenter,
               heightFactor: typing ? 0 : 1,
-              child: AnimatedContainer(
-                duration: _dock,
-                curve: _dockCurve,
-                decoration: BoxDecoration(
-                  color: arena
-                      ? VistaColors.surface
-                      : VistaColors.surface.withValues(alpha: 0),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(35),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, arena ? 0.25 : 0),
-                      offset: const Offset(0, -4),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
+              child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   VistaSpace.gutter,
-                  arena ? 14 : 18,
+                  VistaSpace.sm,
                   VistaSpace.gutter,
                   VistaSpace.sm + bottomInset,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ClipRect(
-                      child: AnimatedAlign(
-                        duration: _dock,
-                        curve: _dockCurve,
-                        alignment: Alignment.topCenter,
-                        heightFactor: arena ? 1 : 0,
-                        child: AnimatedOpacity(
-                          duration: _dock,
-                          curve: arena
-                              ? const Interval(0.3, 1)
-                              : Curves.easeOut,
-                          opacity: arena ? 1 : 0,
-                          child: IgnorePointer(
-                            ignoring: !arena,
-                            child: ExcludeSemantics(
-                              excluding: !arena,
-                              // Kept mounted so its filter survives tab switches.
-                              child: const CrowdFilterPanel(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    VistaBottomNav(
-                      items: _navItems,
-                      selectedIndex: _tab,
-                      onChanged: _select,
-                    ),
-                  ],
+                child: VistaBottomNav(
+                  items: _navItems,
+                  selectedIndex: _tab,
+                  onChanged: _select,
                 ),
               ),
             ),

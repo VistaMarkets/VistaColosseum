@@ -361,7 +361,6 @@ VistaColosseum/
 │   │   │   ├── arena/  — Arena tab: Bull vs Bear battle cards; the crowd-split histogram and range filter wrap the bottom nav; "more opinions" opens the clash detail with side filters and a consensus dock (mock data)
 │   │   │   │   ├── arena_mock.dart
 │   │   │   │   ├── arena_screen.dart
-│   │   │   │   ├── crowd_filter_panel.dart
 │   │   │   │   ├── opinions_mock.dart
 │   │   │   │   └── opinions_screen.dart
 │   │   │   ├── home/  — Home swipe feed: one call card per market Explore offers (5 assets + 7 trader markets; ETH is the Figma card), each with its own `ReplayScript` (price path, call line, events; generated from a seed for all but ETH) played by the signal replay chart (line, or candles when chosen in Settings › Display; a camera opens on the first candle and pulls back; candles grow in a wave; paced by `replay_timeline.dart`, ringed entrances, haptics, labels placed clear of each other and the activity rows; header price and % since call replay in step; then live on the market's price); Details opens the asset or trader market (mock data)
