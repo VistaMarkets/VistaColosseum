@@ -244,14 +244,16 @@ class VistaSpanSelector extends StatelessWidget {
       },
       child: Container(
         alignment: Alignment.center,
+        // Selected: the light pill with dark text, as the leverage
+        // choices use.
         decoration: BoxDecoration(
-          color: selected ? VistaColors.surfaceSelected : null,
+          color: selected ? VistaColors.textPrimary : null,
           borderRadius: BorderRadius.circular(VistaRadius.pill),
         ),
         child: Text(
           labels[i],
           style: selected
-              ? VistaType.bodyStrong.copyWith(color: VistaColors.onAccent)
+              ? VistaType.bodyStrong.copyWith(color: VistaColors.ink)
               : VistaType.bodyMedium.copyWith(color: VistaColors.textMuted),
         ),
       ),

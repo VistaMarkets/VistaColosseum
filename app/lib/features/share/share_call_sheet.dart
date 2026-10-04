@@ -29,7 +29,7 @@ class ShareCallSheet extends StatefulWidget {
 class _ShareCallSheetState extends State<ShareCallSheet> {
   /// The link bubble, a step above the preview (Figma color/surfaceRaised,
   /// #262626).
-  static const _bubble = Color(0xFF262626);
+  static const _bubble = VistaColors.surface;
 
   /// A short, stable code for the call's link.
   String get _code {

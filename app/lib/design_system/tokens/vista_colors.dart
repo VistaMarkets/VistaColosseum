@@ -6,24 +6,32 @@ import 'package:flutter/painting.dart';
 /// (174:110). The file defines no Figma variables, so these names are derived
 /// from how each value is used in those frames.
 abstract final class VistaColors {
-  // Surfaces, darkest to lightest.
-  static const Color background = Color(0xFF161616);
-  // One clear step above the page (#161616) so cards read as cards; the
-  // Figma #1F1F1F was ~3% lighter and cards blended into the page.
-  static const Color surface = Color(0xFF252525);
-  static const Color surfaceOverlay = Color(0xEB252525); // surface at 92%
-  static const Color surfaceRaised = Color(0xFF333333);
-  static const Color surfaceSelected = Color(0xFF858585);
+  // Surfaces, darkest to lightest. Neutral greys with a slight cool tint
+  // (blue a few points over red) so they sit with the blue/green brand.
+  // Was #161616 / #1F1F1F / #333333 / #858585 in Figma.
+  static const Color background = Color(0xFF16171A);
+  // One clear step above the page so cards read as cards (Figma's #1F1F1F
+  // was ~3% lighter than the page and cards blended in).
+  static const Color surface = Color(0xFF24262B);
+  static const Color surfaceOverlay = Color(0xEB24262B); // surface at 92%
+  static const Color surfaceRaised = Color(0xFF33363D);
+
+  /// The nav's selected pill: dark enough that its white label reads at
+  /// ~8:1 (the Figma #858585 gave 3.7:1).
+  static const Color surfaceSelected = Color(0xFF4A4E57);
 
   // Text.
   static const Color textPrimary = Color(0xFFF5F3FF);
-  static const Color textSecondary = Color(0xFF8A8A91);
-  static const Color textTertiary = Color(0xFFA3A3A3);
-  static const Color textMuted = Color(0xFF858585);
+  static const Color textSecondary = Color(0xFFA0A2A9);
+  static const Color textTertiary = Color(0xFFB0B2B8);
+
+  /// Quiet text. Light enough for small text on cards and chips (~5:1 on
+  /// surface, ~4.5:1 on surfaceRaised); Figma's #858585 fell below that.
+  static const Color textMuted = Color(0xFF9A9CA2);
   static const Color textInactive = Color(0x99FFFFFF); // white at 60%
   static const Color textFaint = Color(0x73FFFFFF); // white at 45%
-  static const Color textPlaceholder = Color(0xFF5D5C5C);
-  static const Color textChip = Color(0xFF999999); // unselected sort chips
+  static const Color textPlaceholder = Color(0xFF5E6068);
+  static const Color textChip = Color(0xFFA0A2A8); // unselected sort chips
   static const Color onAccent = Color(0xFFFFFFFF);
 
   /// Near-black text on light fills (e.g. "Make a call").

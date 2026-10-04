@@ -343,7 +343,7 @@ class _PlotPainter extends CustomPainter {
       canvas.restore();
     }
 
-    _dashed(canvas, baseY, const Color(0xFF858585), 2, 3);
+    _dashed(canvas, baseY, VistaColors.textMuted, 2, 3);
 
     Paint stroke(Color c) => Paint()
       ..color = c

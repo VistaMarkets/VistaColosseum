@@ -107,7 +107,7 @@ class VistaBattleCard extends StatelessWidget {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF262626),
+                        color: VistaColors.surface,
                         borderRadius: BorderRadius.circular(VistaRadius.pill),
                       ),
                       child: Text(timeLeft, style: VistaType.label),

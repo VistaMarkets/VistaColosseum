@@ -429,7 +429,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
               label,
               style: VistaType.subhead.copyWith(
                 fontWeight: FontWeight.w700,
-                color: on ? const Color(0xFF111111) : VistaColors.textPrimary,
+                color: on ? VistaColors.ink : VistaColors.textPrimary,
               ),
             ),
           ),
@@ -874,7 +874,7 @@ class _Grip extends StatelessWidget {
     width: 2.7,
     height: 11,
     decoration: BoxDecoration(
-      color: const Color(0xFF0E0E0E),
+      color: VistaColors.ink,
       borderRadius: BorderRadius.circular(2),
     ),
   );
