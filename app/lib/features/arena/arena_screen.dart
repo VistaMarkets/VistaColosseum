@@ -148,7 +148,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         ),
                       ),
                       ArenaSectionHead(
-                        title: 'Takes',
+                        title: 'Calls',
                         trailing: Text(
                           'Backed first',
                           style: VistaType.bodyMedium.copyWith(
@@ -206,7 +206,7 @@ class _AddTakeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Add your take',
+      label: 'Make a call',
       excludeSemantics: true,
       child: VistaPressable(
         onTap: onTap,

@@ -898,12 +898,12 @@ void main() {
       await openArena(tester);
       expect(find.text('Live battles'), findsOneWidget);
       expect(find.byType(BattleTile), findsWidgets);
-      expect(find.text('Takes'), findsOneWidget);
+      expect(find.text('Calls'), findsOneWidget);
       expect(find.byType(TakeItem), findsWidgets);
       expect(find.byType(VistaBattleCard), findsNothing);
       // The account bar on top (with settings), the composer at the bottom.
       expect(find.bySemanticsLabel('Settings'), findsOneWidget);
-      expect(find.bySemanticsLabel('Add your take'), findsOneWidget);
+      expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
     });
 
     testWidgets('sort chips stay fixed while the feed scrolls', (tester) async {
@@ -1010,10 +1010,10 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
-      await tester.tap(find.bySemanticsLabel('Add your take'));
+      await tester.tap(find.bySemanticsLabel('Make a call'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
-      expect(find.text("What's your take on?"), findsOneWidget);
+      expect(find.text('What are you calling?'), findsOneWidget);
       expect(find.text('YOUR POSITIONS · 3'), findsOneWidget);
       await tester.tap(find.text('Ethereum'));
       await tester.pumpAndSettle();
@@ -1055,7 +1055,7 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
-      await tester.tap(find.bySemanticsLabel('Add your take'));
+      await tester.tap(find.bySemanticsLabel('Make a call'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Solana'));
       await tester.pumpAndSettle();
@@ -1082,7 +1082,7 @@ void main() {
 
     testWidgets('Cancel leaves the composer without posting', (tester) async {
       await openArena(tester);
-      await tester.tap(find.bySemanticsLabel('Add your take'));
+      await tester.tap(find.bySemanticsLabel('Make a call'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Solana'));
       await tester.pumpAndSettle();
@@ -1096,7 +1096,7 @@ void main() {
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('composer renders without overflow on $name', (tester) async {
         await openArena(tester, size, padding);
-        await tester.tap(find.bySemanticsLabel('Add your take'));
+        await tester.tap(find.bySemanticsLabel('Make a call'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('0xreal'));
         await tester.pumpAndSettle();
@@ -1109,7 +1109,7 @@ void main() {
         tester,
       ) async {
         await openArena(tester, size, padding);
-        await tester.tap(find.bySemanticsLabel('Add your take'));
+        await tester.tap(find.bySemanticsLabel('Make a call'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });

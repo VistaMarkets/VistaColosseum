@@ -212,7 +212,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                               isCollapsed: true,
                               border: InputBorder.none,
                               counterText: '',
-                              hintText: "What's your take?",
+                              hintText: "What's your call?",
                               hintStyle: body.copyWith(
                                 color: VistaColors.textPlaceholder,
                               ),

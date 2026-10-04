@@ -52,10 +52,10 @@ class PickPositionScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("What's your take on?", style: VistaType.displaySmall),
+                  Text('What are you calling?', style: VistaType.displaySmall),
                   const SizedBox(height: VistaSpace.sm),
                   Text(
-                    'Your position shows on the take, live.',
+                    'Your position shows on the call, live.',
                     style: VistaType.subheadMuted.copyWith(
                       color: VistaColors.textMuted,
                     ),

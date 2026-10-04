@@ -132,7 +132,7 @@ abstract final class ArenaMock {
   ];
 
   /// Ways to order the Live battles page.
-  static const battleSorts = ['Most takes', 'Closing soon', 'Closest split'];
+  static const battleSorts = ['Most calls', 'Closing soon', 'Closest split'];
 
   /// [battles] in the order of [battleSorts] at [sort].
   static List<LiveBattle> sortedBattles(int sort) {

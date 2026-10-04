@@ -177,7 +177,7 @@ class BattleTile extends StatelessWidget {
                     style: VistaType.chip.copyWith(color: VistaColors.long),
                   ),
                   Text(
-                    '${b.takes} takes',
+                    '${b.takes} calls',
                     style: VistaType.chip.copyWith(
                       fontWeight: FontWeight.w500,
                       color: VistaColors.textMuted,
@@ -319,7 +319,7 @@ class TakeItem extends StatelessWidget {
                     if (t.joined case final joined?) ...[
                       const SizedBox(width: VistaSpace.gutter),
                       Semantics(
-                        label: '$joined joined from this take',
+                        label: '$joined joined from this call',
                         excludeSemantics: true,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
