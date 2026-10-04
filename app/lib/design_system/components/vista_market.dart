@@ -517,7 +517,7 @@ class VistaMarketRow extends StatelessWidget {
       scale: 0.98,
       onTap: onPressed,
       child: Container(
-        height: 48,
+        height: 56,
         padding: const EdgeInsets.only(left: 6, right: VistaSpace.gutter),
         decoration: BoxDecoration(
           color: VistaColors.surface,
@@ -529,7 +529,7 @@ class VistaMarketRow extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  VistaIcon(icon, size: 22),
+                  VistaIcon(icon, size: 26),
                   const SizedBox(width: VistaSpace.md),
                   Flexible(
                     child: Column(

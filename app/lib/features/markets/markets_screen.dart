@@ -271,7 +271,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           6,
                           0,
                           6,
-                          VistaSpace.md,
+                          VistaSpace.sm,
                         ),
                         child: ValueListenableBuilder(
                           valueListenable: MarketPrices.of(m.id),
