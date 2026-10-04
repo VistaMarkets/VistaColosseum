@@ -53,8 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Bottom: clear of the floating nav (the shell's safe-area padding).
+    // The feed runs to the bottom of the screen, under the floating nav:
+    // each card keeps its own content clear of the pill, and the next card
+    // slides up through it as you swipe.
+    final navSpace = MediaQuery.paddingOf(context).bottom;
     return SafeArea(
+      bottom: false,
       child: Column(
         children: [
           Padding(
@@ -78,29 +82,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 controller: _pages,
                 scrollDirection: Axis.vertical,
                 itemCount: mockFeed.length,
-                itemBuilder: (context, i) => TradeIdeaCard(
-                  idea: mockFeed[i],
-                  active: widget.visible && i == _settledPage,
-                  // An asset opens its trade page; a trader market, the
-                  // trader's market page.
-                  onDetails: () => Navigator.of(context).push(
-                    mockFeed[i].traderMarket
-                        ? TraderMarketScreen.route(mockFeed[i].ticker)
-                        : AssetTradeScreen.route(mockFeed[i].ticker),
-                  ),
-                  onCaller: () =>
-                      Navigator.of(context)
-                          .push(ProfileScreen.route(mockFeed[i].callerHandle)),
-                  // The first-time ticket, on the call's side (simulated);
-                  // its Details is the card's.
-                  onTrade: () => showFeedOrderTicket(
-                    context,
-                    symbol: mockFeed[i].ticker,
-                    side: mockFeed[i].side,
+                itemBuilder: (context, i) => Padding(
+                  padding: EdgeInsets.only(bottom: navSpace),
+                  child: TradeIdeaCard(
+                    idea: mockFeed[i],
+                    active: widget.visible && i == _settledPage,
+                    // An asset opens its trade page; a trader market, the
+                    // trader's market page.
                     onDetails: () => Navigator.of(context).push(
                       mockFeed[i].traderMarket
                           ? TraderMarketScreen.route(mockFeed[i].ticker)
                           : AssetTradeScreen.route(mockFeed[i].ticker),
+                    ),
+                    onCaller: () => Navigator.of(context)
+                        .push(ProfileScreen.route(mockFeed[i].callerHandle)),
+                    // The first-time ticket, on the call's side (simulated);
+                    // its Details is the card's.
+                    onTrade: () => showFeedOrderTicket(
+                      context,
+                      symbol: mockFeed[i].ticker,
+                      side: mockFeed[i].side,
+                      onDetails: () => Navigator.of(context).push(
+                        mockFeed[i].traderMarket
+                            ? TraderMarketScreen.route(mockFeed[i].ticker)
+                            : AssetTradeScreen.route(mockFeed[i].ticker),
+                      ),
                     ),
                   ),
                 ),
