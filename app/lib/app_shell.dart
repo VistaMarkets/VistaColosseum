@@ -52,10 +52,9 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
-    // The nav floats over the tabs: no bar behind it, just a fade into the
-    // page so its icons stay legible over whatever scrolls underneath.
-    // Tabs are told how much room it takes at the bottom (as safe-area
-    // padding) so fixed content keeps clear while lists scroll beneath it.
+    // The nav floats over the tabs with nothing behind it. Tabs are told how
+    // much room it takes at the bottom (as safe-area padding) so fixed
+    // content keeps clear while lists scroll beneath it.
     // The pill sits low, like iOS's floating tab bar: ~12pt into the home
     // indicator's safe area (28pt off the edge on a 34pt inset), or 10pt
     // off the edge on phones without one.
@@ -83,30 +82,6 @@ class _AppShellState extends State<AppShell> {
                   ArenaScreen(onNotBuilt: _notBuilt),
                   PortfolioScreen(onNotBuilt: _notBuilt),
                 ],
-              ),
-            ),
-          ),
-          // The fade under the nav (not a box: it melts into the page).
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            // Only the nav's own band, so fixed content above it (Home's
-            // Details / Long) is never dimmed.
-            height: navSpace,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      VistaColors.background.withValues(alpha: 0),
-                      VistaColors.background.withValues(alpha: 0.92),
-                    ],
-                    stops: const [0, 0.35],
-                  ),
-                ),
               ),
             ),
           ),
