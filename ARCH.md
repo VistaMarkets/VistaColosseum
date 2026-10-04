@@ -468,8 +468,9 @@ VistaColosseum/
 │   ├── assets/  — animated Vista logo and reduced-motion fallback
 │   │   ├── vista-logo-animated.gif
 │   │   └── vista-logo-static.png
-│   └── prompts/
-│       └── social-market-demo-brief-prompt.md
+│   ├── prompts/
+│   │   └── social-market-demo-brief-prompt.md
+│   └── backend-data-map.md
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories
