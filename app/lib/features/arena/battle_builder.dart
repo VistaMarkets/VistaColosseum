@@ -5,9 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/market_prices.dart';
-import '../calls/calls_store.dart';
 import 'arena_mock.dart';
-import 'opinions_screen.dart';
 
 /// The statements a battle can make. Each maps to one long or short on the
 /// market, so every call on it can be backed (Figma BATTLE-FLOW-TYPES).
@@ -53,6 +51,12 @@ const battleDeadlines = <BattleDeadline>[
   (chip: 'next month', part: 'month end', phrase: 'month end', minutes: 43200),
 ];
 
+/// A level as a price: whole dollars from $100 up ("$200", "$3,200"),
+/// cents below.
+String battleLevel(double v) => v >= 100
+    ? '\$${_GroupDigits.group(v.round().toString())}'
+    : MarketPrices.format(v, compact: true);
+
 /// A battle as set up: its statement, level (if it needs one) and deadline
 /// on one market.
 @immutable
@@ -71,8 +75,7 @@ class BattleSpec {
 
   bool get valid => !kind.needsLevel || (level != null && level! > 0);
 
-  String get _levelText =>
-      level == null ? r'$…' : MarketPrices.format(level!, compact: true);
+  String get _levelText => level == null ? r'$…' : battleLevel(level!);
 
   /// The word between the level and the deadline in the sentence.
   String get joiner => switch (kind) {
@@ -121,9 +124,8 @@ class BattleSpec {
 
 /// Setting up a battle (Figma 517:205), opened from the composer's "Make it
 /// a battle": the statements that agree with the position's side (first
-/// picked), the battle as a sentence whose parts can be tapped, a typed
-/// level with shortcuts, deadline chips, a live battle like it, and the
-/// side the position sets. Pops with the [BattleSpec] on Add battle.
+/// picked) in one scrolling line, the battle as a sentence, a typed level
+/// with shortcuts, deadline chips, and the side the position sets. Pops with the [BattleSpec] on Add battle.
 class BattleSetupScreen extends StatefulWidget {
   const BattleSetupScreen({
     super.key,
@@ -194,28 +196,22 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
     final mag = math.pow(10, (math.log(price) / math.ln10).floor()) / 2;
     if (_long) {
       return [
-        (
-          'Week high ${MarketPrices.format(price * 1.058, compact: true)}',
-          price * 1.058,
-        ),
+        ('Week high ${battleLevel(price * 1.058)}', price * 1.058),
         ('+5%', price * 1.05),
         ('+10%', price * 1.10),
         () {
           final r = (price * 1.10 / mag).ceil() * mag;
-          return (MarketPrices.format(r, compact: true), r.toDouble());
+          return (battleLevel(r.toDouble()), r.toDouble());
         }(),
       ];
     }
     return [
-      (
-        'Week low ${MarketPrices.format(price * 0.945, compact: true)}',
-        price * 0.945,
-      ),
+      ('Week low ${battleLevel(price * 0.945)}', price * 0.945),
       ('−5%', price * 0.95),
       ('−10%', price * 0.90),
       () {
         final r = (price * 0.90 / mag).floor() * mag;
-        return (MarketPrices.format(r, compact: true), r.toDouble());
+        return (battleLevel(r.toDouble()), r.toDouble());
       }(),
     ];
   }
@@ -237,14 +233,10 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
     final label = VistaType.label.copyWith(color: VistaColors.textMuted);
     final big = VistaType.displayMedium;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final similar = [
-      for (final b in BattlesStore.all.value)
-        if (b.ticker == t) b,
-    ];
 
-    Widget part(String text, Color fill, VoidCallback onTap, String hint) =>
+    Widget part(String text, Color fill, VoidCallback? onTap, String hint) =>
         Semantics(
-          button: true,
+          button: onTap != null,
           label: hint,
           excludeSemantics: true,
           child: VistaPressable(
@@ -327,37 +319,38 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
                   const SizedBox(height: VistaSpace.gutter),
                   Text('STATEMENT', style: label),
                   const SizedBox(height: VistaSpace.md),
-                  Wrap(
-                    spacing: VistaSpace.md,
-                    runSpacing: VistaSpace.md,
-                    children: [
-                      for (final k in _kinds)
-                        VistaFilterChip(
-                          label: k.label,
-                          accent: true,
-                          selected: k == _kind,
-                          onPressed: () => setState(() => _kind = k),
-                        ),
-                    ],
+                  // One line that scrolls sideways, out to the screen edge.
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    child: Row(
+                      children: [
+                        for (final (i, k) in _kinds.indexed) ...[
+                          if (i > 0) const SizedBox(width: VistaSpace.md),
+                          VistaFilterChip(
+                            label: k.label,
+                            accent: true,
+                            selected: k == _kind,
+                            onPressed: () => setState(() => _kind = k),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: VistaSpace.gutter),
-                  // The battle as a sentence; each coloured part changes
-                  // its piece: the statement, the level, the deadline.
+                  // The battle as a sentence; the level and deadline parts
+                  // can be tapped to change them.
                   Wrap(
                     spacing: VistaSpace.md,
                     runSpacing: VistaSpace.lg,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(t, style: big),
-                      part(_kind.verb, side.color, () {
-                        final i = _kinds.indexOf(_kind);
-                        setState(() => _kind = _kinds[(i + 1) % _kinds.length]);
-                      }, 'Statement: ${_kind.label}'),
+                      // Set by the chips above; not a button itself.
+                      part(_kind.verb, side.color, null, _kind.label),
                       if (_kind.needsLevel)
                         part(
-                          spec.level == null
-                              ? r'$…'
-                              : MarketPrices.format(spec.level!, compact: true),
+                          spec.level == null ? r'$…' : battleLevel(spec.level!),
                           VistaColors.surfaceSelected,
                           _levelFocus.requestFocus,
                           'Level',
@@ -488,15 +481,6 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
                         ),
                     ],
                   ),
-                  // A live battle on the same market: call on it instead.
-                  if (similar.isNotEmpty) ...[
-                    const SizedBox(height: VistaSpace.gutter),
-                    _SimilarBattle(
-                      battle: similar.first,
-                      onTap: () =>
-                          Navigator.of(context).push(OpinionsScreen.route()),
-                    ),
-                  ],
                   const SizedBox(height: VistaSpace.gutter),
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -579,57 +563,6 @@ class _Shortcut extends StatelessWidget {
           text,
           style: VistaType.figures(VistaType.body)
               .copyWith(color: VistaColors.textChip),
-        ),
-      ),
-    );
-  }
-}
-
-/// "A close battle is live": a live battle on the same market.
-class _SimilarBattle extends StatelessWidget {
-  const _SimilarBattle({required this.battle, required this.onTap});
-
-  final LiveBattle battle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = battle.takes;
-    return VistaPressable(
-      scale: 0.98,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: VistaSpace.xxl,
-          vertical: VistaSpace.xl,
-        ),
-        decoration: BoxDecoration(
-          color: VistaColors.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('A close battle is live', style: VistaType.body),
-                  const SizedBox(height: VistaSpace.xxs),
-                  Text(
-                    '${battle.question} · $n ${n == 1 ? 'call' : 'calls'}',
-                    style: VistaType.bodyMedium.copyWith(
-                      color: VistaColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: VistaSpace.xl),
-            Text(
-              'Call on it ›',
-              style: VistaType.body.copyWith(color: VistaColors.accent),
-            ),
-          ],
         ),
       ),
     );

@@ -1175,6 +1175,20 @@ void main() {
       expect(find.text('Ends lower'), findsOneWidget);
       expect(find.text('Closes above'), findsNothing);
       expect(find.textContaining('SHORT SOL'), findsWidgets);
+      // The options sit on one line.
+      expect(
+        tester.getTopLeft(find.text('Stays below')).dy,
+        tester.getTopLeft(find.text('Closes below')).dy,
+      );
+      // No "close battle is live" card.
+      expect(find.text('A close battle is live'), findsNothing);
+      // The statement in the sentence isn't a button.
+      await tester.tap(find.text('closes below'));
+      await tester.pump();
+      expect(find.text('closes below'), findsOneWidget);
+      // One sideways-scrolling line: the last option starts off-screen.
+      await tester.ensureVisible(find.text('Ends lower'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Ends lower')); // no level needed
       await tester.pump();
       await tester.tap(find.text('Add battle'));
