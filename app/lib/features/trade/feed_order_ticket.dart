@@ -223,7 +223,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
         ),
         child: Container(
           decoration: const BoxDecoration(
-            color: VistaColors.surface,
+            color: VistaColors.background,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(VistaRadius.sheet),
             ),
@@ -467,7 +467,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       duration: VistaMotion.state,
       decoration: BoxDecoration(
-        color: VistaColors.background,
+        color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
         // Red when a refused order points here; clear otherwise (same width
         // either way, so nothing shifts).
@@ -538,7 +538,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: _exits ? VistaColors.accent : VistaColors.background,
+                  color: _exits ? VistaColors.accent : VistaColors.surface,
                   borderRadius: BorderRadius.circular(5),
                   border: _exits
                       ? null
