@@ -54,6 +54,9 @@ abstract final class VistaAssets {
   static const String marketClipAbove = '$_dir/market_clip_above.svg';
   static const String marketClipBelow = '$_dir/market_clip_below.svg';
   static const String marketLiveHalo = '$_dir/market_live_halo.svg';
+
+  /// The change line's arrow (Figma 232:177), pointing up; turned for down.
+  static const String changeArrowUp = '$_dir/change_arrow_up.svg';
   static const String holdersAvatars = '$_dir/holders_avatars.svg';
   static const String timelineRight = '$_dir/timeline_rail_right.svg';
   static const String timelineWrong = '$_dir/timeline_rail_wrong.svg';

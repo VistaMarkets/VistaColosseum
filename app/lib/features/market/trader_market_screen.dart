@@ -201,46 +201,36 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                     ),
                   ),
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                // Figma 232:159: the cap on its own line, the 24h change
+                // under it.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Scales down on narrow phones instead of overflowing.
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.bottomLeft,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            // Cap = the market's one live price × its supply.
-                            ValueListenableBuilder(
-                              valueListenable: MarketPrices.of(widget.handle),
-                              builder: (context, price, _) => Text(
-                                TraderMarketMock.capFor(price),
-                                style: VistaType.displayLarge,
-                              ),
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              TraderMarketMock.capChange,
-                              style: VistaType.subhead.copyWith(
-                                color: VistaColors.long,
-                              ),
-                            ),
-                          ],
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      // Cap = the market's one live price × its supply.
+                      child: ValueListenableBuilder(
+                        valueListenable: MarketPrices.of(widget.handle),
+                        builder: (context, price, _) => Text(
+                          TraderMarketMock.capFor(price),
+                          style: VistaType.displayLarge,
                         ),
                       ),
                     ),
-                    const SizedBox(width: VistaSpace.md),
-                    Text(
-                      TraderMarketMock.change24h,
-                      style: VistaType.displaySmall.copyWith(
-                        color: VistaColors.long,
+                    const SizedBox(height: VistaSpace.sm),
+                    VistaChangeLine(
+                      up: !TraderMarketMock.capChange.startsWith('−'),
+                      amount: TraderMarketMock.capChange.replaceAll(
+                        RegExp(r'^[+−-]'),
+                        '',
+                      ),
+                      percent: TraderMarketMock.change24h.replaceAll(
+                        RegExp(r'^[+−-]'),
+                        '',
                       ),
                     ),
-                    const SizedBox(width: 10),
                   ],
                 ),
               ],

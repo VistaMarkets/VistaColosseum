@@ -133,6 +133,7 @@ VistaColosseum/
 │   │   │   ├── bell.svg
 │   │   │   ├── caller_avatar.svg
 │   │   │   ├── caller_avatar_short_32.svg
+│   │   │   ├── change_arrow_up.svg
 │   │   │   ├── chart_type_candles.svg
 │   │   │   ├── chart_type_toggle.svg
 │   │   │   ├── chevron_box.svg

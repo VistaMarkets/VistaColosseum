@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
@@ -698,6 +699,73 @@ class VistaRangeSlider extends StatelessWidget {
             if (v.end - v.start >= 1 / divisions - 1e-9) onChanged(v);
           },
         ),
+      ),
+    );
+  }
+}
+
+/// The line under a market's price (Figma 232:159, "24h change · V3"): an
+/// arrow, the move in money and percent in the direction's colour, then the
+/// window in grey, e.g. "▲ $798.00 (1.20%)  Past 24 hours".
+class VistaChangeLine extends StatelessWidget {
+  const VistaChangeLine({
+    super.key,
+    required this.up,
+    required this.amount,
+    required this.percent,
+    this.window = 'Past 24 hours',
+  });
+
+  final bool up;
+
+  /// Unsigned, e.g. "$798.00"; the arrow carries the direction.
+  final String amount;
+
+  /// Unsigned, e.g. "1.20%".
+  final String percent;
+  final String window;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = up ? VistaColors.long : VistaColors.short;
+    return Semantics(
+      label: '${up ? 'Up' : 'Down'} $amount, $percent, $window',
+      excludeSemantics: true,
+      child: Row(
+        children: [
+          RotatedBox(
+            quarterTurns: up ? 0 : 2,
+            child: SvgPicture.asset(
+              VistaAssets.changeArrowUp,
+              width: 9,
+              height: 7.2,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            ),
+          ),
+          const SizedBox(width: VistaSpace.sm),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Text(
+                    '$amount ($percent)',
+                    style: VistaType.figures(VistaType.subhead)
+                        .copyWith(fontWeight: FontWeight.w700, color: color),
+                  ),
+                  const SizedBox(width: VistaSpace.sm),
+                  Text(
+                    window,
+                    style: VistaType.subheadMuted.copyWith(
+                      color: VistaColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

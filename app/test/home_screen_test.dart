@@ -12,6 +12,7 @@ import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
@@ -2289,5 +2290,30 @@ void main() {
     await tester.drag(find.byType(ListView), const Offset(0, 800));
     await tester.pumpAndSettle();
     expect(opacityOf(), 0);
+  });
+
+  testWidgets('the trade page puts the 24h change on a line under the price', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const AssetTradeScreen(ticker: 'ETH'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // ETH is down 0.40% on the day: $11.92 below its 24h open.
+    expect(
+      find.bySemanticsLabel(r'Down $11.92, 0.40%, Past 24 hours'),
+      findsOneWidget,
+    );
+    final price = tester.getBottomLeft(find.byType(LiveUsd).first);
+    final change = tester.getTopLeft(find.byType(VistaChangeLine));
+    expect(change.dy, greaterThan(price.dy)); // under, not beside
+    expect(tester.takeException(), isNull);
   });
 }

@@ -167,43 +167,42 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           ),
           const SizedBox(height: VistaSpace.lg),
           Padding(
-            padding: const EdgeInsets.only(
-              left: VistaSpace.xl,
-              right: VistaSpace.lg,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+            // Figma 232:159: the price on its own line, the 24h change
+            // under it.
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Scales down on narrow phones instead of overflowing.
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.bottomLeft,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        LiveUsd(
-                          feedKey: MarketPrices.feedKey(q.ticker),
-                          base: MarketPrices.base(q.ticker),
-                          step: MarketPrices.step(q.ticker),
-                          decimals: 2,
-                          style: VistaType.displayLarge,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          q.changeUsd,
-                          style: VistaType.subhead.copyWith(color: q.color),
-                        ),
-                      ],
-                    ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: LiveUsd(
+                    feedKey: MarketPrices.feedKey(q.ticker),
+                    base: MarketPrices.base(q.ticker),
+                    step: MarketPrices.step(q.ticker),
+                    decimals: 2,
+                    style: VistaType.displayLarge,
                   ),
                 ),
-                const SizedBox(width: VistaSpace.md),
-                Text(
-                  q.pctLabel,
-                  style: VistaType.displaySmall.copyWith(color: q.color),
+                const SizedBox(height: VistaSpace.sm),
+                // The move since the 24h open, following the live price.
+                ValueListenableBuilder(
+                  valueListenable: MarketPrices.of(q.ticker),
+                  builder: (context, price, _) {
+                    final open =
+                        MarketPrices.base(q.ticker) / (1 + q.changePct / 100);
+                    final move = price - open;
+                    return VistaChangeLine(
+                      up: move >= 0,
+                      amount: formatUsd(
+                        move.abs(),
+                        decimals: MarketPrices.decimalsFor(price),
+                      ),
+                      percent:
+                          '${(move.abs() / open * 100).toStringAsFixed(2)}%',
+                    );
+                  },
                 ),
               ],
             ),
