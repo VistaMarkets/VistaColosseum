@@ -13,6 +13,7 @@ import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
+import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
@@ -2262,5 +2263,31 @@ void main() {
     expect(VistaType.display.fontFamily, VistaType.numberFamily);
     expect(widthOf(r'$1,111.11'), closeTo(widthOf(r'$8,888.88'), 0.01));
     expect(widthOf(r'$2,968.40'), closeTo(widthOf(r'$2,971.15'), 0.01));
+  });
+
+  testWidgets('a profile pins its market price once it scrolls away', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const ProfileScreen(handle: 'kaito.eth'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    double opacityOf() =>
+        tester.widget<AnimatedOpacity>(find.byKey(pinnedPriceKey)).opacity;
+    expect(opacityOf(), 0);
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(opacityOf(), 1);
+    // Back to the top, it tucks away again.
+    await tester.drag(find.byType(ListView), const Offset(0, 800));
+    await tester.pumpAndSettle();
+    expect(opacityOf(), 0);
   });
 }

@@ -11,6 +11,9 @@ import 'profile_mock.dart';
 
 /// Someone else's profile (Figma 303:102, "Profile — maya.eth · Arena
 /// receipts"). Shows [handle]; the body is the sample profile content.
+/// The pinned market-price bar (for tests).
+const pinnedPriceKey = Key('profile.pinnedPrice');
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.handle});
 
@@ -32,6 +35,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _following = false;
   int _span = PortfolioMock.defaultSpan;
   int _filter = 0; // 0 All, 1 Calls, 2 Arena
+
+  final _scroll = ScrollController();
+
+  /// On the market's price row, to tell when it has scrolled away.
+  final _priceKey = GlobalKey();
+
+  /// On the scrolling area, whose top edge the price row scrolls under.
+  final _listKey = GlobalKey();
+
+  /// The price row is out of view: show it pinned at the top instead.
+  bool _pinned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  // Measured after the frame: during the scroll callback the list hasn't
+  // been laid out at its new offset yet, so positions would be stale.
+  void _onScroll() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+
+  void _measure() {
+    if (!mounted) return;
+    final row = _priceKey.currentContext?.findRenderObject() as RenderBox?;
+    final list = _listKey.currentContext?.findRenderObject() as RenderBox?;
+    bool pinned;
+    if (row == null || !row.attached || list == null) {
+      // Built lazily: once it's been dropped it's well off the top.
+      pinned = _scroll.offset > 0;
+    } else {
+      final bottom = row.localToGlobal(Offset(0, row.size.height)).dy;
+      pinned = bottom < list.localToGlobal(Offset.zero).dy;
+    }
+    if (pinned != _pinned) setState(() => _pinned = pinned);
+  }
 
   void _openMarket() =>
       Navigator.of(context).push(TraderMarketScreen.route(widget.handle));
@@ -70,35 +116,114 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.paddingOf(context).bottom + 24,
-                ),
+              child: Stack(
+                key: _listKey,
                 children: [
-                  Padding(padding: gutter, child: _header()),
-                  const SizedBox(height: VistaSpace.sectionLg),
-                  _market(),
-                  const SizedBox(height: VistaSpace.sectionLg),
-                  const Padding(
-                    padding: gutter,
-                    child: VistaSectionHead(
-                      title: 'HOLDING NOW',
-                      note: 'Shared live',
+                  ListView(
+                    controller: _scroll,
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.paddingOf(context).bottom + 24,
+                    ),
+                    children: [
+                      Padding(padding: gutter, child: _header()),
+                      const SizedBox(height: VistaSpace.sectionLg),
+                      _market(),
+                      const SizedBox(height: VistaSpace.sectionLg),
+                      const Padding(
+                        padding: gutter,
+                        child: VistaSectionHead(
+                          title: 'HOLDING NOW',
+                          note: 'Shared live',
+                        ),
+                      ),
+                      const SizedBox(height: VistaSpace.xl),
+                      Padding(
+                        padding: gutter,
+                        child: HoldingsTable(
+                          onRowTap: () => _notBuilt('Call details'),
+                        ),
+                      ),
+                      const SizedBox(height: VistaSpace.sectionLg),
+                      Padding(padding: gutter, child: _calls()),
+                    ],
+                  ),
+                  // The market price stays in reach while scrolling: pinned
+                  // under the title bar once its row has scrolled away.
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    child: IgnorePointer(
+                      ignoring: !_pinned,
+                      child: AnimatedSlide(
+                        offset: _pinned ? Offset.zero : const Offset(0, -0.4),
+                        duration: VistaMotion.state,
+                        curve: VistaMotion.enter,
+                        child: AnimatedOpacity(
+                          key: pinnedPriceKey,
+                          opacity: _pinned ? 1 : 0,
+                          duration: VistaMotion.state,
+                          child: _pinnedPrice(),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: VistaSpace.xl),
-                  Padding(
-                    padding: gutter,
-                    child: HoldingsTable(
-                      onRowTap: () => _notBuilt('Call details'),
-                    ),
-                  ),
-                  const SizedBox(height: VistaSpace.sectionLg),
-                  Padding(padding: gutter, child: _calls()),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// "$0.4400 · Market cap … · +4.27%" in a slim bar; tapping opens the
+  /// market.
+  Widget _pinnedPrice() {
+    return Semantics(
+      button: true,
+      label:
+          '${widget.handle} market, ${ProfileMock.price}, '
+          '${ProfileMock.change}',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _openMarket,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+          decoration: const BoxDecoration(
+            color: VistaColors.background,
+            border: Border(bottom: BorderSide(color: VistaColors.hairline)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                ProfileMock.price,
+                style: VistaType.figures(VistaType.headline),
+              ),
+              const SizedBox(width: VistaSpace.sm),
+              Expanded(
+                child: Text(
+                  "${widget.handle}'s market",
+                  style: VistaType.body.copyWith(color: VistaColors.textMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                ProfileMock.change,
+                style: VistaType.figures(VistaType.body)
+                    .copyWith(color: VistaColors.long),
+              ),
+              const SizedBox(width: VistaSpace.xs),
+              Text(
+                '›',
+                style: VistaType.tab.copyWith(color: VistaColors.textMuted),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -212,6 +337,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
           child: Row(
+            key: _priceKey,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
