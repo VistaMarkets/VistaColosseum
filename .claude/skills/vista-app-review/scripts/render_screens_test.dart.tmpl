@@ -1,0 +1,150 @@
+// Renders every main screen of the VistaColosseum app to PNGs for review.
+// Copied into app/test/ by render_screens.sh, run with --update-goldens, then
+// deleted. __OUT_DIR__ is replaced with the output folder.
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/design_system/design_system.dart';
+import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
+import 'package:vista_colosseum/main.dart';
+
+const dir = '__OUT_DIR__';
+
+Future<void> fonts() async {
+  // The text face and its fixed-width-digit twin; without them tests fall
+  // back to a box font and the renders are useless.
+  for (final fam in ['OpenRunde', 'OpenRundeTabular']) {
+    final l = FontLoader(fam);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final f = File('assets/fonts/$fam-$w.otf');
+      if (f.existsSync()) {
+        l.addFont(Future.value(ByteData.sublistView(f.readAsBytesSync())));
+      }
+    }
+    await l.load();
+  }
+  final icons = File(
+    '/opt/homebrew/share/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+  );
+  if (icons.existsSync()) {
+    final i = FontLoader('MaterialIcons')
+      ..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())));
+    await i.load();
+  }
+}
+
+void phone(WidgetTester t, {Size size = const Size(402, 874), double top = 62, double bottom = 34}) {
+  t.view
+    ..physicalSize = size * 3
+    ..devicePixelRatio = 3
+    ..padding = FakeViewPadding(top: top * 3, bottom: bottom * 3);
+  addTearDown(t.view.reset);
+}
+
+Future<void> boot(WidgetTester t, {Size size = const Size(402, 874), double top = 62, double bottom = 34}) async {
+  phone(t, size: size, top: top, bottom: bottom);
+  await t.pumpWidget(const VistaColosseumApp());
+  await t.pumpAndSettle();
+}
+
+Future<void> page(WidgetTester t, Widget home) async {
+  phone(t);
+  await t.pumpWidget(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: VistaTheme.dark(),
+      home: home,
+    ),
+  );
+  await t.pumpAndSettle();
+}
+
+Future<void> shot(WidgetTester t, String name) => expectLater(
+  find.byType(MaterialApp).first,
+  matchesGoldenFile('file://$dir/$name.png'),
+);
+
+Future<void> tab(WidgetTester t, String label) async {
+  await t.tap(find.bySemanticsLabel(label));
+  await t.pumpAndSettle();
+}
+
+/// Taps a trade-page panel tab (Market / Callers / Alerts / Book …).
+Future<void> panel(WidgetTester t, String name) async {
+  await t.tap(find.descendant(of: find.byType(VistaUnderlineTabs), matching: find.text(name)).first);
+  await t.pumpAndSettle();
+}
+
+/// Each screen is its own test so one broken path doesn't stop the rest.
+void main() {
+  setUpAll(fonts);
+  testWidgets('home', (t) async {
+    await boot(t);
+    await shot(t, '01_home_feed');
+    final g = await t.startGesture(const Offset(200, 600));
+    await g.moveBy(const Offset(0, -150));
+    await t.pump();
+    await shot(t, '02_home_mid_swipe_to_next_card');
+    await g.up();
+    await t.pumpAndSettle();
+  });
+  testWidgets('home ticket', (t) async {
+    await boot(t);
+    await t.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+    await t.pumpAndSettle();
+    await shot(t, '03_home_card_long_opens_order_ticket');
+    await t.tap(find.text('custom'));
+    await t.pumpAndSettle();
+    await shot(t, '04_custom_leverage_sheet');
+  });
+  testWidgets('share', (t) async { await boot(t); await t.tap(find.text('Share').first); await t.pumpAndSettle(); await shot(t, '05_share_sheet'); });
+  testWidgets('people in', (t) async { await boot(t); await t.tap(find.textContaining(' in').first); await t.pumpAndSettle(); await shot(t, '06_people_in_sheet'); });
+  testWidgets('explore', (t) async {
+    await boot(t);
+    await tab(t, 'Explore');
+    await shot(t, '07_explore_assets');
+    await t.tap(find.text('Traders').first);
+    await t.pumpAndSettle();
+    await shot(t, '08_explore_traders');
+  });
+  testWidgets('trade page', (t) async {
+    await page(t, const AssetTradeScreen(ticker: 'ETH'));
+    await shot(t, '09_trade_page_eth_market_panel');
+    for (final (i, p) in ['Callers', 'Alerts', 'Book'].indexed) {
+      await panel(t, p);
+      await shot(t, '1${i}_trade_page_${p.toLowerCase()}_panel');
+    }
+    await t.tap(find.text('Long').last);
+    await t.pumpAndSettle();
+    await shot(t, '13_trade_page_long_pro_order_ticket');
+  });
+  testWidgets('arena', (t) async { await boot(t); await tab(t, 'Arena'); await shot(t, '14_arena'); });
+  testWidgets('portfolio', (t) async {
+    await boot(t);
+    await tab(t, 'Wallet');
+    await shot(t, '15_portfolio');
+    final row = find.descendant(of: find.byType(PortfolioScreen), matching: find.text('Ethereum'));
+    await t.ensureVisible(row);
+    await t.pumpAndSettle();
+    await t.tap(row);
+    await t.pumpAndSettle();
+    await shot(t, '16_position_sheet');
+  });
+  testWidgets('open orders', (t) async { await boot(t); await tab(t, 'Wallet'); await t.tap(find.text('Open orders')); await t.pumpAndSettle(); await shot(t, '17_portfolio_open_orders'); });
+  testWidgets('settings', (t) async { await boot(t); await t.tap(find.bySemanticsLabel('Settings').first); await t.pumpAndSettle(); await shot(t, '18_settings'); });
+  testWidgets('profile', (t) async {
+    await boot(t);
+    await t.tap(find.text('kaito.eth').first);
+    await t.pumpAndSettle();
+    await shot(t, '19_profile_kaito');
+    await t.drag(find.byType(ListView).last, const Offset(0, -500));
+    await t.pumpAndSettle();
+    await shot(t, '20_profile_scrolled');
+  });
+  testWidgets('trader market', (t) async { await page(t, const TraderMarketScreen(handle: 'maya.eth')); await shot(t, '21_trader_market_page'); });
+  testWidgets('small phone', (t) async { await boot(t, size: const Size(375, 667), top: 20, bottom: 0); await shot(t, '22_home_small_phone_375x667'); });
+}
