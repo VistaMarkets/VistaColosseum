@@ -546,7 +546,7 @@ class _BattleChip extends StatelessWidget {
   }
 }
 
-/// Agree with a take: the heart and its count; red once agreed.
+/// Agree with a take: the Home card's heart button and its count.
 class _AgreeButton extends StatelessWidget {
   const _AgreeButton({required this.take});
 
@@ -575,18 +575,22 @@ class _AgreeButton extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  VistaIcon(
-                    VistaAssets.takeHeart,
-                    size: 18,
-                    color: on ? VistaColors.short : null,
+                  // The Home card's Like, smaller: outline until agreed,
+                  // then the red heart with a small overshoot.
+                  TweenAnimationBuilder<double>(
+                    key: ValueKey(on),
+                    tween: Tween(begin: on ? 0.7 : 1, end: 1),
+                    duration: const Duration(milliseconds: 320),
+                    curve: Curves.easeOutBack,
+                    builder: (context, scale, child) =>
+                        Transform.scale(scale: scale, child: child),
+                    child: VistaIcon(
+                      on ? VistaAssets.like : VistaAssets.likeOutline,
+                      size: 40,
+                    ),
                   ),
-                  const SizedBox(width: 5),
-                  Text(
-                    '$count',
-                    style: on
-                        ? _actionCount.copyWith(color: VistaColors.short)
-                        : _actionCount,
-                  ),
+                  const SizedBox(width: VistaSpace.xxs),
+                  Text('$count', style: _actionCount),
                 ],
               ),
             ),

@@ -35,7 +35,6 @@ abstract final class VistaAssets {
   static const String share = '$_dir/share_button.svg';
 
   // Arena take actions (18pt glyphs, no circle).
-  static const String takeHeart = '$_dir/take_heart.svg';
   static const String takePeople = '$_dir/take_people.svg';
 
   // Avatars and coins (placeholders from the mock).

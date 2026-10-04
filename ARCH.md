@@ -244,7 +244,6 @@ VistaColosseum/
 │   │   │   ├── spark_sol.svg
 │   │   │   ├── star.svg
 │   │   │   ├── star_filled.svg
-│   │   │   ├── take_heart.svg
 │   │   │   ├── take_people.svg
 │   │   │   ├── terms_dashed_line.svg
 │   │   │   ├── timeline_rail_open.svg
