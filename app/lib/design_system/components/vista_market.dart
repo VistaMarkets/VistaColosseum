@@ -432,13 +432,12 @@ class VistaMarketCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(price, style: VistaType.headline),
+                  Text(price, style: VistaType.figures(VistaType.headline)),
                   const SizedBox(width: VistaSpace.sm),
                   Text(
                     vistaChangeLabel(changePct),
-                    style: VistaType.label.copyWith(
-                      color: vistaChangeColor(changePct),
-                    ),
+                    style: VistaType.figures(VistaType.label)
+                        .copyWith(color: vistaChangeColor(changePct)),
                   ),
                 ],
               ),
@@ -568,17 +567,16 @@ class VistaMarketRow extends StatelessWidget {
             ),
             // Figma: 78 / 58 / 70. Price and last column give up a few
             // points so handles fit in the wider Open Runde face.
-            col(72, Text(price, style: VistaType.body)),
+            col(72, Text(price, style: VistaType.figures(VistaType.body))),
             col(
               58,
               Text(
                 vistaChangeLabel(changePct),
-                style: VistaType.body.copyWith(
-                  color: vistaChangeColor(changePct),
-                ),
+                style: VistaType.figures(VistaType.body)
+                    .copyWith(color: vistaChangeColor(changePct)),
               ),
             ),
-            col(64, Text(third, style: VistaType.body)),
+            col(64, Text(third, style: VistaType.figures(VistaType.body))),
           ],
         ),
       ),

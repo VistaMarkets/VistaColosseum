@@ -745,7 +745,7 @@ class _OrderTicketState extends State<OrderTicket> {
               children: [
                 Text(label, style: _fieldLabel, maxLines: 1),
                 const SizedBox(height: 2),
-                _input(controller, onChanged, VistaType.tab),
+                _input(controller, onChanged, VistaType.figures(VistaType.tab)),
               ],
             ),
           ),
@@ -778,7 +778,11 @@ class _OrderTicketState extends State<OrderTicket> {
               children: [
                 Text(label, style: _fieldLabel, maxLines: 1),
                 const SizedBox(height: 2),
-                _input(c, (_) => setState(() {}), VistaType.tab),
+                _input(
+                  c,
+                  (_) => setState(() {}),
+                  VistaType.figures(VistaType.tab),
+                ),
               ],
             ),
           ),
@@ -837,7 +841,7 @@ class _OrderTicketState extends State<OrderTicket> {
             style: VistaType.rowMedium.copyWith(color: VistaColors.textMuted),
           ),
         ),
-        Text(value, style: VistaType.row),
+        Text(value, style: VistaType.figures(VistaType.row)),
       ],
     );
   }

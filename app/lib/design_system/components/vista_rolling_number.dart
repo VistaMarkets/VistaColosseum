@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../tokens/vista_colors.dart';
+import '../tokens/vista_typography.dart';
 
 /// A figure whose changed digits roll to their new value (Figma 108:125,
 /// "Live number · B — rolling digits").
@@ -82,9 +83,7 @@ class _VistaRollingNumberState extends State<VistaRollingNumber>
 
   @override
   Widget build(BuildContext context) {
-    final base = widget.style.copyWith(
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
+    final base = widget.style.copyWith(fontFamily: VistaType.numberFamily);
     final to = widget.text;
     // Right-align old and new so digits line up by place value.
     final pad = to.length - _from.length;

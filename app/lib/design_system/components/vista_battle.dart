@@ -88,7 +88,7 @@ class VistaBattleCard extends StatelessWidget {
                   children: [
                     Text(ticker, style: VistaType.displayNumber),
                     const SizedBox(width: VistaSpace.md),
-                    Text(price, style: VistaType.tab),
+                    Text(price, style: VistaType.figures(VistaType.tab)),
                     const SizedBox(width: VistaSpace.md),
                     Expanded(
                       child: Text(

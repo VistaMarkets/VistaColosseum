@@ -217,13 +217,12 @@ class _PriceBlock extends StatelessWidget {
       var pct = (price - call) / call * 100;
       if (idea.side == TradeSide.short) pct = -pct;
       final colour = pct >= 0 ? VistaColors.long : VistaColors.short;
-      const tabular = [FontFeature.tabularFigures()];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
             formatUsd(price, decimals: MarketPrices.decimalsFor(idea.price)),
-            style: VistaType.displayNumber.copyWith(fontFeatures: tabular),
+            style: VistaType.displayNumber,
           ),
           const SizedBox(height: 1),
           Text.rich(
@@ -233,7 +232,7 @@ class _PriceBlock extends StatelessWidget {
                   text:
                       '${pct >= 0 ? '+' : '−'}'
                       '${pct.abs().toStringAsFixed(2)}%',
-                  style: change.copyWith(color: colour, fontFeatures: tabular),
+                  style: VistaType.figures(change).copyWith(color: colour),
                 ),
                 TextSpan(
                   text: ' · replaying ${idea.age}',

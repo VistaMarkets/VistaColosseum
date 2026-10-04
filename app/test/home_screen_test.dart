@@ -56,12 +56,15 @@ const phones = <String, (Size, EdgeInsets)>{
 };
 
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 /// Fields outlined in red (a refused order pointing at them) inside [of].
@@ -2243,5 +2246,21 @@ void main() {
     );
     expect(joined, lessThan(call.dy));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('numbers use the fixed-width digit face', (tester) async {
+    // Every digit is as wide as every other, so a ticking price keeps its
+    // width: $1,111.11 sets as wide as $8,888.88.
+    double widthOf(String text) {
+      final p = TextPainter(
+        text: TextSpan(text: text, style: VistaType.display),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      return p.width;
+    }
+
+    expect(VistaType.display.fontFamily, VistaType.numberFamily);
+    expect(widthOf(r'$1,111.11'), closeTo(widthOf(r'$8,888.88'), 0.01));
+    expect(widthOf(r'$2,968.40'), closeTo(widthOf(r'$2,971.15'), 0.01));
   });
 }

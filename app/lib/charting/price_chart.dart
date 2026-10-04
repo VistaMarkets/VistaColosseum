@@ -61,10 +61,9 @@ class PriceChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final axis = VistaType.micro.copyWith(
-      fontWeight: FontWeight.w500,
-      color: VistaColors.textSecondary,
-    );
+    final axis = VistaType.figures(
+      VistaType.micro,
+    ).copyWith(fontWeight: FontWeight.w500, color: VistaColors.textSecondary);
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth;
@@ -207,7 +206,10 @@ Widget _tag(double left, double y, String text, Color bg, Color fg) =>
           color: bg,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(text, style: VistaType.micro.copyWith(color: fg)),
+        child: Text(
+          text,
+          style: VistaType.figures(VistaType.micro).copyWith(color: fg),
+        ),
       ),
     );
 

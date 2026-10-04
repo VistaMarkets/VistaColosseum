@@ -108,12 +108,14 @@ class _OpenOrderCardState extends State<OpenOrderCard>
                       valueListenable: MarketPrices.of(o.symbol),
                       builder: (context, _, _) => Text.rich(
                         TextSpan(
-                          style: muted,
+                          // Ticks with the price: the number face keeps
+                          // the line from shifting (letters are the same).
+                          style: VistaType.figures(muted),
                           children: [
                             const TextSpan(text: 'Fills at '),
                             TextSpan(
                               text: _usd(o.limitPrice),
-                              style: VistaType.bodyStrong,
+                              style: VistaType.figures(VistaType.bodyStrong),
                             ),
                             TextSpan(
                               text:

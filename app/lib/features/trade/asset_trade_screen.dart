@@ -403,8 +403,11 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
   Widget _bookSide((String, String, double) level, {required bool bid}) {
     final (price, size, depth) = level;
     final colour = bid ? VistaColors.long : VistaColors.short;
-    final priceText = Text(price, style: VistaType.row.copyWith(color: colour));
-    final sizeText = Text(size, style: VistaType.rowMedium);
+    final priceText = Text(
+      price,
+      style: VistaType.figures(VistaType.row).copyWith(color: colour),
+    );
+    final sizeText = Text(size, style: VistaType.figures(VistaType.rowMedium));
     return SizedBox(
       height: 26,
       child: Stack(

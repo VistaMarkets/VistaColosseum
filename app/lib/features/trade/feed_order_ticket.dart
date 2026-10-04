@@ -400,42 +400,40 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
         if (l <= _market.maxLeverage) l,
     ];
     final custom = !presets.contains(_leverage);
-    Widget chip(
-      String label,
-      bool on,
-      VoidCallback onTap,
-      String semantics,
-    ) => Expanded(
-      child: Semantics(
-        button: true,
-        selected: on,
-        label: semantics,
-        excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: on ? VistaColors.textPrimary : VistaColors.surfaceRaised,
-              borderRadius: BorderRadius.circular(VistaRadius.pill),
-            ),
-            child: Text(
-              label,
-              style: VistaType.subhead.copyWith(
-                fontWeight: FontWeight.w700,
-                color: on ? VistaColors.ink : VistaColors.textPrimary,
+    Widget chip(String label, bool on, VoidCallback onTap, String semantics) =>
+        Expanded(
+          child: Semantics(
+            button: true,
+            selected: on,
+            label: semantics,
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: on
+                      ? VistaColors.textPrimary
+                      : VistaColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(VistaRadius.pill),
+                ),
+                child: Text(
+                  label,
+                  style: VistaType.subhead.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: on ? VistaColors.ink : VistaColors.textPrimary,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+        );
     return Row(
       children: [
         for (final l in presets) ...[
@@ -464,7 +462,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     String? prefix,
     bool fault = false,
   }) {
-    final value = VistaType.tab;
+    final value = VistaType.figures(VistaType.tab);
     return AnimatedContainer(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       duration: VistaMotion.state,
@@ -576,7 +574,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   }
 
   Widget _exitsSummary() {
-    final value = VistaType.body;
+    final value = VistaType.figures(VistaType.body);
     final rr = _slPct <= 0 ? 0 : _tpPct / _slPct;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,

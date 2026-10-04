@@ -134,7 +134,8 @@ class _PositionSheetState extends State<PositionSheet> {
               children: [
                 Text(
                   p.pnlPercent,
-                  style: VistaType.bodyMedium.copyWith(color: p.pnlColor),
+                  style: VistaType.figures(VistaType.bodyMedium)
+                      .copyWith(color: p.pnlColor),
                 ),
                 const SizedBox(width: VistaSpace.xs),
                 Text(_d.size, style: VistaType.bodyMedium),
@@ -149,7 +150,7 @@ class _PositionSheetState extends State<PositionSheet> {
                   valueListenable: MarketPrices.of(_d.symbol),
                   builder: (context, price, _) => Text(
                     '${_d.symbol} ${formatUsd(price, decimals: _d.decimals < 2 ? 2 : _d.decimals)}',
-                    style: VistaType.body,
+                    style: VistaType.figures(VistaType.body),
                   ),
                 ),
                 const SizedBox(width: VistaSpace.sm),
@@ -289,7 +290,8 @@ class _PositionSheetState extends State<PositionSheet> {
           ),
           Text(
             _usd(value),
-            style: VistaType.subhead.copyWith(fontWeight: FontWeight.w400),
+            style: VistaType.figures(VistaType.subhead)
+                .copyWith(fontWeight: FontWeight.w400),
           ),
           const SizedBox(width: VistaSpace.md),
           // Entry has no steppers; an invisible copy keeps its price in line.
@@ -301,7 +303,10 @@ class _PositionSheetState extends State<PositionSheet> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_pct(value), style: VistaType.bodyRegular),
+                Text(
+                  _pct(value),
+                  style: VistaType.figures(VistaType.bodyRegular),
+                ),
                 // Two 44pt targets around the 30pt circles, overhanging the
                 // 30pt row so levels keep Figma's spacing.
                 SizedBox(

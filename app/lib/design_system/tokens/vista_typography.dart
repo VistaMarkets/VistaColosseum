@@ -7,6 +7,21 @@ import 'vista_colors.dart';
 abstract final class VistaType {
   static const String fontFamily = 'OpenRunde';
 
+  /// Open Runde with fixed-width digits (Open Runde has no `tnum`), so
+  /// numbers don't shift sideways as they tick and columns line up. Same
+  /// shapes; only the digits' spacing differs.
+  static const String numberFamily = 'OpenRundeTabular';
+
+  /// [style] set in the number face, for prices, sizes and P/L.
+  static TextStyle figures(TextStyle style) => style.copyWith(
+    fontFamily: numberFamily,
+    fontFeatures: _fixedSpacing,
+  );
+
+  /// Kerning off for numbers: the face's kern pairs (e.g. "1,") would
+  /// otherwise make equal-width digits set at different widths.
+  static const _fixedSpacing = [FontFeature.disable('kern')];
+
   static const TextStyle _base = TextStyle(
     fontFamily: fontFamily,
     color: VistaColors.textPrimary,
@@ -14,13 +29,11 @@ abstract final class VistaType {
   );
 
   /// 36 Bold — hero balance.
-  /// Live numbers use tabular figures so digits don't shift as they tick.
-  static const _tabular = [FontFeature.tabularFigures()];
-
   static final TextStyle display = _base.copyWith(
     fontSize: 36,
     fontWeight: FontWeight.w700,
-    fontFeatures: _tabular,
+    fontFamily: numberFamily,
+    fontFeatures: _fixedSpacing,
   );
 
   /// 20 Bold — headline numbers (price).
@@ -30,23 +43,27 @@ abstract final class VistaType {
   static final TextStyle displayLarge = _base.copyWith(
     fontSize: 32,
     fontWeight: FontWeight.w700,
-    fontFeatures: _tabular,
+    fontFamily: numberFamily,
+    fontFeatures: _fixedSpacing,
   );
   static final TextStyle displayMedium = _base.copyWith(
     fontSize: 26,
     fontWeight: FontWeight.w700,
-    fontFeatures: _tabular,
+    fontFamily: numberFamily,
+    fontFeatures: _fixedSpacing,
   );
   static final TextStyle displaySmall = _base.copyWith(
     fontSize: 24,
     fontWeight: FontWeight.w700,
-    fontFeatures: _tabular,
+    fontFamily: numberFamily,
+    fontFeatures: _fixedSpacing,
   );
 
   static final TextStyle displayNumber = _base.copyWith(
     fontSize: 20,
     fontWeight: FontWeight.w700,
-    fontFeatures: _tabular,
+    fontFamily: numberFamily,
+    fontFeatures: _fixedSpacing,
   );
 
   /// 20 Semibold, tight leading — card question / thesis.

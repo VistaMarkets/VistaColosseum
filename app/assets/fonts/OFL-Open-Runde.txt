@@ -1,5 +1,10 @@
 Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
 
+Modified version: OpenRundeTabular-*.otf ("Open Runde Tabular") are Open
+Runde with its digits 0-9 set to one shared width (and + / minus to a shared
+width), outlines centred; all other glyphs unchanged. Built by
+tool/tabular_digits.py and distributed under this same license.
+
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 http://scripts.sil.org/OFL

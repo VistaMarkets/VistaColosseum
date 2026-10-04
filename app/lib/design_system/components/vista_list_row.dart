@@ -113,12 +113,13 @@ class VistaListRow extends StatelessWidget {
                   children: [
                     Text(
                       value,
-                      style: VistaType.headline.copyWith(color: valueColor),
+                      style: VistaType.figures(VistaType.headline)
+                          .copyWith(color: valueColor),
                     ),
                     const SizedBox(height: VistaSpace.xxs),
                     Text(
                       change,
-                      style: VistaType.label.copyWith(
+                      style: VistaType.figures(VistaType.label).copyWith(
                         fontWeight: FontWeight.w500,
                         color: valueColor,
                       ),

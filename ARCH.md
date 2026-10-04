@@ -258,7 +258,11 @@ VistaColosseum/
 │   │       ├── OpenRunde-Bold.otf
 │   │       ├── OpenRunde-Medium.otf
 │   │       ├── OpenRunde-Regular.otf
-│   │       └── OpenRunde-Semibold.otf
+│   │       ├── OpenRunde-Semibold.otf
+│   │       ├── OpenRundeTabular-Bold.otf
+│   │       ├── OpenRundeTabular-Medium.otf
+│   │       ├── OpenRundeTabular-Regular.otf
+│   │       └── OpenRundeTabular-Semibold.otf
 │   ├── ios/
 │   │   ├── Flutter/
 │   │   │   ├── AppFrameworkInfo.plist
@@ -429,11 +433,12 @@ VistaColosseum/
 │   │   ├── replay_live_test.dart
 │   │   └── rolling_number_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
-│   │   └── app_icon/
-│   │       ├── app_icon_1024.png
-│   │       ├── make_icons.py
-│   │       ├── mark_fill.svg
-│   │       └── render_app_icon_test.dart
+│   │   ├── app_icon/
+│   │   │   ├── app_icon_1024.png
+│   │   │   ├── make_icons.py
+│   │   │   ├── mark_fill.svg
+│   │   │   └── render_app_icon_test.dart
+│   │   └── tabular_digits.py
 │   ├── .gitignore
 │   ├── .metadata
 │   ├── analysis_options.yaml
