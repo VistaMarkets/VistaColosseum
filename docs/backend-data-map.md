@@ -97,10 +97,22 @@ in-app trades.
 
 A published trade idea. Six models in the app describe it:
 
+**Product decision (2026-10-04): the Home feed is users' calls.** Home,
+Arena and each trade page's Callers are three views of the same calls, not
+separate content. Home shows them as replay cards, Arena as a debate feed
+with battles, and Callers filters them to one asset.
+
 Arena takes and trade-page Callers already share one list:
 `app/lib/features/calls/calls_store.dart` (`CallsStore`). Arena shows every
-call; a trade page's Callers shows the backed calls on its asset. Wire that
-store to the backend and both pages follow.
+call; a trade page's Callers shows the backed calls on its asset. Home still
+reads its own mock (`mockFeed`, `TradeIdea`) and is the one view left to move
+onto the shared calls.
+
+A Home card needs more than Arena's row does: the call's entry time and
+price for the replay, the market events tagged along it (funding, whale,
+price level), and recent fills. In VMBE terms that is `Call` plus
+`/v1/calls/{id}/events` and the Signal Replay contract (#883); the saved
+entry must be the author's real entry, never the current price.
 
 | Model | File | Page |
 | --- | --- | --- |
