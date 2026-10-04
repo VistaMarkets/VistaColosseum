@@ -3,14 +3,11 @@ import 'package:flutter/foundation.dart';
 import '../../scenario/scenario.dart';
 import 'portfolio_mock.dart';
 
-/// The user's resting orders, shared by the order ticket (which adds to
-/// them) and Portfolio's Open orders tab (which lists and cancels them).
-/// The list lives in [Scenario]; simulated, nothing is sent.
+/// The user's resting orders, listed and cancelled by Portfolio's Open
+/// orders tab. The list lives in [Scenario]; tickets add to it only through
+/// `Scenario.placeOrder`. Simulated, nothing is sent.
 abstract final class OrdersState {
   static ValueNotifier<List<OpenOrder>> get open => Scenario.openOrders;
-
-  static void add(OpenOrder order) =>
-      open.value = List.unmodifiable([order, ...open.value]);
 
   /// Removes [order]; returns where it was, for Undo.
   static int remove(OpenOrder order) {

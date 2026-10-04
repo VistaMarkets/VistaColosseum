@@ -427,6 +427,7 @@ VistaColosseum/
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
 │   │   ├── home_screen_test.dart
+│   │   ├── order_ticket_test.dart
 │   │   ├── replay_live_test.dart
 │   │   ├── rolling_number_test.dart
 │   │   └── scenario_test.dart
@@ -450,7 +451,9 @@ VistaColosseum/
 │       ├── 2026-10-04T101019-phase1-scenario-store-half2.md
 │       ├── 2026-10-04T105011-phase1-review-iter1.md
 │       ├── 2026-10-04T105911-phase1-fix-iter1.md
-│       └── 2026-10-04T114637-phase1-review-iter2.md
+│       ├── 2026-10-04T114637-phase1-review-iter2.md
+│       ├── 2026-10-04T115639-phase2-order-store-checkpoint.md
+│       └── 2026-10-04T120621-phase2-truthful-order-confirm.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── gate-phase-1-iter-1/
