@@ -115,7 +115,7 @@ class ShareCallCard extends StatelessWidget {
                   if (!long) pct = -pct;
                   return Text(
                     '${pct >= 0 ? '+' : '−'}${pct.abs().toStringAsFixed(2)}%',
-                    style: VistaType.subhead.copyWith(
+                    style: VistaType.figures(VistaType.subhead).copyWith(
                       fontWeight: FontWeight.w700,
                       color: pct >= 0 ? VistaColors.long : VistaColors.short,
                     ),

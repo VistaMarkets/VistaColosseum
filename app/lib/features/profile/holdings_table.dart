@@ -56,7 +56,7 @@ class HoldingsTable extends StatelessWidget {
               valueListenable: MarketPrices.of(h.ticker),
               builder: (context, price, _) => Text(
                 MarketPrices.format(price, compact: true),
-                style: VistaType.row,
+                style: VistaType.figures(VistaType.row),
               ),
             ),
             pnl: Text(

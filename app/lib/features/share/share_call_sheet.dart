@@ -174,8 +174,10 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
                   children: [
                     ValueListenableBuilder(
                       valueListenable: MarketPrices.of(widget.idea.ticker),
-                      builder: (context, price, _) =>
-                          Text(_title(price), style: VistaType.body),
+                      builder: (context, price, _) => Text(
+                        _title(price),
+                        style: VistaType.figures(VistaType.body),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(

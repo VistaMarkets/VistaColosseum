@@ -83,7 +83,7 @@ class _VistaRollingNumberState extends State<VistaRollingNumber>
 
   @override
   Widget build(BuildContext context) {
-    final base = widget.style.copyWith(fontFamily: VistaType.numberFamily);
+    final base = VistaType.figures(widget.style);
     final to = widget.text;
     // Right-align old and new so digits line up by place value.
     final pad = to.length - _from.length;

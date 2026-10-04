@@ -13,10 +13,8 @@ abstract final class VistaType {
   static const String numberFamily = 'OpenRundeTabular';
 
   /// [style] set in the number face, for prices, sizes and P/L.
-  static TextStyle figures(TextStyle style) => style.copyWith(
-    fontFamily: numberFamily,
-    fontFeatures: _fixedSpacing,
-  );
+  static TextStyle figures(TextStyle style) =>
+      style.copyWith(fontFamily: numberFamily, fontFeatures: _fixedSpacing);
 
   /// Kerning off for numbers: the face's kern pairs (e.g. "1,") would
   /// otherwise make equal-width digits set at different widths.

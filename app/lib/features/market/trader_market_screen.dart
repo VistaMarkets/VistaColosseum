@@ -147,9 +147,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                         t > 0.5
                             ? 'Market cap · ${MarketPrices.format(price)} per unit'
                             : 'Trader market',
-                        style: VistaType.caption.copyWith(
-                          color: VistaColors.textMuted,
-                        ),
+                        style: VistaType.figures(VistaType.caption)
+                            .copyWith(color: VistaColors.textMuted),
                       ),
                     ),
                   ],
