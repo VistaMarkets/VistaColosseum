@@ -7,6 +7,7 @@ export 'components/vista_chips.dart';
 export 'components/vista_controls.dart';
 export 'components/vista_detail.dart';
 export 'components/vista_flow.dart';
+export 'components/vista_glass.dart';
 export 'components/vista_icon.dart';
 export 'components/vista_list_row.dart';
 export 'components/vista_market.dart';

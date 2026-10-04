@@ -20,111 +20,133 @@ class ArenaScreen extends StatefulWidget {
 }
 
 class _ArenaScreenState extends State<ArenaScreen> {
+  /// Height the floating search takes above the nav (field plus margins).
+  static const double _searchSpace = 50;
+
   int _sort = 0;
 
   void _notBuilt(String what) => widget.onNotBuilt?.call(what);
 
   @override
   Widget build(BuildContext context) {
-    // Bottom: clear of the floating nav (the shell's safe-area padding).
+    // The list runs to the bottom of the screen and scrolls under the
+    // floating search and nav, which sit over it with nothing behind them.
+    final navSpace = MediaQuery.paddingOf(context).bottom;
     return SafeArea(
-      child: Column(
+      bottom: false,
+      child: Stack(
         children: [
-          // The same account bar as Home and Portfolio.
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
-            child: AccountTopBar(
-              onNotBuilt: widget.onNotBuilt,
-              showSettings: true,
-            ),
-          ),
-          const SizedBox(height: VistaSpace.md),
-          // Sort chips stay put while the battles scroll.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              0,
-              VistaSpace.gutter,
-              VistaSpace.xs,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Wrap(
-                spacing: VistaSpace.md,
-                children: [
-                  for (var i = 0; i < ArenaMock.sorts.length; i++)
-                    VistaFilterChip(
-                      label: ArenaMock.sorts[i],
-                      accent: true,
-                      selected: i == _sort,
-                      onPressed: () => setState(() => _sort = i),
-                    ),
-                ],
+          Column(
+            children: [
+              // The same account bar as Home and Portfolio.
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: VistaSpace.gutter,
+                ),
+                child: AccountTopBar(
+                  onNotBuilt: widget.onNotBuilt,
+                  showSettings: true,
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.only(bottom: VistaSpace.gutter),
-              children: [
-                for (final b in ArenaMock.battles)
-                  Padding(
-                    // A clear gap between battles so each reads as its own.
-                    padding: const EdgeInsets.fromLTRB(
-                      7,
-                      0,
-                      7,
-                      VistaSpace.section,
-                    ),
-                    child: ValueListenableBuilder(
-                      valueListenable: DisplayPrefs.longOnRight,
-                      builder: (context, longOnRight, _) => VistaBattleCard(
-                        longOnRight: longOnRight,
-                        ticker: b.ticker,
-                        price: b.price,
-                        change: b.change,
-                        timeLeft: b.timeLeft,
-                        question: b.question,
-                        bull: b.bull,
-                        bear: b.bear,
-                        moreOpinions: b.moreOpinions,
-                        // Simulated only: joining a side places nothing.
-                        // Bull is long the battle's market, Bear short.
-                        onBull: () => showOrderTicket(
-                          context,
-                          symbol: b.ticker,
-                          side: TradeSide.long,
+              const SizedBox(height: VistaSpace.md),
+              // Sort chips stay put while the battles scroll.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  VistaSpace.gutter,
+                  0,
+                  VistaSpace.gutter,
+                  VistaSpace.xs,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: VistaSpace.md,
+                    children: [
+                      for (var i = 0; i < ArenaMock.sorts.length; i++)
+                        VistaFilterChip(
+                          label: ArenaMock.sorts[i],
+                          accent: true,
+                          selected: i == _sort,
+                          onPressed: () => setState(() => _sort = i),
                         ),
-                        onBear: () => showOrderTicket(
-                          context,
-                          symbol: b.ticker,
-                          side: TradeSide.short,
-                        ),
-                        onOpinions: () =>
-                            Navigator.of(context).push(OpinionsScreen.route()),
-                        onCaller: (handle) =>
-                            Navigator.of(context)
-                                .push(ProfileScreen.route(handle)),
-                      ),
-                    ),
+                    ],
                   ),
-              ],
-            ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  // Room to scroll the last item clear of the search and nav.
+                  padding: EdgeInsets.only(
+                    bottom: VistaSpace.gutter + _searchSpace + navSpace,
+                  ),
+                  children: [
+                    for (final b in ArenaMock.battles)
+                      Padding(
+                        // A clear gap between battles so each reads as its own.
+                        padding: const EdgeInsets.fromLTRB(
+                          7,
+                          0,
+                          7,
+                          VistaSpace.section,
+                        ),
+                        child: ValueListenableBuilder(
+                          valueListenable: DisplayPrefs.longOnRight,
+                          builder: (context, longOnRight, _) => VistaBattleCard(
+                            longOnRight: longOnRight,
+                            ticker: b.ticker,
+                            price: b.price,
+                            change: b.change,
+                            timeLeft: b.timeLeft,
+                            question: b.question,
+                            bull: b.bull,
+                            bear: b.bear,
+                            moreOpinions: b.moreOpinions,
+                            // Simulated only: joining a side places nothing.
+                            // Bull is long the battle's market, Bear short.
+                            onBull: () => showOrderTicket(
+                              context,
+                              symbol: b.ticker,
+                              side: TradeSide.long,
+                            ),
+                            onBear: () => showOrderTicket(
+                              context,
+                              symbol: b.ticker,
+                              side: TradeSide.short,
+                            ),
+                            onOpinions: () =>
+                                Navigator.of(context)
+                                    .push(OpinionsScreen.route()),
+                            onCaller: (handle) =>
+                                Navigator.of(context)
+                                    .push(ProfileScreen.route(handle)),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          // Search sits at the bottom, by the thumb and above the nav.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              VistaSpace.sm,
-              VistaSpace.gutter,
-              VistaSpace.sm,
-            ),
-            child: VistaSearchField(
-              bordered: true,
-              hint: 'Ask about a market',
-              onChanged: (_) {},
-              onSubmitted: (_) => _notBuilt('Ask'),
+          // The search floats just above the nav.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: navSpace,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                VistaSpace.gutter,
+                VistaSpace.sm,
+                VistaSpace.gutter,
+                VistaSpace.sm,
+              ),
+              child: VistaSearchField(
+                bordered: true,
+                hint: 'Ask about a market',
+                onChanged: (_) {},
+                onSubmitted: (_) => _notBuilt('Ask'),
+              ),
             ),
           ),
         ],

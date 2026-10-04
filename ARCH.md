@@ -336,6 +336,7 @@ VistaColosseum/
 │   │   │   │   ├── vista_controls.dart
 │   │   │   │   ├── vista_detail.dart
 │   │   │   │   ├── vista_flow.dart
+│   │   │   │   ├── vista_glass.dart
 │   │   │   │   ├── vista_icon.dart
 │   │   │   │   ├── vista_list_row.dart
 │   │   │   │   ├── vista_market.dart

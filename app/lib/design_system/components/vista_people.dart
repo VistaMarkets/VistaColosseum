@@ -4,6 +4,7 @@ import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
+import 'vista_glass.dart';
 import 'vista_icon.dart';
 import 'vista_pressable.dart';
 
@@ -79,17 +80,18 @@ class VistaSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = VistaType.subhead.copyWith(fontWeight: FontWeight.w400);
-    return Container(
+    final field = Container(
       height: 38,
       padding: EdgeInsets.symmetric(
         horizontal: bordered ? VistaSpace.xl : VistaSpace.xxl,
       ),
-      decoration: BoxDecoration(
-        // The bottom search is outline only; the inline variant is filled.
-        color: bordered ? null : VistaColors.surface,
-        borderRadius: BorderRadius.circular(VistaRadius.pill),
-        border: bordered ? Border.all(color: VistaColors.divider) : null,
-      ),
+      // The inline variant is filled; the bottom search sits on glass.
+      decoration: bordered
+          ? null
+          : BoxDecoration(
+              color: VistaColors.surface,
+              borderRadius: BorderRadius.circular(VistaRadius.pill),
+            ),
       child: Row(
         children: [
           bordered
@@ -119,6 +121,8 @@ class VistaSearchField extends StatelessWidget {
         ],
       ),
     );
+    // The bottom search floats like the nav: a frosted pill.
+    return bordered ? VistaGlass(child: field) : field;
   }
 }
 
