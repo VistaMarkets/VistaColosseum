@@ -12,6 +12,8 @@ import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/arena/opinions_screen.dart';
+import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
@@ -947,7 +949,7 @@ void main() {
     ) async {
       await openOpinions(tester);
       expect(find.text('23 opinions'), findsOneWidget);
-      expect(find.text('Follow Bull'), findsOneWidget);
+      expect(find.text('Join longs'), findsOneWidget);
       expect(handles(tester).first, '@renatafx');
 
       await tester.tap(find.text('Bull thesis'));
@@ -2310,5 +2312,23 @@ void main() {
     final change = tester.getTopLeft(find.byType(VistaChangeLine));
     expect(change.dy, greaterThan(price.dy)); // under, not beside
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('each Arena opinion carries its call, like a trade page caller', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(theme: VistaTheme.dark(), home: const OpinionsScreen()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(CallOrderCard), findsWidgets);
+    expect(find.text('LONG 10x'), findsOneWidget); // @renatafx's call
+    await tester.tap(find.byType(CallOrderCard).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(CallerPlayScreen), findsOneWidget);
   });
 }

@@ -387,6 +387,7 @@ class VistaSideDetail extends StatelessWidget {
     required this.stats,
     this.hitRate,
     this.onCaller,
+    this.call,
   });
 
   final String initials;
@@ -398,6 +399,10 @@ class VistaSideDetail extends StatelessWidget {
   final List<VistaSideStat> stats;
   final String? hitRate;
   final VoidCallback? onCaller;
+
+  /// The caller's order under their thesis (as on a trade page's Callers);
+  /// shown in place of [stats] when given.
+  final Widget? call;
 
   @override
   Widget build(BuildContext context) {
@@ -452,31 +457,33 @@ class VistaSideDetail extends StatelessWidget {
             ),
           ),
           const SizedBox(height: VistaSpace.xl),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final s in stats)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.value,
-                      style: VistaType.body.copyWith(
-                        color: s.color ?? VistaColors.textPrimary,
+          ?call,
+          if (call == null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final s in stats)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s.value,
+                        style: VistaType.body.copyWith(
+                          color: s.color ?? VistaColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: VistaSpace.xxs),
-                    Text(
-                      s.label,
-                      style: VistaType.caption.copyWith(
-                        color: VistaColors.textMuted,
+                      const SizedBox(height: VistaSpace.xxs),
+                      Text(
+                        s.label,
+                        style: VistaType.caption.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
+                    ],
+                  ),
+              ],
+            ),
         ],
       ),
     );

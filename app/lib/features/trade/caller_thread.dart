@@ -75,10 +75,6 @@ class _Post extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = post;
     final long = p.side == TradeSide.long;
-    final entry = base * p.entryRatio;
-    final pnl = (price - entry) / entry * p.leverage * (long ? 1 : -1) * 100;
-    String level(double ratio) =>
-        MarketPrices.format(entry * ratio, compact: true);
 
     return IntrinsicHeight(
       child: Row(
@@ -154,73 +150,104 @@ class _Post extends StatelessWidget {
                   ),
                   const SizedBox(height: VistaSpace.md),
                   // The order, embedded like a quoted post; tap for the play.
-                  Semantics(
-                    button: true,
-                    label: "Open ${p.handle}'s play",
-                    value: '${p.side.label} ${p.leverage}x, entry ${level(1)}',
-                    excludeSemantics: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: onPlay == null ? null : () => onPlay!(p),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(VistaSpace.lg),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: VistaColors.surfaceRaised),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  '${p.side.label.toUpperCase()} ${p.leverage}x',
-                                  style: VistaType.labelStrong.copyWith(
-                                    color: p.side.color,
-                                  ),
-                                ),
-                                const SizedBox(width: VistaSpace.sm),
-                                Expanded(
-                                  child: Text(
-                                    'Entry ${level(1)}',
-                                    style: VistaType.body,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Text(
-                                  '${pnl >= 0 ? '+' : '−'}'
-                                  '${pnl.abs().toStringAsFixed(1)}%',
-                                  style: VistaType.bodyStrong.copyWith(
-                                    color: pnl >= 0
-                                        ? VistaColors.long
-                                        : VistaColors.short,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: VistaSpace.xs),
-                            Text(
-                              'Size ${formatUsd(p.size)}'
-                              ' · TP ${level(p.takeProfit)}'
-                              ' · SL ${level(p.stopLoss)}',
-                              style: VistaType.caption.copyWith(
-                                color: VistaColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  CallOrderCard(
+                    post: p,
+                    base: base,
+                    price: price,
+                    onTap: onPlay == null ? null : () => onPlay!(p),
                   ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A caller's order as a card, like a quoted post under their words: side
+/// and leverage, entry and live P&L, then size and exits. Shared by the
+/// trade page's Callers thread and Arena's opinions. [base] is the market's
+/// session price the levels are set from; [price] its live price.
+class CallOrderCard extends StatelessWidget {
+  const CallOrderCard({
+    super.key,
+    required this.post,
+    required this.base,
+    required this.price,
+    this.onTap,
+  });
+
+  final CallerPost post;
+  final double base;
+  final double price;
+
+  /// Opens the caller's play.
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = post;
+    final long = p.side == TradeSide.long;
+    final entry = base * p.entryRatio;
+    final pnl = (price - entry) / entry * p.leverage * (long ? 1 : -1) * 100;
+    String level(double ratio) =>
+        MarketPrices.format(entry * ratio, compact: true);
+    return Semantics(
+      button: true,
+      label: "Open ${p.handle}'s play",
+      value: '${p.side.label} ${p.leverage}x, entry ${level(1)}',
+      excludeSemantics: true,
+      child: VistaPressable(
+        scale: 0.98,
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(VistaSpace.lg),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: VistaColors.surfaceRaised),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '${p.side.label.toUpperCase()} ${p.leverage}x',
+                    style: VistaType.labelStrong.copyWith(color: p.side.color),
+                  ),
+                  const SizedBox(width: VistaSpace.sm),
+                  Expanded(
+                    child: Text(
+                      'Entry ${level(1)}',
+                      style: VistaType.figures(VistaType.body),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    '${pnl >= 0 ? '+' : '−'}${pnl.abs().toStringAsFixed(1)}%',
+                    style: VistaType.figures(VistaType.bodyStrong).copyWith(
+                      color: pnl >= 0 ? VistaColors.long : VistaColors.short,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.xs),
+              Text(
+                'Size ${formatUsd(p.size)}'
+                ' · TP ${level(p.takeProfit)}'
+                ' · SL ${level(p.stopLoss)}',
+                style: VistaType.figures(VistaType.caption)
+                    .copyWith(color: VistaColors.textMuted),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
+import '../live/market_prices.dart';
+import '../trade/caller_play_screen.dart';
+import '../trade/caller_thread.dart';
 import '../trade/order_ticket.dart';
 import 'opinions_mock.dart';
 
@@ -20,6 +23,9 @@ class OpinionsScreen extends StatefulWidget {
 }
 
 class _OpinionsScreenState extends State<OpinionsScreen> {
+  /// The battle's market (Bull is long it, Bear short).
+  static const _market = 'BTC';
+
   int _filter = 0; // 0 All, 1 Bull thesis, 2 Bear thesis
 
   @override
@@ -114,6 +120,18 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
                 children: [
                   for (final o in opinions)
                     VistaSideDetail(
+                      // Their order on the battle's market, live, as on a
+                      // trade page's Callers; tap for their play.
+                      call: ValueListenableBuilder(
+                        valueListenable: MarketPrices.of(_market),
+                        builder: (context, price, _) => CallOrderCard(
+                          post: o.call,
+                          base: MarketPrices.base(_market),
+                          price: price,
+                          onTap: () => Navigator.of(context)
+                              .push(CallerPlayScreen.route(o.call, _market)),
+                        ),
+                      ),
                       initials: o.initials,
                       handle: o.handle,
                       subtitle: o.subtitle,
@@ -147,7 +165,7 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
   }
 }
 
-/// Raised dock: consensus legend and split bar over Follow Bull / Bear.
+/// Raised dock: consensus legend and split bar over Join longs / Join shorts.
 class _ConsensusDock extends StatelessWidget {
   const _ConsensusDock({
     required this.bullPercent,
@@ -211,12 +229,12 @@ class _ConsensusDock extends StatelessWidget {
                 longOnRight: longOnRight,
                 gap: VistaSpace.md,
                 long: VistaPillButton(
-                  label: 'Follow Bull',
+                  label: 'Join longs',
                   variant: VistaPillVariant.long,
                   onPressed: onBull,
                 ),
                 short: VistaPillButton(
-                  label: 'Follow Bear',
+                  label: 'Join shorts',
                   variant: VistaPillVariant.short,
                   onPressed: onBear,
                 ),
