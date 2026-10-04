@@ -64,6 +64,18 @@ Future<void> _loadFonts() async {
   await loader.load();
 }
 
+/// Fields outlined in red (a refused order pointing at them) inside [of].
+Finder redFields(Type of) => find.descendant(
+  of: find.byType(of),
+  matching: find.byWidgetPredicate(
+    (w) =>
+        w is AnimatedContainer &&
+        w.decoration is BoxDecoration &&
+        ((w.decoration! as BoxDecoration).border as Border?)?.top.color ==
+            VistaColors.short,
+  ),
+);
+
 void main() {
   setUpAll(_loadFonts);
   // Most screens assume the user already has a market; the make-a-market
@@ -1840,9 +1852,15 @@ void main() {
       await tester.pump();
       expect(find.text('Not enough margin'), findsOneWidget);
       final before = OrdersState.open.value.length;
+      expect(redFields(OrderTicket), findsNothing);
       await tester.tap(find.text('Not enough margin'));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(OrdersState.open.value.length, before);
+      // The size field is outlined until it's edited.
+      expect(redFields(OrderTicket), findsOneWidget);
+      await tester.enterText(size.at(0), '0.01');
+      await tester.pumpAndSettle();
+      expect(redFields(OrderTicket), findsNothing);
     });
 
     testWidgets('Arena Bull and Home Long open the ticket on that side', (
@@ -2178,6 +2196,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(FeedOrderTicket), findsOneWidget);
       expect(OrdersState.open.value.length, before);
+      expect(redFields(FeedOrderTicket), findsOneWidget); // the amount
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {

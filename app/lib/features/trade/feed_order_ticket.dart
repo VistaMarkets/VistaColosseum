@@ -104,6 +104,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
 
   void _setMargin(double m, {bool fromField = false}) {
     setState(() {
+      _fault = null;
       _margin = math.max(0, m);
       if (!fromField) _amount.text = _fmtUsd(_margin);
     });
@@ -131,6 +132,10 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   /// Bumped to shake the order button when the order can't go through.
   int _shakes = 0;
 
+  /// The field a refused order points at ('price' or 'amount'), outlined in
+  /// red until it's edited.
+  String? _fault;
+
   /// Set once placed: the button reads "Placed ✓" before the sheet closes.
   bool _placed = false;
 
@@ -138,7 +143,10 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     if (_placed) return;
     if (_problem != null) {
       HapticFeedback.heavyImpact();
-      setState(() => _shakes++);
+      setState(() {
+        _shakes++;
+        _fault = _problem == 'Enter a limit price' ? 'price' : 'amount';
+      });
       return;
     }
     HapticFeedback.mediumImpact();
@@ -243,7 +251,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                   _field(
                     label: 'Limit price',
                     controller: _price,
-                    onChanged: (_) => setState(() {}),
+                    fault: _fault == 'price',
+                    onChanged: (_) => setState(() => _fault = null),
                   ),
                   gap,
                 ],
@@ -266,6 +275,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                       '\$${_fmtUsd(OrderTicket.available)}',
                   controller: _amount,
                   prefix: r'$',
+                  fault: _fault == 'amount',
                   onChanged: (t) => _setMargin(
                     double.tryParse(t.replaceAll(',', '')) ?? 0,
                     fromField: true,
@@ -452,13 +462,21 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
     String? prefix,
+    bool fault = false,
   }) {
     final value = VistaType.tab;
-    return Container(
+    return AnimatedContainer(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      duration: VistaMotion.state,
       decoration: BoxDecoration(
         color: VistaColors.background,
         borderRadius: BorderRadius.circular(14),
+        // Red when a refused order points here; clear otherwise (same width
+        // either way, so nothing shifts).
+        border: Border.all(
+          color: fault ? VistaColors.short : const Color(0x00000000),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

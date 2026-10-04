@@ -125,14 +125,22 @@ class _OrderTicketState extends State<OrderTicket> {
   @override
   void initState() {
     super.initState();
+    // Only a market order is priced by the feed; limit and stop orders take
+    // their price from the field, so their form needn't rebuild on a tick.
+    MarketPrices.of(widget.symbol).addListener(_onTick);
     _setPrice(_live);
     // A quarter of what the account can take, as in the design.
     _setUnits(_maxNotional * 0.25 / _live);
     _resetExits();
   }
 
+  void _onTick() {
+    if (mounted && _kind == OrderKind.market) setState(() {});
+  }
+
   @override
   void dispose() {
+    MarketPrices.of(widget.symbol).removeListener(_onTick);
     for (final c in [_price, _size, _tp, _sl]) {
       c.dispose();
     }
@@ -204,6 +212,10 @@ class _OrderTicketState extends State<OrderTicket> {
   /// Bumped to shake the Place button when the order can't go through.
   int _shakes = 0;
 
+  /// The field a refused order points at ('price' or 'size'), outlined in
+  /// red until it's edited.
+  String? _fault;
+
   /// Set once placed: the button reads "Placed ✓" before the sheet closes.
   bool _placed = false;
 
@@ -211,7 +223,10 @@ class _OrderTicketState extends State<OrderTicket> {
     if (_placed) return;
     if (_problem.isNotEmpty) {
       HapticFeedback.heavyImpact();
-      setState(() => _shakes++);
+      setState(() {
+        _shakes++;
+        _fault = _problem == 'Enter a price' ? 'price' : 'size';
+      });
       return;
     }
     HapticFeedback.mediumImpact();
@@ -283,10 +298,7 @@ class _OrderTicketState extends State<OrderTicket> {
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: ValueListenableBuilder(
-              valueListenable: MarketPrices.of(widget.symbol),
-              builder: (context, _, _) => _content(),
-            ),
+            child: _content(),
           ),
         ),
       ),
@@ -344,7 +356,8 @@ class _OrderTicketState extends State<OrderTicket> {
           _field(
             label: _kind == OrderKind.limit ? 'Limit price' : 'Trigger price',
             controller: _price,
-            onChanged: (_) => setState(() {}),
+            fault: _fault == 'price',
+            onChanged: (_) => setState(() => _fault = null),
             trailing: [
               _chip('Mid', () => setState(() => _setPrice(_live))),
               const SizedBox(width: 8),
@@ -358,7 +371,11 @@ class _OrderTicketState extends State<OrderTicket> {
               ? 'Size · at ${MarketPrices.format(_live)}'
               : 'Size',
           controller: _size,
-          onChanged: _onSize,
+          fault: _fault == 'size',
+          onChanged: (v) {
+            _fault = null;
+            _onSize(v);
+          },
           trailing: [
             Semantics(
               button: true,
@@ -703,13 +720,21 @@ class _OrderTicketState extends State<OrderTicket> {
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
     List<Widget> trailing = const [],
+    bool fault = false,
   }) {
-    return Container(
+    return AnimatedContainer(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 14),
+      duration: VistaMotion.state,
       decoration: BoxDecoration(
         color: VistaColors.background,
         borderRadius: BorderRadius.circular(14),
+        // Red when a refused order points here; clear otherwise (same width
+        // either way, so nothing shifts).
+        border: Border.all(
+          color: fault ? VistaColors.short : const Color(0x00000000),
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
