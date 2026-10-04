@@ -11,3 +11,7 @@
 2026-10-04T17:11:01Z spawn: phase 1 REVIEW unit iter 1 (opus, general-purpose); base main
 2026-10-04T17:51:14Z return: phase 1 REVIEW iter 1 COMPLETE; VERDICT ISSUES; gate PASS (baton-runner/br-2026-10-04-p0-queue/gate-phase-1-iter-1/); findings C0/H3/M8/L13 in baton-runner/br-2026-10-04-p0-queue/review-phase-1-iter-1.md; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T105011-phase1-review-iter1.md; units 3/75
 2026-10-04T17:51:14Z spawn: phase 1 FIX unit iter 1 (opus, general-purpose)
+2026-10-04T18:04:59Z return: phase 1 FIX iter 1 COMPLETE; NOTES fixed H3/3 M4/8 L0/13; files 10; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T105911-phase1-fix-iter1.md; units 4/75
+2026-10-04T18:04:59Z commit: 0bd9559 fix(phase-1) iter 1
+2026-10-04T18:04:59Z note: fix unit reports the Write hook treats this linked worktree as the base checkout; it edited via Bash instead. Containment held.
+2026-10-04T18:04:59Z spawn: phase 1 REVIEW unit iter 2 (opus, general-purpose)
