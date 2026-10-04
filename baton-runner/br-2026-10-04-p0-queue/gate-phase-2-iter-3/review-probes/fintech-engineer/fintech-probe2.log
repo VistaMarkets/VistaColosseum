@@ -1,0 +1,25 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/fintech-engineer/fintech_probe2_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: OT 13 digits
+OT[13 chars] shown=[$67,412.00, $239M, $173M, $64,850, $69,300, Size · at $67,412.00, $900,719,925.48 · $61,008, $4,503,599.62, Not enough funds] errors=[]
+00:00 +1: OT 306 digits (finite units, infinite cost)
+OT[306 chars] shown=[$67,412.00, $239M, $173M, $64,850, $69,300, Size · at $67,412.00, $0.00 · $61,008, $0.00, Size too small] errors=[]
+00:00 +2: STORE wrong-side exits are accepted
+STORE wrong-side long TP=1 SL=9999 -> OrderFilled
+00:00 +3: STORE fee fraction >= .5 rounds down; margin half rounds away
+STORE n=39999 m=20000 f=19 t=20019
+00:00 +4: STORE sweep: every leverage 1..50 x many sizes, total <= cash iff filled, cash = seed - total
+SWEEP fills=348 refusals=402 bad=0
+00:00 +5: (tearDownAll)
+00:00 +5: All tests passed!

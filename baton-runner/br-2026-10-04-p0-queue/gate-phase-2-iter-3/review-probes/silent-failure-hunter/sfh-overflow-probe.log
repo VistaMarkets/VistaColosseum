@@ -1,0 +1,38 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/silent-failure-hunter/sfh_overflow_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: OT AVAX size=null
+OTF AVAX open exc=none
+00:00 +1: OT BTC size=1370000000000
+OTF BTC open exc=none
+OTF BTC size=1370000000000 exc=none
+00:00 +2: OT BTC size=200000
+OTF BTC open exc=none
+OTF BTC size=200000 exc=none
+00:01 +3: FEEDF typed=184467440737095517
+FEEDF open exc=none
+FEEDF typed=184467440737095517 exc=none
+FEEDF typed=184467440737095517 review=[0.0006 ETH · $1.68, $2,968.40, $0.84, $0.00, $0.84] exc=none
+FEEDF typed=184467440737095517 toast=[Ethereum long filled · $0.84 from paper cash (simulated), Order filled] receipt=[[84, 0, 84]] exc=none
+00:01 +4: FEEDF typed=184467440737095717
+FEEDF open exc=none
+FEEDF typed=184467440737095717 exc=none
+FEEDF typed=184467440737095717 review=[0.1353 ETH · $401.68, $2,968.40, $200.84, $0.20, $201.04] exc=none
+FEEDF typed=184467440737095717 toast=[Ethereum long filled · $201.04 from paper cash (simulated), Order filled] receipt=[[20084, 20, 20104]] exc=none
+00:02 +5: FEEDF typed=200
+FEEDF open exc=none
+FEEDF typed=200 exc=none
+FEEDF typed=200 review=[0.1348 ETH · $400.00, $2,968.40, $200.00, $0.20, $200.20] exc=none
+FEEDF typed=200 toast=[Ethereum long filled · $200.20 from paper cash (simulated), Order filled] receipt=[[20000, 20, 20020]] exc=none
+00:02 +6: (tearDownAll)
+00:02 +6: All tests passed!

@@ -1,0 +1,20 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/code-reviewer/cr_changeline_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: headline vs change line under a feed tick
+CHG before=[$12,480.00, +$91 (0.73%), $MAYA market cap, $44.0M, +$1.8M (4.27%)]
+CHG tick1=[$12,480.00, +$100 (0.81%), $MAYA market cap, $44.0M, +$1.8M (4.27%)]
+CHG tick2=[$12,480.00, +$109 (0.88%), $MAYA market cap, $44.0M, +$1.8M (4.27%)]
+CHG tick3=[$12,480.00, +$118 (0.95%), $MAYA market cap, $44.0M, +$1.8M (4.27%)]
+00:01 +1: (tearDownAll)
+00:01 +1: All tests passed!

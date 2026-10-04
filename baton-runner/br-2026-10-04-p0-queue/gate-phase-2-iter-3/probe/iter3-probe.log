@@ -1,0 +1,187 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/probe/iter3_probe_test.dart
+00:00 +0: H-1 reviewer repro: BTC 1.37e12 units at 1x
+H1 notional=900719925475 margin=900719925475 fee=450359962 total=901170285437 problem=Not enough funds
+H1 result=OrderFailed reason=Not enough funds cash=1248000
+00:00 +1: H-1 edges: max notional, infinite product, huge leverage
+EDGE atMax notional=900719925474 margin=900720 fee=450359962 total=451260682 problem=Not enough funds
+EDGE infProduct notional=0 margin=0 problem=Size too small
+EDGE infProduct hugeLev problem=Size too small
+EDGE hugeLev notional=900719925475 margin=0 total=450359962 problem=Size too large
+EDGE maxMarginCents(1,5)=1247376
+00:00 +2: H-1 via OrderTicket: 13-digit BTC size shows a truthful refusal
+OT fields=[0.4605]
+OT size candidates=1
+OT texts=[Not enough funds]
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 167 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/order_ticket.dart:368:9
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#965da relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← ValueListenableBuilder<double> ← Padding ← _SingleChildViewport ←
+    IgnorePointer-[GlobalKey#95cd8] ← Semantics ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#b44f9] ← Listener ← _ScrollableScope
+    ← ⋯
+  parentData: offset=Offset(0.0, 252.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 44.0)
+  direction: horizontal
+  mainAxisAlignment: spaceBetween
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +2 -1: H-1 via OrderTicket: 13-digit BTC size shows a truthful refusal [E]
+  Test failed. See exception logs above.
+  The test description was: H-1 via OrderTicket: 13-digit BTC size shows a truthful refusal
+  
+00:00 +2 -1: H-2: Wallet shows exact store cents after a fill, and after reset, with no drift
+H2 total=3683 cash=1244317 fmt=$12,443.17
+H2 after reset ok
+00:01 +3 -1: Feed ticket: an 18-digit typed amount (int wrap in _parseCents)
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 96 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:243:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#dbf5c relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#5eb3c] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#723ac] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#dc7ee] ← ⋯
+  parentData: offset=Offset(0.0, 50.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 14.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 14 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#b0b84 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#5eb3c] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#723ac] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#dc7ee] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 186 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#b8c55 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#5eb3c] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#723ac] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#dc7ee] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+FEED amount fields=1
+FEED labels=[Long $0.84 · 2x]
+FEED review dollar texts=[$12,480.00, $2,968.40, $1.2k, $500, $2,968.40, $0.84, $0.00, $0.84]
+FEED receipts=[[84, 0, 84]] cash=1247916
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (3) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +3 -2: Feed ticket: an 18-digit typed amount (int wrap in _parseCents) [E]
+  Test failed. See exception logs above.
+  The test description was: Feed ticket: an 18-digit typed amount (int wrap in _parseCents)
+  
+00:02 +3 -2: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/probe/iter3_probe_test.dart: Feed ticket: an 18-digit typed amount (int wrap in _parseCents)
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/probe/iter3_probe_test.dart: H-1 via OrderTicket: 13-digit BTC size shows a truthful refusal
