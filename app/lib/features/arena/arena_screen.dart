@@ -80,8 +80,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         bull: b.bull,
                         bear: b.bear,
                         moreOpinions: b.moreOpinions,
-                        // Simulated only: joining a side places nothing.
-                        // Bull is long the battle's market, Bear short.
+                        // Bull is long the battle's market, Bear short;
+                        // a fill is a paper position (simulated).
                         onBull: () => showOrderTicket(
                           context,
                           symbol: b.ticker,

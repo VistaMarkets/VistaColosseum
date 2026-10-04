@@ -323,6 +323,70 @@ void main() {
     expect(state(), equals(before));
   });
 
+  test('a trader-index intent is refused on every order kind and changes '
+      'nothing', () {
+    final before = state();
+    for (final kind in OrderKind.values) {
+      // maya.eth has a price, so only the trader-index rule can refuse it.
+      final maya = OrderIntent(
+        actionId: 'a-maya-${kind.name}',
+        symbol: 'maya.eth',
+        name: 'maya.eth',
+        side: TradeSide.long,
+        units: 1000,
+        price: 0.44,
+        leverage: 2,
+        kind: kind,
+      );
+      expect(
+        Scenario.placeOrder(maya),
+        isA<OrderFailed>().having(
+          (f) => f.reason,
+          'reason',
+          'Trader-index ticket — not in the demo yet',
+        ),
+        reason: kind.name,
+      );
+    }
+    expect(state(), equals(before));
+  });
+
+  test('a dust, non-finite or unlevered order fails and changes nothing', () {
+    final before = state();
+    final cases = <(OrderIntent, String)>[
+      // 4 cents of ETH at 10x: the margin rounds to 0 cents.
+      (ethLong('a-dust', units: 0.04 / 2968.40), 'Enter a size'),
+      (ethLong('a-inf', units: double.infinity), 'Enter a size'),
+      (ethLong('a-nan', units: double.nan), 'Enter a size'),
+      (
+        OrderIntent(
+          actionId: 'a-inf-price',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          side: TradeSide.long,
+          units: 1,
+          price: double.infinity,
+          leverage: 10,
+        ),
+        'Enter a price',
+      ),
+      (ethLong('a-lev0', lev: 0), 'Choose a leverage'),
+    ];
+    for (final (intent, reason) in cases) {
+      expect(
+        () => Scenario.placeOrder(intent),
+        returnsNormally,
+        reason: intent.actionId,
+      );
+      expect(
+        Scenario.placeOrder(intent),
+        isA<OrderFailed>().having((f) => f.reason, 'reason', reason),
+        reason: intent.actionId,
+      );
+    }
+    expect(state(), equals(before));
+  });
+
   test('a limit intent rests in Open orders and moves no cash', () {
     final limit = OrderIntent(
       actionId: 'a-limit',

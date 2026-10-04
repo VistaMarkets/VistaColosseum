@@ -117,7 +117,7 @@ class _OrderTicketState extends State<OrderTicket> {
       _kind == OrderKind.market ? _live : math.max(0, _parse(_price.text));
 
   /// A trader market's ticket (its symbol is a handle): not built yet.
-  bool get _traderIndex => !TradeMock.quotes.containsKey(widget.symbol);
+  bool get _traderIndex => !Scenario.tradable(widget.symbol);
 
   OrderIntent get _intent => OrderIntent(
     actionId: _actionId,
@@ -211,11 +211,7 @@ class _OrderTicketState extends State<OrderTicket> {
   void _place() {
     if (_problem.isNotEmpty) return;
     HapticFeedback.mediumImpact();
-    if (_traderIndex) {
-      Navigator.of(context).pop();
-      _toast(context, 'Trader-index ticket — not in the demo yet');
-      return;
-    }
+    if (_traderIndex) return _notBuilt(context);
     if (_kind == OrderKind.market) {
       setState(() => _review = _intent);
       return;
@@ -240,7 +236,7 @@ class _OrderTicketState extends State<OrderTicket> {
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
             child: _review != null
-                ? _ReviewPanel(intent: _review!)
+                ? _ReviewPanel(intent: _review!, requote: () => _intent)
                 : ValueListenableBuilder(
                     valueListenable: MarketPrices.of(widget.symbol),
                     builder: (context, _, _) => _content(),
@@ -803,6 +799,13 @@ void _showWallet(NavigatorState nav) {
   AppShell.tab.value = AppShell.wallet;
 }
 
+/// A trader-index ticket (VC-MKT-005) is not built, and the store refuses
+/// it: the ticket closes and says so, creating nothing.
+void _notBuilt(BuildContext context) {
+  Navigator.of(context).pop();
+  _toast(context, traderIndexNotBuilt);
+}
+
 /// A limit or stop order: rests in Open orders through the store, then
 /// the ticket closes and says so.
 void _rest(BuildContext context, OrderIntent intent) {
@@ -822,15 +825,19 @@ void _rest(BuildContext context, OrderIntent intent) {
 /// receipt's stored cents, a failure its reason and Retry. Cancel and Done
 /// close the ticket and touch nothing.
 class _ReviewPanel extends StatefulWidget {
-  const _ReviewPanel({required this.intent});
+  const _ReviewPanel({required this.intent, required this.requote});
 
   final OrderIntent intent;
+
+  /// The same action at the live price, for Retry.
+  final OrderIntent Function() requote;
 
   @override
   State<_ReviewPanel> createState() => _ReviewPanelState();
 }
 
 class _ReviewPanelState extends State<_ReviewPanel> {
+  late OrderIntent _intent = widget.intent;
   OrderResult? _result;
 
   /// Shut while a submission runs, and for good once it fills.
@@ -839,7 +846,7 @@ class _ReviewPanelState extends State<_ReviewPanel> {
   void _confirm() {
     if (_busy) return;
     _busy = true;
-    final result = Scenario.placeOrder(widget.intent);
+    final result = Scenario.placeOrder(_intent);
     setState(() {
       _result = result;
       _busy = result is OrderFilled;
@@ -859,16 +866,18 @@ class _ReviewPanelState extends State<_ReviewPanel> {
     );
   }
 
-  /// Refreshes the price context, then confirms the same action again, at
-  /// the price the user reviewed.
+  /// Refreshes the price context, then confirms the same action again at
+  /// the live price, never the one that expired.
   void _retry() {
-    Scenario.refreshPrice(widget.intent.symbol);
+    if (_busy) return;
+    Scenario.refreshPrice(_intent.symbol);
+    _intent = widget.requote();
     _confirm();
   }
 
   @override
   Widget build(BuildContext context) {
-    final i = widget.intent;
+    final i = _intent;
     final result = _result;
     final filled = result is OrderFilled ? result.receipt : null;
     // A fill shows what the store kept; until then, what it will keep.
