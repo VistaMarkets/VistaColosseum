@@ -17,6 +17,7 @@ import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
 import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
 import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
+import 'package:vista_colosseum/features/arena/battle_builder.dart';
 import 'package:vista_colosseum/features/arena/arena_mock.dart';
 import 'package:vista_colosseum/features/calls/calls_store.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
@@ -1081,38 +1082,46 @@ void main() {
       ]);
     });
 
-    testWidgets('a call can be made a battle: typed level, Start battle', (
+    testWidgets('Make it a battle opens a page set to the position\'s side', (
       tester,
     ) async {
       await openArena(tester);
       await tester.tap(find.bySemanticsLabel('Make a call'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Ethereum'));
+      await tester.tap(find.text('Ethereum')); // LONG 5x
       await tester.pumpAndSettle();
       // A call by default.
       expect(find.text('Post'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Magnet at 3.2k.');
       await tester.tap(find.bySemanticsLabel('Make it a battle'));
       await tester.pumpAndSettle();
-      expect(find.text('Start battle'), findsOneWidget);
-      await tester.enterText(find.byType(TextField).first, 'Magnet at 3.2k.');
-      await tester.pump();
-      // Closes above needs a level before it can start.
+
+      // Its own page; a long gets the upside statements, the first picked.
+      expect(find.byType(BattleSetupScreen), findsOneWidget);
+      expect(find.text('Closes above'), findsOneWidget);
+      expect(find.text('Ends higher'), findsOneWidget);
+      expect(find.text('Closes below'), findsNothing);
       expect(find.text(r'ETH closes above $… by Friday'), findsOneWidget);
-      await tester.tap(find.bySemanticsLabel('Start battle'));
+      // The level is typed; Add waits for it.
+      await tester.tap(find.text('Add battle'));
       await tester.pumpAndSettle();
-      expect(find.byType(ComposeTakeScreen), findsOneWidget);
-      await tester.enterText(find.byType(TextField).last, '3200');
+      expect(find.byType(BattleSetupScreen), findsOneWidget);
+      await tester.enterText(find.byType(TextField), '3200');
       await tester.pump();
       expect(find.text(r'ETH closes above $3,200 by Friday'), findsOneWidget);
       await tester.tap(find.text('Touches'));
       await tester.pump();
       expect(find.text(r'ETH touches $3,200 before Friday'), findsOneWidget);
+      await tester.tap(find.text('Add battle'));
+      await tester.pumpAndSettle();
+
+      // Back in the composer: a summary, and Post becomes Start battle.
+      expect(find.byType(BattleSetupScreen), findsNothing);
+      expect(find.byType(BattleSummaryCard), findsOneWidget);
+      expect(find.text('Start battle'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.bySemanticsLabel('Start battle'));
       await tester.pumpAndSettle();
-
-      // Live, first in the carousel, with the call on it.
-      expect(find.byType(ComposeTakeScreen), findsNothing);
       expect(
         BattlesStore.all.value.first.question,
         r'ETH touches $3,200 before Friday',
@@ -1129,25 +1138,34 @@ void main() {
             .question,
         r'ETH touches $3,200 before Friday',
       );
-      // Remove goes back to a plain call.
     });
 
-    testWidgets('Remove turns the battle back into a call', (tester) async {
+    testWidgets('a short gets the downside statements; Remove undoes it', (
+      tester,
+    ) async {
       await openArena(tester);
       await tester.tap(find.bySemanticsLabel('Make a call'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Solana'));
+      await tester.tap(find.text('Solana')); // SHORT 10x
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Make it a battle'));
       await tester.pumpAndSettle();
+      expect(find.text('Closes below'), findsOneWidget);
+      expect(find.text('Ends lower'), findsOneWidget);
+      expect(find.text('Closes above'), findsNothing);
+      await tester.tap(find.text('Ends lower')); // no level needed
+      await tester.pump();
+      await tester.tap(find.text('Add battle'));
+      await tester.pumpAndSettle();
+      expect(find.text('SOL ends lower than now by Friday'), findsOneWidget);
       await tester.tap(find.text('Remove'));
       await tester.pumpAndSettle();
+      expect(find.byType(BattleSummaryCard), findsNothing);
       expect(find.text('Post'), findsOneWidget);
-      expect(find.bySemanticsLabel('Make it a battle'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
-      testWidgets('battle builder renders without overflow on $name', (
+      testWidgets('battle page renders without overflow on $name', (
         tester,
       ) async {
         await openArena(tester, size, padding);
@@ -1158,6 +1176,7 @@ void main() {
         await tester.ensureVisible(find.bySemanticsLabel('Make it a battle'));
         await tester.tap(find.bySemanticsLabel('Make it a battle'));
         await tester.pumpAndSettle();
+        expect(find.byType(BattleSetupScreen), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }

@@ -50,7 +50,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   final _text = TextEditingController();
 
   /// Set while the call is also starting a battle.
-  BattleDraft? _battle;
+  BattleSpec? _battle;
 
   @override
   void initState() {
@@ -61,21 +61,20 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   @override
   void dispose() {
     _text.dispose();
-    _battle?.dispose();
     super.dispose();
   }
 
-  void _makeBattle() {
-    final d = BattleDraft(widget.position.detail.symbol)
-      ..addListener(() => setState(() {}))
-      ..level.addListener(() => setState(() {}));
-    setState(() => _battle = d);
-  }
-
-  void _removeBattle() {
-    final d = _battle;
-    setState(() => _battle = null);
-    d?.dispose();
+  /// Opens the battle page; set up there, the battle rides on this call.
+  Future<void> _editBattle() async {
+    final p = widget.position;
+    final spec = await Navigator.of(context).push(
+      BattleSetupScreen.route(
+        ticker: p.detail.symbol,
+        side: p.side,
+        initial: _battle,
+      ),
+    );
+    if (spec != null && mounted) setState(() => _battle = spec);
   }
 
   bool get _canPost => _text.text.trim().isNotEmpty && (_battle?.valid ?? true);
@@ -211,10 +210,16 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                     Container(
                       width: VistaSize.avatarLarge,
                       height: VistaSize.avatarLarge,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: VistaColors.surfaceRaised,
                         shape: BoxShape.circle,
                         border: Border.all(color: p.side.color, width: 2),
+                      ),
+                      // The feed's initial avatar, until real avatars.
+                      child: Text(
+                        PortfolioMock.handle[0].toUpperCase(),
+                        style: VistaType.subhead.copyWith(height: 1),
                       ),
                     ),
                     const SizedBox(width: VistaSpace.xl),
@@ -268,10 +273,14 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                           ),
                           const SizedBox(height: VistaSpace.xl),
                           // A call by default; this turns it into a battle.
-                          if (_battle case final d?)
-                            BattleBuilder(draft: d, onRemove: _removeBattle)
+                          if (_battle case final b?)
+                            BattleSummaryCard(
+                              spec: b,
+                              onEdit: _editBattle,
+                              onRemove: () => setState(() => _battle = null),
+                            )
                           else
-                            MakeBattleButton(onTap: _makeBattle),
+                            MakeBattleButton(onTap: _editBattle),
                           const SizedBox(height: VistaSpace.md),
                           Align(
                             alignment: Alignment.centerRight,
