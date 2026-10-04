@@ -13,6 +13,7 @@ import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/arena/opinions_screen.dart';
+import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
@@ -90,6 +91,7 @@ void main() {
   setUp(() {
     AccountState.reset(withMarket: true);
     LikesState.reset();
+    TakeLikes.reset();
     SettingsState.reset();
     WatchlistState.reset();
     OrdersState.reset();
@@ -875,22 +877,24 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Arena tab shows the battles, without a crowd panel', (
+    testWidgets('Arena tab is a feed: live battles, then takes', (
       tester,
     ) async {
       await openArena(tester);
-      expect(find.byType(VistaBattleCard), findsWidgets);
-      expect(find.textContaining('Crowd split'), findsNothing);
-      expect(find.byType(RangeSlider), findsNothing);
-      // The account bar on top (with settings), the ask field at the bottom.
+      expect(find.text('Live battles'), findsOneWidget);
+      expect(find.byType(BattleTile), findsWidgets);
+      expect(find.text('Takes'), findsOneWidget);
+      expect(find.byType(TakeItem), findsWidgets);
+      expect(find.byType(VistaBattleCard), findsNothing);
+      // The account bar on top (with settings), the composer at the bottom.
       expect(find.bySemanticsLabel('Settings'), findsOneWidget);
-      expect(find.text('Ask about a market'), findsOneWidget);
+      expect(find.text('Add your take…'), findsOneWidget);
     });
 
-    testWidgets('sort chips stay fixed while battles scroll', (tester) async {
+    testWidgets('sort chips stay fixed while the feed scrolls', (tester) async {
       await openArena(tester);
       final before = tester.getTopLeft(find.text('Volume'));
-      final card = tester.getTopLeft(find.byType(VistaBattleCard).first);
+      final take = tester.getTopLeft(find.byType(TakeItem).first);
       await tester.drag(find.byType(ListView).last, const Offset(0, -300));
       await tester.pumpAndSettle();
       expect(tester.getTopLeft(find.text('Volume')), before);
@@ -900,16 +904,61 @@ void main() {
         closeTo(VistaSpace.gutter, 1),
       );
       expect(
-        tester.getTopLeft(find.byType(VistaBattleCard).first).dy,
-        lessThan(card.dy),
+        tester.getTopLeft(find.byType(TakeItem).first).dy,
+        lessThan(take.dy),
       );
+    });
+
+    testWidgets('takes on a battle link it; plain calls link the market', (
+      tester,
+    ) async {
+      await openArena(tester);
+      // renatafx's take is on the BTC battle and backed.
+      expect(find.text(r'BTC · Reclaims $72,000 by Fri'), findsNWidgets(2));
+      expect(find.text('✓ Backed'), findsWidgets);
+      // kilo.sol's is a plain call: no battle, the market and its price.
+      await tester.scrollUntilVisible(
+        find.text('kilo.sol'),
+        300,
+        scrollable: find.byWidgetPredicate(
+          (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final call = find.ancestor(
+        of: find.text('kilo.sol'),
+        matching: find.byType(TakeItem),
+      );
+      expect(
+        find.descendant(of: call, matching: find.textContaining('SOL · \$')),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(call);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: call, matching: find.textContaining('SOL · \$')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AssetTradeScreen), findsOneWidget);
+    });
+
+    testWidgets('agree toggles; Join opens the ticket on the take\'s side', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Agree, 48'));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('Agree, 49'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Join long').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Place market long'), findsOneWidget);
     });
 
     testWidgets('tapping a caller opens their profile', (tester) async {
       await openArena(tester);
-      await tester.tap(find.text('0xreal').first);
+      await tester.tap(find.text('voskov').first);
       await tester.pumpAndSettle();
-      expect(find.text('HOLDING NOW'), findsOneWidget);
+      expect(find.byType(ProfileScreen), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -935,7 +984,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('+21 more opinions').first);
+      await tester.tap(find.byType(BattleTile).first);
       await tester.pumpAndSettle();
     }
 
@@ -944,7 +993,7 @@ void main() {
         .map((d) => d.handle)
         .toList();
 
-    testWidgets('more opinions opens the clash detail; filters and back', (
+    testWidgets('a battle tile opens the clash detail; filters and back', (
       tester,
     ) async {
       await openOpinions(tester);
@@ -963,7 +1012,7 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
-      expect(find.byType(VistaBattleCard), findsWidgets);
+      expect(find.byType(BattleTile), findsWidgets);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1862,7 +1911,7 @@ void main() {
       expect(redFields(OrderTicket), findsNothing);
     });
 
-    testWidgets('Arena Bull and Home Long open the ticket on that side', (
+    testWidgets('Arena Join short and Home Long open the ticket on that side', (
       tester,
     ) async {
       tester.view
@@ -1882,7 +1931,10 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Join shorts').first);
+      // Bring voskov's take clear of the floating composer first.
+      await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Join short').first);
       await tester.pumpAndSettle();
       expect(find.text('Place market short'), findsOneWidget);
     });

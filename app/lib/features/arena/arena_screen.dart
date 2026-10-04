@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
-import '../settings/settings_state.dart';
-import '../trade/order_ticket.dart';
 import '../profile/profile_screen.dart';
+import '../trade/asset_trade_screen.dart';
+import '../trade/caller_play_screen.dart';
+import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
 import 'opinions_screen.dart';
+import 'take_card.dart';
 
-/// Arena tab (Figma 33:2): battles between a Bull and a Bear caller.
+/// Arena tab (Figma 505:204, "Arena — takes feed"): live battles in a
+/// sideways carousel, then an X-style feed of takes. A take is either on a
+/// battle or a plain call on a market; backed takes carry their position.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt});
 
@@ -20,17 +24,19 @@ class ArenaScreen extends StatefulWidget {
 }
 
 class _ArenaScreenState extends State<ArenaScreen> {
-  /// Height the floating search takes above the nav (field plus margins).
-  static const double _searchSpace = 50;
+  /// Height the floating composer takes above the nav (pill plus margins).
+  static const double _composerSpace = 60;
 
   int _sort = 0;
 
   void _notBuilt(String what) => widget.onNotBuilt?.call(what);
 
+  void _push(Route<void> route) => Navigator.of(context).push(route);
+
   @override
   Widget build(BuildContext context) {
     // The list runs to the bottom of the screen and scrolls under the
-    // floating search and nav, which sit over it with nothing behind them.
+    // floating composer and nav, which sit over it with nothing behind them.
     final navSpace = MediaQuery.paddingOf(context).bottom;
     return SafeArea(
       bottom: false,
@@ -49,9 +55,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 ),
               ),
               const SizedBox(height: VistaSpace.md),
-              // Sort chips stay put while the battles scroll.
-              // One row that scrolls sideways when the chips outrun the
-              // screen.
+              // Sort chips stay put while the feed scrolls. One row that
+              // scrolls sideways when the chips outrun the screen.
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.fromLTRB(
@@ -76,53 +81,72 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
               Expanded(
                 child: ListView(
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  // Room to scroll the last item clear of the search and nav.
+                  // Room to scroll the last take clear of the composer and
+                  // nav.
                   padding: EdgeInsets.only(
-                    bottom: VistaSpace.gutter + _searchSpace + navSpace,
+                    bottom: VistaSpace.gutter + _composerSpace + navSpace,
                   ),
                   children: [
-                    for (final b in ArenaMock.battles)
-                      Padding(
-                        // A clear gap between battles so each reads as its own.
-                        padding: const EdgeInsets.fromLTRB(
-                          7,
-                          0,
-                          7,
-                          VistaSpace.section,
-                        ),
-                        child: ValueListenableBuilder(
-                          valueListenable: DisplayPrefs.longOnRight,
-                          builder: (context, longOnRight, _) => VistaBattleCard(
-                            longOnRight: longOnRight,
-                            ticker: b.ticker,
-                            price: b.price,
-                            change: b.change,
-                            timeLeft: b.timeLeft,
-                            question: b.question,
-                            bull: b.bull,
-                            bear: b.bear,
-                            moreOpinions: b.moreOpinions,
-                            // Simulated only: joining a side places nothing.
-                            // Bull is long the battle's market, Bear short.
-                            onBull: () => showOrderTicket(
-                              context,
-                              symbol: b.ticker,
-                              side: TradeSide.long,
-                            ),
-                            onBear: () => showOrderTicket(
-                              context,
-                              symbol: b.ticker,
-                              side: TradeSide.short,
-                            ),
-                            onOpinions: () =>
-                                Navigator.of(context)
-                                    .push(OpinionsScreen.route()),
-                            onCaller: (handle) =>
-                                Navigator.of(context)
-                                    .push(ProfileScreen.route(handle)),
+                    ArenaSectionHead(
+                      title: 'Live battles',
+                      top: VistaSpace.gutter + VistaSpace.xs,
+                      bottom: VistaSpace.xl,
+                      trailing: GestureDetector(
+                        onTap: () => _notBuilt('All battles'),
+                        child: Text(
+                          'See all',
+                          style: VistaType.subhead.copyWith(
+                            color: VistaColors.accent,
                           ),
+                        ),
+                      ),
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: VistaSpace.gutter,
+                      ),
+                      // Tiles share the tallest one's height.
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (final (i, b) in ArenaMock.battles.indexed) ...[
+                              if (i > 0) const SizedBox(width: VistaSpace.lg),
+                              BattleTile(
+                                battle: b,
+                                onTap: () => _push(OpinionsScreen.route()),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    ArenaSectionHead(
+                      title: 'Takes',
+                      trailing: Text(
+                        'Backed first',
+                        style: VistaType.bodyMedium.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
+                      ),
+                    ),
+                    for (final t in ArenaMock.takes)
+                      TakeItem(
+                        take: t,
+                        onCaller: () => _push(ProfileScreen.route(t.handle)),
+                        onBattle: () => _push(OpinionsScreen.route()),
+                        onMarket: () => _push(AssetTradeScreen.route(t.ticker)),
+                        onCall: t.call == null
+                            ? null
+                            : () => _push(
+                                CallerPlayScreen.route(t.call!, t.ticker),
+                              ),
+                        // Simulated only: joining places nothing real.
+                        onJoin: () => showOrderTicket(
+                          context,
+                          symbol: t.ticker,
+                          side: t.side,
                         ),
                       ),
                   ],
@@ -130,27 +154,72 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
             ],
           ),
-          // The search floats just above the nav.
+          // The composer floats just above the nav.
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: navSpace,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                VistaSpace.gutter,
-                VistaSpace.sm,
-                VistaSpace.gutter,
-                VistaSpace.sm,
-              ),
-              child: VistaSearchField(
-                bordered: true,
-                hint: 'Ask about a market',
-                onChanged: (_) {},
-                onSubmitted: (_) => _notBuilt('Ask'),
-              ),
-            ),
+            left: VistaSpace.gutter,
+            right: VistaSpace.gutter,
+            bottom: navSpace + VistaSpace.sm,
+            child: _Composer(onTap: () => _notBuilt('Add your take')),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The floating "+ Add your take…" pill: where a take or a call starts.
+class _Composer extends StatelessWidget {
+  const _Composer({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Add your take',
+      excludeSemantics: true,
+      child: VistaPressable(
+        scale: 0.98,
+        onTap: onTap,
+        child: VistaGlass(
+          height: 48,
+          padding: const EdgeInsets.only(
+            left: VistaSpace.md,
+            right: VistaSpace.gutter,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: VistaColors.accent,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '+',
+                  style: VistaType.title.copyWith(
+                    color: VistaColors.onAccent,
+                    height: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: VistaSpace.lg),
+              Expanded(
+                child: Text(
+                  'Add your take…',
+                  style: VistaType.subheadMuted.copyWith(
+                    color: VistaColors.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
