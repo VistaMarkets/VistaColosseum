@@ -996,20 +996,14 @@ void main() {
       });
     }
 
-    testWidgets('+ opens your positions; pick one to continue', (tester) async {
+    testWidgets('+ opens your positions; tapping one goes on', (tester) async {
       await openArena(tester);
       await tester.tap(find.bySemanticsLabel('Add your take'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
       expect(find.text('Your positions · 3'), findsOneWidget);
-      expect(find.text('Ethereum'), findsOneWidget);
-      // Continue waits for a pick.
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
-      expect(find.byType(PickPositionScreen), findsOneWidget);
+      expect(find.text('Continue'), findsNothing);
       await tester.tap(find.text('Solana'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsNothing);
       expect(find.textContaining('Writing a take on Solana'), findsOneWidget);
