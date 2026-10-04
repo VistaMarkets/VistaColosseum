@@ -9,7 +9,11 @@ void main() {
 }
 
 class VistaColosseumApp extends StatelessWidget {
-  const VistaColosseumApp({super.key});
+  const VistaColosseumApp({super.key, this.home = const AppShell()});
+
+  /// The first route. Tests start on a deeper screen inside the app's real
+  /// builder (text clamp and simulated pill).
+  final Widget home;
 
   static final _navigator = GlobalKey<NavigatorState>();
 
@@ -27,7 +31,7 @@ class VistaColosseumApp extends StatelessWidget {
         maxScaleFactor: 1.3,
         child: SimulationIndicator(navigator: _navigator, child: child!),
       ),
-      home: const AppShell(),
+      home: home,
     );
   }
 }

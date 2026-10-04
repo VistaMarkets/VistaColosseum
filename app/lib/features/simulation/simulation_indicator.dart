@@ -4,12 +4,16 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../settings/settings_state.dart';
 
-/// Reset demo: the store and the simulated Settings back to the fixture,
-/// then says so. Settings and the simulated note both run this.
+/// Reset demo: closes every sheet and pushed route (they were built on the
+/// old state), puts the store and the simulated Settings back to the
+/// fixture, then says so where it can be seen. Settings and the simulated
+/// note both run this.
 void resetDemo(BuildContext context) {
+  final messenger = ScaffoldMessenger.of(context);
+  Navigator.of(context).popUntil((route) => route.isFirst);
   Scenario.reset();
   SettingsState.reset();
-  ScaffoldMessenger.of(context)
+  messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(content: Text('Demo reset to ${Scenario.fixtureVersion}')),
@@ -149,10 +153,7 @@ class _SimulatedNote extends StatelessWidget {
           const SizedBox(height: VistaSpace.gutter),
           VistaPrimaryButton(
             label: 'Reset demo',
-            onPressed: () {
-              resetDemo(context);
-              Navigator.of(context).pop();
-            },
+            onPressed: () => resetDemo(context), // closes this note too
           ),
         ],
       ),

@@ -90,7 +90,10 @@ void main() {
   // Read before any test touches the store: the values the app starts with.
   final seed = state();
 
-  setUp(Scenario.reset);
+  setUp(() {
+    Scenario.reset();
+    SettingsState.reset();
+  });
 
   test('seed → mutate everything → reset equals the fresh seed', () {
     mutateEverything();

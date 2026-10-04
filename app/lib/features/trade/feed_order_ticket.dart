@@ -152,6 +152,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   Future<void> _custom() async {
     final l = await showModalBottomSheet<int>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: const Color(0x73000000),
       builder: (_) => _LeverageSheet(
@@ -318,15 +319,16 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                       gap,
                       Row(
                         children: [
-                          Text(
-                            'If ${widget.symbol} ${_long ? 'falls' : 'rises'} to '
-                            '${MarketPrices.format(_liquidation, compact: true)}',
-                            style: VistaType.body.copyWith(
-                              fontSize: 14,
-                              color: VistaColors.textMuted,
+                          Expanded(
+                            child: Text(
+                              'If ${widget.symbol} ${_long ? 'falls' : 'rises'} to '
+                              '${MarketPrices.format(_liquidation, compact: true)}',
+                              style: VistaType.body.copyWith(
+                                fontSize: 14,
+                                color: VistaColors.textMuted,
+                              ),
                             ),
                           ),
-                          const Spacer(),
                           Text(
                             'you lose the \$${_fmtUsd(_margin)}',
                             style: VistaType.body.copyWith(fontSize: 14),

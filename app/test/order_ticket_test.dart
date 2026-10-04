@@ -39,10 +39,7 @@ void _phone(WidgetTester tester) {
 Future<void> openTicket(WidgetTester tester, String ticker) async {
   _phone(tester);
   await tester.pumpWidget(
-    MaterialApp(
-      theme: VistaTheme.dark(),
-      home: AssetTradeScreen(ticker: ticker),
-    ),
+    VistaColosseumApp(home: AssetTradeScreen(ticker: ticker)),
   );
   await tester.pumpAndSettle();
   await tester.tap(find.text('Long').last);
@@ -223,10 +220,7 @@ void main() {
         );
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        MaterialApp(
-          theme: VistaTheme.dark(),
-          home: const AssetTradeScreen(ticker: 'BTC'),
-        ),
+        const VistaColosseumApp(home: AssetTradeScreen(ticker: 'BTC')),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Long').last);

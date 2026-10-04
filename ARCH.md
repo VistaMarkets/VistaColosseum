@@ -463,7 +463,9 @@ VistaColosseum/
 │       ├── 2026-10-04T150315-phase2-review-iter3.md
 │       ├── 2026-10-04T151112-phase3-simulation-indicator-checkpoint.md
 │       ├── 2026-10-04T151800-phase3-simulation-indicator.md
-│       └── 2026-10-04T161405-phase3-review-iter1.md
+│       ├── 2026-10-04T161405-phase3-review-iter1.md
+│       ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
+│       └── 2026-10-04T162846-phase3-fix-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -552,6 +554,12 @@ VistaColosseum/
 │       │   │       └── tdd_probe_test.dart
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-fix-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   ├── gate.out
 │       │   └── pubspec-frozen.log
 │       ├── gate-phase-3-iter-1/
 │       │   ├── flutter-analyze.log

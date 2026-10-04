@@ -365,8 +365,8 @@ class _OrderTicketState extends State<OrderTicket> {
           value: '${(_fraction * 100).round()}% of available',
         ),
         gap,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
           children: [
             _check(
               'Take profit / Stop loss',
@@ -570,6 +570,7 @@ class _OrderTicketState extends State<OrderTicket> {
         onTap: () async {
           final l = await showModalBottomSheet<int>(
             context: context,
+            isScrollControlled: true,
             backgroundColor: Colors.transparent,
             barrierColor: const Color(0x73000000),
             builder: (_) => _LeverageSheet(
@@ -1135,117 +1136,126 @@ class _LeverageSheetState extends State<_LeverageSheet> {
       max,
     ];
     double at(int m) => max <= 1 ? 1 : (m - 1) / (max - 1);
-    return Container(
-      decoration: const BoxDecoration(
-        color: VistaColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    // Scroll-controlled: sized to its content, so the bottom inset (which
+    // includes the simulated pill's strip) never pushes Set off the sheet.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.92,
       ),
-      padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Center(child: VistaDragHandle()),
-          const SizedBox(height: 12),
-          Text('Leverage', style: VistaType.subhead.copyWith(fontSize: 20)),
-          const SizedBox(height: 16),
-          Row(
+      child: Container(
+        decoration: const BoxDecoration(
+          color: VistaColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              VistaStepButton(
-                glyph: '−',
-                semanticLabel: 'Lower leverage',
-                onPressed: () => _set(_l - 1),
+              const Center(child: VistaDragHandle()),
+              const SizedBox(height: 12),
+              Text('Leverage', style: VistaType.subhead.copyWith(fontSize: 20)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  VistaStepButton(
+                    glyph: '−',
+                    semanticLabel: 'Lower leverage',
+                    onPressed: () => _set(_l - 1),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${_l}x',
+                      textAlign: TextAlign.center,
+                      style: VistaType.display,
+                    ),
+                  ),
+                  VistaStepButton(
+                    glyph: '+',
+                    semanticLabel: 'Raise leverage',
+                    onPressed: () => _set(_l + 1),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Text(
-                  '${_l}x',
-                  textAlign: TextAlign.center,
-                  style: VistaType.display,
-                ),
+              const SizedBox(height: 8),
+              _TicketSlider(
+                fraction: _fraction,
+                onChanged: (f) => _set(1 + (f * (widget.max - 1)).round()),
+                label: 'Leverage',
+                value: '${_l}x',
+                stops: [for (final m in marks) at(m)],
               ),
-              VistaStepButton(
-                glyph: '+',
-                semanticLabel: 'Raise leverage',
-                onPressed: () => _set(_l + 1),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _TicketSlider(
-            fraction: _fraction,
-            onChanged: (f) => _set(1 + (f * (widget.max - 1)).round()),
-            label: 'Leverage',
-            value: '${_l}x',
-            stops: [for (final m in marks) at(m)],
-          ),
-          // Each label centred under its stop; tapping one jumps there.
-          LayoutBuilder(
-            builder: (context, c) {
-              const inset = _TicketSlider.inset;
-              final track = c.maxWidth - 2 * inset;
-              return SizedBox(
-                height: 44,
-                child: Stack(
-                  children: [
-                    for (final m in marks)
-                      Positioned(
-                        left: inset + track * at(m) - 22,
-                        width: 44,
-                        top: 0,
-                        bottom: 0,
-                        child: Semantics(
-                          button: true,
-                          label: '${m}x',
-                          excludeSemantics: true,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _set(m),
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: Text(
-                                '${m}x',
-                                style: VistaType.meta.copyWith(
-                                  color: m == _l
-                                      ? VistaColors.textPrimary
-                                      : VistaColors.textMuted,
+              // Each label centred under its stop; tapping one jumps there.
+              LayoutBuilder(
+                builder: (context, c) {
+                  const inset = _TicketSlider.inset;
+                  final track = c.maxWidth - 2 * inset;
+                  return SizedBox(
+                    height: 44,
+                    child: Stack(
+                      children: [
+                        for (final m in marks)
+                          Positioned(
+                            left: inset + track * at(m) - 22,
+                            width: 44,
+                            top: 0,
+                            bottom: 0,
+                            child: Semantics(
+                              button: true,
+                              label: '${m}x',
+                              excludeSemantics: true,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _set(m),
+                                child: Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Text(
+                                    '${m}x',
+                                    style: VistaType.meta.copyWith(
+                                      color: m == _l
+                                          ? VistaColors.textPrimary
+                                          : VistaColors.textMuted,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Est. liquidation',
-                  style: VistaType.body.copyWith(
-                    color: VistaColors.textSecondary,
-                  ),
-                ),
+                      ],
+                    ),
+                  );
+                },
               ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Est. liquidation',
+                      style: VistaType.body.copyWith(
+                        color: VistaColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    MarketPrices.format(widget.liquidation(_l)),
+                    style: VistaType.body.copyWith(fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
               Text(
-                MarketPrices.format(widget.liquidation(_l)),
-                style: VistaType.body.copyWith(fontSize: 14),
+                'Higher leverage moves liquidation closer to entry.',
+                style: VistaType.meta.copyWith(color: VistaColors.textMuted),
+              ),
+              const SizedBox(height: 20),
+              VistaPrimaryButton(
+                label: 'Set ${_l}x',
+                onPressed: () => Navigator.of(context).pop(_l),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Higher leverage moves liquidation closer to entry.',
-            style: VistaType.meta.copyWith(color: VistaColors.textMuted),
-          ),
-          const SizedBox(height: 20),
-          VistaPrimaryButton(
-            label: 'Set ${_l}x',
-            onPressed: () => Navigator.of(context).pop(_l),
-          ),
-        ],
+        ),
       ),
     );
   }
