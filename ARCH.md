@@ -447,10 +447,17 @@ VistaColosseum/
 │       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
 │       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
 │       ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
-│       └── 2026-10-04T101019-phase1-scenario-store-half2.md
+│       ├── 2026-10-04T101019-phase1-scenario-store-half2.md
+│       └── 2026-10-04T105011-phase1-review-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
+│       ├── gate-phase-1-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── log.md
+│       ├── review-phase-1-iter-1-prelude.md
+│       ├── review-phase-1-iter-1.md
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration

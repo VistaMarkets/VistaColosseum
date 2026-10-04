@@ -9,3 +9,5 @@
 2026-10-04T17:11:01Z return: phase 1 WORK continuation COMPLETE; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T101019-phase1-scenario-store-half2.md; NOTES progress=criteria 4/4; files 10; units 2/75
 2026-10-04T17:11:01Z commit: d4a9cce feat(phase-1) part 2 of 2
 2026-10-04T17:11:01Z spawn: phase 1 REVIEW unit iter 1 (opus, general-purpose); base main
+2026-10-04T17:51:14Z return: phase 1 REVIEW iter 1 COMPLETE; VERDICT ISSUES; gate PASS (baton-runner/br-2026-10-04-p0-queue/gate-phase-1-iter-1/); findings C0/H3/M8/L13 in baton-runner/br-2026-10-04-p0-queue/review-phase-1-iter-1.md; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T105011-phase1-review-iter1.md; units 3/75
+2026-10-04T17:51:14Z spawn: phase 1 FIX unit iter 1 (opus, general-purpose)
