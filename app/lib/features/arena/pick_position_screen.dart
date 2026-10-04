@@ -22,6 +22,7 @@ class PickPositionScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Back on its own row; the question is the title.
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 VistaSpace.gutter,
@@ -29,17 +30,14 @@ class PickPositionScreen extends StatelessWidget {
                 VistaSpace.gutter,
                 0,
               ),
-              child: Row(
-                children: [
-                  VistaIconButton(
-                    asset: VistaAssets.backSmall,
-                    semanticLabel: 'Back',
-                    iconSize: VistaSize.icon,
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                  const SizedBox(width: VistaSpace.xs),
-                  Text('New take', style: VistaType.title),
-                ],
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: VistaIconButton(
+                  asset: VistaAssets.backSmall,
+                  semanticLabel: 'Back',
+                  iconSize: VistaSize.icon,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
               ),
             ),
             Padding(
@@ -47,14 +45,20 @@ class PickPositionScreen extends StatelessWidget {
                 VistaSpace.gutter + VistaSpace.xs,
                 VistaSpace.md,
                 VistaSpace.gutter + VistaSpace.xs,
-                VistaSpace.gutter,
+                VistaSpace.section,
               ),
-              child: Text(
-                'Pick the position your take is about. It shows on your '
-                'take, live, as ✓ Backed.',
-                style: VistaType.subheadMuted.copyWith(
-                  color: VistaColors.textMuted,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("What's your take on?", style: VistaType.displaySmall),
+                  const SizedBox(height: VistaSpace.sm),
+                  Text(
+                    'Your position shows on the take, live.',
+                    style: VistaType.subheadMuted.copyWith(
+                      color: VistaColors.textMuted,
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -69,12 +73,13 @@ class PickPositionScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(
                       left: VistaSpace.xs,
-                      bottom: VistaSpace.sm,
+                      bottom: VistaSpace.md,
                     ),
                     child: Text(
-                      'Your positions · ${positions.length}',
-                      style: VistaType.body.copyWith(
+                      'YOUR POSITIONS · ${positions.length}',
+                      style: VistaType.label.copyWith(
                         color: VistaColors.textMuted,
+                        letterSpacing: 0.6,
                       ),
                     ),
                   ),

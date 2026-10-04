@@ -1001,7 +1001,8 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Add your take'));
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
-      expect(find.text('Your positions · 3'), findsOneWidget);
+      expect(find.text("What's your take on?"), findsOneWidget);
+      expect(find.text('YOUR POSITIONS · 3'), findsOneWidget);
       expect(find.text('Continue'), findsNothing);
       await tester.tap(find.text('Solana'));
       await tester.pumpAndSettle();
