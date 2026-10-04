@@ -26,7 +26,7 @@ enum _Step { create, consent, live }
 
 class _MakeMarketFlowState extends State<MakeMarketFlow> {
   _Step _step = _Step.create;
-  final _ticker = TextEditingController(text: MakeMarketMock.defaultTicker);
+  final _ticker = TextEditingController(text: AccountState.ticker.value);
   final _pitch = TextEditingController(text: MakeMarketMock.defaultPitch);
   final _agreed = List<bool>.filled(MakeMarketMock.consents.length + 1, false);
 

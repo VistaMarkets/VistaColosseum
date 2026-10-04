@@ -76,14 +76,15 @@ abstract final class Scenario {
     );
   }
 
-  /// Puts every value back to the fixture seed.
-  static void reset() {
+  /// Puts every value back to the fixture seed. [withMarket] overrides the
+  /// `HAS_MARKET` start, for tests that need one or the other.
+  static void reset({bool withMarket = _startWithMarket}) {
     cashCents.value = PortfolioMock.cashCents;
     positions.value = PortfolioMock.positions;
     openOrders.value = OpenOrdersMock.orders;
-    hasMarket.value = _startWithMarket;
+    hasMarket.value = withMarket;
     ticker.value = PortfolioMock.marketSymbol;
-    marketId.value = _seedMarketId;
+    marketId.value = withMarket ? PortfolioMock.marketSymbol : null;
     liked.value = const {};
     favoriteAssets.value = MarketsMock.assetFavorites;
     favoriteTraders.value = MarketsMock.traderFavorites;

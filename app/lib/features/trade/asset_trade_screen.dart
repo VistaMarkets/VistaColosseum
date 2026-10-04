@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../market/chart_sheet.dart';
@@ -473,18 +474,21 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           ),
         ),
         gap,
-        CallerThread(
-          ticker: _quote.ticker,
-          // Following: people the user follows; Everyone: all callers.
-          posts: [
-            for (final p in TradeMock.callers)
-              if (!_followingOnly || p.following) p,
-          ],
-          onCaller: (handle) =>
-              Navigator.of(context).push(ProfileScreen.route(handle)),
-          onPlay: (post) =>
-              Navigator.of(context)
-                  .push(CallerPlayScreen.route(post, _quote.ticker)),
+        ValueListenableBuilder(
+          valueListenable: Scenario.followed,
+          builder: (context, followed, _) => CallerThread(
+            ticker: _quote.ticker,
+            // Following: people the user follows; Everyone: all callers.
+            posts: [
+              for (final p in TradeMock.callers)
+                if (!_followingOnly || followed.contains(p.handle)) p,
+            ],
+            onCaller: (handle) =>
+                Navigator.of(context).push(ProfileScreen.route(handle)),
+            onPlay: (post) =>
+                Navigator.of(context)
+                    .push(CallerPlayScreen.route(post, _quote.ticker)),
+          ),
         ),
         gap,
         const VistaHairline(),

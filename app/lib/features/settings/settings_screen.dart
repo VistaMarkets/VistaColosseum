@@ -122,6 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       verticalPadding: 13,
                       onTap: () {
                         Scenario.reset();
+                        SettingsState.reset();
                         _say('Demo reset to ${Scenario.fixtureVersion}');
                       },
                     ),

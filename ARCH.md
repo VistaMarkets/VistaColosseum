@@ -448,7 +448,8 @@ VistaColosseum/
 │       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
 │       ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
 │       ├── 2026-10-04T101019-phase1-scenario-store-half2.md
-│       └── 2026-10-04T105011-phase1-review-iter1.md
+│       ├── 2026-10-04T105011-phase1-review-iter1.md
+│       └── 2026-10-04T105911-phase1-fix-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── gate-phase-1-iter-1/

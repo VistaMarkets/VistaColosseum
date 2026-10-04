@@ -71,8 +71,10 @@ String _change(double start, double end, {bool millions = false}) {
   final amount = millions
       ? '\$${(d.abs() / 1e6).toStringAsFixed(1)}M'
       : formatUsd(d.abs());
-  return '${d < 0 ? '−' : '+'}$amount '
-      '(${(d.abs() / start * 100).toStringAsFixed(2)}%)';
+  final moved = '${d < 0 ? '−' : '+'}$amount';
+  // No percentage of a start at or below zero.
+  if (start <= 0) return moved;
+  return '$moved (${(d.abs() / start * 100).toStringAsFixed(2)}%)';
 }
 
 /// Opacity of the outgoing page at progress 0 → 0.5 → 1 (Figma mid-swipe
@@ -88,6 +90,13 @@ class _PortfolioPagerState extends State<PortfolioPager>
 
   /// Rebuild on a swipe or when the cash changes.
   late final _rebuild = Listenable.merge([_page, Scenario.cashCents]);
+
+  @override
+  void didUpdateWidget(PortfolioPager oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset can unlist the market; there is then no cap page to stay on.
+    if (!widget.hasMarket) _page.value = 0;
+  }
 
   @override
   void dispose() {

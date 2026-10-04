@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/account/account_top_bar.dart';
+import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/home/likes_state.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/people/follow_list_screen.dart';
@@ -15,6 +16,7 @@ import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
+import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/features/watchlist/watchlist_state.dart';
 import 'package:vista_colosseum/main.dart';
 import 'package:vista_colosseum/scenario/scenario.dart';
@@ -42,7 +44,10 @@ void mutateEverything() {
   Scenario.cashCents.value -= 1000;
   Scenario.positions.value = Scenario.positions.value.sublist(1);
   OrdersState.remove(OrdersState.open.value.first);
+  // Flips the listing from its seed, whichever way HAS_MARKET started it.
+  final listed = Scenario.hasMarket.value;
   AccountState.listMarket('ZED');
+  Scenario.hasMarket.value = !listed;
   LikesState.toggle(mockFeed.first);
   WatchlistState.toggleAsset('ZED');
   WatchlistState.toggleTrader('zed');
@@ -93,6 +98,8 @@ void main() {
     tester,
   ) async {
     mutateEverything();
+    SettingsState.tradingPermission.value = false;
+    DisplayPrefs.longOnRight.value = true;
     await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
@@ -104,6 +111,9 @@ void main() {
     await tester.pump();
     expect(find.text('Demo reset to fixture-v1'), findsOneWidget);
     expect(state(), equals(seed));
+    // "Demo reset" covers the simulated Settings too.
+    expect(SettingsState.tradingPermission.value, isTrue);
+    expect(DisplayPrefs.longOnRight.value, isFalse);
   });
 
   testWidgets('Wallet lists the positions held in Scenario', (tester) async {
@@ -168,10 +178,21 @@ void main() {
       Navigator.of(tester.element(find.byType(VistaWatchButton))).pop();
       await tester.pumpAndSettle();
 
-      // Arena shows none of these values itself; nothing stale shows there.
+      // Arena: on screen, and its battles (const fixtures) carry no cash,
+      // star, like, position or listing, so none can disagree with the store.
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      expect(find.text(r'$12,480'), findsNothing);
+      expect(find.byType(ArenaScreen), findsOneWidget);
+      for (final shown in [
+        topBar,
+        find.byType(VistaWatchButton),
+        find.bySemanticsLabel(RegExp('^Like')),
+        find.textContaining('Positions'),
+        find.textContaining('ZED'),
+        find.textContaining(r'$12,'),
+      ]) {
+        expect(shown, findsNothing);
+      }
 
       // Wallet: cash in the top bar and the pager, the one position, the
       // listed market.
@@ -182,6 +203,14 @@ void main() {
       expect(find.text('Positions · 1'), findsOneWidget);
       expect(find.text('Ethereum'), findsNothing);
       expect(find.text(r'$ZED market cap'), findsOneWidget);
+
+      // Your market: the listed ticker, not the fixture's.
+      await tester.ensureVisible(find.text('Your market'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Your market'));
+      await tester.pumpAndSettle();
+      expect(find.text('ZED'), findsOneWidget);
+      expect(find.text('MAYA'), findsNothing);
     },
   );
 

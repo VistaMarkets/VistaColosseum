@@ -315,6 +315,30 @@ void main() {
       await tester.pumpAndSettle();
       expect(opacityOf(tester, portfolio), 1);
     });
+
+    testWidgets('a reset that unlists the market returns to My portfolio', (
+      tester,
+    ) async {
+      await openWallet(tester);
+      final chart = tester.getCenter(pagerBalance) + const Offset(0, 150);
+      await tester.flingFrom(chart, const Offset(-200, 0), 1000);
+      await tester.pumpAndSettle();
+      expect(opacityOf(tester, market), 1);
+
+      Scenario.reset(withMarket: false); // the fixture starts without one
+      await tester.pumpAndSettle();
+      expect(opacityOf(tester, portfolio), 1);
+      expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
+    });
+
+    testWidgets('a change from a zero start shows no percentage', (
+      tester,
+    ) async {
+      Scenario.cashCents.value = 9100; // $91, so the day's +$91 began at 0
+      await openWallet(tester);
+      expect(find.textContaining('Infinity'), findsNothing);
+      expect(find.text(r'+$91'), findsOneWidget);
+    });
   });
 
   group('your market', () {
@@ -1062,8 +1086,10 @@ void main() {
 
       // Callers are a post thread: why they traded, over their order, in
       // this market's own prices; no like, repost or share.
-      expect(find.textContaining('Reclaimed the range high'), findsOneWidget);
-      expect(find.text(r'Entry $2,946'), findsOneWidget); // ETH, not BTC
+      expect(
+        find.textContaining('Big bids stacked just under price'),
+        findsOneWidget,
+      ); // lunaq, followed in the fixture
       expect(
         find.descendant(
           of: find.byType(AssetTradeScreen),
@@ -1077,6 +1103,9 @@ void main() {
       await tester.tap(find.text('Everyone'));
       await tester.pumpAndSettle();
       expect(find.text('vega'), findsOneWidget); // newest, first
+      // maya.eth is not followed, so shows only here; at ETH's prices.
+      expect(find.textContaining('Reclaimed the range high'), findsOneWidget);
+      expect(find.text(r'Entry $2,946'), findsOneWidget); // ETH, not BTC
       expect(
         find.textContaining('Third tap of the same ceiling'),
         findsOneWidget,
@@ -1108,6 +1137,26 @@ void main() {
       await tester.tap(visible('lunaq'));
       await tester.pumpAndSettle();
       expect(find.text('HOLDING NOW'), findsOneWidget);
+    });
+
+    testWidgets('the callers Following filter reads the follows in Scenario', (
+      tester,
+    ) async {
+      Scenario.followed.value = const {'vega'};
+      await launch(tester);
+      await tester.tap(find.text('Details').first);
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 2; i++) {
+        await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
+        await tester.pumpAndSettle();
+      }
+      expect(visible('Callers in ETH'), findsOneWidget);
+      expect(find.text('vega'), findsOneWidget);
+
+      // Unfollowing updates the filter.
+      Scenario.toggleFollow('vega');
+      await tester.pumpAndSettle();
+      expect(find.text('vega'), findsNothing);
     });
 
     testWidgets('Explore asset row opens it; handle opens the chart', (
@@ -1277,7 +1326,7 @@ void main() {
   });
 
   group('make a market', () {
-    setUp(Scenario.reset);
+    setUp(() => Scenario.reset(withMarket: false));
 
     Future<void> openWallet(
       WidgetTester tester, [
@@ -1327,6 +1376,16 @@ void main() {
       await tester.flingFrom(under, const Offset(-250, 0), 1000);
       await tester.pumpAndSettle();
       expect(find.text(r'$MAYA market cap').hitTestable(), findsNothing);
+    });
+
+    testWidgets('the ticker field starts from the store\'s ticker', (
+      tester,
+    ) async {
+      Scenario.ticker.value = 'ZED';
+      await openWallet(tester);
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+      expect(find.text(r'Continue with $ZED'), findsOneWidget);
     });
 
     testWidgets('create → consent → live lists the market', (tester) async {
