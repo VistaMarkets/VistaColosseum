@@ -52,6 +52,7 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final arena = _tab == _arena;
+    final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       body: Column(
         children: [
@@ -66,63 +67,75 @@ class _AppShellState extends State<AppShell> {
               ],
             ),
           ),
+          // While typing (the bottom search on Explore and Arena) the dock
+          // steps aside so the field sits right on the keyboard.
           // One dock for every tab, so the nav never moves between parents
           // (its sliding pill keeps animating). On the Arena tab the crowd
           // panel folds open above the nav and the sheet eases in behind it.
-          AnimatedContainer(
-            duration: _dock,
-            curve: _dockCurve,
-            decoration: BoxDecoration(
-              color: arena
-                  ? VistaColors.surface
-                  : VistaColors.surface.withValues(alpha: 0),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(35),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, arena ? 0.25 : 0),
-                  offset: const Offset(0, -4),
-                  blurRadius: 4,
+          ClipRect(
+            child: AnimatedAlign(
+              duration: _dock,
+              curve: _dockCurve,
+              alignment: Alignment.topCenter,
+              heightFactor: typing ? 0 : 1,
+              child: AnimatedContainer(
+                duration: _dock,
+                curve: _dockCurve,
+                decoration: BoxDecoration(
+                  color: arena
+                      ? VistaColors.surface
+                      : VistaColors.surface.withValues(alpha: 0),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(35),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, arena ? 0.25 : 0),
+                      offset: const Offset(0, -4),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            padding: EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              arena ? 14 : 18,
-              VistaSpace.gutter,
-              VistaSpace.sm + bottomInset,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ClipRect(
-                  child: AnimatedAlign(
-                    duration: _dock,
-                    curve: _dockCurve,
-                    alignment: Alignment.topCenter,
-                    heightFactor: arena ? 1 : 0,
-                    child: AnimatedOpacity(
-                      duration: _dock,
-                      curve: arena ? const Interval(0.3, 1) : Curves.easeOut,
-                      opacity: arena ? 1 : 0,
-                      child: IgnorePointer(
-                        ignoring: !arena,
-                        child: ExcludeSemantics(
-                          excluding: !arena,
-                          // Kept mounted so its filter survives tab switches.
-                          child: const CrowdFilterPanel(),
+                padding: EdgeInsets.fromLTRB(
+                  VistaSpace.gutter,
+                  arena ? 14 : 18,
+                  VistaSpace.gutter,
+                  VistaSpace.sm + bottomInset,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRect(
+                      child: AnimatedAlign(
+                        duration: _dock,
+                        curve: _dockCurve,
+                        alignment: Alignment.topCenter,
+                        heightFactor: arena ? 1 : 0,
+                        child: AnimatedOpacity(
+                          duration: _dock,
+                          curve: arena
+                              ? const Interval(0.3, 1)
+                              : Curves.easeOut,
+                          opacity: arena ? 1 : 0,
+                          child: IgnorePointer(
+                            ignoring: !arena,
+                            child: ExcludeSemantics(
+                              excluding: !arena,
+                              // Kept mounted so its filter survives tab switches.
+                              child: const CrowdFilterPanel(),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    VistaBottomNav(
+                      items: _navItems,
+                      selectedIndex: _tab,
+                      onChanged: _select,
+                    ),
+                  ],
                 ),
-                VistaBottomNav(
-                  items: _navItems,
-                  selectedIndex: _tab,
-                  onChanged: _select,
-                ),
-              ],
+              ),
             ),
           ),
         ],

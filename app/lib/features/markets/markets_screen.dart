@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../account/account_top_bar.dart';
 import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import '../watchlist/edit_favorites_screen.dart';
@@ -100,12 +101,15 @@ class _MarketsScreenState extends State<MarketsScreen> {
       bottom: false,
       child: Column(
         children: [
-          VistaSearchTopBar(
-            controller: _search,
-            hint: _traders ? 'Search traders' : 'Search markets',
-            onChanged: (q) => setState(() => _query = q),
-            onBell: () => _notBuilt('Notifications'),
+          // The same account bar as Home and Portfolio.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+            child: AccountTopBar(
+              onNotBuilt: widget.onNotBuilt,
+              showSettings: true,
+            ),
           ),
+          const SizedBox(height: VistaSpace.md),
           Expanded(
             child: ListView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -259,6 +263,21 @@ class _MarketsScreenState extends State<MarketsScreen> {
                     ),
                   ),
               ],
+            ),
+          ),
+          // Search sits at the bottom, by the thumb and above the nav.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              VistaSpace.gutter,
+              VistaSpace.sm,
+              VistaSpace.gutter,
+              VistaSpace.sm,
+            ),
+            child: VistaSearchField(
+              bordered: true,
+              hint: _traders ? 'Search traders' : 'Search markets',
+              controller: _search,
+              onChanged: (q) => setState(() => _query = q),
             ),
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../account/account_top_bar.dart';
 import '../settings/settings_state.dart';
 import '../trade/order_ticket.dart';
 import '../profile/profile_screen.dart';
@@ -31,11 +32,15 @@ class _ArenaScreenState extends State<ArenaScreen> {
       bottom: false,
       child: Column(
         children: [
-          VistaSearchTopBar(
-            hint: 'Ask about a market',
-            onSubmitted: (_) => _notBuilt('Ask'),
-            onBell: () => _notBuilt('Notifications'),
+          // The same account bar as Home and Portfolio.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+            child: AccountTopBar(
+              onNotBuilt: widget.onNotBuilt,
+              showSettings: true,
+            ),
           ),
+          const SizedBox(height: VistaSpace.md),
           // Sort chips stay put while the battles scroll.
           Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -107,6 +112,21 @@ class _ArenaScreenState extends State<ArenaScreen> {
                     ),
                   ),
               ],
+            ),
+          ),
+          // Search sits at the bottom, by the thumb and above the nav.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              VistaSpace.gutter,
+              VistaSpace.sm,
+              VistaSpace.gutter,
+              VistaSpace.sm,
+            ),
+            child: VistaSearchField(
+              bordered: true,
+              hint: 'Ask about a market',
+              onChanged: (_) {},
+              onSubmitted: (_) => _notBuilt('Ask'),
             ),
           ),
         ],
