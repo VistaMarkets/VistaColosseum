@@ -274,12 +274,10 @@ class TakeItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: VistaSpace.sm),
-                    _Tag(
-                      // The side and the asset: "LONG BTC".
+                    // The side and the asset, in the side's colour: "LONG BTC".
+                    Text(
                       '${t.side.label.toUpperCase()} ${t.ticker}',
-                      color: color,
-                      fill: color.withValues(alpha: 0.16),
-                      style: VistaType.labelStrong,
+                      style: VistaType.labelStrong.copyWith(color: color),
                     ),
                     const SizedBox(width: VistaSpace.sm),
                     Expanded(
@@ -455,7 +453,7 @@ String _short(double v) {
   return '\$${k.endsWith('.0') ? k.substring(0, k.length - 2) : k}k';
 }
 
-/// A small rounded label: the LONG/SHORT side tag and "✓ Backed".
+/// A small rounded label: "✓ Backed".
 class _Tag extends StatelessWidget {
   const _Tag(
     this.text, {
