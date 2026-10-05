@@ -25,7 +25,6 @@ class Holding {
 /// Sample profile content from Figma 303:102 (maya.eth). Every profile in the
 /// demo shows this content under its own handle. Simulated.
 abstract final class ProfileMock {
-  static const recordSince = 'Record since Jun 2026 · 14 mo';
   static const followers = FollowMock.followerCount;
   static const market = r'$44.0M';
   static const bio =

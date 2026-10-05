@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
 import 'opinions_mock.dart';
+
+/// [handle]'s accuracy line, from [Scenario.record] at render time
+/// (VC-MKT-002): "N% accuracy", or "no record yet" with nothing settled.
+String accuracyLine(String handle) {
+  final pct = Scenario.record(handle).hitRatePct;
+  return pct == null ? 'no record yet' : '$pct% accuracy';
+}
 
 /// Every opinion on a battle (Figma 48:430, "13 · Clash detail — scrolled"),
 /// opened from a battle card's "more opinions" pill. Chips filter by side;
@@ -120,7 +128,9 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
                     VistaSideDetail(
                       initials: o.initials,
                       handle: o.handle,
-                      subtitle: o.subtitle,
+                      subtitle:
+                          '${o.subtitle} · '
+                          '${accuracyLine(o.handle.replaceFirst('@', ''))}',
                       sideLabel: o.label,
                       sideColor: o.color,
                       thesis: o.thesis,

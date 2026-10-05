@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../market/market_mock.dart';
 import '../market/receipt_screens.dart';
 import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
@@ -10,6 +11,59 @@ import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
 import 'profile_mock.dart';
+
+/// [author]'s settled calls as dots, oldest to newest, the last 10 at
+/// most, each in its receipt's colour (right long, wrong short). Order is
+/// the store's, which lists each profile trader's calls oldest first.
+/// Settled is as [Scenario.record] counts it at the clock, so the strip's
+/// count is the header's Settled. With nothing settled it shows nothing.
+class VerdictStrip extends StatelessWidget {
+  const VerdictStrip({super.key, required this.author});
+
+  final String author;
+
+  @override
+  Widget build(BuildContext context) {
+    final at = Scenario.clock.value;
+    final settled = [
+      for (final c in Scenario.callReceipts.value)
+        if (c.author == author &&
+            switch (Scenario.outcomeAt(c, at)) {
+              CallOutcome.right || CallOutcome.wrong => true,
+              _ => false,
+            })
+          c,
+    ];
+    if (settled.isEmpty) return const SizedBox.shrink();
+    final last = settled.length > 10
+        ? settled.sublist(settled.length - 10)
+        : settled;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: VistaSpace.xl),
+      child: Semantics(
+        container: true,
+        label: 'Last ${last.length} verdicts',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (i, c) in last.indexed) ...[
+              if (i > 0) const SizedBox(width: VistaSpace.xs),
+              SizedBox.square(
+                dimension: 10,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: c.color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 /// Someone else's profile (Figma 303:102, "Profile — maya.eth · Arena
 /// receipts"). Shows [handle] with their own record and calls; the rest is
@@ -136,10 +190,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        gap,
-        Text(
-          ProfileMock.recordSince,
-          style: VistaType.caption.copyWith(color: VistaColors.textMuted),
+        ValueListenableBuilder(
+          valueListenable: Scenario.callReceipts,
+          builder: (context, calls, _) {
+            // Dated from the trader's first call (the store lists each
+            // profile trader's oldest first); with none, no line.
+            final since = calls
+                .where((c) => c.author == widget.handle)
+                .firstOrNull
+                ?.entryAt;
+            if (since == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: VistaSpace.xl),
+              child: Text(
+                'Record since $since',
+                style: VistaType.caption.copyWith(color: VistaColors.textMuted),
+              ),
+            );
+          },
         ),
         gap,
         ValueListenableBuilder(
@@ -148,16 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             final m = Scenario.record(widget.handle);
             return Column(
               children: [
-                // No verdicts to show before a call settles.
-                if (m.settled > 0) ...[
-                  const VistaIcon(
-                    VistaAssets.verdictsLast10,
-                    size: 136,
-                    height: 10,
-                    semanticLabel: 'Last 10 verdicts',
-                  ),
-                  gap,
-                ],
+                VerdictStrip(author: widget.handle),
                 _stats(m),
               ],
             );
@@ -224,8 +283,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// The illustrative index (the trader's market chart) and the record it
-  /// is based on; with no settled call, no chart and no index copy.
+  /// The illustrative index chart and the record it is based on; with no
+  /// settled call, no chart and no index copy.
   Widget _record() {
     return ValueListenableBuilder(
       valueListenable: Scenario.callReceipts,
@@ -290,26 +349,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// The trader's call receipts under a CALLS heading; with none, no
+  /// heading either.
   Widget _calls() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        VistaSectionHead(
-          title: 'CALLS',
-          linkLabel: 'All receipts',
-          linkSize: 13,
-          onLink: () =>
-              Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
-        ),
-        CallRecordList(author: widget.handle),
-      ],
+    return ValueListenableBuilder(
+      valueListenable: Scenario.callReceipts,
+      builder: (context, calls, _) {
+        if (!calls.any((c) => c.author == widget.handle)) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            VistaSectionHead(
+              title: 'CALLS',
+              linkLabel: 'All receipts',
+              linkSize: 13,
+              onLink: () =>
+                  Navigator.of(context)
+                      .push(ReceiptsScreen.route(widget.handle)),
+            ),
+            CallRecordList(author: widget.handle),
+          ],
+        );
+      },
     );
   }
 }
 
-/// The trader's illustrative index (their market's price) chart, edge to
-/// edge (static Figma vectors on a 402×180 box; x stretches with the
-/// screen).
+/// The trader's illustrative index chart on Profile, edge to edge (static
+/// Figma vectors on a 402×180 box; x stretches with the screen). It is not
+/// the trader-market route's chart, which plots the market's price series.
 class ProfileIndexChart extends StatelessWidget {
   const ProfileIndexChart({super.key});
 

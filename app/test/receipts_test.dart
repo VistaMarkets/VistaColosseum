@@ -446,13 +446,12 @@ void main() {
     // with a paper order in state to leak.
     Scenario.placeOrder(ethLong('r-2'));
     expect(Scenario.receipts.value, isNotEmpty);
-    await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));
+    // A profile with no calls has no CALLS heading to link from; the empty
+    // list is reached from the trader market below.
+    await pumpApp(tester, home: const ProfileScreen(handle: 'kestrel'));
     await tapAndSettle(tester, find.text('All receipts ›'));
     expect(find.byType(ReceiptsScreen), findsOneWidget);
-    expect(
-      find.text('No call receipts for kaito.eth in fixture-v1'),
-      findsOneWidget,
-    );
+    expect(onList(find.text(r'BTC reaches $72,000 by Oct 3')), findsOneWidget);
     expect(find.text('PAPER ORDER RECEIPTS'), findsNothing);
     expect(onList(find.text('Long ETH 10x')), findsNothing);
     expect(onList(find.textContaining('Paper fill')), findsNothing);

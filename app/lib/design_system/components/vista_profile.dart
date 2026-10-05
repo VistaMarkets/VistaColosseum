@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
-import 'vista_icon.dart';
 
 /// Text glyph (e.g. "↗", "•••") centred in a 44pt tap target.
 class VistaGlyphButton extends StatelessWidget {
@@ -153,123 +152,6 @@ class VistaFilterChip extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Opponent line on an arena receipt: "ARENA vs (avatar) name".
-class VistaVersus {
-  const VistaVersus({required this.name, required this.avatarAsset});
-
-  final String name;
-  final String avatarAsset;
-}
-
-/// A call or arena receipt in a timeline: rail segment, title, optional
-/// versus line, and a coloured lead with quieter detail.
-class VistaReceipt extends StatelessWidget {
-  const VistaReceipt({
-    super.key,
-    required this.railAsset,
-    required this.title,
-    required this.lead,
-    required this.leadColor,
-    required this.detail,
-    this.versus,
-    this.railHeight,
-    this.compact = false,
-  });
-
-  /// Rail vector (10 wide; 56 tall for calls, 76 for arena receipts).
-  final String railAsset;
-
-  /// Overrides the rail height (e.g. 54 in the compact record panel).
-  final double? railHeight;
-
-  /// Tighter spacing, no bottom padding (the rail sets the row height).
-  final bool compact;
-  final String title;
-  final String lead;
-  final Color leadColor;
-  final String detail;
-  final VistaVersus? versus;
-
-  @override
-  Widget build(BuildContext context) {
-    final meta = VistaType.chip.copyWith(fontWeight: FontWeight.w500);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        VistaIcon(
-          railAsset,
-          size: 10,
-          height: railHeight ?? (versus == null ? 56 : 76),
-        ),
-        const SizedBox(width: VistaSpace.xl),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: compact ? 0 : VistaSpace.gutter),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: VistaType.subhead),
-                if (versus != null) ...[
-                  const SizedBox(height: VistaSpace.xs),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: VistaColors.surfaceRaised,
-                          borderRadius: BorderRadius.circular(VistaRadius.sm),
-                        ),
-                        child: Text('ARENA', style: VistaType.micro),
-                      ),
-                      const SizedBox(width: VistaSpace.sm),
-                      Text(
-                        'vs',
-                        style: VistaType.label.copyWith(
-                          color: VistaColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(width: VistaSpace.sm),
-                      VistaIcon(versus!.avatarAsset, size: 16),
-                      const SizedBox(width: VistaSpace.sm),
-                      Flexible(
-                        child: Text(
-                          versus!.name,
-                          style: VistaType.chip,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                SizedBox(height: compact ? 3 : VistaSpace.xs),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: lead,
-                        style: meta.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: leadColor,
-                        ),
-                      ),
-                      TextSpan(text: ' · $detail'),
-                    ],
-                  ),
-                  style: meta.copyWith(color: VistaColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

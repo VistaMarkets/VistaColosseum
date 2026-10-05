@@ -219,7 +219,12 @@ class TraderRecordPanel extends StatelessWidget {
         final m = Scenario.record(handle);
         final pct = m.hitRatePct;
         if (pct == null) {
-          return Text(unavailableNote, style: VistaType.bodyMedium);
+          return Text(
+            m.unavailable == 0
+                ? unavailableNote
+                : '$unavailableNote · ${m.unavailable} unavailable',
+            style: VistaType.bodyMedium,
+          );
         }
         final n = m.settled;
         final t = m.asOf;
@@ -242,6 +247,8 @@ class TraderRecordPanel extends StatelessWidget {
                   ('${m.right} right', VistaColors.long),
                   ('${m.wrong} wrong', VistaColors.short),
                   ('${m.open} open', VistaColors.textMuted),
+                  if (m.unavailable > 0)
+                    ('${m.unavailable} unavailable', VistaColors.textMuted),
                   ('Hit rate $pct%', VistaColors.textPrimary),
                 ])
                   Text(text, style: VistaType.body.copyWith(color: color)),

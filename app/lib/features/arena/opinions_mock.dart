@@ -19,6 +19,9 @@ class Opinion {
 
   final String initials;
   final String handle;
+
+  /// Role line; the opinions screen appends the caller's accuracy, derived
+  /// from their record at render time.
   final String subtitle;
   final OpinionSide side;
 
@@ -90,7 +93,6 @@ abstract final class OpinionsMock {
       subtitle: 'Trader · 1 streak · Gamma 1.2',
       side: OpinionSide.bear,
       label: 'WOLF',
-      hitRate: '80%',
       thesis:
           'The bullish trend is showing resilience as we hover around 60k, '
           'but profit-taking is a possibility. Watch for any signs of '

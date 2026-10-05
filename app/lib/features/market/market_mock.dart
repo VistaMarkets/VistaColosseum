@@ -38,8 +38,10 @@ class CallReceipt {
   /// Entry price as a fixed-decimal string, e.g. r'$2,927.00'.
   final String? entryPrice;
 
-  /// Entry and settlement times as the fixture states them ("Thu 14:32");
-  /// nothing computes with them.
+  /// Entry and settlement times as the fixture states them ("Thu 14:32").
+  /// `Scenario.record` reads a settlement time in the "Sep 12" form only, to
+  /// place the verdict against the clock; a verdict whose settlement time is
+  /// missing or in another form counts as unavailable.
   final String? entryAt;
   final String? settledAt;
 

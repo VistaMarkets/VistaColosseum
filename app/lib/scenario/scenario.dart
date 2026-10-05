@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../charting/time_marks.dart';
 import '../design_system/design_system.dart';
 import '../features/arena/arena_mock.dart';
 import '../features/live/live_feed.dart';
@@ -11,13 +12,16 @@ import '../features/portfolio/portfolio_mock.dart';
 import '../features/trade/trade_mock.dart';
 
 /// A trader's record (VC-MKT-002), as [Scenario.record] derives it:
-/// settled calls (right + wrong), open ones, the hit rate as an integer
-/// percent (null with nothing settled), and the clock it is as of.
+/// settled calls (right + wrong), open ones, unavailable ones (calls with
+/// no outcome the record can count, in no other figure), the hit rate as
+/// an integer percent (null with nothing settled), and the clock it is as
+/// of.
 typedef RecordMetrics = ({
   int settled,
   int right,
   int wrong,
   int open,
+  int unavailable,
   int? hitRatePct,
   DateTime asOf,
 });
@@ -139,19 +143,21 @@ abstract final class Scenario {
       marketFees.fold(0, (sum, e) => sum + e.amountCents);
 
   /// [author]'s record, derived from [callReceipts] as of [clock] each
-  /// time it is read; nothing stores it. Right and wrong calls have
-  /// settled, open ones have not, and a call with no stated result is
-  /// unavailable and not counted. The hit rate is right ÷ settled as an
-  /// integer percent, rounded half up in integer arithmetic.
+  /// time it is read; nothing stores it. Each call counts by its outcome
+  /// at the clock ([outcomeAt]): right and wrong calls have
+  /// settled, open ones have not, and a call with no outcome is counted
+  /// as unavailable and in no other figure, never dropped. The hit rate is
+  /// right ÷ settled as an integer percent, rounded half up in integer
+  /// arithmetic.
   ///
   /// Capital-independent: it counts outcomes only and never reads a
   /// call's paper trade size ([CallReceipt.sizeCents]), so two traders
   /// with the same outcomes get the same record whatever they staked.
   static RecordMetrics record(String author) {
-    var right = 0, wrong = 0, open = 0;
+    var right = 0, wrong = 0, open = 0, unavailable = 0;
     for (final c in callReceipts.value) {
       if (c.author != author) continue;
-      switch (c.result) {
+      switch (outcomeAt(c, clock.value)) {
         case CallOutcome.right:
           right++;
         case CallOutcome.wrong:
@@ -159,7 +165,7 @@ abstract final class Scenario {
         case CallOutcome.open:
           open++;
         case null:
-          break;
+          unavailable++;
       }
     }
     final settled = right + wrong;
@@ -168,9 +174,29 @@ abstract final class Scenario {
       right: right,
       wrong: wrong,
       open: open,
+      unavailable: unavailable,
       hitRatePct: settled == 0 ? null : (right * 100 + settled ~/ 2) ~/ settled,
       asOf: clock.value,
     );
+  }
+
+  /// [c]'s outcome as of [at]. A right or wrong call has settled only once
+  /// its settlement date ([CallReceipt.settledAt], "Sep 12", read in
+  /// [at]'s year) is on or before [at]'s day; settling later, it is still
+  /// open at [at]. A verdict with no settlement date in that form cannot be
+  /// placed against the clock, so it has no outcome there (unavailable).
+  static CallOutcome? outcomeAt(CallReceipt c, DateTime at) {
+    final result = c.result;
+    if (result == null || result == CallOutcome.open) return result;
+    if (c.settledAt?.split(' ') case [final m, final d]) {
+      final month = monthAbbrs.indexOf(m) + 1;
+      final day = int.tryParse(d);
+      if (month > 0 && day != null) {
+        final on = DateTime(at.year, month, day);
+        return on.isAfter(at) ? CallOutcome.open : result;
+      }
+    }
+    return null;
   }
 
   /// Changes the given parts of the Arena's view.
