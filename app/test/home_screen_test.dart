@@ -11,6 +11,7 @@ import 'package:vista_colosseum/features/account/account_top_bar.dart';
 import 'package:vista_colosseum/features/arena/arena_mock.dart';
 import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
+import 'package:vista_colosseum/features/home/maker_suggestion.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
@@ -36,6 +37,9 @@ import 'package:vista_colosseum/features/home/people_in_sheet.dart';
 import 'package:vista_colosseum/features/share/share_call_sheet.dart';
 import 'package:vista_colosseum/main.dart';
 import 'package:vista_colosseum/scenario/scenario.dart';
+import 'package:vista_colosseum/features/trade/trade_mock.dart';
+
+import 'scenario_test.dart' show state;
 
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
 Finder get pagerBalance => find.descendant(
@@ -2126,13 +2130,15 @@ void main() {
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
       final feed = tester.widget<PageView>(find.byType(PageView).first);
-      final index = mockFeed.indexWhere((i) => i.traderMarket);
+      final index = homeFeed.indexWhere(
+        (i) => i is TradeIdea && i.traderMarket,
+      );
       feed.controller!.jumpToPage(index);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Details').hitTestable());
       await tester.pumpAndSettle();
       expect(find.byType(TraderMarketScreen), findsOneWidget);
-      expect(find.text(mockFeed[index].ticker), findsWidgets);
+      expect(find.text((homeFeed[index] as TradeIdea).ticker), findsWidgets);
     });
   });
 
@@ -2798,6 +2804,175 @@ void main() {
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('maker suggestion', () {
+    final [live, expired] = makerSuggestions;
+
+    Future<void> launch(
+      WidgetTester tester, [
+      Size size = const Size(402, 874),
+      EdgeInsets pad = EdgeInsets.zero,
+    ]) async {
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    /// Turns Home's feed to [s]'s card.
+    Future<void> turnTo(WidgetTester tester, Suggestion s) async {
+      final feed = tester.widget<PageView>(find.byType(PageView).first);
+      feed.controller!.jumpToPage(homeFeed.indexOf(s));
+      await tester.pumpAndSettle();
+    }
+
+    test('two are seeded on the demo clock, one live and one expired, each '
+        'from Maker and between two idea cards', () {
+      final now = Scenario.clock.value;
+      expect([live.liveAt(now), expired.liveAt(now)], [true, false]);
+      for (final s in makerSuggestions) {
+        expect(s.source, 'Maker · demo recommendation');
+        expect(s.rationale.split('\n'), hasLength(2));
+        // Read from its own asset's demo quote; the card's reference line
+        // is pinned in the layout test below.
+        expect(s.referencePrice, TradeMock.quotes[s.asset]!.price);
+        final i = homeFeed.indexOf(s);
+        expect(i, greaterThan(0));
+        expect([
+          homeFeed[i - 1],
+          homeFeed[i + 1],
+        ], everyElement(isA<TradeIdea>()));
+      }
+      // The live one can really be traded.
+      expect(Scenario.tradable(live.asset), isTrue);
+      expect(Scenario.stalePrices.value, isNot(contains(live.asset)));
+    });
+
+    for (final scale in [1.0, 1.3]) {
+      for (final MapEntry(key: name, value: (size, pad)) in phones.entries) {
+        testWidgets('both cards render without overflow on $name at '
+            '${scale}x text', (tester) async {
+          tester.platformDispatcher.textScaleFactorTestValue = scale;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          await launch(tester, size, pad);
+          for (final (s, button) in [
+            (live, 'Trade this'),
+            (expired, 'Expired'),
+          ]) {
+            await turnTo(tester, s);
+            expect(tester.takeException(), isNull);
+            for (final text in [
+              'Maker suggestion · advisory',
+              'Maker · demo recommendation',
+              'Built from Aggro demo prices',
+              s.rationale,
+              'Reference ${TradeMock.quotes[s.asset]!.price} · '
+                  '${s == live ? 'expires in 4h' : 'expired 2h ago'}',
+            ]) {
+              expect(find.text(text).hitTestable(), findsOneWidget);
+            }
+            expectPillClear(
+              tester,
+              find.widgetWithText(VistaPrimaryButton, button),
+            );
+          }
+        });
+      }
+    }
+
+    testWidgets("Trade this opens the ticket on the suggestion's asset and "
+        'side', (tester) async {
+      await launch(tester);
+      await turnTo(tester, live);
+      // Small text on the accent tint: textPrimary clears 4.5:1, accent does not.
+      expect(
+        tester
+            .widget<Text>(find.text('Maker suggestion · advisory'))
+            .style!
+            .color,
+        VistaColors.textPrimary,
+      );
+      await tester.tap(find.text('Trade this'));
+      await tester.pumpAndSettle();
+      final ticket = tester.widget<FeedOrderTicket>(
+        find.byType(FeedOrderTicket),
+      );
+      expect((ticket.symbol, ticket.side), (live.asset, live.direction));
+      expect(find.text('${live.direction.label} \$200 · 2x'), findsOneWidget);
+    });
+
+    testWidgets('a card follows the demo clock, and Trade this opens the '
+        "ticket on that suggestion's asset and side", (tester) async {
+      // Three hours before the seeded clock the ETH short is still live. The
+      // file-level setUp resets the clock.
+      Scenario.clock.value = TradeMock.chartEnd.subtract(
+        const Duration(hours: 3),
+      );
+      await launch(tester);
+      await turnTo(tester, expired);
+      final card = find.byWidgetPredicate(
+        (w) => w is MakerSuggestionCard && w.suggestion == expired,
+      );
+      VistaPrimaryButton button() => tester.widget(
+        find.descendant(of: card, matching: find.byType(VistaPrimaryButton)),
+      );
+      expect((button().label, button().enabled), ('Trade this', true));
+      await tester.tap(
+        find.descendant(of: card, matching: find.text('Trade this')),
+      );
+      await tester.pumpAndSettle();
+      final ticket = tester.widget<FeedOrderTicket>(
+        find.byType(FeedOrderTicket),
+      );
+      expect((ticket.symbol, ticket.side), (expired.asset, expired.direction));
+      expect(find.text('Short \$200 · 2x'), findsOneWidget);
+      // The clock moves on with the card mounted: it expires in place.
+      Scenario.clock.value = TradeMock.chartEnd;
+      await tester.pump();
+      expect((button().label, button().enabled), ('Expired', false));
+    });
+
+    testWidgets('an expired suggestion says Expired, is disabled and opens '
+        'no ticket, so nothing can be confirmed', (tester) async {
+      await launch(tester);
+      await turnTo(tester, expired);
+      expect(find.text('Trade this'), findsNothing);
+      final button = find.widgetWithText(VistaPrimaryButton, 'Expired');
+      expect(tester.widget<VistaPrimaryButton>(button).enabled, isFalse);
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Expired')),
+        isSemantics(
+          label: 'Expired',
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: false,
+        ),
+      );
+      await tester.tap(button, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.byType(FeedOrderTicket), findsNothing);
+    });
+
+    testWidgets('viewing both suggestions and opening the ticket leave the '
+        'store untouched', (tester) async {
+      final before = state();
+      await launch(tester);
+      await turnTo(tester, live);
+      await tester.tap(find.text('Trade this'));
+      await tester.pumpAndSettle();
+      expect(find.byType(FeedOrderTicket), findsOneWidget);
+      Navigator.of(tester.element(find.byType(FeedOrderTicket))).pop();
+      await tester.pumpAndSettle();
+      await turnTo(tester, expired);
+      await tester.tap(find.text('Expired'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(state(), equals(before));
     });
   });
 }

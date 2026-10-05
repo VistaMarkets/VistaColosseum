@@ -1,0 +1,169 @@
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: maker suggestion two are seeded on the demo clock, one live and one expired, each from Maker and between two idea cards
+00:00 +1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 145 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart:2867:13)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart line 2867
+The test description was:
+  both cards render without overflow on small Android 360x640 at 1.0x text
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +1 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+  Test failed. See exception logs above.
+  The test description was: both cards render without overflow on small Android 360x640 at 1.0x text
+  
+00:01 +1 -1: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 114 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart:2867:13)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart line 2867
+The test description was:
+  both cards render without overflow on iPhone SE 375x667 at 1.0x text
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +1 -2: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text [E]
+  Test failed. See exception logs above.
+  The test description was: both cards render without overflow on iPhone SE 375x667 at 1.0x text
+  
+00:02 +1 -2: maker suggestion both cards render without overflow on iPhone 15 393x852 at 1.0x text
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 2.0 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart:2867:13)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart line 2867
+The test description was:
+  both cards render without overflow on iPhone 15 393x852 at 1.0x text
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +1 -3: maker suggestion both cards render without overflow on iPhone 15 393x852 at 1.0x text [E]
+  Test failed. See exception logs above.
+  The test description was: both cards render without overflow on iPhone 15 393x852 at 1.0x text
+  
+00:02 +1 -3: maker suggestion both cards render without overflow on Pixel 7 412x915 at 1.0x text
+00:02 +2 -3: maker suggestion both cards render without overflow on iPhone 15 Pro Max 430x932 at 1.0x text
+00:03 +3 -3: maker suggestion both cards render without overflow on small Android 360x640 at 1.3x text
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 216 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart:2867:13)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart line 2867
+The test description was:
+  both cards render without overflow on small Android 360x640 at 1.3x text
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +3 -4: maker suggestion both cards render without overflow on small Android 360x640 at 1.3x text [E]
+  Test failed. See exception logs above.
+  The test description was: both cards render without overflow on small Android 360x640 at 1.3x text
+  
+00:03 +3 -4: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.3x text
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 185 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart:2867:13)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart line 2867
+The test description was:
+  both cards render without overflow on iPhone SE 375x667 at 1.3x text
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +3 -5: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.3x text [E]
+  Test failed. See exception logs above.
+  The test description was: both cards render without overflow on iPhone SE 375x667 at 1.3x text
+  
+00:04 +3 -5: maker suggestion both cards render without overflow on iPhone 15 393x852 at 1.3x text
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 73 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart:2867:13)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart line 2867
+The test description was:
+  both cards render without overflow on iPhone 15 393x852 at 1.3x text
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +3 -6: maker suggestion both cards render without overflow on iPhone 15 393x852 at 1.3x text [E]
+  Test failed. See exception logs above.
+  The test description was: both cards render without overflow on iPhone 15 393x852 at 1.3x text
+  
+00:04 +3 -6: maker suggestion both cards render without overflow on Pixel 7 412x915 at 1.3x text
+00:04 +4 -6: maker suggestion both cards render without overflow on iPhone 15 Pro Max 430x932 at 1.3x text
+00:05 +5 -6: maker suggestion Trade this opens the ticket on the suggestion's asset and side
+00:05 +6 -6: maker suggestion an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed
+00:05 +7 -6: maker suggestion viewing both suggestions and opening the ticket leave the store untouched
+00:05 +8 -6: (tearDownAll)
+00:05 +8 -6: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart: maker suggestion both cards render without overflow on iPhone 15 393x852 at 1.0x text
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart: maker suggestion both cards render without overflow on iPhone 15 393x852 at 1.3x text
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/home_screen_test.dart: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.3x text
+  ... and 2 more

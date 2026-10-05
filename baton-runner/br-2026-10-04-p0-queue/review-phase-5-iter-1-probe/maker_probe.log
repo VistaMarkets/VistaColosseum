@@ -1,0 +1,34 @@
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-5-iter-1-probe/mut-app/test/maker_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: PROBE layout small Android 360x640 1.3x
+PROBE small Android 360x640 SOL exception=null card=Rect.fromLTRB(0.0, 162.0, 360.0, 488.0) page=Rect.fromLTRB(0.0, 128.0, 360.0, 522.0) btn=Rect.fromLTRB(33.0, 417.0, 327.0, 471.0) nav=Rect.fromLTRB(16.0, 540.0, 344.0, 604.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+PROBE small Android 360x640 ETH exception=null card=Rect.fromLTRB(0.0, 162.0, 360.0, 488.0) page=Rect.fromLTRB(0.0, 128.0, 360.0, 522.0) btn=Rect.fromLTRB(33.0, 417.0, 327.0, 471.0) nav=Rect.fromLTRB(16.0, 540.0, 344.0, 604.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+00:01 +1: PROBE layout iPhone SE 375x667 1.3x
+PROBE iPhone SE 375x667 SOL exception=null card=Rect.fromLTRB(0.0, 173.5, 375.0, 499.5) page=Rect.fromLTRB(0.0, 124.0, 375.0, 549.0) btn=Rect.fromLTRB(33.0, 428.5, 342.0, 482.5) nav=Rect.fromLTRB(16.0, 567.0, 359.0, 631.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+PROBE iPhone SE 375x667 ETH exception=null card=Rect.fromLTRB(0.0, 173.5, 375.0, 499.5) page=Rect.fromLTRB(0.0, 124.0, 375.0, 549.0) btn=Rect.fromLTRB(33.0, 428.5, 342.0, 482.5) nav=Rect.fromLTRB(16.0, 567.0, 359.0, 631.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+00:01 +2: PROBE layout iPhone 15 393x852 1.3x
+PROBE iPhone 15 393x852 SOL exception=null card=Rect.fromLTRB(0.0, 268.5, 393.0, 594.5) page=Rect.fromLTRB(0.0, 163.0, 393.0, 700.0) btn=Rect.fromLTRB(33.0, 523.5, 360.0, 577.5) nav=Rect.fromLTRB(16.0, 718.0, 377.0, 782.0) pill=Rect.fromLTRB(110.0, 788.0, 283.0, 818.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+PROBE iPhone 15 393x852 ETH exception=null card=Rect.fromLTRB(0.0, 278.5, 393.0, 584.5) page=Rect.fromLTRB(0.0, 163.0, 393.0, 700.0) btn=Rect.fromLTRB(33.0, 513.5, 360.0, 567.5) nav=Rect.fromLTRB(16.0, 718.0, 377.0, 782.0) pill=Rect.fromLTRB(110.0, 788.0, 283.0, 818.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+00:01 +3: PROBE layout Pixel 7 412x915 1.3x
+PROBE Pixel 7 412x915 SOL exception=null card=Rect.fromLTRB(0.0, 287.5, 412.0, 613.5) page=Rect.fromLTRB(0.0, 128.0, 412.0, 773.0) btn=Rect.fromLTRB(33.0, 542.5, 379.0, 596.5) nav=Rect.fromLTRB(16.0, 791.0, 396.0, 855.0) pill=Rect.fromLTRB(119.5, 861.0, 292.5, 891.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+PROBE Pixel 7 412x915 ETH exception=null card=Rect.fromLTRB(0.0, 297.5, 412.0, 603.5) page=Rect.fromLTRB(0.0, 128.0, 412.0, 773.0) btn=Rect.fromLTRB(33.0, 532.5, 379.0, 586.5) nav=Rect.fromLTRB(16.0, 791.0, 396.0, 855.0) pill=Rect.fromLTRB(119.5, 861.0, 292.5, 891.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+00:02 +4: PROBE layout iPhone 15 Pro Max 430x932 1.3x
+PROBE iPhone 15 Pro Max 430x932 SOL exception=null card=Rect.fromLTRB(0.0, 318.5, 430.0, 624.5) page=Rect.fromLTRB(0.0, 163.0, 430.0, 780.0) btn=Rect.fromLTRB(33.0, 553.5, 397.0, 607.5) nav=Rect.fromLTRB(16.0, 798.0, 414.0, 862.0) pill=Rect.fromLTRB(128.5, 868.0, 301.5, 898.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+PROBE iPhone 15 Pro Max 430x932 ETH exception=null card=Rect.fromLTRB(0.0, 318.5, 430.0, 624.5) page=Rect.fromLTRB(0.0, 163.0, 430.0, 780.0) btn=Rect.fromLTRB(33.0, 553.5, 397.0, 607.5) nav=Rect.fromLTRB(16.0, 798.0, 414.0, 862.0) pill=Rect.fromLTRB(128.5, 868.0, 301.5, 898.0) btnHit=1 refHit=1 cardInPage=true btnOverNav=false btnOverPill=false
+00:02 +5: PROBE expiry follows Scenario.clock and reset
+PROBE clock+5h: TradeThis=0 expiredEnabled=false "expired 1h ago"=1
+PROBE after Scenario.reset(): TradeThis=1
+00:02 +6: PROBE semantics and BottomSheet finder
+PROBE live node label="Trade this" button=true enabled=true tap=false
+PROBE badge node label="Maker suggestion · advisory
+SOL
+Long
+SOL leads the majors in today's demo prices.
+Maker favours a long while that lead holds.
+Reference $214.90 · expires in 4h
+Maker · demo recommendation
+Built from Aggro demo prices" button=false
+PROBE live tap: BottomSheet=1 ticket=SOL/TradeSide.long
+PROBE expired node label="Expired" button=true enabled=false tap=false
+00:02 +7: (tearDownAll)
+00:02 +7: All tests passed!

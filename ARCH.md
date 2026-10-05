@@ -362,6 +362,7 @@ VistaColosseum/
 │   │   │   │   ├── home_screen.dart
 │   │   │   │   ├── likes_state.dart
 │   │   │   │   ├── live_fills_stream.dart
+│   │   │   │   ├── maker_suggestion.dart
 │   │   │   │   ├── mock_trade_idea.dart
 │   │   │   │   ├── people_in_sheet.dart
 │   │   │   │   ├── replay_script.dart
@@ -473,7 +474,12 @@ VistaColosseum/
 │       ├── 2026-10-04T190310-phase4-arena-checkpoint.md
 │       ├── 2026-10-04T190946-phase4-arena-sort-filter-join.md
 │       ├── 2026-10-04T191813-phase4-review-iter1.md
-│       └── 2026-10-04T195458-phase4-close.md
+│       ├── 2026-10-04T195458-phase4-close.md
+│       ├── 2026-10-04T200724-phase5-maker-suggestion-checkpoint.md
+│       ├── 2026-10-04T201217-phase5-maker-suggestion-green.md
+│       ├── 2026-10-04T201519-phase5-maker-suggestion-card.md
+│       ├── 2026-10-04T202626-phase5-review-iter1.md
+│       └── 2026-10-04T205139-phase5-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -611,11 +617,41 @@ VistaColosseum/
 │       │   ├── flutter-test-has-market.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-5-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-5-fixer/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-5-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── pubspec-frozen.log
+│       │   └── test-has-market.log
+│       ├── gate-phase-5-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── phase-4-red/
 │       │   ├── home-green-1.log
 │       │   ├── home-red-1.log
 │       │   ├── scenario-green-1.log
 │       │   └── scenario-red-1.log
+│       ├── phase-5-red/
+│       │   ├── full-1.log
+│       │   ├── green-1.log
+│       │   ├── green-2.log
+│       │   ├── green-3.log
+│       │   ├── mutation.log
+│       │   ├── red-1-compile.log
+│       │   └── red-2-assert.log
+│       ├── phase-5-verify/
+│       │   ├── analyze.log
+│       │   ├── test-has-market.log
+│       │   └── test.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart
@@ -661,12 +697,33 @@ VistaColosseum/
 │       │   ├── mut-sort-chips-all-volume-home_screen_test.log
 │       │   ├── mut-sort-no-tiebreak-home_screen_test.log
 │       │   └── mutate.py
+│       ├── review-phase-5-iter-1-probe/
+│       │   ├── maker_probe.log
+│       │   ├── maker_probe_test.dart
+│       │   ├── mut-badge-text.log
+│       │   ├── mut-both-live.log
+│       │   ├── mut-card-overflow.log
+│       │   ├── mut-clock-constant.log
+│       │   ├── mut-clock-wallclock.log
+│       │   ├── mut-clock-write-on-trade.log
+│       │   ├── mut-drop-data-path.log
+│       │   ├── mut-drop-reference-line.log
+│       │   ├── mut-expired-says-trade-this.log
+│       │   ├── mut-no-semantics-container.log
+│       │   ├── mut-suggestions-adjacent.log
+│       │   ├── mut-vpb-ignores-enabled.log
+│       │   ├── mut-wrong-asset.log
+│       │   ├── mutate-run-1.txt
+│       │   ├── mutate-run-2.txt
+│       │   └── mutate.py
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md
 │       ├── digest-phase-4.md
+│       ├── digest-phase-5.md
 │       ├── fixer-phase-3.json
 │       ├── fixer-phase-4.json
+│       ├── fixer-phase-5.json
 │       ├── house-rules.md
 │       ├── log.md
 │       ├── review-phase-1-iter-1-prelude.md
@@ -681,6 +738,7 @@ VistaColosseum/
 │       ├── review-phase-3-iter-1-prelude.md
 │       ├── review-phase-3-iter-1.md
 │       ├── review-phase-4-dw.json
+│       ├── review-phase-5-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
@@ -700,6 +758,7 @@ VistaColosseum/
 │   ├── reviews/
 │   │   ├── 2026-10-04-dw-review-phase-3-simulation-indicator.md
 │   │   ├── 2026-10-04-dw-review-phase-4-arena-sort-filter-join.md
+│   │   ├── 2026-10-04-dw-review-phase-5-maker-suggestion-card.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md

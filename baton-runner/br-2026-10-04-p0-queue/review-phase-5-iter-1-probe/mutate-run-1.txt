@@ -1,0 +1,39 @@
+=== clock-constant: rc=0 SURVIVED
+    00:04 +14: All tests passed!
+=== clock-wallclock: rc=1 KILLED
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+    00:01 +1 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+    00:02 +1 -2: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text [E]
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+=== no-semantics-container: rc=1 KILLED
+    00:04 +12 -1: maker suggestion an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed [E]
+    00:04 +13 -1: Some tests failed.
+=== card-overflow: rc=1 KILLED
+    Expected: null
+      Actual: FlutterError:<A RenderFlex overflowed by 145 pixels on the bottom.>
+    00:01 +1 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+    Expected: null
+      Actual: FlutterError:<A RenderFlex overflowed by 114 pixels on the bottom.>
+    00:02 +1 -2: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text [E]
+    Expected: null
+      Actual: FlutterError:<A RenderFlex overflowed by 2.0 pixels on the bottom.>
+=== drop-data-path: rc=1 KILLED
+    Expected: exactly one matching candidate
+      Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Built from Aggro demo prices"
+    00:01 +1 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+    Expected: exactly one matching candidate
+      Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Built from Aggro demo prices"
+    00:01 +1 -2: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text [E]
+    Expected: exactly one matching candidate
+      Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Built from Aggro demo prices"
+=== drop-reference-line: rc=0 SURVIVED
+    00:04 +14: All tests passed!
+=== suggestions-adjacent: rc=1 KILLED
+    00:00 +0 -1: maker suggestion two are seeded on the demo clock, one live and one expired, each from Maker and between two idea cards [E]
+      Expected: every element(<Instance of 'TradeIdea'>)
+        Actual: [Instance of 'TradeIdea', Instance of 'Suggestion']
+    00:03 +13 -1: Some tests failed.

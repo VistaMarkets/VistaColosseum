@@ -82,3 +82,24 @@
 2026-10-05T02:48:12Z gate: full gate launched at d63eb32 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-4-close/
 2026-10-05T02:49:55Z gate: full gate at d63eb32 -> see gate-stdout.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-4-close/
 2026-10-05T02:49:55Z spawn: phase 4 CLOSING unit (opus, general-purpose)
+2026-10-05T03:00:00Z return: phase 4 CLOSING unit COMPLETE; VERDICT CLEAN; criteria 2/2; dispositions=7 (matches confirmed 7); record docs/reviews/2026-10-04-dw-review-phase-4-arena-sort-filter-join.md; digest baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md; new LOW noted at close (sorts label order unpinned); units 23/75
+2026-10-05T03:00:00Z pr: phase 4 draft https://github.com/VistaMarkets/VistaColosseum/pull/15 (base main) at 96abf7f
+2026-10-05T03:00:00Z branch: feat/br-2026-10-04-p0-queue/phase-5 cut from phase-4 tip
+2026-10-05T03:00:00Z spawn: phase 5 WORK unit (opus, general-purpose) spec docs/specs/05-maker-suggestion-card.md; continuity digests 1-4
+2026-10-05T03:15:57Z return: phase 5 WORK unit COMPLETE; progress=criteria 2/2; files 4; gate PASS 251 (HAS_MARKET 251); baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T201519-phase5-maker-suggestion-card.md; remaining per unit: ticket shows live price not the suggestion's reference price (author call); units 24/75
+2026-10-05T03:15:57Z decision (manager): spec 05 says "Trade this" opens the unit-02 ticket prefilled with asset/direction; the ticket pricing at the live mark is the phase-2 ticket's existing behavior and spec 05 does not require the reference price to be the ticket price. Not a gap for this phase; carried as a note for the user (PRD VC-ORD-001 "reference price").
+2026-10-05T03:15:57Z spawn: phase 5 REVIEW unit (managed: gate + criteria)
+2026-10-05T03:28:12Z return: phase 5 REVIEW (managed) COMPLETE; VERDICT GATE-OK; gate PASS 251 (HAS_MARKET 251); criteria 2/2; mutants 11/13 killed; findings H0/M0/L6; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T202626-phase5-review-iter1.md; units 25/75
+2026-10-05T03:29:36Z workflow: dw-review launched for phase 5, model opus effort high, lanes tautology-hunt/state-truthfulness/layout-semantics; base feat/br-2026-10-04-p0-queue/phase-4...phase-5 @ 87271f1
+2026-10-05T03:35:13Z return: dw-review wf_6ecdbb4a-a23 COMPLETE; skeptic APPROVE; raw 6 (tautology-hunt 5, state-truthfulness 0, layout-semantics 1); confirmed 5 = F1 [MEDIUM] prefill test cannot tell suggestion asset from hardcoded SOL/long, F2 [LOW] clock link unpinned, F3 [LOW] reference line unasserted + tautological unit check, F4 [LOW] dead Confirm assertion, F5 [LOW] badge contrast 4.26:1; refuted 0; wrong claims 1 (text-scale clamp exists); residual risk 13; none before-merge; JSON baton-runner/br-2026-10-04-p0-queue/review-phase-5-dw.json; units 26/75
+2026-10-05T03:35:13Z decision (manager): F5 fix = badge label uses VistaColors.textPrimary on the accentTint fill (tokens only). F1-F4 are test-strength: mutation-proven or not done; the ETH-short-made-live case via Scenario.clock covers F1 and F2 together.
+2026-10-05T03:35:13Z workflow: finding-fixer launched over F1-F5, groups {F1,F2,F3,F4} tests, {F5} badge; verify = scripts/gate.sh gate-phase-5-fixer/
+2026-10-05T03:45:49Z return: finding-fixer wf_c48cc226-da2 COMPLETE; F1-F5 all fix-here; applied F1,F3,F4,F5 (F2's proof lives in F1's test per house rule 11, no separate edit); skipped none; unreported none; verify GATE: PASS exit 0; JSON baton-runner/br-2026-10-04-p0-queue/fixer-phase-5.json; units 27/75
+2026-10-05T03:45:49Z commit: d935436 fix(phase-5) adjudicated findings
+2026-10-05T03:45:49Z gate: full gate launched at d935436 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-5-close/
+2026-10-05T03:47:35Z gate: full gate at d935436 -> see gate-stdout.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-5-close/
+2026-10-05T03:47:35Z spawn: phase 5 CLOSING unit (opus, general-purpose)
+2026-10-05T03:55:00Z return: phase 5 CLOSING unit COMPLETE; VERDICT CLEAN; criteria 2/2; dispositions=5 (matches confirmed 5); record docs/reviews/2026-10-04-dw-review-phase-5-maker-suggestion-card.md; digest baton-runner/br-2026-10-04-p0-queue/digest-phase-5.md; units 28/75
+2026-10-05T03:55:00Z pr: phase 5 draft https://github.com/VistaMarkets/VistaColosseum/pull/16 (base feat/br-2026-10-04-p0-queue/phase-4) at 9bf4364
+2026-10-05T03:55:00Z branch: feat/br-2026-10-04-p0-queue/phase-6 cut from phase-5 tip
+2026-10-05T03:55:00Z spawn: phase 6 WORK unit (opus, general-purpose) spec docs/specs/06-fee-ledger-and-receipts.md; continuity digests 1-5
