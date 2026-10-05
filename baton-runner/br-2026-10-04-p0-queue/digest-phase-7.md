@@ -1,0 +1,30 @@
+# Phase 7 digest: trader record panel (spec 07) — MERGE-WITH-FIXES met at 229ab63 (dw-review 12 confirmed incl. 1 HIGH, 12 applied; gate PASS 282, HAS_MARKET 282)
+
+## Public surface
+- `typedef RecordMetrics = ({settled, right, wrong, open, unavailable, int? hitRatePct, asOf})` (`scenario.dart:19`). `unavailable` = calls with no countable outcome, in no other figure, never dropped.
+- `Scenario.record(author)` (`:156`): derived from `callReceipts` at read time, never reads `sizeCents`; hit rate `(right*100 + settled~/2) ~/ settled`, null when settled == 0; `asOf = clock.value`.
+- `Scenario.outcomeAt(receipt, at)` (`:188`): clock-gated settlement. A Right/Wrong counts only if `settledAt` is in the "Sep 12" form (read in the clock's year) and on or before the clock's day; later = open; undated or "Tue 16:00" form = unavailable. `monthAbbrs` is now public (`charting/time_marks.dart:53`).
+- Fixtures (`market_mock.dart`): `CallReceipt.sizeCents` (int?, shown as Paper size, never read by the record); `traderCalls` (`:192`) = kilo.sol/lunaq (same outcomes, different sizes, record 3/2/1/1/67%), kestrel (1 open), nara; `seedCalls` (`:352`) = `YourMarketMock.record` + `traderCalls`. At the seed clock maya.eth is 0 settled, 1 open, 2 unavailable; nara 1 settled (0%), 2 open, 1 unavailable.
+- `TraderRecordPanel({handle})` + `unavailableNote` (`receipt_screens.dart:207`), listening on `[callReceipts, clock]`: "Illustrative index · based on N settled call(s) · as of d MMM HH:mm", then `N settled · R right · W wrong · O open · [U unavailable ·] Hit rate P%`; with nothing settled, `unavailableNote` (+ " · U unavailable").
+- `CallRecordList({author})` (`:181`): that author's receipts as `CallRecordItem`s, each opening its receipt. Used on Profile CALLS, trader-market Record (CF-1 done), Your market RECORD, private profile.
+- Arena accuracy is derived: `accuracyLine(handle)` (`opinions_screen.dart:13`) = "P% accuracy" or "no record yet"; `VistaBattleSide.withLines(crowd:, accuracy:)` replaces `withCrowd`; the Arena listens on `callReceipts` + `clock`; opinion subtitles append the line. A side's percent always equals that trader's panel hit rate.
+- `VerdictStrip({author})` (`profile_screen.dart:20`): the last ≤10 settled receipts (via `outcomeAt`), oldest to newest, dots in receipt colours, label "Last N verdicts", hidden at 0.
+- Profile: market header + `ProfileIndexChart` only when settled > 0; "Record since <first receipt's entryAt>", hidden with no receipts; CALLS heading and "All receipts ›" hidden with no receipts (`:352-377`).
+- Removed: `VistaReceipt`, `VistaVersus` (`vista_profile.dart`); `VistaAssets` rail*/opponentAvatar*/`verdictsLast10` constants (svg files kept); `ProfileMock.recordSince/settled/right/summary/receipts/filters`, `ProfileReceipt`, `ReceiptKind`; `TraderMarketMock.record/recordSummary/openCalls`, `RecordCall`; `YourMarketMock.recordSummary`; stored Arena accuracy and the opinions `'80%'`. Profile arena receipts and the All/Calls/Arena filter went with the sample.
+
+## Decisions 08 empty states must honour
+- Record figures come only from `Scenario.record`/`outcomeAt`; never store a count, rate, accuracy, strip or "Record since". Nothing settled = no record (null rate, `unavailableNote`, no chart, no strip, "no record yet"), never 0%.
+- Of spec 08's lists, the one that now hides its heading when empty is Profile CALLS (`_calls()` returns `SizedBox.shrink()`). Phase 8 replaces that shrink with the shared `VistaEmptyState` (manager decision F8). Receipts (`receipt_screens.dart:293`, `:302`), Ledger (`:94`), Arena (`arena_screen.dart:120`), Open orders (`portfolio_screen.dart:306`) and Following/Followers (`follow_list_screen.dart:94`) keep their heading and render an empty line: restyle those, plus `TraderRecordPanel.unavailableNote`, to `VistaEmptyState`; don't duplicate them. Home feed and Positions: audit in phase 8.
+- Clock listeners: the panel and Arena listen on `clock`; the Profile header, `VerdictStrip` and chart gate (`profile_screen.dart:193-221`, `:288-304`), the private header (`private_profile_screen.dart:140`) and `TraderMarketScreen._openCalls` (`:47`) listen on `callReceipts` only. Today only `reset` writes the clock and it pops to root, so no stale frame; a new clock writer must add `Scenario.clock` to those.
+- List labels vs record: `CallReceipt.status` shows the fixture verdict, while the record counts undated verdicts unavailable (maya.eth SOL "Right", ETH Oct 2 "Wrong"; nara "Tue 16:00" Right). Counts reconcile via "N unavailable", labels don't. New settled seeds need a "Sep 12" `settledAt` on or before the clock.
+- Empty-scenario tests: `CallRecordList` is an empty Column for an author with no calls; the trader market keeps "All receipts ›" for such traders, leading to the receipts empty line.
+
+## Open / carried
+- Phase 3 F1 MEDIUM, OPEN, user's design call: pill tap target 30px < 44; 5 flush footers. Do not fix inside another phase.
+- LiveFeed drift after reset (phase 1 M, phase 2 L-5), open; `resetDemo` is where the rebase goes.
+- Phase 4: the Change↔Funding chip-label order in `ArenaMock.sorts` is unpinned.
+- Phase 5: the Maker "Trade this" ticket prices at the live mark (`MarketPrices.now`), not the suggestion's reference price (author call vs VC-ORD-001).
+- Phase 6: trader-market "All receipts ›" bare 14px tap target; receipt `id` not shown; SOL $300 Right while SOL marks $214.90.
+- Phase 7: share card synthesises a record per handle (declared VC-FED-003 residual); Markets Traders rows hard-code call/open counts (pre-existing); nara is a private profile yet has a trader-market card (fixture contradiction); on 360x640/375x667 the panel lands below the fold; a private-header Right hard-coded '0' would survive the tests; Figma 303:102's arena section is gone (user may want to know).
+
+Records: `docs/reviews/2026-10-04-dw-review-phase-7-trader-record-panel.md`, `review-phase-7-dw.json`, `fixer-phase-7.json`, `baton-pass/br-2026-10-04-p0-queue/2026-10-05T065006-phase7-close.md`.

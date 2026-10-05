@@ -1,0 +1,32 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: two traders, same outcomes, different sizes → equal metrics
+00:00 +1: the hit rate is an integer percent rounded half up, read from the call receipts and the clock at the time of asking
+00:00 +2: a call settled after the clock is open at the clock; a verdict with no settlement date is unavailable
+00:00 +3: both traders' panels show the same sample size, hit rate and as-of time below the index chart
+00:00 +4: a call with no outcome shows in the panel as unavailable, never dropped
+00:00 +5: the verdicts strip shows the trader's last 10 settled calls, oldest to newest, and no open call
+00:00 +6: zero-history trader → unavailable state, no crash
+00:01 +7: the record panel renders without overflow at 1.3x on every phone, its last call clear of the pill
+00:02 +8: a trader with no call receipts gets no CALLS heading
+00:02 +9: Profile CALLS lists the trader's own call receipts and each opens its receipt
+00:02 +10: the trader-market Record panel lists the trader's call receipts and an item opens its receipt
+00:02 +11: Record since dates from the trader's first call, and a trader with no calls has no Record since line
+00:02 +12: feed card trader link opens the record panel
+00:03 +13: Arena card trader link opens the record panel
+00:03 +14: each panel shows its own trader's record, right and wrong apart
+00:03 +15: a mounted panel follows the demo clock
+00:03 +16: the trader market's open-calls chip counts the trader's open calls
+00:03 +17: (tearDownAll)
+00:03 +17: All tests passed!
