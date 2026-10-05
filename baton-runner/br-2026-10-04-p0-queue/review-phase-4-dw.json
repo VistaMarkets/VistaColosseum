@@ -1,0 +1,271 @@
+{
+  "verified": {
+    "verdict": "APPROVE",
+    "summary": "Scope checks out. The ref feat/br-2026-10-04-p0-queue/phase-4 resolves to 4fe2e7b, which is also the worktree HEAD. The three-dot diff has 53 files, 10 of them under app/. Of the 8 findings, 7 hold up against the tree and 1 is refuted. None is CRITICAL or HIGH, and none involves anything that freezes at merge (no migrations, schemas or wire formats). The two MEDIUMs are a missing Bear-side test (three mutants that record or show the wrong side get through the whole suite) and live Ask results hidden by the crowd panel while the keyboard is open. The rest are LOW: test-strength gaps, fixtures that disagree with the Markets tab, and a scroll offset that stays clamped after narrowing the filter. Nothing must be fixed before merge. The Bear-side test is the cheapest worthwhile fix and should go in first.",
+    "confirmed": [
+      {
+        "severity": "MEDIUM",
+        "title": "Bear-side join is never asserted; three wrong-side mutants survive",
+        "location": "app/test/home_screen_test.dart:1063-1080 (AC2 test), app/test/scenario_test.dart:342-360; production code at app/lib/scenario/scenario.dart placeOrder participation write, app/lib/features/arena/arena_screen.dart:137-138, app/lib/design_system/components/vista_battle.dart joined labels",
+        "failurePath": "Every participation and Joined assertion uses the long side. The scenario test fills only ethLong and checks {'eth-4k': long}. The widget join test checks 'and 15' and finds exactly one 'Joined Bull'. The AC2 test fills an ETH short but checks only positions.first.clashId and side, never participation, 'Joined Bear' or the bear crowd line. Three mutants get through: (1) `clash: TradeSide.long` in placeOrder records a Bear fill as Bull; (2) `bear: b.bear.withCrowd(crowd(b.bearCount, TradeSide.long))` makes the BTC bear line read 'and 7' after a Bull fill, and no test checks 'and 6' or 'and 7'; (3) `joined != null ? 'Joined Bear'` makes both buttons say Joined after a Bull join, yet findsOneWidget('Joined Bull') still passes. grep finds 'Joined Bear' in no test at all.",
+        "fix": "In the AC2 test, after Confirm, add expect(Scenario.participation.value, {'eth-4k': TradeSide.short}) and expect(Scenario.joins('eth-4k', TradeSide.short), 1). Then go back to the Arena and assert that the ETH card shows 'Joined Bear' and 'and 13'. In the widget join test, after the Bull fill, add expect(find.text('Joined Bear'), findsNothing) and expect(find.text('and 6'), findsOneWidget).",
+        "beforeMerge": false,
+        "why": "Read placeOrder (the participation write uses intent.side), arena_screen._card (crowd() with TradeSide.short for bear) and the vista_battle labels. Grepped app/test for participation, Joined, TradeSide.short and every 'and N' literal. The only participation assertions use long or isEmpty. 'and 14' and 'and 15' are the only crowd-count literals. None of the 21 mutants in mutate.py targets the side (joins-ignore-side mutates the joins filter, not the write or the label).",
+        "id": "F1"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Ask's live results and no-match hint are squeezed out while the keyboard is up",
+        "location": "app/lib/app_shell.dart:75-150 (dock under Expanded tabs, heightFactor depends only on `arena`); app/lib/features/arena/arena_screen.dart:57",
+        "failurePath": "The Scaffold body is Column[Expanded(tabs), dock], and resizeToAvoidBottomInset is left at its default. When the soft keyboard opens, the body shrinks but the dock keeps the full crowd panel plus the nav. With no keyboard the dock starts at about y=406 on 360x640, so it is about 234 px tall. With a 280 dp keyboard that leaves roughly 126 px for the tab. After SafeArea, the Ask bar and the sort-chip row, the battle list has only single-digit to low-tens of pixels. This diff makes Ask filter live through onChanged, replacing the old onSubmitted not-built toast, so the results (or 'Try BTC, ETH, SOL') can't be seen until the keyboard closes. The squeeze itself predates this diff. What's new is that a live feature now depends on that space.",
+        "fix": "In AppShell, fold the panel while the keyboard is open: `final panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0;` and use panelOpen for heightFactor, opacity, IgnorePointer and ExcludeSemantics. The panel stays mounted, so its state survives.",
+        "beforeMerge": false,
+        "why": "Read app_shell.dart build() and arena_screen.dart, and the main version of arena_screen (Ask was `onSubmitted: (_) => _notBuilt('Ask')`). I rebuilt the geometry from the lane's own no-keyboard coordinates (histogram 458-496, nav 540-604). I could not re-run the lane's probe because it was deleted and this lane is read-only. The structural failure is clear from the source; the exact 1-37 px figures come from the lane, not from me. It is a UX defect the user can recover from (dismiss the keyboard), with no wrong state, so it stays MEDIUM, not HIGH.",
+        "id": "F2"
+      },
+      {
+        "severity": "LOW",
+        "title": "New ETH/SOL battle fixtures contradict the Markets tab for the same assets; Funding sort ranks ETH opposite",
+        "location": "app/lib/features/arena/arena_mock.dart:133-134, 190-191 (and BTC fundingPct :97, volume :95)",
+        "failurePath": "Markets has ETH changePct -0.4 and Funding -0.004, SOL 3.8 and 0.012, BTC 0.009 (markets_mock.dart). TradeMock quotes also show ETH -0.4 and SOL 3.8. The Arena battles use ETH -0.8 and 0.031, SOL 3.4 and 0.031, BTC 0.010. So the ETH card shows '\u2212 0.8%' while Markets shows \u22120.4%. Arena's Funding chip puts ETH first while Markets' Funding sort puts it last. Only mock data is affected: no state, money or records. (The ETH bear thesis text says funding is 'hot at 0.03%', which is the fixture's own rationale, but it still contradicts the Markets tab.)",
+        "fix": "Read changePct and the funding and volume sort values from MarketsMock.assets by battle.asset instead of repeating them. Test the id tiebreak with a value the Markets tab also shows, or with a test-local fixture. At minimum, align ETH and SOL changePct and fundingPct with MarketsMock and re-pin the sort test.",
+        "beforeMerge": false,
+        "why": "Read arena_mock.dart, markets_mock.dart:53-97 and the trade_mock.dart changePct lines. main's arena_mock had only the BTC battle (change '+ 1.2%', which matches), so the ETH and SOL drift is new in this diff. Demoted from MEDIUM: demo fixture inconsistency with no behavioural or state effect.",
+        "id": "F3"
+      },
+      {
+        "severity": "LOW",
+        "title": "Opinions-screen derived strings are only asserted on BTC, whose values equal the deleted constants",
+        "location": "app/test/home_screen_test.dart:1116-1161 (openOpinions taps '+21 more opinions' = BTC); app/lib/features/arena/opinions_screen.dart:38,77,138",
+        "failurePath": "BTC's bullPct 63, opinionCount 23 and OpinionsMock.opinions equal the removed bullShare 0.63, '23 opinions' and OpinionsMock.opinions. The AC2 test opens ETH ('+7 more opinions') but asserts only the ticket and the position. So `final bull = 63;`, a literal '23 opinions' or `OpinionsMock.opinions.where(...)` all pass the suite. The production code is currently correct (b.bullPct, b.opinionCount, b.opinions); only the guard is missing.",
+        "fix": "In the AC2 test, before Follow Bear, assert find.text('Crowd split 28% bull') and find.text('Crowd split \u00b7 9 opinions') (findsOneWidget for each), plus one ETH-only handle such as '@lunaq'.",
+        "beforeMerge": false,
+        "why": "Read the opinions_mock and opinions_screen diffs, the BTC and ETH fixtures, openOpinions and the AC2 test. mutate.py's opinions-hardcode-btc mutant only changes the ticket symbol, not the header, dock or list. Demoted to LOW: test strength only, and the shipped code is right.",
+        "id": "F4"
+      },
+      {
+        "severity": "LOW",
+        "title": "Ask test uses whole tickers; an exact-match mutant passes",
+        "location": "app/test/home_screen_test.dart:1005-1027; app/lib/features/arena/arena_mock.dart asked()",
+        "failurePath": "The test inputs 'eth' (uppercased to exactly 'ETH') and 'doge'. Replacing `b.asset.contains(q)` with `b.asset == q` passes both, which breaks the spec's substring behaviour for inputs like 'bt' or 'et'.",
+        "fix": "Add enterText(ask, 'bt') followed by expect(tickers(tester), ['BTC']).",
+        "beforeMerge": false,
+        "why": "Read asked() and the test inputs. mutate.py's ask-no-filter mutant replaces the condition with `b`, which does not cover equality.",
+        "id": "F5"
+      },
+      {
+        "severity": "LOW",
+        "title": "Empty-state test can't tell Show all from 'reset only the upper bound'",
+        "location": "app/test/home_screen_test.dart:988-1002; app/lib/features/arena/arena_screen.dart:174-175",
+        "failurePath": "The test empties the list with dragThumb(tester, 1, 0.2), so from=0 and to=2. The mutant `Scenario.setArena(to: ArenaMock.bucketCount)` still produces 'Crowd split 50/50 +' and '3 battles'. In the app, an empty range reached from the lower thumb (from=9, to=10, which VistaRangeSlider allows as a one-bucket width) would stay empty after Show all.",
+        "fix": "Also empty the list from the lower thumb (dragThumb(tester, 0, 0.9)) and assert that Show all restores '50/50 +' and '3 battles'.",
+        "beforeMerge": false,
+        "why": "Read the _empty handler, setArena (null keeps the old value), dragThumb and the slider guard (it allows one bucket width, so 9..10 is reachable). Bucket check: BTC 2, ETH 4, SOL 7, so 9..10 is empty. mutate.py's show-all-noop mutant drops both bounds, not one.",
+        "id": "F6"
+      },
+      {
+        "severity": "LOW",
+        "title": "Narrowing the range while scrolled keeps a clamped offset; the remaining card opens partway down",
+        "location": "app/lib/features/arena/arena_screen.dart:105-116",
+        "failurePath": "The ListView has no controller and no key tied to the view. When the visible set shrinks, ScrollPosition keeps its pixels clamped to the new maxScrollExtent. If the one remaining card is taller than the viewport, it shows partway down with its header off-screen. Presentation only: count and cards agree.",
+        "fix": "Key the ListView on (view.sort, view.from, view.to, view.query) so it rebuilds at offset 0, or jumpTo(0) on a view change.",
+        "beforeMerge": false,
+        "why": "Read _battles: a plain ListView with no controller or key. The clamping behaviour is standard Flutter ScrollPosition.applyContentDimensions. The exact offsets (228/197/135/104) come from the lane's deleted probe and were not re-measured by me.",
+        "id": "F7"
+      }
+    ],
+    "refuted": [
+      {
+        "title": "Ask matches only the ticker, so asking by asset name falsely reports no battle",
+        "reason": "The spec says to filter by 'asset/ticker substring', and the same spec defines `asset` as a Battle field. Battle.asset is the ticker ('BTC'), and asked() does a substring match on it, exactly as written. The no-match state then shows 'Try BTC, ETH, SOL', which is the spec-mandated hint pointing users to tickers, so the user is not misled. Matching full names (TradeMock.quotes[...].name) would be a feature extension, not a defect in this diff."
+      }
+    ],
+    "checkedClaimsThatAreWrong": [
+      "The layout lens says 'from == to (the slider thumbs coincide): VistaHistogram's (from, to-1) selection highlights nothing, the list is empty and Show all appears. Consistent.' Its premise is wrong. VistaRangeSlider.onChanged (vista_market.dart:693-695) refuses any range narrower than one division ('Keep at least one bucket selected'), so the thumbs cannot coincide and from == to is unreachable from the UI. The conclusion does no harm, but the state it checks never happens. The state lens's residual-risk note that the 'range slider can collapse to an empty [from,to) window' is wrong for the same reason.",
+      "Spot-checks that held: the state lens's 'participation write sits after the receipt write and after problem()/stale-price failure; resting orders return before it' (scenario.dart:163-247 confirms it); the lane's 'battle card colours a \u2212-prefixed change as negative' (vista_battle.dart checks both '-' and '\u2212'); the layout lens's 'dock bottom padding includes SimulationIndicator.slot' (simulation_indicator.dart:80 sets padding.bottom + slot); _newActionId is a single library-level 'act-N' counter (order_ticket.dart:799) and no seed uses an 'act-' id."
+    ],
+    "residualRisk": [
+      "Mutants were reasoned from source, not executed: the lane is read-only, so the four surviving mutants above were not run. (tautology-hunt)",
+      "Order-ticket actionId generation on the widget path (whether a double-tap on Confirm reuses the same actionId) is outside this test-strength lane; dedupe is only proven at the Scenario level. (tautology-hunt)",
+      "Histogram response to the Ask query (buckets(view.query)) is not asserted, but the spec does not require it, so it is not filed. (tautology-hunt)",
+      "Did not review the non-test production diff for correctness beyond what each mutation needed, nor layout/pill clearance (the review's L5 probe). (tautology-hunt)",
+      "Did not run flutter tests; relied on gate facts given (233 pass both configs) and source reading. (state-participation)",
+      "Crowd filter panel geometry/semantics, histogram selected tuple when from==to, and the 30px pill strip are outside this lane (panel/layout reviewer). (state-participation)",
+      "Prior iter-1 findings M1 (Wallet clash ref data-only, accepted by manager), L2 (joins count fills not participants; Bull-then-Bear shows Joined Bear while bull count includes the user) and L6 (caller price fixtures) were confirmed in passing but not re-filed. (state-participation)",
+      "Static Battle.price strings vs MarketPrices live ticking price on the ticket were not compared for BTC drift (pre-existing BTC pattern). (state-participation)",
+      "The fixture's bullPct vs bull/bear counts (e.g. BTC 63% vs 15:7 heads) are inconsistent but pre-existing seed values; not filed. (state-participation)",
+      "Real-device IME behaviour: the keyboard finding uses a simulated 280 dp viewInsets, so actual keyboard heights vary by device and locale. (layout-filter-panel)",
+      "Touch-target size of the range slider thumbs: VistaRangeSlider's 24 px SizedBox predates this diff and was not re-reviewed. (layout-filter-panel)",
+      "Screen-reader announcements of the panel count after a range change (no live region); not in spec 04. (layout-filter-panel)",
+      "Landscape orientation and text scales above 1.3; the app caps at 1.3 per simulation_indicator.dart. (layout-filter-panel)",
+      "The order-ticket sheet's layout when it opens from the Arena or the opinions screen with a clashId: the ticket's layout is phase-2 context and outside this lane. (layout-filter-panel)"
+    ]
+  },
+  "ref": "feat/br-2026-10-04-p0-queue/phase-4",
+  "sha": "4fe2e7bf257050a47839d9271b515a51359dfbaf",
+  "rawCount": 8,
+  "reviews": [
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Bear-side join is never asserted: participation can record the wrong side, and bear crowd/'Joined Bear' are untested",
+          "location": "app/test/home_screen_test.dart:1032 (also app/test/scenario_test.dart:342)",
+          "failurePath": "Every join assertion uses the long side. The scenario test fills only ethLong and checks participation == {'eth-4k': long}. The widget join test taps only I'm with Bull and checks 'and 15' and 'Joined Bull'. The AC2 test fills a Bear (short) from the opinions screen but checks only positions.first.clashId and positions.first.side, never participation, 'Joined Bear' or the bear crowd line. Three mutants survive the whole suite: (1) scenario.dart placeOrder writes `clash: TradeSide.long` instead of `clash: intent.side`, so a Bear fill is recorded as Bull; (2) arena_screen.dart `bear: b.bear.withCrowd(crowd(b.bearCount, TradeSide.long))`, so the bear line counts Bull joins (after the Bull fill BTC bear reads 'and 7', which no test checks); (3) vista_battle.dart `joined == TradeSide.short ? 'Joined Bear'` changed to `joined != null ? 'Joined Bear'`, so after a Bull join the Bear button also reads 'Joined Bear' and the test's findsOneWidget('Joined Bull') still passes.",
+          "fix": "In the AC2 test, after the Bear confirm, add `expect(Scenario.participation.value, {'eth-4k': TradeSide.short})` and `expect(Scenario.joins('eth-4k', TradeSide.short), 1)`. Then go back to the Arena and assert that the ETH card shows 'Joined Bear' and 'and 13' (bearCount 12 + 1) while its bull line stays 'and 5'. In the widget join test, after the Bull fill, add `expect(find.text('Joined Bear'), findsNothing)` and `expect(find.text('and 6'), findsOneWidget)` (BTC bear unchanged).",
+          "evidence": "Searched app/test for participation, TradeSide.short and Joined. The only participation assertions use TradeSide.long or isEmpty (scenario_test.dart:347,353,359; home_screen_test.dart:986). 'Joined Bear' appears in no test. The single I'm with Bear tap (home_screen_test.dart:2109) only checks 'Place market short'. Read scenario.dart placeOrder (participation write), arena_screen.dart _card (crowd()), vista_battle.dart (joined labels).",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Opinions-screen derived strings are only asserted on the BTC battle, whose values equal the deleted pre-phase constants",
+          "location": "app/test/home_screen_test.dart:1161",
+          "failurePath": "The label test and the 'more opinions opens the clash detail' test open only the BTC battle. Its bullPct is 63, its opinionCount is 23 and its opinions are OpinionsMock.opinions, which are exactly the old hardcoded values (bullShare 0.63, '23 opinions', OpinionsMock.opinions). The AC2 test opens the ETH screen (28%, 9 opinions, its own list) but asserts only the ticket and the position. So reverting the derivation survives: `final bull = 63;` instead of `b.bullPct`, `'Crowd split \u00b7 23 opinions'` as a literal instead of `$opinionCount`, or `OpinionsMock.opinions.where(...)` instead of `b.opinions.where(...)`. All the spec's 'derive the display strings' and 'labelled crowd split' assertions on this screen pass against a hardcoded BTC screen. The layout probe checked 'Crowd split 28% bull' on ETH, but the probe is not in the suite.",
+          "fix": "In the AC2 test, after opening the ETH opinions (before tapping Follow Bear), assert `find.text('Crowd split 28% bull')` and `find.text('Crowd split \u00b7 9 opinions')` (findsOneWidget for each), plus one ETH-only handle or the absence of '@renatafx'.",
+          "evidence": "git diff of opinions_mock.dart shows bullShare, opinionCount, title and asset removed; arena_mock.dart:124-125 BTC has opinionCount 23 and opinions OpinionsMock.opinions, and ETH has opinionCount 9 (:156); openOpinions (home_screen_test.dart:1116) taps the first battle; the AC2 test body (lines 1063-1080) asserts no opinions-screen text.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Ask test uses a full ticker, so an exact-match mutant passes where the spec asks for substring",
+          "location": "app/test/home_screen_test.dart:1014",
+          "failurePath": "The spec says to filter by asset or ticker substring. The test types 'eth', which uppercases to exactly 'ETH', and 'doge'. The mutant `if (b.asset == q) b` in ArenaMock.asked (arena_mock.dart) passes both: 'ETH' == 'ETH', and 'DOGE' matches nothing. Typing 'et' or 'BT' would then show no battles, and the suite stays green.",
+          "fix": "Add `await tester.enterText(ask, 'bt'); await tester.pumpAndSettle(); expect(tickers(tester), ['BTC']);`, a proper substring that is not a whole ticker.",
+          "evidence": "Read ArenaMock.asked (q = query.trim().toUpperCase(); b.asset.contains(q)) and the Ask test inputs ('eth', 'doge'). The review's ask-no-filter mutant replaced the condition with `b`, not with equality, so it does not cover this case.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Empty-state test can't tell 'Show all' from 'reset only the upper bound'",
+          "location": "app/test/home_screen_test.dart:989",
+          "failurePath": "The test empties the list by dragging the upper thumb from 1 to 0.2 (from=0, to=2), so `from` is already 0 when Show all is tapped. Mutating the Show all action to `Scenario.setArena(to: ArenaMock.bucketCount)` (drop `from: 0`) still yields 'Crowd split 50/50 +' and '3 battles', so it survives. In the app, an empty range reached from the lower thumb (for example from=9, to=10, 95/5 and up, with no battle since SOL is bucket 7) would stay empty after Show all.",
+          "fix": "Empty the list from the lower thumb instead, or as well: `await dragThumb(tester, 0, 0.9)`. That gives from=9, '0 battles' and the message; then assert that Show all restores 'Crowd split 50/50 +' and '3 battles'.",
+          "evidence": "Read the _empty() Show all handler in arena_screen.dart, Scenario.setArena (null keeps the old value), and the dragThumb(tester, 1, 0.2) call. The review's show-all-noop mutant was `Scenario.setArena()`, which drops both bounds, so this half-mutant was not tried.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope OK: ref feat/br-2026-10-04-p0-queue/phase-4 resolves to 4fe2e7b (= worktree HEAD); diff lists 53 files incl. app/test/home_screen_test.dart and scenario_test.dart.",
+        "Sort test covers all three chips plus a return to Volume; fixtures (BTC vol 1840e8/chg 1.2/fund 0.010; ETH 920e8/-0.8/0.031; SOL 410e8/3.4/0.031) make ascending order fail every chip and make each chip's order distinct, so chip-field swaps are caught.",
+        "Id tiebreak is genuinely tested: the source order is [_btc, _sol, _eth], and Dart's insertion sort for short lists is stable, so dropping the tiebreak gives SOL,ETH,BTC on Funding, not the expected ETH,SOL,BTC. A reversed tiebreak also fails.",
+        "Histogram test asserts [0,0,1,0,1,0,0,1,0,0], derived from bullPct 63/72-majority/88 (buckets 2, 4, 7); a constant bucket list is caught.",
+        "The panel count is asserted at 3, 2, 0 and 1 against the rendered tickers (hasLength(3), ['ETH','SOL'], findsNothing). Both are literals, but each pair agrees, so a constant or all-battles count is caught. Using visible(view).length in the panel makes the two equal by construction.",
+        "Empty-state test asserts both 'No battles in this crowd split' and the Show all recovery ('Crowd split 50/50 +', '3 battles', cards back).",
+        "Replay dedupe: the scenario test places the same actionId twice and asserts joins stays at 1 and participation is unchanged. Failure: an over-cash order asserts OrderFailed, 0 joins and empty participation. Cancel at review: the widget test asserts 'and 14', no 'Joined Bull' and no clash position.",
+        "Opinions asset: the AC2 test uses the ETH battle and asserts (ETH, short) plus clashId 'eth-4k', so passing 'BTC' or dropping clashId is caught.",
+        "'Crowd split' label: the header (63% bull), dock (\u00b7 23 opinions) and panel (50/50 +, 70/30 +) are each asserted, and a regex finds no 'odds' or 'probab' text.",
+        "Reset: participation and arena are in state() and set in mutateEverything; 'seed \u2192 mutate everything \u2192 reset' asserts every field changed and then equals the seed, so skipping either clear fails (killed in 4 and 5 scenario tests).",
+        "All 21 mutants in the review's mutate.py match the current source text, and each log shows 'Some tests failed' with at least one [E]. The L1 claim that the mutants close the compile-only and fixture-shape RED gaps holds for the behaviours they target."
+      ],
+      "notExamined": [
+        "Mutants were reasoned from source, not executed: the lane is read-only, so the four surviving mutants above were not run.",
+        "Order-ticket actionId generation on the widget path (whether a double-tap on Confirm reuses the same actionId) is outside this test-strength lane; dedupe is only proven at the Scenario level.",
+        "Histogram response to the Ask query (buckets(view.query)) is not asserted, but the spec does not require it, so it is not filed.",
+        "Did not review the non-test production diff for correctness beyond what each mutation needed, nor layout/pill clearance (the review's L5 probe)."
+      ]
+    },
+    {
+      "lens": "state-participation",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Arena battle change/funding/volume fixtures contradict the app's own figures for the same assets, and the Funding sort ranks ETH the opposite way to the Markets tab",
+          "location": "app/lib/features/arena/arena_mock.dart:133-134,190-191 (also :96-98)",
+          "failurePath": "1) Markets tab, Assets, sort by Funding: SOL (+0.012%), BTC (+0.009%), ETH (\u22120.004%). ETH comes last and its row shows 'Funding \u22120.004%' (markets_mock.dart:76-79). 2) Arena tab, tap the Funding chip: ETH comes first, because Battle.fundingPct is 0.031 (arena_mock.dart:134). The card shows no funding figure, so the user cannot see why the order differs. 3) The ETH battle card shows '\u2212 0.8%' (changePct -0.8, :133), while the Markets row and the ETH quote (trade_mock.dart ETH changePct -0.4) show \u22120.4%. The SOL card shows '+ 3.4%' (:190) against +3.8% elsewhere. BTC volume is 184000000000 cents ($1.84B) against the asset screen's 'Vol $1.2B'. The same asset's 24h change reads differently on two tabs. This diff adds the fields, and only ETH and SOL drift (BTC's change matches). The ETH/SOL funding tie at 0.031 appears to exist so the test can exercise the id tiebreak.",
+          "fix": "Use MarketsMock.assets[asset] as the single source: changePct, sortValues['Funding'] and sortValues['Volume'] for each battle. Do not repeat the numbers in Battle. Exercise the id tiebreak with a test-local fixture or a deliberate equal value that the Markets tab also shows. At minimum, set ETH changePct to -0.4, ETH fundingPct to -0.004, SOL changePct to 3.8 and SOL fundingPct to 0.012, then re-pin the sort test.",
+          "evidence": "Read arena_mock.dart:92-243, markets_mock.dart:53-97 (ETH changePct -0.4, Funding -0.004; SOL 3.8 / 0.012; BTC 1.2 / 0.009) and trade_mock.dart:78-101 (quote changePct ETH -0.4, SOL 3.8) and :190 (volume 'Vol $1.2B'). Arena Funding order with battle values: ETH, SOL, BTC. Markets Funding order: SOL, BTC, ETH.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Ask matches only the ticker, so asking for an asset by name falsely reports no battle on it",
+          "location": "app/lib/features/arena/arena_mock.dart:250-255; app/lib/features/arena/arena_screen.dart:157-160",
+          "failurePath": "Arena, type 'bitcoin' (or 'Ethereum' or 'solana') into 'Ask about a market'. asked() upper-cases the query to 'BITCOIN' and tests 'BTC'.contains('BITCOIN'), which is false. The list then shows 'No battles on \u201cbitcoin\u201d' plus 'Try BTC, ETH, SOL', but a Bitcoin battle exists. The spec says to filter by 'asset/ticker substring'. The asset names already exist in TradeMock.quotes[asset].name ('Bitcoin', 'Ethereum', 'Solana'). The hint text itself is correctly derived from the fixtures.",
+          "fix": "In asked(), also match the uppercased TradeMock.quotes[b.asset]?.name. Add one test for 'bitcoin' \u2192 the BTC battle.",
+          "evidence": "Read ArenaMock.asked/askHint and ArenaScreen._empty. TradeMock.quotes BTC/ETH/SOL carry name 'Bitcoin'/'Ethereum'/'Solana' (trade_mock.dart:79-101).",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: feat/br-2026-10-04-p0-queue/phase-4 resolves to 4fe2e7b. The worktree HEAD is that commit on that branch. The three-dot diff lists 53 files, including app/lib changes.",
+        "Participant count is keyed by actionId. Scenario.joins counts receipts by clashId+side. placeOrder returns the existing receipt for a repeated actionId before any write (scenario.dart:165-167), and the participation write sits after the receipt write and after problem() and the stale-price failure, so duplicate confirms, failures and trader-index refusals add nothing. Cancel and Done only pop.",
+        "A rested limit or stop order opened from an Arena ticket returns OrderResting before the receipt/participation write. Its toast ('Limit long placed \u00b7 in Open orders (simulated)') is truthful and counts no join. No other code writes openOrders, positions or receipts, so no later fill path can lose the clash.",
+        "Two battles cannot share an actionId. _newActionId is one library-level counter ('act-N') shared by order_ticket.dart and its part feed_order_ticket.dart, and is minted once per ticket open. No seeded order or position uses an 'act-' id. reset clears receipts while the counter keeps rising, so nothing collides after a reset.",
+        "clashId plumbing: the arena card (arena_screen.dart:127-128) and the opinions dock (opinions_screen.dart:141-152) pass symbol b.asset, side and clashId b.id. OrderTicket._intent carries widget.clashId, and Retry's requote reuses _intent, so the clashId survives a retry. placeOrder stores it on both OrderReceipt and PortfolioPosition (data field only, accepted).",
+        "Flipping the side inside the ticket records the side actually filled: participation and the count both follow intent.side, which is truthful.",
+        "No battle can reach the ticket as a trader market: BTC, ETH and SOL are all in TradeMock.quotes and none is stale (stalePrices = {AVAX}). Had one been a handle, the ticket closes with the not-built toast and records nothing.",
+        "Participation and arena are static ValueNotifiers, so they survive navigation. Scenario.reset clears both (participation = {}, arena = allBattles), and resetDemo calls Scenario.reset. The Ask field's _followQuery listener clears the text on reset.",
+        "VC-ARN-005: setArena writes only Scenario.arena. Sort, range and Ask changes touch no receipt, position, order or participation.",
+        "Derived percentages on the opinions header ('Crowd split N% bull') and dock ('Crowd split \u00b7 N opinions') and on the panel label ('Crowd split a/b') are labelled crowd split. No 'odds' or 'probability' appears in the arena code.",
+        "The askHint 'Try BTC, ETH, SOL' is derived from ArenaMock.battles assets, sorted.",
+        "The battle card colours a '\u2212'-prefixed change as negative (vista_battle.dart:113), so the new negative ETH change renders correctly."
+      ],
+      "notExamined": [
+        "Did not run flutter tests; relied on gate facts given (233 pass both configs) and source reading.",
+        "Crowd filter panel geometry/semantics, histogram selected tuple when from==to (range slider can collapse to an empty [from,to) window), and the 30px pill strip are outside this lane (panel/layout reviewer).",
+        "Prior iter-1 findings M1 (Wallet clash ref data-only, accepted by manager), L2 (joins count fills not participants; Bull-then-Bear shows Joined Bear while bull count includes the user) and L6 (caller price fixtures) were confirmed in passing but not re-filed.",
+        "Static Battle.price strings vs MarketPrices live ticking price on the ticket were not compared for BTC drift (pre-existing BTC pattern).",
+        "The fixture's bullPct vs bull/bear counts (e.g. BTC 63% vs 15:7 heads) are inconsistent but pre-existing seed values; not filed."
+      ]
+    },
+    {
+      "lens": "layout-filter-panel",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Ask's live filter results and its 'Try BTC, ETH, SOL' hint are invisible while the keyboard is up: the crowd panel takes the space",
+          "location": "app/lib/features/arena/arena_screen.dart:59",
+          "failurePath": "Route: Arena tab, then tap the Ask field and type 'eth' (or 'doge'), with a ~280 dp soft keyboard. AppShell's Scaffold resizes the body above the keyboard, but the dock still holds the unfolded CrowdFilterPanel (histogram, slider and label, about 140 px) plus the nav. The ArenaScreen list viewport that is left is 6 px tall at 360x640 @1.0, 1 px at 360x640 @1.3, 37 px at 375x667 @1.0 and 32 px at 375x667 @1.3. No battle card is hit-testable (0 at all four sizes), and neither the empty state nor the hint can be seen. The live filter this diff adds (onChanged -> Scenario.setArena(query)) gives the user no visible result until they dismiss the keyboard. keyboardDismissBehavior.onDrag needs a drag on a list that is 1-37 px tall. Before phase 4, Ask was a not-built toast on submit, so nothing depended on seeing results while typing. Nothing throws: no RenderFlex overflow at any of the four sizes.",
+          "fix": "Fold the crowd panel away while the keyboard is open. In AppShell, use the existing fold: `final arena = _tab == _arena;` plus `final panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0;` and pass panelOpen to the AnimatedAlign heightFactor, the opacity and IgnorePointer. The panel stays mounted, so the filter state survives. Alternatively, have ArenaScreen unfocus Ask on submit and accept the squeeze, but the fold is the smaller change.",
+          "evidence": "Ran a throwaway widget probe in a scratchpad copy of app/ (rsync of 4fe2e7b app/; the copy has since been deleted and the worktree was untouched). The probe set the phone sizes with top padding 24/20, the text scale and the Arena tab, tapped the Ask TextField, set tester.view.viewInsets bottom to 280 dp, then called enterText('eth'). Output: 'PROBE 360x640@1.3 keyboard list=Rect.fromLTRB(0.0, 130.0, 360.0, 131.0) slider=Rect.fromLTRB(16.0, 226.0, 344.0, 250.0) cardsHit=0'. The other sizes gave list heights of 6/37/32 px and cardsHit=0, with exceptions=0. The structure is in app_shell.dart:104-150: the dock sits under the Expanded tabs, and the panel's heightFactor depends only on `arena`. The prior review baton lists the keyboard-up layout of Ask as unprobed residual risk.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Narrowing the crowd range while the list is scrolled keeps the clamped scroll offset, so the remaining card opens with its header scrolled away",
+          "location": "app/lib/features/arena/arena_screen.dart:107",
+          "failurePath": "Route: Arena at 360x640 @1.3. Scroll the battle list to the end, then narrow the crowd range to a single bucket (from 7 to 8, SOL only). The ListView keeps its position, clamped to the new max extent: offset 228 px in a 281 px viewport. The one remaining SOL card shows from mid-card down, and its ticker, price and question sit above the viewport. At 375x667 @1.3 the offset is 197; at 1.0 it is 135 and 104. Count and list agree (panel '1 battle', 1 card) and nothing throws, so this is presentation only.",
+          "fix": "Give the ListView a ScrollController and jump it to 0 when the sort or range changes. For example, in `_battles`, compare view.from, view.to and view.sort against the last values and call `_scroll.jumpTo(0)` in a post-frame callback. Or key the ListView on `(view.sort, view.from, view.to)` so it rebuilds at the top.",
+          "evidence": "Same scratchpad probe: drag(list, -4000), then Scenario.setArena(from: 7, to: 8) and pumpAndSettle. Output: 'PROBE 360x640@1.3 shrink cards=1 count=1 offset=228.0'; 375x667@1.3 offset=197.0; 360x640@1.0 offset=135.0; 375x667@1.0 offset=104.0. find.byType(VistaBattleCard).hitTestable() found one, and there was no exception.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: feat/br-2026-10-04-p0-queue/phase-4 resolves to 4fe2e7bf in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue; the three-dot diff against origin/main lists 53 files, with app/ changes in arena_mock, arena_screen, crowd_filter_panel, opinions_mock, opinions_screen, vista_battle, order_ticket, scenario and 2 tests.",
+        "At 360x640 and 375x667, at text scale 1.0 and 1.3 with no keyboard, the crowd panel's histogram (y 458-496 / 485-523), slider (506-530 / 533-557) and nav (540-604 / 567-631) all sit above the 30 px pill strip (610-640 / 637-667). The dock's bottom padding uses MediaQuery.paddingOf().bottom, which includes SimulationIndicator.slot.",
+        "At 1.3x the sort chips fit on one row with no overflow: the last chip ends at x 299.4 of 344 available. Wrap is the fallback.",
+        "The Ask field renders at 1.3x with no overflow (y 36.5-59.5 at 360x640).",
+        "No RenderFlex overflow or other exception at either size, at either scale, on the Arena list, the empty state, the Ask no-match hint or the ETH opinions screen. Checked with my probe plus the iteration-1 probe log at 1.3x.",
+        "Empty state: 'No battles in this crowd split' and 'Show all' sit inside the list viewport, can be tapped and are clear of the pill; Show all restores the 3 battles. The no-match hint 'Try BTC, ETH, SOL' is visible when the keyboard is down.",
+        "Panel count and the cards come from the same ArenaMock.visible(Scenario.arena.value), so the count is never stale. ListView is a plain children list (not a builder), so there are no index errors when the visible set shrinks while scrolled; the offset clamps (see the LOW finding).",
+        "from == to (the slider thumbs coincide): VistaHistogram's (from, to-1) selection highlights nothing, the list is empty and Show all appears. Consistent.",
+        "Tokens: the new feature code in arena_screen, the crowd_filter_panel, opinions_screen and the vista_battle diff uses only VistaColors, VistaType and VistaSpace. The remaining literals (horizontal: 7 card padding, SizedBox(height: 1), order_ticket scrim Color(0x73000000)) predate this diff.",
+        "Derived card strings (change '+ 3.4%' / '\u2212 0.8%', 'and N' crowd lines, '+21 more opinions', 'Joined Bull/Bear') fit the card at 1.3x for all three fixtures.",
+        "The Ask controller follows Scenario.arena.query on reset, with no feedback loop: _followQuery writes only when the text differs.",
+        "The worktree is unmodified by this review. The one dirty file, baton-runner/.../log.md, is the manager's dw-review launch line and out of scope."
+      ],
+      "notExamined": [
+        "Real-device IME behaviour: the keyboard finding uses a simulated 280 dp viewInsets, so actual keyboard heights vary by device and locale.",
+        "Touch-target size of the range slider thumbs: VistaRangeSlider's 24 px SizedBox predates this diff and was not re-reviewed.",
+        "Screen-reader announcements of the panel count after a range change (no live region); not in spec 04.",
+        "Landscape orientation and text scales above 1.3; the app caps at 1.3 per simulation_indicator.dart.",
+        "The order-ticket sheet's layout when it opens from the Arena or the opinions screen with a clashId: the ticket's layout is phase-2 context and outside this lane."
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "tautology-hunt",
+      "n": 4
+    },
+    {
+      "lens": "state-participation",
+      "n": 2
+    },
+    {
+      "lens": "layout-filter-panel",
+      "n": 2
+    }
+  ]
+}

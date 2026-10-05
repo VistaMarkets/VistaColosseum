@@ -8,6 +8,8 @@ import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/account/account_top_bar.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
@@ -904,24 +906,35 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// The battles' tickers, in list order.
+    List<String> tickers(WidgetTester tester) => tester
+        .widgetList<VistaBattleCard>(find.byType(VistaBattleCard))
+        .map((c) => c.ticker)
+        .toList();
+
+    /// Drags the crowd-range thumb at [from] (0–1 along the track) to [to].
+    Future<void> dragThumb(WidgetTester tester, double from, double to) async {
+      final r = tester.getRect(find.byType(RangeSlider));
+      final w = r.width - 24;
+      await tester.dragFrom(
+        Offset(r.left + 12 + from * w, r.center.dy),
+        Offset((to - from) * w, 0),
+      );
+      await tester.pumpAndSettle();
+    }
+
     testWidgets('Arena tab shows the battles with the crowd filter', (
       tester,
     ) async {
       await openArena(tester);
       expect(find.byType(VistaBattleCard), findsWidgets);
-      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
-      expect(find.text('41 battles'), findsOneWidget);
-
-      // Drag the lower thumb all the way left: every split is included.
-      final slider = tester.getRect(find.byType(RangeSlider));
-      final startThumb = Offset(
-        slider.left + 12 + 0.4 * (slider.width - 24),
-        slider.center.dy,
-      );
-      await tester.dragFrom(startThumb, Offset(-slider.width, 0));
-      await tester.pumpAndSettle();
       expect(find.text('Crowd split 50/50 +'), findsOneWidget);
-      expect(find.text('106 battles'), findsOneWidget);
+      expect(find.text('3 battles'), findsOneWidget);
+
+      // Drag the lower thumb to 70/30: only the 70/30+ battles count.
+      await dragThumb(tester, 0, 0.4);
+      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
+      expect(find.text('2 battles'), findsOneWidget);
 
       // Other tabs fold the panel away (kept, so its filter survives).
       await tester.tap(find.bySemanticsLabel('Home'));
@@ -929,7 +942,242 @@ void main() {
       expect(find.byType(RangeSlider).hitTestable(), findsNothing);
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
+      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
+    });
+
+    testWidgets('sort chips order the battles by volume, change and funding', (
+      tester,
+    ) async {
+      await openArena(tester, const Size(402, 2400));
+      expect(tickers(tester), ['BTC', 'ETH', 'SOL']); // Volume, the default
+      await tester.tap(find.text('Change'));
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['SOL', 'BTC', 'ETH']);
+      await tester.tap(find.text('Funding'));
+      await tester.pumpAndSettle();
+      // Markets' funding: SOL +0.012%, BTC +0.009%, ETH −0.004%.
+      expect(tickers(tester), ['SOL', 'BTC', 'ETH']);
+      await tester.tap(find.text('Volume'));
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
+    });
+
+    test('each battle quotes its asset as the Markets tab does', () {
+      for (final b in ArenaMock.battles) {
+        final m = MarketsMock.assets.firstWhere((m) => m.id == b.asset);
+        expect(
+          (b.changePct, b.fundingPct),
+          (m.changePct, m.sortValues['Funding']),
+          reason: b.asset,
+        );
+      }
+    });
+
+    test('sorts by the chip field, highest first, ties by id', () {
+      Battle battle(String id, int volume, double change, double funding) =>
+          Battle(
+            id: id,
+            asset: 'BTC',
+            price: '',
+            volume: volume,
+            changePct: change,
+            fundingPct: funding,
+            bullPct: 60,
+            bullCount: 0,
+            bearCount: 0,
+            timeLeft: '',
+            question: '',
+            bull: ArenaMock.battles.first.bull,
+            bear: ArenaMock.battles.first.bear,
+            opinionCount: 2,
+            opinions: const [],
+          );
+      // Fed out of id order, so a sort without the tiebreak fails.
+      final pool = [
+        battle('c', 3, -1, 2),
+        battle('b', 1, 2, 1),
+        battle('a', 1, 1, 2),
+      ];
+      List<String> ids(int sort) => [
+        for (final b in ArenaMock.visible((
+          sort: sort,
+          from: 0,
+          to: ArenaMock.bucketCount,
+          query: '',
+        ), pool))
+          b.id,
+      ];
+      expect(ids(0), ['c', 'a', 'b']); // volume; a and b tie on 1
+      expect(ids(1), ['b', 'a', 'c']); // change
+      expect(ids(2), ['a', 'c', 'b']); // funding; a and c tie on 2
+    });
+
+    testWidgets('the crowd range filters the cards and the panel counts them', (
+      tester,
+    ) async {
+      await openArena(tester, const Size(402, 2400));
+      // Buckets come from the battles' splits: BTC 63/37, ETH 28/72 (a
+      // 72/28 majority), SOL 88/12.
+      expect(
+        tester.widget<VistaHistogram>(find.byType(VistaHistogram)).values,
+        [0, 0, 1, 0, 1, 0, 0, 1, 0, 0],
+      );
+      expect(find.text('3 battles'), findsOneWidget);
+      expect(tickers(tester), hasLength(3));
+
+      await dragThumb(tester, 0, 0.4); // 70/30 and up
+      expect(find.text('2 battles'), findsOneWidget);
+      expect(tickers(tester), ['ETH', 'SOL']);
+
+      await dragThumb(tester, 0.4, 0); // the full range again
+      expect(find.text('3 battles'), findsOneWidget);
+      expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
+      // A display filter touches no record (VC-ARN-005).
+      expect(Scenario.receipts.value, isEmpty);
+      expect(Scenario.participation.value, isEmpty);
+    });
+
+    testWidgets('an empty crowd split says so; Show all restores the cards', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await dragThumb(tester, 1, 0.2); // 50/50 to 60/40: no battle there
+      expect(find.text('0 battles'), findsOneWidget);
+      expect(find.byType(VistaBattleCard), findsNothing);
+      expect(find.text('No battles in this crowd split'), findsOneWidget);
+      expectPillClear(tester, find.widgetWithText(VistaPillButton, 'Show all'));
+
+      await tester.tap(find.text('Show all'));
+      await tester.pumpAndSettle();
       expect(find.text('Crowd split 50/50 +'), findsOneWidget);
+      expect(find.text('3 battles'), findsOneWidget);
+      expect(find.byType(VistaBattleCard), findsWidgets);
+
+      // Emptied from the lower thumb, Show all brings the floor back too.
+      await dragThumb(tester, 0, 0.9); // 95/5 and up: no battle there
+      expect(find.text('0 battles'), findsOneWidget);
+      await tester.tap(find.text('Show all'));
+      await tester.pumpAndSettle();
+      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
+      expect(find.text('3 battles'), findsOneWidget);
+    });
+
+    testWidgets('Ask filters by asset; no match names the assets there are', (
+      tester,
+    ) async {
+      await openArena(tester, const Size(402, 2400));
+      final ask = find.descendant(
+        of: find.byType(ArenaScreen),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(ask, 'eth');
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['ETH']);
+      expect(find.text('1 battle'), findsOneWidget);
+      // A substring, not a prefix or the whole ticker.
+      await tester.enterText(ask, 'th');
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['ETH']);
+
+      await tester.enterText(ask, 'doge');
+      await tester.pumpAndSettle();
+      expect(find.byType(VistaBattleCard), findsNothing);
+      expect(find.text('Try BTC, ETH, SOL'), findsOneWidget);
+      expect(find.text('0 battles'), findsOneWidget);
+
+      // Reset clears the query, and the field with it.
+      Scenario.reset(withMarket: Scenario.hasMarket.value);
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
+      expect(tester.widget<TextField>(ask).controller!.text, isEmpty);
+    });
+
+    testWidgets('with the keyboard up the panel folds and Ask results show', (
+      tester,
+    ) async {
+      await openArena(tester, const Size(360, 640));
+      final ask = find.descendant(
+        of: find.byType(ArenaScreen),
+        matching: find.byType(TextField),
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 280.0 * 3);
+      await tester.enterText(ask, 'doge');
+      await tester.pumpAndSettle();
+      expect(find.byType(RangeSlider).hitTestable(), findsNothing);
+      expect(find.text('Try BTC, ETH, SOL').hitTestable(), findsOneWidget);
+
+      // Keyboard down: the panel unfolds with its state intact.
+      tester.view.resetViewInsets();
+      await tester.pumpAndSettle();
+      expect(find.byType(RangeSlider).hitTestable(), findsOneWidget);
+      expect(find.text('0 battles'), findsOneWidget);
+    });
+
+    testWidgets('joining: Cancel counts nothing; a fill counts once, shows', (
+      tester,
+    ) async {
+      await openArena(tester);
+      Future<void> bullTicket() async {
+        // BTC leads on volume: its Bull opens a BTC long.
+        await tester.tap(find.text("I'm with Bull").first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Place market long'));
+        await tester.pumpAndSettle();
+      }
+
+      await bullTicket();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('and 14'), findsOneWidget);
+      expect(find.text('Joined Bull'), findsNothing);
+      expect(Scenario.positions.value.where((p) => p.clashId != null), isEmpty);
+
+      await bullTicket();
+      await tester.tap(find.text('Confirm'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('and 15'), findsOneWidget);
+      expect(find.text('Joined Bull'), findsOneWidget);
+      // Only the joined side says so, and only its crowd moved.
+      expect(find.text('Joined Bear'), findsNothing);
+      expect(find.text('and 6'), findsOneWidget);
+      // The fill's Wallet position references the clash.
+      expect(Scenario.positions.value.first.clashId, 'btc-72k');
+      expect(Scenario.positions.value.first.title, 'Bitcoin');
+    });
+
+    testWidgets("a battle's opinions trade that battle's asset and clash", (
+      tester,
+    ) async {
+      await openArena(tester, const Size(402, 2400));
+      await tester.tap(find.text('+7 more opinions'));
+      await tester.pumpAndSettle();
+      // ETH's own split, count and callers, not BTC's.
+      expect(find.text('Crowd split 28% bull'), findsOneWidget);
+      expect(find.text('Crowd split · 9 opinions'), findsOneWidget);
+      expect(find.text('@lunaq'), findsOneWidget);
+      await tester.tap(find.text('Follow Bear'));
+      await tester.pumpAndSettle();
+      final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
+      expect((ticket.symbol, ticket.side), ('ETH', TradeSide.short));
+
+      await tester.tap(find.text('Place market short'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirm'));
+      await tester.pumpAndSettle();
+      expect(Scenario.positions.value.first.clashId, 'eth-4k');
+      expect(Scenario.positions.value.first.side, TradeSide.short);
+      expect(Scenario.participation.value, {'eth-4k': TradeSide.short});
+
+      // Back on the Arena, ETH's card shows the Bear join and its crowd.
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Joined Bear'), findsOneWidget);
+      expect(find.text('Joined Bull'), findsNothing);
+      expect(find.text('and 13'), findsOneWidget);
     });
 
     testWidgets('sort chips stay fixed while battles scroll', (tester) async {
@@ -948,6 +1196,34 @@ void main() {
         tester.getTopLeft(find.byType(VistaBattleCard).first).dy,
         lessThan(card.dy),
       );
+    });
+
+    testWidgets('a narrower range starts the list at the top', (tester) async {
+      await openArena(
+        tester,
+        const Size(360, 640),
+        const EdgeInsets.only(top: 24),
+      );
+      final list = find
+          .descendant(
+            of: find.byType(ArenaScreen),
+            matching: find.byType(ListView),
+          )
+          .first;
+      double offset() => tester
+          .state<ScrollableState>(
+            find.descendant(of: list, matching: find.byType(Scrollable)).first,
+          )
+          .position
+          .pixels;
+      await tester.drag(list, const Offset(0, -4000));
+      await tester.pumpAndSettle();
+      expect(offset(), greaterThan(0));
+
+      Scenario.setArena(from: 7, to: 8); // SOL's 88/12 bucket only
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['SOL']);
+      expect(offset(), 0);
     });
 
     testWidgets('tapping a caller opens their profile', (tester) async {
@@ -993,7 +1269,7 @@ void main() {
       tester,
     ) async {
       await openOpinions(tester);
-      expect(find.text('23 opinions'), findsOneWidget);
+      expect(find.text('Crowd split · 23 opinions'), findsOneWidget);
       expect(find.text('Follow Bull'), findsOneWidget);
       expect(handles(tester).first, '@renatafx');
 
@@ -1009,6 +1285,16 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
       expect(find.byType(VistaBattleCard), findsWidgets);
+    });
+
+    testWidgets('the crowd split is labelled crowd split, never odds', (
+      tester,
+    ) async {
+      await openOpinions(tester);
+      expect(find.text('Crowd split 63% bull'), findsOneWidget);
+      expect(find.text('Crowd split · 23 opinions'), findsOneWidget);
+      final odds = RegExp('odds|probab', caseSensitive: false);
+      expect(find.textContaining(odds), findsNothing);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {

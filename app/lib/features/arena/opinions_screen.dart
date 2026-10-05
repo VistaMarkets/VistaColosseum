@@ -4,16 +4,19 @@ import '../../design_system/design_system.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
 import '../trade/order_ticket.dart';
+import 'arena_mock.dart';
 import 'opinions_mock.dart';
 
 /// Every opinion on a battle (Figma 48:430, "13 · Clash detail — scrolled"),
 /// opened from a battle card's "more opinions" pill. Chips filter by side;
-/// the dock shows the consensus and the follow actions.
+/// the dock shows the crowd split and the follow actions.
 class OpinionsScreen extends StatefulWidget {
-  const OpinionsScreen({super.key});
+  const OpinionsScreen({super.key, required this.battle});
 
-  static Route<void> route() =>
-      MaterialPageRoute(builder: (_) => const OpinionsScreen());
+  final Battle battle;
+
+  static Route<void> route(Battle battle) =>
+      MaterialPageRoute(builder: (_) => OpinionsScreen(battle: battle));
 
   @override
   State<OpinionsScreen> createState() => _OpinionsScreenState();
@@ -24,14 +27,15 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final opinions = OpinionsMock.opinions.where(
+    final b = widget.battle;
+    final opinions = b.opinions.where(
       (o) => switch (_filter) {
         1 => o.side == OpinionSide.bull,
         2 => o.side == OpinionSide.bear,
         _ => true,
       },
     );
-    final bull = (OpinionsMock.bullShare * 100).round();
+    final bull = b.bullPct;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -58,19 +62,19 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(OpinionsMock.title, style: VistaType.body),
+                        Text(b.question, style: VistaType.body),
                         const SizedBox(height: 1),
-                        Row(
+                        Wrap(
+                          spacing: VistaSpace.sm,
                           children: [
                             Text(
-                              OpinionsMock.asset,
+                              '${b.asset} ${b.price}',
                               style: VistaType.caption.copyWith(
                                 color: VistaColors.textMuted,
                               ),
                             ),
-                            const SizedBox(width: VistaSpace.sm),
                             Text(
-                              '$bull% bull',
+                              'Crowd split $bull% bull',
                               style: VistaType.labelStrong.copyWith(
                                 color: VistaColors.long,
                               ),
@@ -131,13 +135,20 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
             ),
             _ConsensusDock(
               bullPercent: bull,
-              // The clash is on BTC: Bull is long, Bear short.
-              onBull: () =>
-                  showOrderTicket(context, symbol: 'BTC', side: TradeSide.long),
+              opinionCount: b.opinionCount,
+              // Bull is long the battle's asset, Bear short; a fill joins
+              // this clash.
+              onBull: () => showOrderTicket(
+                context,
+                symbol: b.asset,
+                side: TradeSide.long,
+                clashId: b.id,
+              ),
               onBear: () => showOrderTicket(
                 context,
-                symbol: 'BTC',
+                symbol: b.asset,
                 side: TradeSide.short,
+                clashId: b.id,
               ),
             ),
           ],
@@ -147,15 +158,17 @@ class _OpinionsScreenState extends State<OpinionsScreen> {
   }
 }
 
-/// Raised dock: consensus legend and split bar over Follow Bull / Bear.
+/// Raised dock: crowd-split legend and bar over Follow Bull / Bear.
 class _ConsensusDock extends StatelessWidget {
   const _ConsensusDock({
     required this.bullPercent,
+    required this.opinionCount,
     required this.onBull,
     required this.onBear,
   });
 
   final int bullPercent;
+  final int opinionCount;
   final VoidCallback onBull;
   final VoidCallback onBear;
 
@@ -190,9 +203,16 @@ class _ConsensusDock extends StatelessWidget {
                 '$bullPercent%',
                 style: VistaType.labelStrong.copyWith(color: VistaColors.long),
               ),
-              Text(
-                OpinionsMock.opinionCount,
-                style: VistaType.caption.copyWith(color: VistaColors.textMuted),
+              Flexible(
+                child: Text(
+                  'Crowd split · $opinionCount opinions',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: VistaType.caption.copyWith(
+                    color: VistaColors.textMuted,
+                  ),
+                ),
               ),
               Text(
                 '${100 - bullPercent}%',

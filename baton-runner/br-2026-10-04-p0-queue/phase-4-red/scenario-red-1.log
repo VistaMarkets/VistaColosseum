@@ -1,0 +1,79 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart
+test/scenario_test.dart:43:12: Error: Member not found: 'participation'.
+  Scenario.participation.value,
+           ^^^^^^^^^^^^^
+test/scenario_test.dart:44:12: Error: Member not found: 'arena'.
+  Scenario.arena.value,
+           ^^^^^
+test/scenario_test.dart:65:12: Error: Member not found: 'Scenario.setArena'.
+  Scenario.setArena(sort: 1, from: 4, query: 'eth');
+           ^^^^^^^^
+test/scenario_test.dart:346:21: Error: Member not found: 'Scenario.joins'.
+    expect(Scenario.joins('eth-4k', TradeSide.long), 0);
+                    ^^^^^
+test/scenario_test.dart:347:21: Error: Member not found: 'participation'.
+    expect(Scenario.participation.value, isEmpty);
+                    ^^^^^^^^^^^^^
+test/scenario_test.dart:351:21: Error: Member not found: 'Scenario.joins'.
+    expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+                    ^^^^^
+test/scenario_test.dart:352:21: Error: Member not found: 'Scenario.joins'.
+    expect(Scenario.joins('eth-4k', TradeSide.short), 0);
+                    ^^^^^
+test/scenario_test.dart:353:21: Error: Member not found: 'participation'.
+    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+                    ^^^^^^^^^^^^^
+test/scenario_test.dart:358:21: Error: Member not found: 'Scenario.joins'.
+    expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+                    ^^^^^
+test/scenario_test.dart:359:21: Error: Member not found: 'participation'.
+    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+                    ^^^^^^^^^^^^^
+00:00 +0 -1: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart [E]
+  Failed to load "/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart":
+  Compilation failed for testPath=/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: test/scenario_test.dart:43:12: Error: Member not found: 'participation'.
+    Scenario.participation.value,
+             ^^^^^^^^^^^^^
+  test/scenario_test.dart:44:12: Error: Member not found: 'arena'.
+    Scenario.arena.value,
+             ^^^^^
+  test/scenario_test.dart:65:12: Error: Member not found: 'Scenario.setArena'.
+    Scenario.setArena(sort: 1, from: 4, query: 'eth');
+             ^^^^^^^^
+  test/scenario_test.dart:346:21: Error: Member not found: 'Scenario.joins'.
+      expect(Scenario.joins('eth-4k', TradeSide.long), 0);
+                      ^^^^^
+  test/scenario_test.dart:347:21: Error: Member not found: 'participation'.
+      expect(Scenario.participation.value, isEmpty);
+                      ^^^^^^^^^^^^^
+  test/scenario_test.dart:351:21: Error: Member not found: 'Scenario.joins'.
+      expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+                      ^^^^^
+  test/scenario_test.dart:352:21: Error: Member not found: 'Scenario.joins'.
+      expect(Scenario.joins('eth-4k', TradeSide.short), 0);
+                      ^^^^^
+  test/scenario_test.dart:353:21: Error: Member not found: 'participation'.
+      expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+                      ^^^^^^^^^^^^^
+  test/scenario_test.dart:358:21: Error: Member not found: 'Scenario.joins'.
+      expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+                      ^^^^^
+  test/scenario_test.dart:359:21: Error: Member not found: 'participation'.
+      expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+                      ^^^^^^^^^^^^^
+  .
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart

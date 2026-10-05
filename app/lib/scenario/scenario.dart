@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../design_system/design_system.dart';
+import '../features/arena/arena_mock.dart';
 import '../features/live/live_feed.dart';
 import '../features/live/market_prices.dart';
 import '../features/markets/markets_mock.dart';
@@ -66,6 +67,14 @@ abstract final class Scenario {
   /// until [refreshPrice] (the ticket's Retry).
   static final stalePrices = ValueNotifier<Set<String>>(TradeMock.stalePrices);
 
+  /// The side the user's latest fill in each Arena battle took, by clash
+  /// id. Only [placeOrder] writes it, on a fill.
+  static final participation = ValueNotifier<Map<String, TradeSide>>(const {});
+
+  /// The Arena's sort, crowd-split range and Ask query, shared by the list
+  /// and the crowd panel.
+  static final arena = ValueNotifier<ArenaView>(ArenaMock.allBattles);
+
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
 
@@ -85,6 +94,24 @@ abstract final class Scenario {
       f.contains(handle) ? f.where((h) => h != handle) : {...f, handle},
     );
   }
+
+  /// Changes the given parts of the Arena's view.
+  static void setArena({int? sort, int? from, int? to, String? query}) {
+    final v = arena.value;
+    arena.value = (
+      sort: sort ?? v.sort,
+      from: from ?? v.from,
+      to: to ?? v.to,
+      query: query ?? v.query,
+    );
+  }
+
+  /// The user's fills on [side] of battle [clashId]. Receipts are unique
+  /// by action id, so a repeated confirm counts once; a failure or a
+  /// cancel leaves no receipt and counts nothing.
+  static int joins(String clashId, TradeSide side) => receipts.value
+      .where((r) => r.clashId == clashId && r.side == side)
+      .length;
 
   /// Retry's refresh: [symbol]'s price context is current again.
   static void refreshPrice(String symbol) => stalePrices.value =
@@ -212,6 +239,12 @@ abstract final class Scenario {
     cashCents.value -= receipt.totalCents;
     positions.value = List.unmodifiable([position, ...positions.value]);
     receipts.value = List.unmodifiable([receipt, ...receipts.value]);
+    if (intent.clashId case final clash?) {
+      participation.value = Map.unmodifiable({
+        ...participation.value,
+        clash: intent.side,
+      });
+    }
     return OrderFilled(receipt);
   }
 
@@ -233,6 +266,8 @@ abstract final class Scenario {
     clock.value = TradeMock.chartEnd;
     receipts.value = const [];
     stalePrices.value = TradeMock.stalePrices;
+    participation.value = const {};
+    arena.value = ArenaMock.allBattles;
   }
 }
 

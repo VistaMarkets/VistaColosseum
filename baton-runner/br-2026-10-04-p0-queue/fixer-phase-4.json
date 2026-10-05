@@ -1,0 +1,380 @@
+{
+  "summary": "Adjudicate review findings against the sources that decide them, then apply only the confirmed edits through a single writer",
+  "agentCount": 4,
+  "logs": [
+    "Adjudicating 3 finding group(s) against the sources",
+    "7 verdicts from 3/3 groups: F2=fix-here, F3=fix-here, F7=fix-here, F1=fix-here, F4=fix-here, F5=fix-here, F6=fix-here"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "findingId": "F2",
+        "verdict": "fix-here",
+        "evidence": "I confirmed it on the tree. In app/lib/app_shell.dart:74 the only flag is `final arena = _tab == _arena;`. The panel's `heightFactor: arena ? 1 : 0` (124), `opacity: arena ? 1 : 0` (128), `ignoring: !arena` (130) and `excluding: !arena` (132) all depend on the tab alone and never on the keyboard. The Scaffold (75) keeps the default resizeToAvoidBottomInset, so the body is Column[Expanded(tabs), dock] and shrinks by the keyboard height while the dock stays full size. arena_screen.dart:57 has `onChanged: (q) => Scenario.setArena(query: q)`, so results update while the user types, and the no-match hint (`ArenaMock.askHint`, arena_screen.dart:165-169) sits in the ListView under the sort chips.\n\nI ran a probe on a scratch copy of app/ (fonts loaded the same way home_screen_test does) at 360x640 with a 280 dp inset, after typing 'doge'. Before the fix the probe printed `KB list Rect.fromLTRB(0.0, 106.0, 360.0, 136.0)`, `slider hittable 1` and `hint hittable 0`. The list viewport is 30 px and the hint cannot be hit. With the edits below applied in the copy, it printed `KB list Rect.fromLTRB(0.0, 106.0, 360.0, 246.0)`, `slider hittable 0` and `hint hittable 1`.\n\nOn the patched copy, the full suite printed `00:37 +234: All tests passed!`, which covers the pill-above-keyboard test at home_screen_test.dart:2643. `flutter analyze lib/app_shell.dart` printed `No issues found!` and dart format reports no change to either file.\n\nSimulationIndicator (simulation_indicator.dart:77-92) adds its 30 px slot to padding only, not to viewInsets, so `MediaQuery.viewInsetsOf(context)` in AppShell's context (above the Scaffold, which strips insets only for its body) reads the real keyboard inset.\n\nThe decoration, shadow and top padding stay on `arena`, and resizeToAvoidBottomInset is not changed (house rule 10). The panel stays mounted, so the Arena filter state survives.",
+        "rejectsValidInput": "None. The only behaviour change: while a bottom view inset is non-zero on the Arena tab, the crowd panel folds and the range slider can't be used until the keyboard closes. A drag on the list closes it (`keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag`, arena_screen.dart:106).\n\nA hardware or floating keyboard reports an inset of 0, so the panel stays open there, as it does today. The range still comes from Scenario.arena and is restored when the panel unfolds; the test checks that '0 battles' persists.\n\nNo document tells a human to adjust the crowd range with the soft keyboard open. Spec 04 line 16 describes only Ask filtering and the 'Try BTC, ETH, SOL' hint.",
+        "testProof": "Proposed test: app/test/home_screen_test.dart, arena group, 'with the keyboard up the panel folds and Ask results show' (inserted by the second edit). It opens Arena at 360x640, sets `tester.view.viewInsets = FakeViewPadding(bottom: 280.0 * 3)`, types 'doge', then asserts `find.byType(RangeSlider).hitTestable()` finds nothing and `find.text('Try BTC, ETH, SOL').hitTestable()` finds one widget. It then resets the insets and asserts the slider is hit-testable again and '0 battles' is still shown.\n\nVerified on a scratch copy. Against the current app_shell.dart it fails at the first assertion: `Expected: no matching candidates / Actual: _HitTestableWidgetFinder:<Found 1 widget with type \"RangeSlider\"`. The hint assertion also fails pre-fix (probe: hint hittable 0, list viewport 30 px). With the app_shell edits applied it prints `00:01 +1: All tests passed!`.\n\nMutations it catches:\n- Drop `&& MediaQuery.viewInsetsOf(context).bottom == 0`: the slider and hint assertions fail.\n- Switch only IgnorePointer to panelOpen but leave heightFactor on `arena`: the hint assertion fails, because the list stays 30 px.\n\nThe gate reaches it: scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-4-fixer/ runs the app's flutter test suite.",
+        "edits": [
+          {
+            "file": "app/lib/app_shell.dart",
+            "anchor": "74 _AppShellState.build arena flag",
+            "current": "    final arena = _tab == _arena;\n    return Scaffold(",
+            "replacement": "    final arena = _tab == _arena;\n    // The panel folds while the keyboard is up, so Ask's results get the room.\n    final panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0;\n    return Scaffold(",
+            "rationale": "House rule 10: one keyboard-aware flag. AppShell's context is above the Scaffold, so it sees the real inset."
+          },
+          {
+            "file": "app/lib/app_shell.dart",
+            "anchor": "124-133 crowd panel AnimatedAlign/AnimatedOpacity/IgnorePointer/ExcludeSemantics",
+            "current": "                    heightFactor: arena ? 1 : 0,\n                    child: AnimatedOpacity(\n                      duration: _dock,\n                      curve: arena ? const Interval(0.3, 1) : Curves.easeOut,\n                      opacity: arena ? 1 : 0,\n                      child: IgnorePointer(\n                        ignoring: !arena,\n                        child: ExcludeSemantics(\n                          excluding: !arena,\n                          // Kept mounted so its filter survives tab switches.",
+            "replacement": "                    heightFactor: panelOpen ? 1 : 0,\n                    child: AnimatedOpacity(\n                      duration: _dock,\n                      curve: panelOpen\n                          ? const Interval(0.3, 1)\n                          : Curves.easeOut,\n                      opacity: panelOpen ? 1 : 0,\n                      child: IgnorePointer(\n                        ignoring: !panelOpen,\n                        child: ExcludeSemantics(\n                          excluding: !panelOpen,\n                          // Kept mounted so its filter survives tab switches\n                          // and the keyboard.",
+            "rationale": "heightFactor, opacity (and its curve), IgnorePointer and ExcludeSemantics follow panelOpen, as house rule 10 requires. The panel stays mounted. The layout is the dart format output."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1029-1032 arena group, after 'Ask filters by asset; no match names the assets there are'",
+            "current": "      expect(tester.widget<TextField>(ask).controller!.text, isEmpty);\n    });\n\n    testWidgets('joining: Cancel counts nothing; a fill counts once, shows', (",
+            "replacement": "      expect(tester.widget<TextField>(ask).controller!.text, isEmpty);\n    });\n\n    testWidgets('with the keyboard up the panel folds and Ask results show', (\n      tester,\n    ) async {\n      await openArena(tester, const Size(360, 640));\n      final ask = find.descendant(\n        of: find.byType(ArenaScreen),\n        matching: find.byType(TextField),\n      );\n      tester.view.viewInsets = const FakeViewPadding(bottom: 280.0 * 3);\n      await tester.enterText(ask, 'doge');\n      await tester.pumpAndSettle();\n      expect(find.byType(RangeSlider).hitTestable(), findsNothing);\n      expect(find.text('Try BTC, ETH, SOL').hitTestable(), findsOneWidget);\n\n      // Keyboard down: the panel unfolds with its state intact.\n      tester.view.resetViewInsets();\n      await tester.pumpAndSettle();\n      expect(find.byType(RangeSlider).hitTestable(), findsOneWidget);\n      expect(find.text('0 battles'), findsOneWidget);\n    });\n\n    testWidgets('joining: Cancel counts nothing; a fill counts once, shows', (",
+            "rationale": "The regression test. It fails on the current tree and passes with the fix (both runs verified on a scratch copy). It follows the openArena style, and the tearDown's tester.view.reset clears the insets."
+          }
+        ]
+      },
+      {
+        "findingId": "F3",
+        "verdict": "fix-here",
+        "evidence": "The claim holds against the tree.\n\narena_mock.dart:96-98 (BTC) has `changePct: 1.2,` and `fundingPct: 0.010,`. Lines 133-134 (ETH) have `changePct: -0.8,` and `fundingPct: 0.031,`. Lines 190-191 (SOL) have `changePct: 3.4,` and `fundingPct: 0.031,`.\n\nmarkets_mock.dart has:\n- BTC `changePct: 1.2,` and `sortValues: {'Volume': 412, 'Change': 1.2, 'Funding': 0.009}`\n- ETH `changePct: -0.4,` and `third: '−0.004%'`, with `'Funding': -0.004`\n- SOL `changePct: 3.8,` and `'Funding': 0.012`\n\ntrade_mock.dart:93 and :101 agree with Markets (`changePct: -0.4,` and `changePct: 3.8,`). The card renders `change: b.change` (arena_screen.dart:134), so ETH shows `− 0.8%` while Markets shows −0.4%.\n\nThe Funding sort is currently pinned on a tie. home_screen_test.dart:957-958 reads `// ETH and SOL pay the same funding: the tie goes by id.` then `expect(tickers(tester), ['ETH', 'SOL', 'BTC']);`. With Markets values the order becomes SOL 0.012, BTC 0.009, ETH -0.004, so ETH moves from first to last. Change stays ['SOL','BTC','ETH'] (3.8 > 1.2 > -0.4).\n\nVolume needs no change. Markets has no volume column; its Volume chip orders by OI (412/290/180), and Arena volume (184e9 / 92e9 / 41e9 cents) gives the same BTC > ETH > SOL order.\n\nThe ETH bear thesis says `'Funding is hot at 0.03% and spot is not following the perps.'` (lines 153 and 176), which contradicts −0.004%. No test references that string (grep of app/test).\n\nOnce aligned, the live fixtures have no tie on any key. Spec 04 still requires 'stable tiebreak by id', and house rule 11 wants that test on a test-local fixture. visible() currently reads only the static `battles` (`for (final b in battles)` in asked()), so it needs an optional pool parameter defaulting to `battles`.\n\nWhy fields and not lookups: I chose to align the literals and add a guard test instead of making changePct/fundingPct read MarketsMock. Lookups would remove the constructor fields, and then a test-local fixture could not carry its own values to exercise Change versus Funding. The guard test gives the same protection against drift.\n\nCaveat for the writer: with Markets values, Change and Funding produce the same live order (SOL, BTC, ETH). The widget test therefore cannot tell those two keys apart, and the unit test below is what does.\n\nhome_screen_test.dart does not import arena_mock.dart yet, so the edit adds that import. flutter analyze is part of the gate (gate.sh:40); the proposed code has no const-able constructors left non-const.",
+        "rejectsValidInput": "The optional `pool` parameter defaults to `battles`, so every existing call (arena_screen.dart, crowd_filter_panel.dart buckets via asked) behaves the same. No runtime input is rejected.\n\nThe new guard test does reject two kinds of future fixture:\n- a Battle whose changePct or fundingPct differs from Markets\n- a Battle on an asset absent from MarketsMock.assets (firstWhere throws StateError)\n\nNo document tells a human to add a battle on a non-Markets asset or with its own change or funding. Spec 04 only says to give Battle numeric fixture fields, and its Ask hint is derived from the fixtures. So no producing procedure is broken.",
+        "testProof": "app/test/home_screen_test.dart, group 'arena', new test 'each battle quotes its asset as the Markets tab does'.\n\nToday it fails on the first battle iterated (BTC): (1.2, 0.010) != (1.2, 0.009), reason 'BTC'. ETH (-0.8, 0.031) vs (-0.4, -0.004) and SOL (3.4, 0.031) vs (3.8, 0.012) fail the same way. It passes once the literals are aligned.\n\nThe re-pinned widget test 'sort chips order the battles by volume, change and funding' expects ['SOL', 'BTC', 'ETH'] after tapping Funding. That fails today, because the list shows ['ETH', 'SOL', 'BTC'].\n\nNew unit test 'sorts by the chip field, highest first, ties by id' uses a test-local pool fed in c, b, a order. It catches these mutations:\n- Delete `: a.id.compareTo(b.id)` in visible(). Dart's insertion sort for short lists is stable, so ids(0) becomes ['c', 'b', 'a'] instead of ['c', 'a', 'b'], and ids(2) becomes ['c', 'a', 'b'] instead of ['a', 'c', 'b'].\n- Map `2 => b.changePct`. ids(2) becomes ['b', 'a', 'c'].\n- Flip `key(b).compareTo(key(a))`. Every expectation reverses.\n\nRun: scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-4-fixer/",
+        "edits": [
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "38-39 Battle.changePct doc",
+            "current": "  /// 24h price change and funding rate, in percent (sort keys).\n  final double changePct;",
+            "replacement": "  /// 24h price change and funding rate, in percent (sort keys); the\n  /// Markets tab's values for [asset].\n  final double changePct;",
+            "rationale": "States the invariant the guard test enforces, so the next fixture author copies from MarketsMock."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "98 ArenaMock._btc.fundingPct",
+            "current": "    fundingPct: 0.010,",
+            "replacement": "    fundingPct: 0.009,",
+            "rationale": "Markets BTC Funding is 0.009 (finding location names BTC fundingPct); lets the guard test cover every battle."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "133-134 ArenaMock._eth changePct/fundingPct",
+            "current": "    changePct: -0.8,\n    fundingPct: 0.031,",
+            "replacement": "    changePct: -0.4,\n    fundingPct: -0.004,",
+            "rationale": "Align ETH with MarketsMock (changePct -0.4, Funding -0.004) and TradeMock (-0.4)."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "152-153 ArenaMock._eth.bear.thesis",
+            "current": "      change: '-0.4%',\n      thesis: 'Funding is hot at 0.03% and spot is not following the perps.',",
+            "replacement": "      change: '-0.4%',\n      thesis: 'Spot is not following the perps and the ETF bid has stalled.',",
+            "rationale": "The old thesis quotes 0.03% funding, which contradicts the aligned −0.004%."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "175-176 ArenaMock._eth.opinions[1].thesis",
+            "current": "        label: 'BEAR',\n        thesis: 'Funding is hot at 0.03% and spot is not following the perps.',",
+            "replacement": "        label: 'BEAR',\n        thesis: 'Spot is not following the perps and the ETF bid has stalled.',",
+            "rationale": "The same lead-caller thesis repeated in the opinions list; keep both in step."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "190-191 ArenaMock._sol changePct/fundingPct",
+            "current": "    changePct: 3.4,\n    fundingPct: 0.031,",
+            "replacement": "    changePct: 3.8,\n    fundingPct: 0.012,",
+            "rationale": "Align SOL with MarketsMock (changePct 3.8, Funding 0.012) and TradeMock (3.8)."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "249-255 ArenaMock.asked",
+            "current": "  /// Battles whose asset contains [query], any case.\n  static List<Battle> asked(String query) {\n    final q = query.trim().toUpperCase();\n    return [\n      for (final b in battles)\n        if (b.asset.contains(q)) b,",
+            "replacement": "  /// Battles in [pool] whose asset contains [query], any case.\n  static List<Battle> asked(String query, [List<Battle> pool = battles]) {\n    final q = query.trim().toUpperCase();\n    return [\n      for (final b in pool)\n        if (b.asset.contains(q)) b,",
+            "rationale": "Optional pool so the id-tiebreak test runs on a test-local fixture (house rule 11); default keeps every caller unchanged."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "269-276 ArenaMock.visible",
+            "current": "  static List<Battle> visible(ArenaView v) {\n    num key(Battle b) => switch (v.sort) {\n      1 => b.changePct,\n      2 => b.fundingPct,\n      _ => b.volume,\n    };\n    return [\n      for (final b in asked(v.query))",
+            "replacement": "  static List<Battle> visible(ArenaView v, [List<Battle> pool = battles]) {\n    num key(Battle b) => switch (v.sort) {\n      1 => b.changePct,\n      2 => b.fundingPct,\n      _ => b.volume,\n    };\n    return [\n      for (final b in asked(v.query, pool))",
+            "rationale": "Threads the optional pool through, same default."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "11 imports",
+            "current": "import 'package:vista_colosseum/features/arena/arena_screen.dart';",
+            "replacement": "import 'package:vista_colosseum/features/arena/arena_mock.dart';\nimport 'package:vista_colosseum/features/arena/arena_screen.dart';",
+            "rationale": "Battle and ArenaMock are not exported by arena_screen.dart; the new unit tests need them."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "957-958 sort chips test, Funding expectation",
+            "current": "      // ETH and SOL pay the same funding: the tie goes by id.\n      expect(tickers(tester), ['ETH', 'SOL', 'BTC']);",
+            "replacement": "      // Markets' funding: SOL +0.012%, BTC +0.009%, ETH −0.004%.\n      expect(tickers(tester), ['SOL', 'BTC', 'ETH']);",
+            "rationale": "Re-pin the Funding order to the aligned values; the tie no longer exists in live data."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "965 before 'the crowd range filters the cards and the panel counts them'",
+            "current": "    testWidgets('the crowd range filters the cards and the panel counts them', (",
+            "replacement": "    test('each battle quotes its asset as the Markets tab does', () {\n      for (final b in ArenaMock.battles) {\n        final m = MarketsMock.assets.firstWhere((m) => m.id == b.asset);\n        expect(\n          (b.changePct, b.fundingPct),\n          (m.changePct, m.sortValues['Funding']),\n          reason: b.asset,\n        );\n      }\n    });\n\n    test('sorts by the chip field, highest first, ties by id', () {\n      Battle battle(String id, int volume, double change, double funding) =>\n          Battle(\n            id: id,\n            asset: 'BTC',\n            price: '',\n            volume: volume,\n            changePct: change,\n            fundingPct: funding,\n            bullPct: 60,\n            bullCount: 0,\n            bearCount: 0,\n            timeLeft: '',\n            question: '',\n            bull: ArenaMock.battles.first.bull,\n            bear: ArenaMock.battles.first.bear,\n            opinionCount: 2,\n            opinions: const [],\n          );\n      // Fed out of id order, so a sort without the tiebreak fails.\n      final pool = [\n        battle('c', 3, -1, 2),\n        battle('b', 1, 2, 1),\n        battle('a', 1, 1, 2),\n      ];\n      List<String> ids(int sort) => [\n        for (final b in ArenaMock.visible((\n          sort: sort,\n          from: 0,\n          to: ArenaMock.bucketCount,\n          query: '',\n        ), pool))\n          b.id,\n      ];\n      expect(ids(0), ['c', 'a', 'b']); // volume; a and b tie on 1\n      expect(ids(1), ['b', 'a', 'c']); // change\n      expect(ids(2), ['a', 'c', 'b']); // funding; a and c tie on 2\n    });\n\n    testWidgets('the crowd range filters the cards and the panel counts them', (",
+            "rationale": "The guard test pins Arena to Markets. The fixture test keeps the spec's 'stable tiebreak by id' covered without depending on Markets values (house rule 11), and it tells Change from Funding, which the live data no longer does."
+          }
+        ]
+      },
+      {
+        "findingId": "F7",
+        "verdict": "fix-here",
+        "evidence": "The claim holds against the tree.\n\narena_screen.dart:105-107 builds the list as `child: ListView(` / `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,` / `padding: ...`, with no controller and no key. The ListenableBuilder rebuilds the same ListView in place when Scenario.arena changes (arena_screen.dart:61-68), so the ScrollPosition survives and clamps to the new maxScrollExtent.\n\nThe range path is `onChanged: (v) => Scenario.setArena(from: (v.start * _n).round(), to: (v.end * _n).round(),)` (crowd_filter_panel.dart:60-63). Ask goes through `onChanged: (q) => Scenario.setArena(query: q)` (arena_screen.dart:57). Both set the `ValueNotifier<ArenaView>` at scenario.dart:76.\n\nThe review's probe recorded `PROBE 360x640@1.0 ... offset=135.0` after `drag(list, -4000)` then `Scenario.setArena(from: 7, to: 8)`. This is consistent with no controller existing to reset the offset.\n\nFix per house rule 12: own a ScrollController, and in the existing Scenario.arena listener (renamed from _followQuery to _followView) jump to 0 when the visible count drops.\n\nThe listener runs outside build, from a gesture or text callback, so jumpTo there is safe. Sort changes keep the count and so never jump. Reset only grows the set and so never jumps.",
+        "rejectsValidInput": "No input is rejected. Every setArena call is still accepted, and only the scroll offset changes, and only when the visible count drops.\n\nOne side effect: giving the ListView an explicit controller means it no longer inherits the route's PrimaryScrollController on mobile. On iOS, a status-bar tap would therefore no longer scroll the Arena list to the top. No doc in the repo (spec 04, CONTEXT.md, ARCH.md) describes or relies on that gesture, and grep finds no PrimaryScrollController use in app/lib or app/test.",
+        "testProof": "app/test/home_screen_test.dart, group 'arena', new testWidgets 'a narrower range starts the list at the top'.\n\nSteps: open Arena at 360x640 (top inset 24), drag the Arena ListView by -4000, and assert the offset is greaterThan(0). Then call Scenario.setArena(from: 7, to: 8), assert tickers == ['SOL'], and assert the offset == 0.\n\nToday it fails at the final assertion. The review probe measured 135.0 at this size and text scale.\n\nMutation proof: after the fix, deleting `if (shown < _shown && _list.hasClients) _list.jumpTo(0);` brings back the 135.0 offset, so the test fails again.\n\nRun: scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-4-fixer/",
+        "edits": [
+          {
+            "file": "app/lib/features/arena/arena_screen.dart",
+            "anchor": "24-44 _ArenaScreenState fields, initState, listener, dispose",
+            "current": "class _ArenaScreenState extends State<ArenaScreen> {\n  late final _ask = TextEditingController(text: Scenario.arena.value.query);\n\n  @override\n  void initState() {\n    super.initState();\n    Scenario.arena.addListener(_followQuery);\n  }\n\n  /// Reset clears the query; the field follows it.\n  void _followQuery() {\n    final q = Scenario.arena.value.query;\n    if (_ask.text != q) _ask.text = q;\n  }\n\n  @override\n  void dispose() {\n    Scenario.arena.removeListener(_followQuery);\n    _ask.dispose();\n    super.dispose();\n  }",
+            "replacement": "class _ArenaScreenState extends State<ArenaScreen> {\n  late final _ask = TextEditingController(text: Scenario.arena.value.query);\n  final _list = ScrollController();\n  var _shown = ArenaMock.visible(Scenario.arena.value).length;\n\n  @override\n  void initState() {\n    super.initState();\n    Scenario.arena.addListener(_followView);\n  }\n\n  /// Reset clears the query; the field follows it. A narrower range or Ask\n  /// starts the shorter list at its top: a kept offset would be clamped and\n  /// open the remaining card partway down.\n  void _followView() {\n    final view = Scenario.arena.value;\n    if (_ask.text != view.query) _ask.text = view.query;\n    final shown = ArenaMock.visible(view).length;\n    if (shown < _shown && _list.hasClients) _list.jumpTo(0);\n    _shown = shown;\n  }\n\n  @override\n  void dispose() {\n    Scenario.arena.removeListener(_followView);\n    _list.dispose();\n    _ask.dispose();\n    super.dispose();\n  }",
+            "rationale": "House rule 12: jump to the top only when the visible set shrinks. This reuses the existing Scenario.arena listener, so the jump runs outside build."
+          },
+          {
+            "file": "app/lib/features/arena/arena_screen.dart",
+            "anchor": "105-106 _battles ListView",
+            "current": "          child: ListView(\n            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,",
+            "replacement": "          child: ListView(\n            controller: _list,\n            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,",
+            "rationale": "Attach the controller the listener jumps."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1100 before 'tapping a caller opens their profile'",
+            "current": "    testWidgets('tapping a caller opens their profile', (tester) async {",
+            "replacement": "    testWidgets('a narrower range starts the list at the top', (tester) async {\n      await openArena(\n        tester,\n        const Size(360, 640),\n        const EdgeInsets.only(top: 24),\n      );\n      final list = find\n          .descendant(\n            of: find.byType(ArenaScreen),\n            matching: find.byType(ListView),\n          )\n          .first;\n      double offset() => tester\n          .state<ScrollableState>(\n            find.descendant(of: list, matching: find.byType(Scrollable)).first,\n          )\n          .position\n          .pixels;\n      await tester.drag(list, const Offset(0, -4000));\n      await tester.pumpAndSettle();\n      expect(offset(), greaterThan(0));\n\n      Scenario.setArena(from: 7, to: 8); // SOL's 88/12 bucket only\n      await tester.pumpAndSettle();\n      expect(tickers(tester), ['SOL']);\n      expect(offset(), 0);\n    });\n\n    testWidgets('tapping a caller opens their profile', (tester) async {",
+            "rationale": "This reproduces the review probe's path at 360x640: scroll to the end, narrow to one card, then assert the offset is 0. It fails today at 135.0. The Scrollable is looked up under the Arena ListView so it is not confused with the Ask field's own Scrollable."
+          }
+        ]
+      },
+      {
+        "findingId": "F1",
+        "verdict": "fix-here",
+        "evidence": "No test checks the Bear side, so all three wrong-side mutants survive.\n\n- app/lib/scenario/scenario.dart:242-246 writes participation as `if (intent.clashId case final clash?) { participation.value = Map.unmodifiable({ ...participation.value, clash: intent.side, });`.\n- app/lib/features/arena/arena_screen.dart:137-138 builds the crowd lines: `bull: b.bull.withCrowd(crowd(b.bullCount, TradeSide.long)),` and `bear: b.bear.withCrowd(crowd(b.bearCount, TradeSide.short)),`.\n- app/lib/design_system/components/vista_battle.dart:209-217 sets the labels: `label: joined == TradeSide.long ? 'Joined Bull'` and `label: joined == TradeSide.short ? 'Joined Bear'`.\n\nWhat the tests check today:\n- app/test/scenario_test.dart:349-359 fills only ethLong and asserts `{'eth-4k': TradeSide.long}`.\n- The join widget test (home_screen_test.dart:1056-1057) checks only `'and 15'` and `'Joined Bull'`.\n- The AC2 test (1078-1079) checks only `positions.value.first.clashId` and `.side`.\n- grep of app/test finds no 'Joined Bear', 'and 6', 'and 13' or `TradeSide.short` participation assertion.\n- mutate.py has no side mutant; joins-ignore-side mutates the joins filter, not the write or the label.\n\nThe fix asserts that a Bear fill records short and that the ETH card says Joined Bear with 'and 13' (bearCount 12 + 1). It also asserts the mirror case: 'Joined Bull' absent after a Bear join. After a Bull fill it asserts 'Joined Bear' absent and BTC's bear line unchanged at 'and 6'. Every 'and N' literal is unique across the fixtures: BTC 14/6, ETH 5/12, SOL 21/3.\n\nI dropped the finding's extra `Scenario.joins('eth-4k', TradeSide.short)` check because 'and 13' already proves it through the UI.\n\nThe edit navigates the way existing tests do: Done pops the ticket (order_ticket.dart:946 `('Done', close)`), and Back pops the opinions route (`find.bySemanticsLabel('Back')`, as in the opinions test at line 1156).",
+        "rejectsValidInput": "None. Only test assertions are added. Spec 04 lines 14-15 say a fill \"records participation[clashId] = side\" and \"Chosen side shows on the card\", so the correct production code passes every new assertion. No document describes a producing procedure that these assertions would reject.",
+        "testProof": "Mutation-proven in app/test/home_screen_test.dart, tests \"joining: Cancel counts nothing; a fill counts once, shows\" (JOINW) and \"a battle's opinions trade that battle's asset and clash\" (AC2). Apply each mutant alone. Both tests pass on the current tests and fail with the edits:\n\n- (1) app/lib/scenario/scenario.dart: `        clash: intent.side,` -> `        clash: TradeSide.long,`. Caught in AC2 by `expect(Scenario.participation.value, {'eth-4k': TradeSide.short})` and by `find.text('Joined Bear'), findsOneWidget`.\n- (2) app/lib/features/arena/arena_screen.dart: `bear: b.bear.withCrowd(crowd(b.bearCount, TradeSide.short)),` -> `...TradeSide.long)),`. Caught in JOINW by `find.text('and 6'), findsOneWidget` (reads 'and 7'). Caught in AC2 by `find.text('and 13')` (reads 'and 12').\n- (3) app/lib/design_system/components/vista_battle.dart: `label: joined == TradeSide.short` -> `label: joined != null`. Caught in JOINW by `find.text('Joined Bear'), findsNothing`.\n- (4) The mirror: `label: joined == TradeSide.long` -> `label: joined != null`. Caught in AC2 by `find.text('Joined Bull'), findsNothing`.\n\nRun each with the mutate.py pattern, then confirm the whole suite with scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-4-fixer/.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1057 'joining: Cancel counts nothing; a fill counts once, shows'",
+            "current": "      expect(find.text('Joined Bull'), findsOneWidget);",
+            "replacement": "      expect(find.text('Joined Bull'), findsOneWidget);\n      // Only the joined side says so, and only its crowd moved.\n      expect(find.text('Joined Bear'), findsNothing);\n      expect(find.text('and 6'), findsOneWidget);",
+            "rationale": "Kills mutants (2) and (3) on a Bull fill: the bear label must stay unjoined and BTC's bear crowd must stay at its seeded 6."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1078-1079 \"a battle's opinions trade that battle's asset and clash\"",
+            "current": "      expect(Scenario.positions.value.first.clashId, 'eth-4k');\n      expect(Scenario.positions.value.first.side, TradeSide.short);",
+            "replacement": "      expect(Scenario.positions.value.first.clashId, 'eth-4k');\n      expect(Scenario.positions.value.first.side, TradeSide.short);\n      expect(Scenario.participation.value, {'eth-4k': TradeSide.short});\n\n      // Back on the Arena, ETH's card shows the Bear join and its crowd.\n      await tester.tap(find.text('Done'));\n      await tester.pumpAndSettle();\n      await tester.tap(find.bySemanticsLabel('Back'));\n      await tester.pumpAndSettle();\n      expect(find.text('Joined Bear'), findsOneWidget);\n      expect(find.text('Joined Bull'), findsNothing);\n      expect(find.text('and 13'), findsOneWidget);",
+            "rationale": "The only Bear-side fill in the suite. It now checks the participation write (mutant 1), the bear crowd line (mutant 2) and both labels (mutant 4) instead of just the position."
+          }
+        ]
+      },
+      {
+        "findingId": "F4",
+        "verdict": "fix-here",
+        "evidence": "The opinions screen's derived strings are only ever checked on BTC, so ETH regressions go unseen.\n\n- app/lib/features/arena/opinions_screen.dart:31 builds the list with `final opinions = b.opinions.where(`.\n- Line 38 sets `final bull = b.bullPct;`, which line 77 renders as `'Crowd split $bull% bull'`.\n- Line 138 passes `opinionCount: b.opinionCount,` to the dock, which renders `'Crowd split · $opinionCount opinions'`.\n\nBTC's values match the old constants, so a constant mutant can't be told apart on BTC:\n- arena_mock.dart:99 `bullPct: 63`, :124 `opinionCount: 23`, :125 `opinions: OpinionsMock.opinions`.\n- The opinions group's openOpinions taps `'+21 more opinions'`, which is BTC (home_screen_test.dart:1130). The LABEL test asserts 'Crowd split 63% bull' and '23 opinions', both BTC.\n- The AC2 test opens ETH via '+7 more opinions' (1067) but asserts only ticket symbol/side and the position (1071-1079).\n- mutate.py's opinions-hardcode-btc mutant only touches `symbol: b.asset,`.\n\nETH's values are distinct from BTC's: `bullPct: 28` (:135), `opinionCount: 9` (:156), and an opinion with handle '@lunaq' (:172) that is absent from OpinionsMock.opinions. The Arena card renders the caller as 'lunaq' with no '@' (vista_battle.dart:255 `Text(side.caller`), so find.text('@lunaq') matches only the opinions list.",
+        "rejectsValidInput": "None. Only test assertions are added. Spec 04 line 10 says \"Derive the display strings from them\", so the correct ETH screen shows 28%, 9 opinions and its own callers.",
+        "testProof": "Mutation-proven in app/test/home_screen_test.dart, test \"a battle's opinions trade that battle's asset and clash\". Apply each mutant alone to app/lib/features/arena/opinions_screen.dart. The current AC2 and LABEL tests survive all three:\n\n- (a) `final bull = b.bullPct;` -> `final bull = 63;`. Caught by `find.text('Crowd split 28% bull'), findsOneWidget`.\n- (b) `opinionCount: b.opinionCount,` -> `opinionCount: 23,`. Caught by `find.text('Crowd split · 9 opinions'), findsOneWidget`.\n- (c) `final opinions = b.opinions.where(` -> `final opinions = OpinionsMock.opinions.where(`. Caught by `find.text('@lunaq'), findsOneWidget`.\n\nOpinionsMock is already imported there; the file uses OpinionsMock.filters.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1067-1069 \"a battle's opinions trade that battle's asset and clash\"",
+            "current": "      await tester.tap(find.text('+7 more opinions'));\n      await tester.pumpAndSettle();\n      await tester.tap(find.text('Follow Bear'));",
+            "replacement": "      await tester.tap(find.text('+7 more opinions'));\n      await tester.pumpAndSettle();\n      // ETH's own split, count and callers, not BTC's.\n      expect(find.text('Crowd split 28% bull'), findsOneWidget);\n      expect(find.text('Crowd split · 9 opinions'), findsOneWidget);\n      expect(find.text('@lunaq'), findsOneWidget);\n      await tester.tap(find.text('Follow Bear'));",
+            "rationale": "Checks the header, dock and list on a battle whose values differ from the deleted BTC constants. The middle dot is U+00B7, as in opinions_screen.dart:208."
+          }
+        ]
+      },
+      {
+        "findingId": "F5",
+        "verdict": "fix-here",
+        "evidence": "The weakness is real, but the exact mutant the finding names would already fail.\n\napp/lib/features/arena/arena_mock.dart:251-254 reads `final q = query.trim().toUpperCase();` and then `if (b.asset.contains(q)) b,`. Spec 04 line 16 says \"filter battles by asset/ticker substring\". The Ask test (home_screen_test.dart:1014-1028) enters only 'eth' (exactly 'ETH' once uppercased) and 'doge', then resets the query.\n\nThe finding's mutant `b.asset == q` is in fact killed. With an empty query nothing equals '', so the list is empty, and the same test's `expect(tickers(tester), ['BTC', 'ETH', 'SOL'])` after reset (1028) fails, as does every openArena test expecting 3 battles.\n\nTwo near mutants do survive:\n- `q.isEmpty || b.asset == q` (whole-ticker match)\n- `b.asset.startsWith(q)` (prefix match)\n\nThe finding's suggested input 'bt' is a prefix of BTC, so it would not kill startsWith. The input 'th' kills both: it is inside ETH but neither a prefix nor the whole ticker, and BTC/SOL contain no 'TH'. It yields exactly ['ETH'], so the result does not depend on sort order, which F3 is re-pinning.",
+        "rejectsValidInput": "None that the spec allows. A prefix-only or exact-match Ask implementation would now fail, but spec 04 line 16 requires substring matching, so those are not correct inputs.",
+        "testProof": "Mutation-proven in app/test/home_screen_test.dart, test \"Ask filters by asset; no match names the assets there are\". Apply each mutant alone to app/lib/features/arena/arena_mock.dart, replacing `if (b.asset.contains(q)) b,`:\n\n- (a) `if (q.isEmpty || b.asset == q) b,`\n- (b) `if (b.asset.startsWith(q)) b,`\n\nThe current test survives both. With the edit, the new `expect(tickers(tester), ['ETH'])` after `enterText(ask, 'th')` fails under each mutant, because the list is empty.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1016-1017 'Ask filters by asset; no match names the assets there are'",
+            "current": "      expect(tickers(tester), ['ETH']);\n      expect(find.text('1 battle'), findsOneWidget);",
+            "replacement": "      expect(tickers(tester), ['ETH']);\n      expect(find.text('1 battle'), findsOneWidget);\n      // A substring, not a prefix or the whole ticker.\n      await tester.enterText(ask, 'th');\n      await tester.pumpAndSettle();\n      expect(tickers(tester), ['ETH']);",
+            "rationale": "'th' sits inside ETH but is neither its prefix nor the whole ticker, so only true substring matching passes."
+          }
+        ]
+      },
+      {
+        "findingId": "F6",
+        "verdict": "fix-here",
+        "evidence": "The empty-state test only empties the list from the upper thumb, so it can't tell Show all from resetting only the upper bound.\n\napp/lib/features/arena/arena_screen.dart:174-175 has `onPressed: () => Scenario.setArena(from: 0, to: ArenaMock.bucketCount),`, and scenario.dart:99-106 setArena keeps any bound passed as null (`from: from ?? v.from`).\n\nThe test (home_screen_test.dart:993) uses `dragThumb(tester, 1, 0.2)`, which gives from=0, to=2, with buckets BTC 2, ETH 4, SOL 7 per `(max(bullPct,100-bullPct)-50) ~/ 5`. So a mutant that sets only `to:` leaves from=0 and still yields '50/50 +' and '3 battles'. mutate.py's show-all-noop drops both bounds, not one.\n\nThe lower-thumb empty state is reachable in the app. VistaRangeSlider (vista_market.dart) allows a one-bucket width: `if (v.end - v.start >= 1 / divisions - 1e-9) onChanged(v);`. The panel maps the drag with `from: (v.start * _n).round()`, so dragging the lower thumb to 0.9 gives from=9, to=10, which holds no battle. The existing range test already drags the lower thumb with `dragThumb(tester, 0, 0.4)` (977), so the helper works for it. The opposite mutant, setting only `from:`, is already killed by the existing upper-thumb case (to stays 2).",
+        "rejectsValidInput": "None. Only test assertions are added. Spec 04 line 12 says \"Full range restores all\" and an empty result offers \"Show all\", so a correct Show all restores both bounds.",
+        "testProof": "Mutation-proven in app/test/home_screen_test.dart, test \"an empty crowd split says so; Show all restores the cards\". Apply to app/lib/features/arena/arena_screen.dart: `Scenario.setArena(from: 0, to: ArenaMock.bucketCount),` -> `Scenario.setArena(to: ArenaMock.bucketCount),`.\n\nThe current test survives it, because emptying from the upper thumb leaves from=0. With the edit, the second `expect(find.text('3 battles'), findsOneWidget)`, after emptying via `dragThumb(tester, 0, 0.9)` and tapping Show all, fails: from stays 9, so the panel still reads '0 battles'.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1001-1003 'an empty crowd split says so; Show all restores the cards'",
+            "current": "      expect(find.text('Crowd split 50/50 +'), findsOneWidget);\n      expect(find.text('3 battles'), findsOneWidget);\n      expect(find.byType(VistaBattleCard), findsWidgets);",
+            "replacement": "      expect(find.text('Crowd split 50/50 +'), findsOneWidget);\n      expect(find.text('3 battles'), findsOneWidget);\n      expect(find.byType(VistaBattleCard), findsWidgets);\n\n      // Emptied from the lower thumb, Show all brings the floor back too.\n      await dragThumb(tester, 0, 0.9); // 95/5 and up: no battle there\n      expect(find.text('0 battles'), findsOneWidget);\n      await tester.tap(find.text('Show all'));\n      await tester.pumpAndSettle();\n      expect(find.text('Crowd split 50/50 +'), findsOneWidget);\n      expect(find.text('3 battles'), findsOneWidget);",
+            "rationale": "Empties the list from the lower bound, so Show all has to reset `from` as well as `to`. These three lines appear in this order only here; the first Arena test orders them differently."
+          }
+        ]
+      }
+    ],
+    "coverage": {
+      "failedGroups": [],
+      "unreported": []
+    },
+    "apply": {
+      "applied": [
+        {
+          "findingId": "F2",
+          "file": "app/lib/app_shell.dart, app/test/home_screen_test.dart",
+          "summary": "F2.3 regression test added first (arena group, 'with the keyboard up the panel folds and Ask results show'), then F2.1 added `panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0` and F2.2 moved heightFactor, opacity and its curve, IgnorePointer and ExcludeSemantics onto panelOpen. The panel stays mounted. Decoration, shadow, padding and resizeToAvoidBottomInset are unchanged. dart format reports 0 changed and the test passes after the fix.",
+          "red": "00:00 +0: arena with the keyboard up the panel folds and Ask results show\n══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════\nThe following TestFailure was thrown running a test:\nExpected: no matching candidates\n  Actual: _HitTestableWidgetFinder:<Found 1 widget with type \"RangeSlider\" (considering only\nhit-testable widgets with a RenderBox): [\n            RangeSlider(valueStart: 0.0, valueEnd: 1.0, min: 0.0, max: 1.0, divisions: 10,\nlabelStart: null, labelEnd: null, activeColor: null, inactiveColor: null, has\nsemanticFormatterCallback, dependencies: [InheritedCupertinoTheme, MediaQuery, SliderTheme,\n_InheritedTheme, _LocalizationsScope-[GlobalKey#65781]], state: _RangeSliderState#554a4(tickers:\ntracking 5 tickers)),\n          ]>\n   Which: means one was found but none were expected\n...\n00:01 +0 -1: arena with the keyboard up the panel folds and Ask results show [E]\n  Test failed. See exception logs above.\n00:01 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F3",
+          "file": "app/lib/features/arena/arena_mock.dart, app/test/home_screen_test.dart",
+          "summary": "Test changes went in first and ran red: the arena_mock import (F3.9), the Funding re-pin to ['SOL','BTC','ETH'] (F3.10) and the guard test 'each battle quotes its asset as the Markets tab does' (F3.11). Then the optional pool parameter on asked() and visible() (F3.7 and F3.8, defaulting to `battles`, so callers are unchanged) and the test-local unit test 'sorts by the chip field, highest first, ties by id'. That test is mutation-proven: with `return c != 0 ? c : a.id.compareTo(b.id);` changed to `return c;` it failed with `Expected: ['c', 'a', 'b'] / Actual: ['c', 'b', 'a']`, and it passed again after the revert. Last came the literals and doc (F3.1 to F3.6): BTC funding 0.009, ETH -0.4/-0.004, SOL 3.8/0.012, and the ETH bear thesis rewritten in both places. Grep finds no remaining 'Funding is hot' or '0.03%'. Volume is left alone, as adjudicated. All 17 arena tests pass.",
+          "red": "Expected: ['SOL', 'BTC', 'ETH']\n  Actual: ['ETH', 'SOL', 'BTC']\n   Which: at location [0] is 'ETH' instead of 'SOL'\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 959\n  sort chips order the battles by volume, change and funding\n00:01 +0 -1: arena sort chips order the battles by volume, change and funding [E]\n  Test failed. See exception logs above.\n  The test description was: sort chips order the battles by volume, change and funding\n00:01 +0 -2: arena each battle quotes its asset as the Markets tab does [E]\n  Expected: (double, double):<(1.2, 0.009)>\n    Actual: (double, double):<(1.2, 0.01)>\n  BTC\n  package:matcher                                     expect\n  package:flutter_test/src/widget_tester.dart 473:18  expect\n  test/home_screen_test.dart 968:9                    main.<fn>.<fn>\n00:01 +0 -2: Some tests failed."
+        },
+        {
+          "findingId": "F7",
+          "file": "app/lib/features/arena/arena_screen.dart, app/test/home_screen_test.dart",
+          "summary": "F7.3 test 'a narrower range starts the list at the top' went in first and failed with an offset of 135.0. Then F7.1 added the _list ScrollController and the _shown count, renamed the listener _followQuery to _followView (it jumps to 0 only when the visible count shrinks) and disposes the controller. F7.2 attached the controller to the ListView. The test passes after the fix. Mutation check: deleting `if (shown < _shown && _list.hasClients) _list.jumpTo(0);` brings back `Expected: <0> / Actual: <135.0>`. The mutation was reverted.",
+          "red": "══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════\nThe following TestFailure was thrown running a test:\nExpected: <0>\n  Actual: <135.0>\n\nWhen the exception was thrown, this was the stack:\n#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1197:7)\n...\n00:01 +0 -1: arena a narrower range starts the list at the top [E]\n00:01 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F1",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "F1.1 adds 'Joined Bear' findsNothing and 'and 6' findsOneWidget to JOINW. F1.2 adds the participation == {'eth-4k': short} assertion to AC2, then Done and Back, then 'Joined Bear' present, 'Joined Bull' absent and 'and 13' present. All four mutants survived the old tests, and each is now killed by at least one test (output in red). Each mutant was applied in place, one at a time, and restored afterwards. md5 confirms lib/ is unchanged.",
+          "red": "BEFORE (old tests):\n[f1-1-participation-long] SURVIVED :: joining: Cancel counts nothing; a fill counts once, shows\n[f1-1-participation-long] SURVIVED :: a battle's opinions trade that battle's asset and clash\n[f1-2-bear-crowd-long] SURVIVED :: joining: Cancel counts nothing; a fill counts once, shows\n[f1-2-bear-crowd-long] SURVIVED :: a battle's opinions trade that battle's asset and clash\n[f1-3-bear-label-any] SURVIVED :: joining: Cancel counts nothing; a fill counts once, shows\n[f1-3-bear-label-any] SURVIVED :: a battle's opinions trade that battle's asset and clash\n[f1-4-bull-label-any] SURVIVED :: joining: Cancel counts nothing; a fill counts once, shows\n[f1-4-bull-label-any] SURVIVED :: a battle's opinions trade that battle's asset and clash\nAFTER (new tests, same mutants):\n[f1-1-participation-long] KILLED :: a battle's opinions trade that battle's asset and clash\n    Expected: {'eth-4k': TradeSide:TradeSide.short}\n      Actual: {'eth-4k': TradeSide:TradeSide.long}\n[f1-2-bear-crowd-long] KILLED :: joining: Cancel counts nothing; a fill counts once, shows\n    Expected: exactly one matching candidate\n      Actual: _TextWidgetFinder:<Found 0 widgets with text \"and 6\": []>\n[f1-2-bear-crowd-long] KILLED :: a battle's opinions trade that battle's asset and clash\n      Actual: _TextWidgetFinder:<Found 0 widgets with text \"and 13\": []>\n[f1-3-bear-label-any] KILLED :: joining: Cancel counts nothing; a fill counts once, shows\n    Expected: no matching candidates\n      Actual: _TextWidgetFinder:<Found 1 widget with text \"Joined Bear\": [\n[f1-4-bull-label-any] KILLED :: a battle's opinions trade that battle's asset and clash\n    Expected: no matching candidates\n      Actual: _TextWidgetFinder:<Found 1 widget with text \"Joined Bull\": ["
+        },
+        {
+          "findingId": "F4",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "F4.1 asserts ETH's own 'Crowd split 28% bull', 'Crowd split · 9 opinions' (U+00B7) and '@lunaq' on the ETH opinions screen in AC2. All three opinions_screen mutants survived the old AC2 and LABEL tests, and AC2 now kills each one. They were applied one at a time and reverted.",
+          "red": "BEFORE (old tests):\n[f4-a-bull-63] SURVIVED :: a battle's opinions trade that battle's asset and clash\n[f4-a-bull-63] SURVIVED :: the crowd split is labelled crowd split, never odds\n[f4-b-count-23] SURVIVED :: a battle's opinions trade that battle's asset and clash\n[f4-b-count-23] SURVIVED :: the crowd split is labelled crowd split, never odds\n[f4-c-btc-opinions] SURVIVED :: a battle's opinions trade that battle's asset and clash\n[f4-c-btc-opinions] SURVIVED :: the crowd split is labelled crowd split, never odds\nAFTER (new tests, same mutants):\n[f4-a-bull-63] KILLED :: a battle's opinions trade that battle's asset and clash\n      Actual: _TextWidgetFinder:<Found 0 widgets with text \"Crowd split 28% bull\": []>\n[f4-b-count-23] KILLED :: a battle's opinions trade that battle's asset and clash\n      Actual: _TextWidgetFinder:<Found 0 widgets with text \"Crowd split · 9 opinions\": []>\n[f4-c-btc-opinions] KILLED :: a battle's opinions trade that battle's asset and clash\n      Actual: _TextWidgetFinder:<Found 0 widgets with text \"@lunaq\": []>"
+        },
+        {
+          "findingId": "F5",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "F5.1 adds an Ask of 'th' that expects ['ETH']. Both the whole-ticker and prefix mutants survived the old ASK test, and the new test kills both. Each was reverted.",
+          "red": "BEFORE (old test):\n[f5-a-whole-ticker] SURVIVED :: Ask filters by asset; no match names the assets there are\n[f5-b-prefix] SURVIVED :: Ask filters by asset; no match names the assets there are\nAFTER (new test, same mutants):\n[f5-a-whole-ticker] KILLED :: Ask filters by asset; no match names the assets there are\n    Expected: ['ETH']\n      Actual: []\n       Which: at location [0] is [] which shorter than expected\n[f5-b-prefix] KILLED :: Ask filters by asset; no match names the assets there are\n    Expected: ['ETH']\n      Actual: []\n       Which: at location [0] is [] which shorter than expected"
+        },
+        {
+          "findingId": "F6",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "F6.1 empties the list from the lower thumb (dragThumb 0 to 0.9, giving '0 battles'), taps Show all, and expects '50/50 +' and '3 battles'. The `setArena(to: ...)`-only mutant survived the old test and is killed now. The first assertion to fail is the 'Crowd split 50/50 +' line, one line before the '3 battles' line the adjudicator predicted. It was reverted.",
+          "red": "BEFORE (old test):\n[f6-show-all-to-only] SURVIVED :: an empty crowd split says so; Show all restores the cards\nAFTER (new test, same mutant):\n[f6-show-all-to-only] KILLED :: an empty crowd split says so; Show all restores the cards\n    Expected: exactly one matching candidate\n      Actual: _TextWidgetFinder:<Found 0 widgets with text \"Crowd split 50/50 +\": []>\n       Which: means none were found but one was expected"
+        }
+      ],
+      "skipped": [],
+      "verification": "=== gate: flutter-analyze: flutter analyze ===\nPASS flutter-analyze\n=== gate: flutter-test: flutter test ===\nPASS flutter-test\n=== gate: pubspec-frozen: git diff --exit-code c95349cc2a9a40be16d4bddee74c512129ac0114 -- pubspec.yaml pubspec.lock ===\nPASS pubspec-frozen\n----\nGATE: PASS\nexit=0\n(flutter-test.log tail: 00:37 +237: All tests passed!; flutter-analyze.log tail: No issues found! (ran in 0.9s))"
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Adjudicate"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Apply"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "adjudicate:app-shell-keyboard",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a0e697cdb2ebe576b",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791167719442,
+      "queuedAt": 1791167719422,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791168001258,
+      "tokens": 124885,
+      "toolCalls": 21,
+      "durationMs": 281812,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F2\",\"verdict\":\"fix-here\",\"evidence\":\"I confirmed it on the tree. In app/lib/app_shell.dart:74 the only flag is `final arena = _tab == _arena;`. The panel's `heightFactor: arena ? 1 : 0` (124), `opacity: arena ? 1 : 0` (128), `ignoring: !arena` (130) and `excluding: !arena` (132) all depend on the tab alone and never on the keyboard. The Scaffold (75) keeps the default re…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "adjudicate:arena-fixtures-scroll",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "ac7731ff21dfe1e08",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791167719444,
+      "queuedAt": 1791167719423,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791168015484,
+      "tokens": 130750,
+      "toolCalls": 14,
+      "durationMs": 295253,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F3\",\"verdict\":\"fix-here\",\"evidence\":\"The claim holds against the tree.\\n\\narena_mock.dart:96-98 (BTC) has `changePct: 1.2,` and `fundingPct: 0.010,`. Lines 133-134 (ETH) have `changePct: -0.8,` and `fundingPct: 0.031,`. Lines 190-191 (SOL) have `changePct: 3.4,` and `fundingPct: 0.031,`.\\n\\nmarkets_mock.dart has:\\n- BTC `changePct: 1.2,` and `sortValues: {'Volume': 412, …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "adjudicate:arena-tests",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a73b4feca7eeae8e8",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791167719445,
+      "queuedAt": 1791167719423,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791167941524,
+      "tokens": 129360,
+      "toolCalls": 14,
+      "durationMs": 221292,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F1\",\"verdict\":\"fix-here\",\"evidence\":\"No test checks the Bear side, so all three wrong-side mutants survive.\\n\\n- app/lib/scenario/scenario.dart:242-246 writes participation as `if (intent.clashId case final clash?) { participation.value = Map.unmodifiable({ ...participation.value, clash: intent.side, });`.\\n- app/lib/features/arena/arena_screen.dart:137-138 builds the cr…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "apply:edits",
+      "phaseIndex": 2,
+      "phaseTitle": "Apply",
+      "agentId": "a7bcd4b304cd21ccf",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791168017708,
+      "queuedAt": 1791168017689,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "=== gate: flutter-analyze: flutter analyze === PASS flutter…",
+      "promptPreview": "Apply the adjudicated edits below. You are the ONLY writer in this run, so apply them one at a\ntime and keep every file you touch valid throughout.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, ligh…",
+      "promptFramed": true,
+      "lastProgressAt": 1791168452248,
+      "tokens": 132135,
+      "toolCalls": 19,
+      "durationMs": 434539,
+      "resultPreview": "{\"applied\":[{\"findingId\":\"F2\",\"file\":\"app/lib/app_shell.dart, app/test/home_screen_test.dart\",\"summary\":\"F2.3 regression test added first (arena group, 'with the keyboard up the panel folds and Ask results show'), then F2.1 added `panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0` and F2.2 moved heightFactor, opacity and its curve, IgnorePointer and ExcludeSemantics onto panelOpen.…"
+    }
+  ],
+  "totalTokens": 517130,
+  "totalToolCalls": 68
+}

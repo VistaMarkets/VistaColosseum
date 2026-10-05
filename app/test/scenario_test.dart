@@ -40,6 +40,8 @@ List<Object?> state() => [
   Scenario.clock.value,
   Scenario.receipts.value,
   Scenario.stalePrices.value,
+  Scenario.participation.value,
+  Scenario.arena.value,
 ];
 
 /// Changes every field, through the app's own helpers where they exist.
@@ -59,20 +61,26 @@ void mutateEverything() {
   Scenario.followed.value = {...Scenario.followed.value, 'zed'};
   Scenario.clock.value = Scenario.clock.value.add(const Duration(hours: 1));
   Scenario.refreshPrice('AVAX');
-  Scenario.placeOrder(ethLong('mutate', units: 0.01));
+  Scenario.placeOrder(ethLong('mutate', units: 0.01, clashId: 'eth-4k'));
+  Scenario.setArena(sort: 1, from: 4, query: 'eth');
 }
 
 /// A market long on ETH at its session price, 10x unless told otherwise.
-OrderIntent ethLong(String actionId, {double units = 0.12345, int lev = 10}) =>
-    OrderIntent(
-      actionId: actionId,
-      symbol: 'ETH',
-      name: 'Ethereum',
-      side: TradeSide.long,
-      units: units,
-      price: 2968.40,
-      leverage: lev,
-    );
+OrderIntent ethLong(
+  String actionId, {
+  double units = 0.12345,
+  int lev = 10,
+  String? clashId,
+}) => OrderIntent(
+  actionId: actionId,
+  symbol: 'ETH',
+  name: 'Ethereum',
+  side: TradeSide.long,
+  units: units,
+  price: 2968.40,
+  leverage: lev,
+  clashId: clashId,
+);
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
@@ -329,6 +337,26 @@ void main() {
     await tester.tap(find.text('Ethereum').first);
     await tester.pumpAndSettle();
     expect(find.text(r'$366.45 position'), findsOneWidget);
+  });
+
+  test('a clash fill joins its side once per action; a failure joins none', () {
+    // More than cash covers: refused, nothing joined.
+    final big = ethLong('join-big', units: 1e6, clashId: 'eth-4k');
+    expect(Scenario.placeOrder(big), isA<OrderFailed>());
+    expect(Scenario.joins('eth-4k', TradeSide.long), 0);
+    expect(Scenario.participation.value, isEmpty);
+
+    final join = ethLong('join', clashId: 'eth-4k');
+    expect(Scenario.placeOrder(join), isA<OrderFilled>());
+    expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+    expect(Scenario.joins('eth-4k', TradeSide.short), 0);
+    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+    expect(Scenario.positions.value.first.clashId, 'eth-4k');
+
+    // The same action again (a replayed confirm) joins nothing more.
+    expect(Scenario.placeOrder(join), isA<OrderFilled>());
+    expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
   });
 
   test('placeOrder with a repeated actionId returns the first result', () {

@@ -64,3 +64,21 @@
 2026-10-05T01:43:10Z gate: full gate launched at ee8f52c -> baton-runner/br-2026-10-04-p0-queue/gate-phase-3-close/
 2026-10-05T01:45:22Z gate: full gate GATE: PASS exit=0 at ee8f52c (225 tests; HAS_MARKET=true 225); stdout baton-runner/br-2026-10-04-p0-queue/gate-phase-3-close/gate-stdout.log
 2026-10-05T01:45:22Z spawn: phase 3 CLOSING unit (opus, general-purpose)
+2026-10-05T01:53:22Z return: phase 3 CLOSING unit COMPLETE; VERDICT CLEAN; criteria 3/3; dispositions=4 (matches confirmed 4); record docs/reviews/2026-10-04-dw-review-phase-3-simulation-indicator.md; digest baton-runner/br-2026-10-04-p0-queue/digest-phase-3.md; units 18/75
+2026-10-05T01:53:22Z pr: phase 3 draft https://github.com/VistaMarkets/VistaColosseum/pull/13 (base main) at c6d4a4f
+2026-10-05T01:53:22Z branch: feat/br-2026-10-04-p0-queue/phase-4 cut from phase-3 tip
+2026-10-05T01:53:22Z spawn: phase 4 WORK unit (opus, general-purpose) spec docs/specs/04-arena-sort-filter-join.md; continuity digests 1-3
+2026-10-05T02:11:38Z return: phase 4 WORK unit COMPLETE; progress=criteria 2/2; files 10; gate PASS 233 (HAS_MARKET 233); baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T190946-phase4-arena-sort-filter-join.md; commit c232ca8 (pre-rebase); units 19/75
+2026-10-05T02:11:38Z merge (user instruction): #13 squash-merged to main c95349c; phase-3 branch deleted local+remote; phase-4 replayed onto main (--onto origin/main c6d4a4f), tree identical; phase-4 base is now main
+2026-10-05T02:11:38Z spawn: phase 4 REVIEW unit (managed: gate + criteria)
+2026-10-05T02:25:49Z return: phase 4 REVIEW (managed) COMPLETE; VERDICT GATE-OK; gate PASS 233 (HAS_MARKET 233); criteria 2/2; mutants 21/21 killed; findings H0/M1/L6; M1 = Wallet position references the clash as a data field only; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T191813-phase4-review-iter1.md; units 20/75
+2026-10-05T02:25:49Z decision (manager): spec 04 Behavior "Wallet position for that fill references the clash" is met by the data-field reference; a Wallet UI label for it is not in spec 04 and is not a gap for this phase.
+2026-10-05T02:27:28Z workflow: dw-review launched for phase 4, run wf_1cf11798-9fa, model opus effort high, lanes tautology-hunt/state-participation/layout-filter-panel; base origin/main...phase-4 @ 4fe2e7b
+2026-10-05T02:34:38Z return: dw-review wf_1cf11798-9fa COMPLETE; skeptic APPROVE; raw 8 (tautology-hunt 4, state-participation 2, layout-filter-panel 2); confirmed 7 = F1 [MEDIUM] Bear-side join never asserted, F2 [MEDIUM] Ask results hidden under crowd panel with keyboard up, F3 [LOW] ETH/SOL fixtures contradict Markets tab, F4 [LOW] opinions strings asserted only on BTC, F5 [LOW] Ask test exact-match mutant, F6 [LOW] empty-state test weak, F7 [LOW] clamped scroll offset after narrowing; refuted 1; wrong claims 2 (from==to unreachable); residual risk 14; none before-merge; JSON baton-runner/br-2026-10-04-p0-queue/review-phase-4-dw.json; units 21/75
+2026-10-05T02:34:38Z decision (manager): F2 fix = AppShell folds the crowd panel while the keyboard is open (viewInsets.bottom > 0), panel stays mounted. F3 fix = align ETH/SOL changePct and fundingPct with MarketsMock (read by asset where simple) and re-pin the sort test; keep the id-tiebreak test on a test-local fixture. F7 fix = jump the Arena list to the top when the visible set shrinks. F1, F4, F5, F6 are test-strength: mutation-proven or not done.
+2026-10-05T02:34:38Z workflow: finding-fixer launched over F1-F7, groups {F2} app shell, {F3,F7} arena, {F1,F4,F5,F6} tests; verify = scripts/gate.sh gate-phase-4-fixer/
+2026-10-05T02:48:12Z return: finding-fixer wf_79eb73a7-c88 COMPLETE; F1-F7 all fix-here; applied F2,F3,F7,F1,F4,F5,F6; skipped none; unreported none; verify GATE: PASS exit 0; JSON baton-runner/br-2026-10-04-p0-queue/fixer-phase-4.json; units 22/75
+2026-10-05T02:48:12Z commit: d63eb32 fix(phase-4) adjudicated findings
+2026-10-05T02:48:12Z gate: full gate launched at d63eb32 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-4-close/
+2026-10-05T02:49:55Z gate: full gate at d63eb32 -> see gate-stdout.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-4-close/
+2026-10-05T02:49:55Z spawn: phase 4 CLOSING unit (opus, general-purpose)

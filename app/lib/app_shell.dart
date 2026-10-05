@@ -72,6 +72,8 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final arena = _tab == _arena;
+    // The panel folds while the keyboard is up, so Ask's results get the room.
+    final panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0;
     return Scaffold(
       body: Column(
         children: [
@@ -121,16 +123,19 @@ class _AppShellState extends State<AppShell> {
                     duration: _dock,
                     curve: _dockCurve,
                     alignment: Alignment.topCenter,
-                    heightFactor: arena ? 1 : 0,
+                    heightFactor: panelOpen ? 1 : 0,
                     child: AnimatedOpacity(
                       duration: _dock,
-                      curve: arena ? const Interval(0.3, 1) : Curves.easeOut,
-                      opacity: arena ? 1 : 0,
+                      curve: panelOpen
+                          ? const Interval(0.3, 1)
+                          : Curves.easeOut,
+                      opacity: panelOpen ? 1 : 0,
                       child: IgnorePointer(
-                        ignoring: !arena,
+                        ignoring: !panelOpen,
                         child: ExcludeSemantics(
-                          excluding: !arena,
-                          // Kept mounted so its filter survives tab switches.
+                          excluding: !panelOpen,
+                          // Kept mounted so its filter survives tab switches
+                          // and the keyboard.
                           child: const CrowdFilterPanel(),
                         ),
                       ),

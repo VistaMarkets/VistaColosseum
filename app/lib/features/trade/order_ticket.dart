@@ -23,13 +23,14 @@ Future<void> showOrderTicket(
   BuildContext context, {
   required String symbol,
   required TradeSide side,
+  String? clashId,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x73000000), // Figma scrim: black at 45%
-    builder: (_) => OrderTicket(symbol: symbol, side: side),
+    builder: (_) => OrderTicket(symbol: symbol, side: side, clashId: clashId),
   );
 }
 
@@ -61,10 +62,18 @@ class _Market {
 
 /// The ticket itself (the sheet's content).
 class OrderTicket extends StatefulWidget {
-  const OrderTicket({super.key, required this.symbol, required this.side});
+  const OrderTicket({
+    super.key,
+    required this.symbol,
+    required this.side,
+    this.clashId,
+  });
 
   final String symbol;
   final TradeSide side;
+
+  /// The Arena battle this ticket joins, if any; its fill carries the id.
+  final String? clashId;
 
   @override
   State<OrderTicket> createState() => _OrderTicketState();
@@ -132,6 +141,7 @@ class _OrderTicketState extends State<OrderTicket> {
     takeProfit: _exits ? _parse(_tp.text) : null,
     stopLoss: _exits ? _parse(_sl.text) : null,
     reduceOnly: _reduceOnly,
+    clashId: widget.clashId,
   );
 
   /// The most the slider reaches: all the cash, less room for the fee.

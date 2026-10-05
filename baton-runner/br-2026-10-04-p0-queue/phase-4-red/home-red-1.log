@@ -1,0 +1,321 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: arena Arena tab shows the battles with the crowd filter
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "Crowd split 50/50 +": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:930:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 930
+The test description was:
+  Arena tab shows the battles with the crowd filter
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: arena Arena tab shows the battles with the crowd filter [E]
+  Test failed. See exception logs above.
+  The test description was: Arena tab shows the battles with the crowd filter
+  
+00:01 +0 -1: arena sort chips order the battles by volume, change and funding
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: ['BTC', 'ETH', 'SOL']
+  Actual: ['BTC', 'BTC']
+   Which: at location [1] is 'BTC' instead of 'ETH'
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:951:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 951
+The test description was:
+  sort chips order the battles by volume, change and funding
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +0 -2: arena sort chips order the battles by volume, change and funding [E]
+  Test failed. See exception logs above.
+  The test description was: sort chips order the battles by volume, change and funding
+  
+00:02 +0 -2: arena the crowd range filters the cards and the panel counts them
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: [0, 0, 1, 0, 1, 0, 0, 1, 0, 0]
+  Actual: [15.0, 19.0, 17.0, 14.0, 11.0, 9.0, 7.0, 6.0, 5.0, 3.0]
+   Which: at location [0] is <15.0> instead of <0>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:970:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 970
+The test description was:
+  the crowd range filters the cards and the panel counts them
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +0 -3: arena the crowd range filters the cards and the panel counts them [E]
+  Test failed. See exception logs above.
+  The test description was: the crowd range filters the cards and the panel counts them
+  
+00:02 +0 -3: arena an empty crowd split says so; Show all restores the cards
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "0 battles": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:991:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 991
+The test description was:
+  an empty crowd split says so; Show all restores the cards
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -4: arena an empty crowd split says so; Show all restores the cards [E]
+  Test failed. See exception logs above.
+  The test description was: an empty crowd split says so; Show all restores the cards
+  
+00:03 +0 -4: arena Ask filters by asset; no match names the assets there are
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: ['ETH']
+  Actual: ['BTC', 'BTC']
+   Which: at location [0] is 'BTC' instead of 'ETH'
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1013:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 1013
+The test description was:
+  Ask filters by asset; no match names the assets there are
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +0 -5: arena Ask filters by asset; no match names the assets there are [E]
+  Test failed. See exception logs above.
+  The test description was: Ask filters by asset; no match names the assets there are
+  
+00:04 +0 -5: arena joining: Cancel counts nothing; a fill counts once, shows
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 2 widgets with text "and 14": [
+            Text("and 14", inherit: true, color: Color(alpha: 1.0000, red: 0.5412, green: 0.5412,
+blue: 0.5686, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 400, height:
+1.2x, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+            Text("and 14", inherit: true, color: Color(alpha: 1.0000, red: 0.5412, green: 0.5412,
+blue: 0.5686, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 400, height:
+1.2x, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+          ]>
+   Which: is too many
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1044:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 1044
+The test description was:
+  joining: Cancel counts nothing; a fill counts once, shows
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +0 -6: arena joining: Cancel counts nothing; a fill counts once, shows [E]
+  Test failed. See exception logs above.
+  The test description was: joining: Cancel counts nothing; a fill counts once, shows
+  
+00:05 +0 -6: arena a battle's opinions trade that battle's asset and clash
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+The finder "Found 0 widgets with text "+7 more opinions": []" (used in a call to "tap()") could not
+find any matching widgets.
+
+When the exception was thrown, this was the stack:
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2095:7)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1064:20)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  a battle's opinions trade that battle's asset and clash
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +0 -7: arena a battle's opinions trade that battle's asset and clash [E]
+  Test failed. See exception logs above.
+  The test description was: a battle's opinions trade that battle's asset and clash
+  
+00:05 +0 -7: arena sort chips stay fixed while battles scroll
+00:06 +1 -7: arena tapping a caller opens their profile
+00:06 +2 -7: arena renders without overflow on small Android 360x640
+00:06 +3 -7: arena renders without overflow on iPhone SE 375x667
+00:06 +4 -7: arena renders without overflow on iPhone 15 393x852
+00:07 +5 -7: arena renders without overflow on Pixel 7 412x915
+00:07 +6 -7: arena renders without overflow on iPhone 15 Pro Max 430x932
+00:07 +7 -7: opinions more opinions opens the clash detail; filters and back
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "Crowd split · 23 opinions": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1140:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 1140
+The test description was:
+  more opinions opens the clash detail; filters and back
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:08 +7 -8: opinions more opinions opens the clash detail; filters and back [E]
+  Test failed. See exception logs above.
+  The test description was: more opinions opens the clash detail; filters and back
+  
+00:08 +7 -8: opinions the crowd split is labelled crowd split, never odds
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "Crowd split 63% bull": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1162:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 1162
+The test description was:
+  the crowd split is labelled crowd split, never odds
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:09 +7 -9: opinions the crowd split is labelled crowd split, never odds [E]
+  Test failed. See exception logs above.
+  The test description was: the crowd split is labelled crowd split, never odds
+  
+00:09 +7 -9: opinions renders without overflow on small Android 360x640
+
+Warning: A call to tap() with finder "Found 1 widget with text "+21 more opinions" (ignoring all but first): [
+  Text("+21 more opinions", inherit: true, color: Color(alpha: 1.0000, red: 0.9608, green: 0.9529, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 600, height: 1.2x, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(209.6, 464.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#2cf85 relayoutBoundary=up16
+The hit test result at that offset is: HitTestResult(RenderDecoratedBox#937c9@Offset(209.6, 48.0), RenderFlex#91523@Offset(209.6, 464.0), RenderCustomMultiChildLayoutBox#4c2da@Offset(209.6, 464.0), _RenderInkFeatures#36773@Offset(209.6, 464.0), RenderPhysicalModel#e5a91@Offset(209.6, 464.0), RenderSemanticsAnnotations#90bd3@Offset(209.6, 464.0), RenderRepaintBoundary#466b2@Offset(209.6, 464.0), RenderIgnorePointer#63b6c@Offset(209.6, 464.0), RenderAnimatedOpacity#ae525@Offset(209.6, 464.0), RenderAnimatedOpacity#af804@Offset(209.6, 464.0), _RenderColoredBox#75ff5@Offset(209.6, 464.0), RenderAnimatedOpacity#7bfd1@Offset(209.6, 464.0), RenderIgnorePointer#8b96c@Offset(209.6, 464.0), RenderAnimatedOpacity#ae12a@Offset(209.6, 464.0), RenderRepaintBoundary#3ba72@Offset(209.6, 464.0), RenderSemanticsAnnotations#63a5a@Offset(209.6, 464.0), RenderOffstage#0fe2a@Offset(209.6, 464.0), RenderSemanticsAnnotations#0b539@Offset(209.6, 464.0), _RenderTheater#0cc7c@Offset(209.6, 464.0), RenderAbsorbPointer#92d8e@Offset(209.6, 464.0), RenderPointerListener#fb6b3@Offset(209.6, 464.0), RenderSemanticsAnnotations#9a53e@Offset(209.6, 464.0), RenderStack#670d4@Offset(209.6, 464.0), RenderSemanticsAnnotations#ea08f@Offset(209.6, 464.0), RenderSemanticsAnnotations#5410b@Offset(209.6, 464.0), RenderSemanticsAnnotations#4e2a4@Offset(209.6, 464.0), RenderTapRegionSurface#e7d80@Offset(209.6, 464.0), RenderSemanticsAnnotations#287ce@Offset(209.6, 464.0), RenderSemanticsAnnotations#10bfd@Offset(209.6, 464.0), HitTestEntry<HitTestTarget>#13f75(_ReusableRenderView#0f707), HitTestEntry<HitTestTarget>#a078e(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.openOpinions (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1127:20)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1170:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:09 +8 -9: opinions renders without overflow on iPhone SE 375x667
+
+Warning: A call to tap() with finder "Found 1 widget with text "+21 more opinions" (ignoring all but first): [
+  Text("+21 more opinions", inherit: true, color: Color(alpha: 1.0000, red: 0.9608, green: 0.9529, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 600, height: 1.2x, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(217.1, 460.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#c7a2f relayoutBoundary=up16
+The hit test result at that offset is: HitTestResult(RenderParagraph#53d30@Offset(201.1, 3.0), RenderFlex#ea830@Offset(201.1, 3.0), RenderFlex#71ea0@Offset(201.1, 3.0), RenderExcludeSemantics#e44e3@Offset(201.1, 3.0), RenderIgnorePointer#8bce4@Offset(201.1, 3.0), RenderAnimatedOpacity#8adcc@Offset(201.1, 3.0), RenderPositionedBox#b3f9e@Offset(201.1, 3.0), RenderClipRect#a3e74@Offset(201.1, 3.0), RenderFlex#039d9@Offset(201.1, 3.0), RenderPadding#af5ce@Offset(217.1, 17.0), RenderDecoratedBox#5c103@Offset(217.1, 17.0), RenderFlex#16220@Offset(217.1, 460.0), RenderCustomMultiChildLayoutBox#88abd@Offset(217.1, 460.0), _RenderInkFeatures#3fdde@Offset(217.1, 460.0), RenderPhysicalModel#070d5@Offset(217.1, 460.0), RenderSemanticsAnnotations#b0b40@Offset(217.1, 460.0), RenderRepaintBoundary#c15b0@Offset(217.1, 460.0), RenderIgnorePointer#ccd0d@Offset(217.1, 460.0), RenderAnimatedOpacity#386df@Offset(217.1, 460.0), RenderAnimatedOpacity#65df2@Offset(217.1, 460.0), _RenderColoredBox#3bdfe@Offset(217.1, 460.0), RenderAnimatedOpacity#64fe5@Offset(217.1, 460.0), RenderIgnorePointer#2f134@Offset(217.1, 460.0), RenderAnimatedOpacity#d8df2@Offset(217.1, 460.0), RenderRepaintBoundary#000c2@Offset(217.1, 460.0), RenderSemanticsAnnotations#ad51b@Offset(217.1, 460.0), RenderOffstage#44cbf@Offset(217.1, 460.0), RenderSemanticsAnnotations#6b806@Offset(217.1, 460.0), _RenderTheater#1e4a8@Offset(217.1, 460.0), RenderAbsorbPointer#83024@Offset(217.1, 460.0), RenderPointerListener#d984c@Offset(217.1, 460.0), RenderSemanticsAnnotations#c0f38@Offset(217.1, 460.0), RenderStack#78325@Offset(217.1, 460.0), RenderSemanticsAnnotations#17018@Offset(217.1, 460.0), RenderSemanticsAnnotations#6d7a7@Offset(217.1, 460.0), RenderSemanticsAnnotations#b6346@Offset(217.1, 460.0), RenderTapRegionSurface#ef30e@Offset(217.1, 460.0), RenderSemanticsAnnotations#2bbc3@Offset(217.1, 460.0), RenderSemanticsAnnotations#33a44@Offset(217.1, 460.0), HitTestEntry<HitTestTarget>#306f8(_ReusableRenderView#0f707), HitTestEntry<HitTestTarget>#4e0e8(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.openOpinions (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1127:20)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1170:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:09 +9 -9: opinions renders without overflow on iPhone 15 393x852
+00:09 +10 -9: opinions renders without overflow on Pixel 7 412x915
+00:09 +11 -9: opinions renders without overflow on iPhone 15 Pro Max 430x932
+00:10 +12 -9: (tearDownAll)
+00:10 +12 -9: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena Arena tab shows the battles with the crowd filter
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena Ask filters by asset; no match names the assets there are
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena a battle's opinions trade that battle's asset and clash
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena an empty crowd split says so; Show all restores the cards
+  ... and 5 more
