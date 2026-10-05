@@ -152,8 +152,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                VistaColors.accent.withValues(alpha: 0.36),
-                VistaColors.accent.withValues(alpha: 0.04),
+                VistaColors.long.withValues(alpha: 0.30),
+                VistaColors.long.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: BorderRadius.circular(VistaRadius.card),
@@ -166,6 +166,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   child: SvgPicture.asset(
                     VistaAssets.makeMarketButtonDots,
                     fit: BoxFit.cover,
+                    // The dots are drawn blue; tint them to the card's green.
+                    colorFilter: const ColorFilter.mode(
+                      VistaColors.long,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
@@ -219,7 +224,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     Text(
                       '›',
                       style: VistaType.displaySmall.copyWith(
-                        color: VistaColors.accent,
+                        color: VistaColors.long,
                       ),
                     ),
                   ],
@@ -336,7 +341,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 }
 
 /// The faded line behind "Make a market": a market that climbs with a
-/// couple of dips, in the accent blue, with a soft fill under it.
+/// couple of dips, in the up-green, with a soft fill under it.
 class _RisingLine extends CustomPainter {
   const _RisingLine();
 
@@ -371,15 +376,15 @@ class _RisingLine extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            VistaColors.accent.withValues(alpha: 0.35),
-            VistaColors.accent.withValues(alpha: 0),
+            VistaColors.long.withValues(alpha: 0.35),
+            VistaColors.long.withValues(alpha: 0),
           ],
         ).createShader(Offset.zero & size),
     );
     canvas.drawPath(
       line,
       Paint()
-        ..color = VistaColors.accent
+        ..color = VistaColors.long
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5
         ..strokeJoin = StrokeJoin.round
