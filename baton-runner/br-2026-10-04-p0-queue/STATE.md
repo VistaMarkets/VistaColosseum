@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 7 of 8  unit: CLOSE
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-05T054607-phase7-review-iter1.md
-units_used: 38
+phase: 8 of 8  unit: WORK
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-05T065006-phase7-close.md
+units_used: 39
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -45,6 +45,9 @@ phases:
     units: 5  state: DONE  head: 3a29ada  gate: PASS @ 30e54c0 (265 tests)  skeptic: APPROVE @ 5fd70c1
     fixer: 12 confirmed, 12 applied, 0 annotated; CF-1 (Profile CALLS + trader-market Record items) carried to phase 7
   - id: phase-7  spec: docs/specs/07-trader-record-panel.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-7  base: feat/br-2026-10-04-p0-queue/phase-6  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-7.md  units: 3  state: RUNNING  (work COMPLETE incl. CF-1; REVIEW GATE-OK 274, criteria 3/3, H0/M2/L9)
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-7  base: feat/br-2026-10-04-p0-queue/phase-6  pr: https://github.com/VistaMarkets/VistaColosseum/pull/19 (draft)
+    digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-7.md  review_record: docs/reviews/2026-10-04-dw-review-phase-7-trader-record-panel.md  fixer_report: baton-runner/br-2026-10-04-p0-queue/fixer-phase-7.json
+    units: 6  state: DONE  head: ea4fcea  gate: PASS @ 229ab63 (282 tests)  skeptic: MERGE-WITH-FIXES @ c2b1566 (all 12 applied, incl. 1 HIGH)
+    fixer: 12 confirmed, 12 applied, 0 annotated; CF-1 closed
   - id: phase-8  spec: docs/specs/08-list-empty-failed-states.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-8  base: feat/br-2026-10-04-p0-queue/phase-7  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-8.md  units: 0  state: PENDING
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-8  base: feat/br-2026-10-04-p0-queue/phase-7  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-8.md  units: 0  state: RUNNING

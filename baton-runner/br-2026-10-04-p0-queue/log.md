@@ -135,3 +135,7 @@
 2026-10-05T06:43:33Z gate: full gate launched at 229ab63 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-7-close/
 2026-10-05T06:45:22Z gate: full gate at 229ab63 -> see gate-stdout.log and has-market-tail.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-7-close/
 2026-10-05T06:45:22Z spawn: phase 7 CLOSING unit (opus, general-purpose)
+2026-10-05T06:57:18Z return: phase 7 CLOSING unit COMPLETE; VERDICT CLEAN; criteria 3/3 + CF-1; dispositions=12 (matches confirmed 12); record docs/reviews/2026-10-04-dw-review-phase-7-trader-record-panel.md; digest baton-runner/br-2026-10-04-p0-queue/digest-phase-7.md; units 39/75
+2026-10-05T06:57:18Z pr: phase 7 draft https://github.com/VistaMarkets/VistaColosseum/pull/19 (base feat/br-2026-10-04-p0-queue/phase-6) at ea4fcea
+2026-10-05T06:57:18Z branch: feat/br-2026-10-04-p0-queue/phase-8 cut from phase-7 tip
+2026-10-05T06:57:18Z spawn: phase 8 WORK unit (opus, general-purpose) spec docs/specs/08-list-empty-failed-states.md; continuity digests 1-7
