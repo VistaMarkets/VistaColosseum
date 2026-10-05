@@ -163,6 +163,22 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   ),
                 ),
               ),
+              // A rising line on the right, faded so the blue washes over
+              // it: decoration for "your market", not data.
+              Positioned(
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: 220,
+                child: ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (r) => const LinearGradient(
+                    colors: [Color(0x00FFFFFF), Color(0x8CFFFFFF)],
+                    stops: [0, 0.75],
+                  ).createShader(r),
+                  child: const CustomPaint(painter: _RisingLine()),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: VistaSpace.gutter,
@@ -171,19 +187,26 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Make a market', style: VistaType.headline),
-                          const SizedBox(height: VistaSpace.xxs),
-                          Text(
-                            'Let people trade your track record. You earn '
-                            'the fees.',
-                            style: VistaType.bodyMedium.copyWith(
-                              color: VistaColors.textSecondary,
-                            ),
+                      // The text stays left of the line's brighter end.
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 220),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Make a market', style: VistaType.headline),
+                              const SizedBox(height: VistaSpace.xxs),
+                              Text(
+                                'Let people trade your track record. You earn '
+                                'the fees.',
+                                style: VistaType.bodyMedium.copyWith(
+                                  color: VistaColors.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: VistaSpace.md),
@@ -304,4 +327,60 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       ],
     );
   }
+}
+
+/// The faded line behind "Make a market": a market that climbs with a
+/// couple of dips, in the accent blue, with a soft fill under it.
+class _RisingLine extends CustomPainter {
+  const _RisingLine();
+
+  static const _points = [
+    (0.0, 0.78),
+    (0.12, 0.70),
+    (0.22, 0.74),
+    (0.34, 0.58),
+    (0.44, 0.62),
+    (0.56, 0.44),
+    (0.66, 0.50),
+    (0.78, 0.32),
+    (0.88, 0.26),
+    (1.0, 0.14),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Path();
+    for (final (i, (x, y)) in _points.indexed) {
+      final o = Offset(x * size.width, y * size.height);
+      i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
+    }
+    final fill = Path.from(line)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(
+      fill,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            VistaColors.accent.withValues(alpha: 0.35),
+            VistaColors.accent.withValues(alpha: 0),
+          ],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.drawPath(
+      line,
+      Paint()
+        ..color = VistaColors.accent
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RisingLine old) => false;
 }
