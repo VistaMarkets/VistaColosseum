@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 7 of 8  unit: WORK
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-05T050809-phase6-close.md
-units_used: 33
+phase: 7 of 8  unit: REVIEW
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-05T054156-phase7-trader-record-panel.md
+units_used: 35
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -45,6 +45,6 @@ phases:
     units: 5  state: DONE  head: 3a29ada  gate: PASS @ 30e54c0 (265 tests)  skeptic: APPROVE @ 5fd70c1
     fixer: 12 confirmed, 12 applied, 0 annotated; CF-1 (Profile CALLS + trader-market Record items) carried to phase 7
   - id: phase-7  spec: docs/specs/07-trader-record-panel.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-7  base: feat/br-2026-10-04-p0-queue/phase-6  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-7.md  units: 0  state: RUNNING
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-7  base: feat/br-2026-10-04-p0-queue/phase-6  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-7.md  units: 2  state: RUNNING  (work COMPLETE incl. CF-1, gate PASS 274)
   - id: phase-8  spec: docs/specs/08-list-empty-failed-states.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-8  base: feat/br-2026-10-04-p0-queue/phase-7  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-8.md  units: 0  state: PENDING

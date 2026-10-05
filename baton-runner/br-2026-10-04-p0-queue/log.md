@@ -122,3 +122,5 @@
 2026-10-05T05:14:41Z spawn: phase 7 WORK unit (opus, general-purpose) spec docs/specs/07-trader-record-panel.md; continuity digests 1-6; CF-1 named as first job
 2026-10-05T05:30:00Z RESUME: user interrupted the phase 7 WORK spawn, then said resume; re-spawning
 2026-10-05T05:43:06Z spawn: phase 7 WORK unit #2 (opus, general-purpose), told to assess the interrupted unit's 11-file uncommitted diff first
+2026-10-05T05:43:28Z return: phase 7 WORK unit #2 COMPLETE (unit #1 interrupted by the user, its 11-file diff kept and verified); progress=criteria 3/3 + CF-1; files 12; gate PASS 274 (HAS_MARKET 274); mutants 9/9 killed; flagged: Arena sides hard-code 71%/77% accuracy while derived records say 67%; baton baton-pass/br-2026-10-04-p0-queue/2026-10-05T054156-phase7-trader-record-panel.md; units 35/75 (both work units counted)
+2026-10-05T05:43:28Z spawn: phase 7 REVIEW unit (managed: gate + criteria), asked to judge the hard-coded Arena accuracy against VC-ARN-005 and spec 07
