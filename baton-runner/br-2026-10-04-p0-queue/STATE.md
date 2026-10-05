@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 4 of 8  unit: CLOSE
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T191813-phase4-review-iter1.md
-units_used: 22
+phase: 5 of 8  unit: WORK
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T195458-phase4-close.md
+units_used: 23
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -30,9 +30,12 @@ phases:
     units: 7  state: DONE  head: c6d4a4f  gate: PASS @ ee8f52c (225 tests)  skeptic: APPROVE @ 42ae15b
     fixer: 4 confirmed, 3 applied (F2 F3 F4), 1 annotated real-but-decided-elsewhere (F1 tap target, user design call)
   - id: phase-4  spec: docs/specs/04-arena-sort-filter-join.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: main  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 2  state: RUNNING  (work COMPLETE; REVIEW GATE-OK 233, criteria 2/2, H0/M1/L6)
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: main  pr: https://github.com/VistaMarkets/VistaColosseum/pull/15 (draft)
+    digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  review_record: docs/reviews/2026-10-04-dw-review-phase-4-arena-sort-filter-join.md  fixer_report: baton-runner/br-2026-10-04-p0-queue/fixer-phase-4.json
+    units: 5  state: DONE  head: 96abf7f  gate: PASS @ d63eb32 (237 tests)  skeptic: APPROVE @ 4fe2e7b
+    fixer: 7 confirmed, 7 applied (F1-F7), 0 annotated
   - id: phase-5  spec: docs/specs/05-maker-suggestion-card.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-5  base: feat/br-2026-10-04-p0-queue/phase-4  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-5.md  units: 0  state: PENDING
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-5  base: feat/br-2026-10-04-p0-queue/phase-4  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-5.md  units: 0  state: RUNNING
   - id: phase-6  spec: docs/specs/06-fee-ledger-and-receipts.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-6  base: feat/br-2026-10-04-p0-queue/phase-5  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-6.md  units: 0  state: PENDING
   - id: phase-7  spec: docs/specs/07-trader-record-panel.md  readiness: READY  work_agent: general-purpose
