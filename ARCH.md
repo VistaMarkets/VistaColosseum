@@ -493,7 +493,8 @@ VistaColosseum/
 │       ├── 2026-10-05T054156-phase7-trader-record-panel.md
 │       ├── 2026-10-05T054607-phase7-review-iter1.md
 │       ├── 2026-10-05T065006-phase7-close.md
-│       └── 2026-10-05T071134-phase8-empty-failed-states.md
+│       ├── 2026-10-05T071134-phase8-empty-failed-states.md
+│       └── 2026-10-05T071609-phase8-review-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
@@ -697,6 +698,11 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── has-market.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-8-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test-has-market.log
@@ -841,6 +847,26 @@ VistaColosseum/
 │       │   ├── probe-run.log
 │       │   ├── review7_fold_test.dart
 │       │   └── review7_probe_test.dart
+│       ├── review-phase-8-iter-1-probe/
+│       │   ├── mut-arena-clear-search-noop.log
+│       │   ├── mut-empty-line-overflows.log
+│       │   ├── mut-empty-state-overflows.log
+│       │   ├── mut-failure-leaks-to-arena.log
+│       │   ├── mut-profile-list-ignores-strip.log
+│       │   ├── mut-receipts-paper-plain-text-all.log
+│       │   ├── mut-receipts-paper-plain-text.log
+│       │   ├── mut-reset-keeps-toggle.log
+│       │   ├── mut-retry-noop.log
+│       │   ├── mut-switch-not-beside-reset-all.log
+│       │   ├── mut-switch-not-beside-reset.log
+│       │   ├── mutate-run-1.txt
+│       │   ├── mutate-run-2.txt
+│       │   ├── mutate-run-3.txt
+│       │   ├── mutate-run-4.txt
+│       │   ├── mutate-run-5.txt
+│       │   ├── mutate.py
+│       │   ├── probe-run.log
+│       │   └── review8_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md

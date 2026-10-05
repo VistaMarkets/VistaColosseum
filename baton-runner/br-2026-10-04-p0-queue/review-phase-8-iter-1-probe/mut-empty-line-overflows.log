@@ -1,0 +1,99 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:00 +1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:00 +2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 102 pixels on the right.>
+small Android 360x640 Receipts
+
+When the exception was thrown, this was the stack:
+#4      expectEmpty (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart:79:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart:152:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart line 79
+The test description was:
+  every core list renders an emptied scenario without overflow or exception on small Android 360x640
+  at 1.3x
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +2 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +2 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x [E]
+  Test failed. See exception logs above.
+  The test description was: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+  
+00:01 +3 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+00:02 +4 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 87 pixels on the right.>
+iPhone SE 375x667 Receipts
+
+When the exception was thrown, this was the stack:
+#4      expectEmpty (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart:79:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart:152:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart line 79
+The test description was:
+  every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at
+  1.3x
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +4 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:02 +4 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x [E]
+  Test failed. See exception logs above.
+  The test description was: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+  
+00:02 +5 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Explore markets leads to Explore, from a tab or a pushed list
+00:03 +6 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+00:03 +7 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +8 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:03 +9 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +10 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +11 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +12 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +13 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +14 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +15 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +16 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +17 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +18 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +19 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +20 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +21 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:04 +22 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: (tearDownAll)
+00:04 +22 -2: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x

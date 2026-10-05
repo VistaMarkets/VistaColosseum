@@ -1,0 +1,39 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:00 +1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:00 +2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:01 +3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:02 +4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+00:02 +6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+00:03 +7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+00:03 +8: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Explore markets leads to Explore, from a tab or a pushed list
+00:03 +9: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:03 +10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +11: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +12: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +13: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +14: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +15: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +16: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +17: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +18: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +19: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +20: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +21: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:03 +22: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+00:04 +23: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:04 +24: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/empty_states_test.dart: (tearDownAll)
+00:04 +24: All tests passed!

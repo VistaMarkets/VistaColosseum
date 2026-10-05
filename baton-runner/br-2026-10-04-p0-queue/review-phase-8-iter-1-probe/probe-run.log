@@ -1,0 +1,41 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-8-iter-1-probe/mut-app/test/review8_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: PROBE small Android 360x640 1.3x emptied: tab0 Home
+00:01 +1: PROBE small Android 360x640 1.3x emptied: tab1 Explore (empty favourites)
+00:01 +2: PROBE small Android 360x640 1.3x emptied: tab2 Arena
+00:01 +3: PROBE small Android 360x640 1.3x emptied: tab3 Wallet
+00:02 +4: PROBE small Android 360x640 1.3x emptied: AssetTrade BTC
+00:02 +5: PROBE small Android 360x640 1.3x emptied: TraderMarket kilo.sol
+00:02 +6: PROBE small Android 360x640 1.3x emptied: YourMarket
+00:02 +7: PROBE small Android 360x640 1.3x emptied: Opinions btc
+00:02 +8: PROBE small Android 360x640 1.3x emptied: EditFavorites assets
+00:02 +9: PROBE small Android 360x640 1.3x emptied: EditFavorites traders
+00:02 +10: PROBE small Android 360x640 1.3x emptied: Profile maya.eth
+00:02 +11: PROBE small Android 360x640 1.3x emptied: PrivateProfile nara
+00:02 +12: PROBE small Android 360x640 1.3x emptied: Settings
+00:02 +13: PROBE iPhone SE 375x667 1.3x emptied: tab0 Home
+00:02 +14: PROBE iPhone SE 375x667 1.3x emptied: tab1 Explore (empty favourites)
+00:03 +15: PROBE iPhone SE 375x667 1.3x emptied: tab2 Arena
+00:03 +16: PROBE iPhone SE 375x667 1.3x emptied: tab3 Wallet
+00:03 +17: PROBE iPhone SE 375x667 1.3x emptied: AssetTrade BTC
+00:03 +18: PROBE iPhone SE 375x667 1.3x emptied: TraderMarket kilo.sol
+00:03 +19: PROBE iPhone SE 375x667 1.3x emptied: YourMarket
+00:03 +20: PROBE iPhone SE 375x667 1.3x emptied: Opinions btc
+00:03 +21: PROBE iPhone SE 375x667 1.3x emptied: EditFavorites assets
+00:03 +22: PROBE iPhone SE 375x667 1.3x emptied: EditFavorites traders
+00:03 +23: PROBE iPhone SE 375x667 1.3x emptied: Profile maya.eth
+00:03 +24: PROBE iPhone SE 375x667 1.3x emptied: PrivateProfile nara
+00:03 +25: PROBE iPhone SE 375x667 1.3x emptied: Settings
+00:03 +26: (tearDownAll)
+00:03 +26: All tests passed!
