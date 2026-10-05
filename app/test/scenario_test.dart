@@ -31,6 +31,7 @@ List<Object?> state() => [
   Scenario.hasMarket.value,
   Scenario.ticker.value,
   Scenario.marketId.value,
+  Scenario.listedAt.value,
   Scenario.liked.value,
   Scenario.favoriteAssets.value,
   Scenario.favoriteTraders.value,
@@ -42,6 +43,8 @@ List<Object?> state() => [
   Scenario.stalePrices.value,
   Scenario.participation.value,
   Scenario.arena.value,
+  Scenario.feeEntries.value,
+  Scenario.callReceipts.value,
 ];
 
 /// Changes every field, through the app's own helpers where they exist.
@@ -63,6 +66,8 @@ void mutateEverything() {
   Scenario.refreshPrice('AVAX');
   Scenario.placeOrder(ethLong('mutate', units: 0.01, clashId: 'eth-4k'));
   Scenario.setArena(sort: 1, from: 4, query: 'eth');
+  Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+  Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
 }
 
 /// A market long on ETH at its session price, 10x unless told otherwise.

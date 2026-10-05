@@ -1,0 +1,16 @@
+forholding-ignores-open: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: e
+record-item-opens-first: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: e
+ledger-footer-no-safe: SURVIVED (exit 0) :: 00:02 +9: All tests passed!
+listing-label-dropped: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: t
+ledger-label-dropped: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: t
+example-not-backed-out: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: t
+profile-wrong-handle: SURVIVED (exit 0) :: 00:02 +9: All tests passed!
+trader-wrong-handle: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: e
+unavailable-blank: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: e
+receipts-ignore-author: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: e
+wallet-row-constant: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: l
+chip-constant: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: a
+reset-no-callreceipts: KILLED (exit 1) ::   ... and 3 more
+reset-no-fees: KILLED (exit 1) ::   ... and 3 more
+ledger-entry-amount-hidden: KILLED (exit 1) ::   /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: l
+ledger-entry-no-market: SURVIVED (exit 0) :: 00:02 +9: All tests passed!

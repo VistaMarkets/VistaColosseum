@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_state.dart';
+import '../market/market_mock.dart';
 import 'confetti_burst.dart';
 import 'make_market_mock.dart';
 
@@ -623,10 +624,23 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    'You earn 40% of the fees from both',
-                    textAlign: TextAlign.center,
-                    style: VistaType.bodyStrong.copyWith(fontSize: 14),
+                  child: Column(
+                    children: [
+                      Text(
+                        'You earn ${YourMarketMock.creatorSharePct}% of the '
+                        'fees from both',
+                        textAlign: TextAlign.center,
+                        style: VistaType.bodyStrong.copyWith(fontSize: 14),
+                      ),
+                      const SizedBox(height: VistaSpace.xxs),
+                      Text(
+                        YourMarketMock.shareLabel,
+                        textAlign: TextAlign.center,
+                        style: VistaType.caption.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(

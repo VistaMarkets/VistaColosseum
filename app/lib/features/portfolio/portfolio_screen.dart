@@ -6,6 +6,8 @@ import '../../design_system/design_system.dart';
 import '../account/account_state.dart';
 import '../account/account_top_bar.dart';
 import '../make_market/make_market_flow.dart';
+import '../live/live_feed.dart';
+import '../market/receipt_screens.dart';
 import '../market/your_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
@@ -195,22 +197,18 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       constraints: const BoxConstraints(minHeight: 50),
       child: Row(
         children: [
+          // The ledger's sum, never a stored figure; opens the ledger.
           Expanded(
-            child: Row(
-              children: [
-                const VistaIcon(VistaAssets.feesDot, size: 6),
-                const SizedBox(width: VistaSpace.sm),
-                Flexible(
-                  child: Text(
-                    'Fees from your market',
-                    style: VistaType.bodyRegular,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            child: Semantics(
+              button: true,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).push(LedgerScreen.route()),
+                child: SizedBox(
+                  height: VistaSize.tapTarget,
+                  child: _feesLine(),
                 ),
-                const SizedBox(width: VistaSpace.sm),
-                Text(PortfolioMock.fees, style: VistaType.bodyStrong),
-              ],
+              ),
             ),
           ),
           const SizedBox(width: VistaSpace.sm),
@@ -221,6 +219,34 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _feesLine() {
+    return Row(
+      children: [
+        const VistaIcon(VistaAssets.feesDot, size: 6),
+        const SizedBox(width: VistaSpace.sm),
+        Flexible(
+          child: Text(
+            'Fees from your market',
+            style: VistaType.bodyRegular,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: VistaSpace.sm),
+        ListenableBuilder(
+          listenable: Listenable.merge([
+            Scenario.feeEntries,
+            Scenario.marketId,
+          ]),
+          builder: (context, _) => Text(
+            formatCents(Scenario.marketFeesCents),
+            style: VistaType.bodyStrong,
+          ),
+        ),
+      ],
     );
   }
 

@@ -1,0 +1,13 @@
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/review6_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: PROBE ledger footer clear of pill 360x640 1.3x
+PROBE 360x640 total=$171.20 totalRect=Rect.fromLTRB(278.0, 576.0, 344.0, 596.0) labelRect=Rect.fromLTRB(16.0, 576.0, 278.0, 596.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) gap=14.0 onScreen=true hit=1 exception=null
+00:00 +1: PROBE ledger footer clear of pill 375x667 1.3x
+PROBE 375x667 total=$171.20 totalRect=Rect.fromLTRB(293.0, 603.0, 359.0, 623.0) labelRect=Rect.fromLTRB(16.0, 603.0, 293.0, 623.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) gap=14.0 onScreen=true hit=1 exception=null
+00:00 +2: PROBE changing one amount changes ledger and Wallet totals
+PROBE amount-change before=$42.80 after=$43.81
+00:01 +3: PROBE a receipt with missing fields renders unavailable
+PROBE missing-fields unavailable=5
+00:01 +4: PROBE kaito.eth profile ETH holding does not open maya call
+00:01 +5: (tearDownAll)
+00:01 +5: All tests passed!

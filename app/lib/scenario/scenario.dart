@@ -4,6 +4,7 @@ import '../design_system/design_system.dart';
 import '../features/arena/arena_mock.dart';
 import '../features/live/live_feed.dart';
 import '../features/live/market_prices.dart';
+import '../features/market/market_mock.dart';
 import '../features/markets/markets_mock.dart';
 import '../features/people/follow_mock.dart';
 import '../features/portfolio/portfolio_mock.dart';
@@ -31,10 +32,13 @@ abstract final class Scenario {
   );
 
   /// The user's own market: whether it is listed, its ticker (suggested
-  /// before listing), and its id once listed (the symbol, as markets use).
+  /// before listing), its id once listed (the symbol, as markets use), and
+  /// when it was listed: the clock at listing, or the seed's
+  /// [YourMarketMock.listedAt] when `HAS_MARKET` starts with it listed.
   static final hasMarket = ValueNotifier<bool>(_startWithMarket);
   static final ticker = ValueNotifier<String>(PortfolioMock.marketSymbol);
   static final marketId = ValueNotifier<String?>(_seedMarketId);
+  static final listedAt = ValueNotifier<DateTime?>(_seedListedAt);
 
   /// Liked calls, keyed `callerHandle/ticker`.
   static final liked = ValueNotifier<Set<String>>(const {});
@@ -75,8 +79,21 @@ abstract final class Scenario {
   /// and the crowd panel.
   static final arena = ValueNotifier<ArenaView>(ArenaMock.allBattles);
 
+  /// Fee credits to the user's market, newest first: the demo ledger
+  /// (VC-MKT-004). Every fee total is summed from these, never stored.
+  static final feeEntries = ValueNotifier<List<FeeEntry>>(YourMarketMock.fees);
+
+  /// Published calls' receipts (VC-REC-001). Record lists and Call details
+  /// resolve to these; paper fills stay in [receipts].
+  static final callReceipts = ValueNotifier<List<CallReceipt>>(
+    YourMarketMock.record,
+  );
+
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
+
+  static DateTime? get _seedListedAt =>
+      _startWithMarket ? YourMarketMock.listedAt : null;
 
   /// A handle's last entry wins, as the follow lists showed it.
   static Set<String> get _seedFollowed => Set.unmodifiable({
@@ -94,6 +111,22 @@ abstract final class Scenario {
       f.contains(handle) ? f.where((h) => h != handle) : {...f, handle},
     );
   }
+
+  /// The credits of the user's listed market dated at or after its listing:
+  /// none before listing, none for a market listed under another ticker,
+  /// and none from before a fresh listing existed to earn them.
+  static List<FeeEntry> get marketFees {
+    final since = listedAt.value;
+    if (since == null) return const [];
+    return [
+      for (final e in feeEntries.value)
+        if (e.marketId == marketId.value && !e.at.isBefore(since)) e,
+    ];
+  }
+
+  /// What [marketFees] add up to, in int cents.
+  static int get marketFeesCents =>
+      marketFees.fold(0, (sum, e) => sum + e.amountCents);
 
   /// Changes the given parts of the Arena's view.
   static void setArena({int? sort, int? from, int? to, String? query}) {
@@ -257,6 +290,7 @@ abstract final class Scenario {
     hasMarket.value = withMarket;
     ticker.value = PortfolioMock.marketSymbol;
     marketId.value = withMarket ? PortfolioMock.marketSymbol : null;
+    listedAt.value = withMarket ? YourMarketMock.listedAt : null;
     liked.value = const {};
     favoriteAssets.value = MarketsMock.assetFavorites;
     favoriteTraders.value = MarketsMock.traderFavorites;
@@ -268,6 +302,8 @@ abstract final class Scenario {
     stalePrices.value = TradeMock.stalePrices;
     participation.value = const {};
     arena.value = ArenaMock.allBattles;
+    feeEntries.value = YourMarketMock.fees;
+    callReceipts.value = YourMarketMock.record;
   }
 }
 
