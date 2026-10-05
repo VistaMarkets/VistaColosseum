@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 4 of 8  unit: FIXER
+phase: 4 of 8  unit: CLOSE
 current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T191813-phase4-review-iter1.md
-units_used: 21
+units_used: 22
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
