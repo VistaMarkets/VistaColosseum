@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 6 of 8  unit: REVIEW
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-05T041423-phase6-fee-ledger-and-receipts.md
-units_used: 29
+phase: 6 of 8  unit: DW
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-05T041752-phase6-review-iter1.md
+units_used: 30
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -40,7 +40,7 @@ phases:
     units: 5  state: DONE  head: 9bf4364  gate: PASS @ d935436 (252 tests)  skeptic: APPROVE @ 87271f1
     fixer: 5 confirmed, 5 applied (F2 via F1's test), 0 annotated
   - id: phase-6  spec: docs/specs/06-fee-ledger-and-receipts.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-6  base: feat/br-2026-10-04-p0-queue/phase-5  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-6.md  units: 1  state: RUNNING  (work COMPLETE, gate PASS 261)
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-6  base: feat/br-2026-10-04-p0-queue/phase-5  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-6.md  units: 2  state: RUNNING  (work COMPLETE; REVIEW GATE-OK 261, criteria 3/3, H0/M1/L6)
   - id: phase-7  spec: docs/specs/07-trader-record-panel.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-7  base: feat/br-2026-10-04-p0-queue/phase-6  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-7.md  units: 0  state: PENDING
   - id: phase-8  spec: docs/specs/08-list-empty-failed-states.md  readiness: READY  work_agent: general-purpose

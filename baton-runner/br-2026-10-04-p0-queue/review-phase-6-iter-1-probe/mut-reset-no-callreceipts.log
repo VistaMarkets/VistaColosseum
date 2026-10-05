@@ -1,0 +1,483 @@
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: the store seeds 4-6 fee entries and the record's call receipts; reset restores both
+00:00 +0 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: (setUpAll)
+00:00 +0 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: the store seeds 4-6 fee entries and the record's call receipts; reset restores both [E]
+  Expected: same instance as [
+              Instance of 'CallReceipt',
+              Instance of 'CallReceipt',
+              Instance of 'CallReceipt'
+            ]
+    Actual: []
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/receipts_test.dart 111:5                       main.<fn>
+  
+00:00 +0 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: ledger total equals the sum of listed entries
+00:00 +0 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: ledger total equals the sum of listed entries
+00:00 +0 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: seed → mutate everything → reset equals the fresh seed [E]
+  Expected: [
+              1248000,
+              [
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition'
+              ],
+              [Instance of 'OpenOrder', Instance of 'OpenOrder', Instance of 'OpenOrder'],
+              false,
+              'MAYA',
+              null,
+              Set:[],
+              ['BTC', 'ETH', 'SOL'],
+              ['maya.eth', 'lunaq', 'deltaone'],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              Set:['lunaq', 'kilo.sol', 'mirin'],
+              DateTime:2026-09-26 14:45:00.000,
+              [],
+              Set:['AVAX'],
+              {},
+              ({int from, String query, int sort, int to}):(from: 0, query: , sort: 0, to: 10),
+              [
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry'
+              ],
+              [
+                Instance of 'CallReceipt',
+                Instance of 'CallReceipt',
+                Instance of 'CallReceipt'
+              ]
+            ]
+    Actual: [
+              1248000,
+              [
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition'
+              ],
+              [Instance of 'OpenOrder', Instance of 'OpenOrder', Instance of 'OpenOrder'],
+              false,
+              'MAYA',
+              null,
+              Set:[],
+              ['BTC', 'ETH', 'SOL'],
+              ['maya.eth', 'lunaq', 'deltaone'],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              Set:['lunaq', 'kilo.sol', 'mirin'],
+              DateTime:2026-09-26 14:45:00.000,
+              [],
+              Set:['AVAX'],
+              {},
+              ({int from, String query, int sort, int to}):(from: 0, query: , sort: 0, to: 10),
+              [
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry'
+              ],
+              [Instance of 'CallReceipt', Instance of 'CallReceipt']
+            ]
+     Which: at location [18][0] is <Instance of 'CallReceipt'> instead of <Instance of 'CallReceipt'>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 117:5                       main.<fn>
+  
+00:00 +0 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: ledger total equals the sum of listed entries
+00:00 +0 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: reset twice yields equal state [E]
+  Expected: [
+              1248000,
+              [
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition'
+              ],
+              [Instance of 'OpenOrder', Instance of 'OpenOrder', Instance of 'OpenOrder'],
+              false,
+              'MAYA',
+              null,
+              Set:[],
+              ['BTC', 'ETH', 'SOL'],
+              ['maya.eth', 'lunaq', 'deltaone'],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              Set:['lunaq', 'kilo.sol', 'mirin'],
+              DateTime:2026-09-26 14:45:00.000,
+              [],
+              Set:['AVAX'],
+              {},
+              ({int from, String query, int sort, int to}):(from: 0, query: , sort: 0, to: 10),
+              [
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry'
+              ],
+              [
+                Instance of 'CallReceipt',
+                Instance of 'CallReceipt',
+                Instance of 'CallReceipt'
+              ]
+            ]
+    Actual: [
+              1248000,
+              [
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition',
+                Instance of 'PortfolioPosition'
+              ],
+              [Instance of 'OpenOrder', Instance of 'OpenOrder', Instance of 'OpenOrder'],
+              false,
+              'MAYA',
+              null,
+              Set:[],
+              ['BTC', 'ETH', 'SOL'],
+              ['maya.eth', 'lunaq', 'deltaone'],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              [
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson',
+                Instance of 'FollowPerson'
+              ],
+              Set:['lunaq', 'kilo.sol', 'mirin'],
+              DateTime:2026-09-26 14:45:00.000,
+              [],
+              Set:['AVAX'],
+              {},
+              ({int from, String query, int sort, int to}):(from: 0, query: , sort: 0, to: 10),
+              [
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry',
+                Instance of 'FeeEntry'
+              ],
+              [Instance of 'CallReceipt']
+            ]
+     Which: at location [18][0] is <Instance of 'CallReceipt'> instead of <Instance of 'CallReceipt'>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 126:5                       main.<fn>
+  
+00:01 +1 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +2 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +3 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +3 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: the 40% share is labelled a demo assumption, with one worked example, in the ledger and the listing flow
+unhandled element <filter/>; Picture key: Svg loader
+00:01 +4 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +5 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +5 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: each record item opens its call receipt
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: an object with length of <3>
+  Actual: []
+   Which: has length of <0>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart:210:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart line 210
+The test description was:
+  each record item opens its call receipt
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +5 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +5 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: each record item opens its call receipt [E]
+  Test failed. See exception logs above.
+  The test description was: each record item opens its call receipt
+  
+00:02 +5 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: order receipts and call receipts render in separate sections
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: No element
+
+When the exception was thrown, this was the stack:
+#0      List.first (dart:core-patch/growable_array.dart:352:5)
+#1      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart:285:50)
+<asynchronous suspension>
+#2      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#3      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  order receipts and call receipts render in separate sections
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +5 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:02 +5 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: order receipts and call receipts render in separate sections [E]
+  Test failed. See exception logs above.
+  The test description was: order receipts and call receipts render in separate sections
+  
+00:02 +5 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: [
+            1248000,
+            [
+              Instance of 'PortfolioPosition',
+              Instance of 'PortfolioPosition',
+              Instance of 'PortfolioPosition'
+            ],
+            [Instance of 'OpenOrder', Instance of 'OpenOrder', Instance of 'OpenOrder'],
+            false,
+            'MAYA',
+            null,
+            Set:[],
+            ['BTC', 'ETH', 'SOL'],
+            ['maya.eth', 'lunaq', 'deltaone'],
+            [
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson'
+            ],
+            [
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson'
+            ],
+            Set:['lunaq', 'kilo.sol', 'mirin'],
+            DateTime:2026-09-26 14:45:00.000,
+            [],
+            Set:['AVAX'],
+            {},
+            ({int from, String query, int sort, int to}):(from: 0, query: , sort: 0, to: 10),
+            [
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry'
+            ],
+            [
+              Instance of 'CallReceipt',
+              Instance of 'CallReceipt',
+              Instance of 'CallReceipt'
+            ]
+          ]
+  Actual: [
+            1248000,
+            [
+              Instance of 'PortfolioPosition',
+              Instance of 'PortfolioPosition',
+              Instance of 'PortfolioPosition'
+            ],
+            [Instance of 'OpenOrder', Instance of 'OpenOrder', Instance of 'OpenOrder'],
+            false,
+            'MAYA',
+            null,
+            Set:[],
+            ['BTC', 'ETH', 'SOL'],
+            ['maya.eth', 'lunaq', 'deltaone'],
+            [
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson'
+            ],
+            [
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson',
+              Instance of 'FollowPerson'
+            ],
+            Set:['lunaq', 'kilo.sol', 'mirin'],
+            DateTime:2026-09-26 14:45:00.000,
+            [],
+            Set:['AVAX'],
+            {},
+            ({int from, String query, int sort, int to}):(from: 0, query: , sort: 0, to: 10),
+            [
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry',
+              Instance of 'FeeEntry'
+            ],
+            []
+          ]
+   Which: at location [18][0] is [] which shorter than expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart:159:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart line 159
+The test description was:
+  Reset demo in Settings restores the fixture, closes Settings and says so
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +5 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: every All receipts link opens the receipts list
+00:02 +5 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so [E]
+  Test failed. See exception logs above.
+  The test description was: Reset demo in Settings restores the fixture, closes Settings and says so
+  
+00:02 +6 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following RangeError was thrown running a test:
+RangeError (start): Invalid value: Only valid value is 0: 1
+
+When the exception was thrown, this was the stack:
+#0      RangeError.checkValidRange (dart:core/errors.dart:387:7)
+#1      List.sublist (dart:core-patch/growable_array.dart:84:38)
+#2      mutateEverything (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart:69:61)
+#3      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart:173:5)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  the simulated pill explains itself; its Reset demo is the Settings reset
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +6 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset [E]
+  Test failed. See exception logs above.
+  The test description was: the simulated pill explains itself; its Reset demo is the Settings reset
+  
+00:02 +6 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:03 +7 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+00:03 +8 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:03 +9 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a clash fill joins its side once per action; a failure joins none
+00:03 +10 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: placeOrder with a repeated actionId returns the first result
+00:03 +11 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a stale price fails with no change; refreshed, the action fills once
+00:03 +12 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: more than cash covers fails and changes nothing
+00:03 +13 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a size the cent math cannot hold fails and changes nothing
+00:03 +14 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: the fee rounds down, once (VC-ORD-003)
+00:03 +15 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a reduce-only market order is refused; a reduce-only limit rests
+00:03 +16 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: an unset or non-finite take profit or stop loss is refused
+00:03 +17 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a trader-index intent is refused on every order kind and changes nothing
+00:03 +18 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a dust, non-finite or unlevered order fails and changes nothing
+00:03 +19 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: a limit intent rests in Open orders and moves no cash
+00:03 +20 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Follow buttons read and write the follows in Scenario
+00:04 +21 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: (tearDownAll)
+00:04 +21 -7: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: each record item opens its call receipt
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: order receipts and call receipts render in separate sections
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart: the store seeds 4-6 fee entries and the record's call receipts; reset restores both
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+  ... and 3 more

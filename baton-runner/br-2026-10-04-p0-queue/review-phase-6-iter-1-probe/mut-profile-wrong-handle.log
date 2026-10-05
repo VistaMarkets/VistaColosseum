@@ -1,0 +1,14 @@
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-6-iter-1-probe/mut-app/test/receipts_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: the store seeds 4-6 fee entries and the record's call receipts; reset restores both
+00:00 +1: ledger total equals the sum of listed entries
+00:01 +2: Your market fee chip shows the ledger sum and opens the ledger
+00:01 +3: a market with no credits shows an empty ledger and zero
+00:01 +4: the 40% share is labelled a demo assumption, with one worked example, in the ledger and the listing flow
+unhandled element <filter/>; Picture key: Svg loader
+00:01 +5: the ledger total stays above the simulation pill on a small phone at 1.3x text
+00:01 +6: each record item opens its call receipt
+00:02 +7: order receipts and call receipts render in separate sections
+00:02 +8: every All receipts link opens the receipts list
+00:02 +9: (tearDownAll)
+00:02 +9: All tests passed!

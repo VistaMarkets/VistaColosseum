@@ -483,7 +483,8 @@ VistaColosseum/
 │       ├── 2026-10-04T202626-phase5-review-iter1.md
 │       ├── 2026-10-04T205139-phase5-close.md
 │       ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
-│       └── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
+│       ├── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
+│       └── 2026-10-05T041752-phase6-review-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -639,6 +640,12 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-6-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   ├── grep-all-receipts.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-6-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test-has-market.log
@@ -735,6 +742,27 @@ VistaColosseum/
 │       │   ├── mutate-run-1.txt
 │       │   ├── mutate-run-2.txt
 │       │   └── mutate.py
+│       ├── review-phase-6-iter-1-probe/
+│       │   ├── mut-chip-constant.log
+│       │   ├── mut-example-not-backed-out.log
+│       │   ├── mut-forholding-ignores-open.log
+│       │   ├── mut-ledger-entry-amount-hidden.log
+│       │   ├── mut-ledger-entry-no-market.log
+│       │   ├── mut-ledger-footer-no-safe.log
+│       │   ├── mut-ledger-label-dropped.log
+│       │   ├── mut-listing-label-dropped.log
+│       │   ├── mut-profile-wrong-handle.log
+│       │   ├── mut-receipts-ignore-author.log
+│       │   ├── mut-record-item-opens-first.log
+│       │   ├── mut-reset-no-callreceipts.log
+│       │   ├── mut-reset-no-fees.log
+│       │   ├── mut-trader-wrong-handle.log
+│       │   ├── mut-unavailable-blank.log
+│       │   ├── mut-wallet-row-constant.log
+│       │   ├── mutate-run-1.txt
+│       │   ├── mutate.py
+│       │   ├── probe-run.log
+│       │   └── review6_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md
