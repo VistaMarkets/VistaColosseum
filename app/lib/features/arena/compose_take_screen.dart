@@ -52,6 +52,9 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   /// Set while the call is also starting a battle.
   BattleSpec? _battle;
 
+  /// Set instead when the call goes on a battle that's already live.
+  LiveBattle? _joined;
+
   @override
   void initState() {
     super.initState();
@@ -67,14 +70,18 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   /// Opens the battle page; set up there, the battle rides on this call.
   Future<void> _editBattle() async {
     final p = widget.position;
-    final spec = await Navigator.of(context).push(
+    final choice = await Navigator.of(context).push(
       BattleSetupScreen.route(
         ticker: p.detail.symbol,
         side: p.side,
         initial: _battle,
       ),
     );
-    if (spec != null && mounted) setState(() => _battle = spec);
+    if (choice == null || !mounted) return;
+    setState(() {
+      _battle = choice.spec;
+      _joined = choice.live;
+    });
   }
 
   bool get _canPost => _text.text.trim().isNotEmpty && (_battle?.valid ?? true);
@@ -82,7 +89,12 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   void _post() {
     final p = widget.position;
     final battle = _battle;
+    final joined = _joined;
     HapticFeedback.lightImpact();
+    // Joining a live battle: one more call on it, on this side.
+    if (joined != null) {
+      BattlesStore.join(joined, long: p.side == TradeSide.long);
+    }
     // Starting a battle: it goes live with this call as its first.
     if (battle != null) {
       BattlesStore.add(
@@ -102,7 +114,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
         body: _text.text.trim(),
         likes: 0,
         call: ComposeTakeScreen.backing(p),
-        battle: battle?.question,
+        battle: battle?.question ?? joined?.question,
       ),
     );
   }
@@ -275,9 +287,21 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                           // A call by default; this turns it into a battle.
                           if (_battle case final b?)
                             BattleSummaryCard(
-                              spec: b,
+                              label: 'BATTLE',
+                              question: b.question,
+                              detail: b.settles,
                               onEdit: _editBattle,
                               onRemove: () => setState(() => _battle = null),
+                            )
+                          else if (_joined case final j?)
+                            BattleSummaryCard(
+                              label: 'LIVE BATTLE',
+                              question: j.question,
+                              detail:
+                                  'Your call joins it · ${j.takes} calls · '
+                                  '${j.timeLeft}',
+                              onEdit: _editBattle,
+                              onRemove: () => setState(() => _joined = null),
                             )
                           else
                             MakeBattleButton(onTap: _editBattle),

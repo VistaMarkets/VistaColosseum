@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/market_prices.dart';
+import '../calls/calls_store.dart';
 import 'arena_mock.dart';
+import 'take_card.dart';
 
 /// The statements a battle can make. Each maps to one long or short on the
 /// market, so every call on it can be backed (Figma BATTLE-FLOW-TYPES).
@@ -122,10 +124,23 @@ class BattleSpec {
   );
 }
 
+/// What the battle page hands back: a new battle to start, or a live one
+/// on the same market to put the call on instead.
+@immutable
+class BattleChoice {
+  const BattleChoice.start(BattleSpec this.spec) : live = null;
+  const BattleChoice.join(LiveBattle this.live) : spec = null;
+
+  final BattleSpec? spec;
+  final LiveBattle? live;
+}
+
 /// Setting up a battle (Figma 517:205), opened from the composer's "Make it
 /// a battle": the statements that agree with the position's side (first
 /// picked) in one scrolling line, the battle as a sentence, a typed level
-/// with shortcuts, deadline chips, and the side the position sets. Pops with the [BattleSpec] on Add battle.
+/// with shortcuts, deadline chips, and the side the position sets. Add
+/// battle first offers any live battles on the same market; pops with a
+/// [BattleChoice]. Pops with the [BattleSpec] on Add battle.
 class BattleSetupScreen extends StatefulWidget {
   const BattleSetupScreen({
     super.key,
@@ -140,7 +155,7 @@ class BattleSetupScreen extends StatefulWidget {
   /// The battle being edited, if any.
   final BattleSpec? initial;
 
-  static Route<BattleSpec> route({
+  static Route<BattleChoice> route({
     required String ticker,
     required TradeSide side,
     BattleSpec? initial,
@@ -223,6 +238,26 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
     );
+  }
+
+  /// Add battle: if battles on this market are already live, offer them
+  /// first so the call can join one instead of starting a near-copy.
+  Future<void> _add(BattleSpec spec) async {
+    final live = [
+      for (final b in BattlesStore.all.value)
+        if (b.ticker == widget.ticker) b,
+    ];
+    if (live.isEmpty) {
+      Navigator.of(context).pop(BattleChoice.start(spec));
+      return;
+    }
+    final choice = await showVistaSheet<BattleChoice>(
+      context,
+      color: VistaColors.background,
+      builder: (_) =>
+          _LiveBattlesSheet(ticker: widget.ticker, battles: live, spec: spec),
+    );
+    if (choice != null && mounted) Navigator.of(context).pop(choice);
   }
 
   @override
@@ -508,9 +543,7 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
                 label: widget.initial == null ? 'Add battle' : 'Save battle',
                 excludeSemantics: true,
                 child: VistaPressable(
-                  onTap: spec.valid
-                      ? () => Navigator.of(context).pop(spec)
-                      : null,
+                  onTap: spec.valid ? () => _add(spec) : null,
                   child: AnimatedOpacity(
                     duration: VistaMotion.state,
                     opacity: spec.valid ? 1 : 0.4,
@@ -534,6 +567,81 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// After Add battle, when the market already has live battles: tap one to
+/// put the call on it, or start the new battle anyway.
+class _LiveBattlesSheet extends StatelessWidget {
+  const _LiveBattlesSheet({
+    required this.ticker,
+    required this.battles,
+    required this.spec,
+  });
+
+  final String ticker;
+  final List<LiveBattle> battles;
+  final BattleSpec spec;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom > 0 ? bottom : VistaSpace.gutter),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              VistaSpace.gutter + VistaSpace.xs,
+              VistaSpace.lg,
+              VistaSpace.gutter + VistaSpace.xs,
+              VistaSpace.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$ticker battles already live', style: VistaType.title),
+                const SizedBox(height: VistaSpace.xs),
+                Text(
+                  'Put your call on one of these, or start yours anyway.',
+                  style: VistaType.subheadMuted.copyWith(
+                    color: VistaColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (final b in battles)
+                  BattleTile.row(
+                    battle: b,
+                    onTap: () =>
+                        Navigator.of(context).pop(BattleChoice.join(b)),
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              VistaSpace.gutter,
+              VistaSpace.gutter,
+              VistaSpace.gutter,
+              0,
+            ),
+            child: VistaPillButton(
+              label: 'Start my battle anyway',
+              onPressed: () =>
+                  Navigator.of(context).pop(BattleChoice.start(spec)),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -603,12 +711,19 @@ class _GroupDigits extends TextInputFormatter {
 class BattleSummaryCard extends StatelessWidget {
   const BattleSummaryCard({
     super.key,
-    required this.spec,
+    required this.label,
+    required this.question,
+    required this.detail,
     required this.onEdit,
     required this.onRemove,
   });
 
-  final BattleSpec spec;
+  /// "BATTLE" for a new one, "LIVE BATTLE" when joining one.
+  final String label;
+  final String question;
+
+  /// How it settles, or what joining it means.
+  final String detail;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
 
@@ -643,7 +758,7 @@ class BattleSummaryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'BATTLE',
+                  label,
                   style: VistaType.label.copyWith(
                     color: VistaColors.textMuted,
                     letterSpacing: 0.6,
@@ -655,10 +770,10 @@ class BattleSummaryCard extends StatelessWidget {
               action('Remove', onRemove, VistaColors.textMuted),
             ],
           ),
-          Text(spec.question, style: VistaType.tab),
+          Text(question, style: VistaType.tab),
           const SizedBox(height: VistaSpace.xs),
           Text(
-            spec.settles,
+            detail,
             style: VistaType.bodyMedium.copyWith(color: VistaColors.textMuted),
           ),
         ],

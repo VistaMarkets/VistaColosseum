@@ -1139,6 +1139,10 @@ void main() {
       await tester.ensureVisible(find.text('Add battle'));
       await tester.tap(find.text('Add battle'));
       await tester.pumpAndSettle();
+      // ETH already has a live battle: it's offered first.
+      expect(find.text('ETH battles already live'), findsOneWidget);
+      await tester.tap(find.text('Start my battle anyway'));
+      await tester.pumpAndSettle();
 
       // Back in the composer: a summary, and Post becomes Start battle.
       expect(find.byType(BattleSetupScreen), findsNothing);
@@ -1163,6 +1167,40 @@ void main() {
             .question,
         r'ETH touches $3,200 before Friday',
       );
+    });
+
+    testWidgets('a live battle on the market can take the call instead', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ethereum')); // LONG
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Joining the longs.');
+      await tester.tap(find.bySemanticsLabel('Make it a battle'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '3200');
+      await tester.pump();
+      await tester.tap(find.text('Add battle'));
+      await tester.pumpAndSettle();
+      final live = BattlesStore.all.value.firstWhere((b) => b.ticker == 'ETH');
+      await tester.tap(find.text(live.question).last);
+      await tester.pumpAndSettle();
+      // Joining keeps Post; nothing new starts.
+      expect(find.text('LIVE BATTLE'), findsOneWidget);
+      expect(find.text('Post'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 300));
+      final count = BattlesStore.all.value.length;
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      expect(BattlesStore.all.value, hasLength(count));
+      final after = BattlesStore.all.value.firstWhere(
+        (b) => b.question == live.question,
+      );
+      expect(after.takes, live.takes + 1);
+      expect(after.longShare, greaterThan(live.longShare));
+      expect(CallsStore.all.value.first.battle, live.question);
     });
 
     testWidgets('a short gets the downside statements; Remove undoes it', (
@@ -1197,6 +1235,8 @@ void main() {
       await tester.tap(find.text('Ends lower')); // no level needed
       await tester.pump();
       await tester.tap(find.text('Add battle'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start my battle anyway'));
       await tester.pumpAndSettle();
       expect(find.text('SOL ends lower than now by Friday'), findsOneWidget);
       await tester.tap(find.text('Remove'));

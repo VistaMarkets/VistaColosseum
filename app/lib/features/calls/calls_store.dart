@@ -111,4 +111,22 @@ abstract final class BattlesStore {
       all.value = List.unmodifiable([b, ...all.value]);
 
   static void reset() => all.value = ArenaMock.battles;
+
+  /// A call joins [b] on the long or short side: one more call, and the
+  /// split moves with it. Returns the updated battle.
+  static LiveBattle join(LiveBattle b, {required bool long}) {
+    final n = b.takes + 1;
+    final joined = LiveBattle(
+      ticker: b.ticker,
+      change: b.change,
+      question: b.question,
+      longShare: (b.longShare * b.takes + (long ? 1 : 0)) / n,
+      minutesLeft: b.minutesLeft,
+      takes: n,
+    );
+    all.value = List.unmodifiable([
+      for (final x in all.value) identical(x, b) ? joined : x,
+    ]);
+    return joined;
+  }
 }
