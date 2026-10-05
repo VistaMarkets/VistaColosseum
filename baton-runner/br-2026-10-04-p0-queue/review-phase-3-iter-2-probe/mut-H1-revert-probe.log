@@ -1,0 +1,185 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: H1 probe OrderTicket leverage sheet 360x640 @1.3x
+OT 360x640 @1.3 pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) strip=Rect.fromLTRB(0.0, 610.0, 360.0, 640.0) sheet=Rect.fromLTRB(0.0, 280.0, 360.0, 640.0) maxScroll=53.0
+OT 360x640 @1.3 Set rect=Rect.fromLTRB(16.0, 585.0, 344.0, 639.0) onScreen=true pillOverlap=true stripOverlap=true
+OT 360x640 @1.3 Lower rect=Rect.fromLTRB(16.0, 359.0, 60.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 Raise rect=Rect.fromLTRB(300.0, 359.0, 344.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#0 rect=Rect.fromLTRB(16.0, 359.0, 60.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#1 rect=Rect.fromLTRB(300.0, 359.0, 344.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#2 rect=Rect.fromLTRB(16.0, 417.0, 344.0, 461.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#3 rect=Rect.fromLTRB(6.0, 461.0, 50.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#4 rect=Rect.fromLTRB(70.0, 461.0, 114.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#5 rect=Rect.fromLTRB(150.0, 461.0, 194.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#6 rect=Rect.fromLTRB(230.0, 461.0, 274.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#7 rect=Rect.fromLTRB(310.0, 461.0, 354.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+OT 360x640 @1.3 detector#8 rect=Rect.fromLTRB(16.0, 585.0, 344.0, 639.0) onScreen=true pillOverlap=true stripOverlap=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Set 11x" (considering only
+hit-testable widgets with a RenderBox): []>
+   Which: means none were found but one was expected
+OT 360x640 @1.3
+
+When the exception was thrown, this was the stack:
+#4      audit (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart:97:3)
+#5      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart:129:22)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart line 97
+The test description was:
+  H1 probe OrderTicket leverage sheet 360x640 @1.3x
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: H1 probe OrderTicket leverage sheet 360x640 @1.3x [E]
+  Test failed. See exception logs above.
+  The test description was: H1 probe OrderTicket leverage sheet 360x640 @1.3x
+  
+00:01 +0 -1: H1 probe FeedOrderTicket leverage sheet 360x640 @1.3x
+FT 360x640 @1.3 pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) strip=Rect.fromLTRB(0.0, 610.0, 360.0, 640.0) sheet=Rect.fromLTRB(0.0, 280.0, 360.0, 640.0) maxScroll=53.0
+FT 360x640 @1.3 Set rect=Rect.fromLTRB(16.0, 585.0, 344.0, 639.0) onScreen=true pillOverlap=true stripOverlap=true
+FT 360x640 @1.3 Lower rect=Rect.fromLTRB(16.0, 359.0, 60.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 Raise rect=Rect.fromLTRB(300.0, 359.0, 344.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#0 rect=Rect.fromLTRB(16.0, 359.0, 60.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#1 rect=Rect.fromLTRB(300.0, 359.0, 344.0, 403.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#2 rect=Rect.fromLTRB(16.0, 417.0, 344.0, 461.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#3 rect=Rect.fromLTRB(6.0, 461.0, 50.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#4 rect=Rect.fromLTRB(61.8, 461.0, 105.8, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#5 rect=Rect.fromLTRB(123.9, 461.0, 167.9, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#6 rect=Rect.fromLTRB(185.9, 461.0, 229.9, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#7 rect=Rect.fromLTRB(248.0, 461.0, 292.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#8 rect=Rect.fromLTRB(310.0, 461.0, 354.0, 505.0) onScreen=true pillOverlap=false stripOverlap=false
+FT 360x640 @1.3 detector#9 rect=Rect.fromLTRB(16.0, 585.0, 344.0, 639.0) onScreen=true pillOverlap=true stripOverlap=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Set 3x" (considering only
+hit-testable widgets with a RenderBox): []>
+   Which: means none were found but one was expected
+FT 360x640 @1.3
+
+When the exception was thrown, this was the stack:
+#4      audit (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart:97:3)
+#5      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart:156:22)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart line 97
+The test description was:
+  H1 probe FeedOrderTicket leverage sheet 360x640 @1.3x
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +0 -2: H1 probe FeedOrderTicket leverage sheet 360x640 @1.3x [E]
+  Test failed. See exception logs above.
+  The test description was: H1 probe FeedOrderTicket leverage sheet 360x640 @1.3x
+  
+00:02 +0 -2: H1 probe OrderTicket leverage sheet 375x667 @1.3x
+OT 375x667 @1.3 pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) strip=Rect.fromLTRB(0.0, 637.0, 375.0, 667.0) sheet=Rect.fromLTRB(0.0, 291.8, 375.0, 667.0) maxScroll=37.8125
+OT 375x667 @1.3 Set rect=Rect.fromLTRB(16.0, 596.8, 359.0, 650.8) onScreen=true pillOverlap=true stripOverlap=true
+OT 375x667 @1.3 Lower rect=Rect.fromLTRB(16.0, 370.8, 60.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 Raise rect=Rect.fromLTRB(315.0, 370.8, 359.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#0 rect=Rect.fromLTRB(16.0, 370.8, 60.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#1 rect=Rect.fromLTRB(315.0, 370.8, 359.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#2 rect=Rect.fromLTRB(16.0, 428.8, 359.0, 472.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#3 rect=Rect.fromLTRB(6.0, 472.8, 50.0, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#4 rect=Rect.fromLTRB(73.2, 472.8, 117.2, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#5 rect=Rect.fromLTRB(157.1, 472.8, 201.1, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#6 rect=Rect.fromLTRB(241.1, 472.8, 285.1, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#7 rect=Rect.fromLTRB(325.0, 472.8, 369.0, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+OT 375x667 @1.3 detector#8 rect=Rect.fromLTRB(16.0, 596.8, 359.0, 650.8) onScreen=true pillOverlap=true stripOverlap=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: <0>
+  Actual: <2>
+controls touching pill/strip or off screen
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart:130:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart line 130
+The test description was:
+  H1 probe OrderTicket leverage sheet 375x667 @1.3x
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -3: H1 probe OrderTicket leverage sheet 375x667 @1.3x [E]
+  Test failed. See exception logs above.
+  The test description was: H1 probe OrderTicket leverage sheet 375x667 @1.3x
+  
+00:03 +0 -3: H1 probe FeedOrderTicket leverage sheet 375x667 @1.3x
+FT 375x667 @1.3 pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) strip=Rect.fromLTRB(0.0, 637.0, 375.0, 667.0) sheet=Rect.fromLTRB(0.0, 291.8, 375.0, 667.0) maxScroll=37.8125
+FT 375x667 @1.3 Set rect=Rect.fromLTRB(16.0, 596.8, 359.0, 650.8) onScreen=true pillOverlap=true stripOverlap=true
+FT 375x667 @1.3 Lower rect=Rect.fromLTRB(16.0, 370.8, 60.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 Raise rect=Rect.fromLTRB(315.0, 370.8, 359.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#0 rect=Rect.fromLTRB(16.0, 370.8, 60.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#1 rect=Rect.fromLTRB(315.0, 370.8, 359.0, 414.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#2 rect=Rect.fromLTRB(16.0, 428.8, 359.0, 472.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#3 rect=Rect.fromLTRB(6.0, 472.8, 50.0, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#4 rect=Rect.fromLTRB(64.6, 472.8, 108.6, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#5 rect=Rect.fromLTRB(129.7, 472.8, 173.7, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#6 rect=Rect.fromLTRB(194.8, 472.8, 238.8, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#7 rect=Rect.fromLTRB(259.9, 472.8, 303.9, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#8 rect=Rect.fromLTRB(325.0, 472.8, 369.0, 516.8) onScreen=true pillOverlap=false stripOverlap=false
+FT 375x667 @1.3 detector#9 rect=Rect.fromLTRB(16.0, 596.8, 359.0, 650.8) onScreen=true pillOverlap=true stripOverlap=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: <0>
+  Actual: <2>
+controls touching pill/strip or off screen
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart:157:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart line 157
+The test description was:
+  H1 probe FeedOrderTicket leverage sheet 375x667 @1.3x
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +0 -4: H1 probe FeedOrderTicket leverage sheet 375x667 @1.3x [E]
+  Test failed. See exception logs above.
+  The test description was: H1 probe FeedOrderTicket leverage sheet 375x667 @1.3x
+  
+00:04 +0 -4: (tearDownAll)
+00:04 +0 -4: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart: H1 probe FeedOrderTicket leverage sheet 360x640 @1.3x
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart: H1 probe FeedOrderTicket leverage sheet 375x667 @1.3x
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart: H1 probe OrderTicket leverage sheet 360x640 @1.3x
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/h1_probe_test.dart: H1 probe OrderTicket leverage sheet 375x667 @1.3x

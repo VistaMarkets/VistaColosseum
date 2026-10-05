@@ -1,0 +1,116 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: order ticket Set applies leverage at 1.3x text on small Android 360x640
+
+Warning: A call to tap() with finder "Found 1 widget with text "Set 11x": [
+  Text("Set 11x", inherit: true, color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 17.0, weight: 700, height: 1.2x, overflow: ellipsis, maxLines: 1, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(180.0, 612.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#48786 relayoutBoundary=up2
+The hit test result at that offset is: HitTestResult(RenderPointerListener#b0876@Offset(86.5, 2.0), RenderSemanticsGestureHandler#b1f17@Offset(86.5, 2.0), RenderSemanticsAnnotations#05eaa@Offset(86.5, 2.0), RenderPositionedBox#b26e8@Offset(180.0, 2.0), RenderStack#129fe@Offset(180.0, 612.0), RenderSemanticsAnnotations#e62ec@Offset(180.0, 612.0), RenderSemanticsAnnotations#ecbed@Offset(180.0, 612.0), RenderSemanticsAnnotations#2b86c@Offset(180.0, 612.0), RenderTapRegionSurface#2f679@Offset(180.0, 612.0), RenderSemanticsAnnotations#1a532@Offset(180.0, 612.0), RenderSemanticsAnnotations#4b4c3@Offset(180.0, 612.0), HitTestEntry<HitTestTarget>#e12a7(_ReusableRenderView#c208a), HitTestEntry<HitTestTarget>#2926b(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart:2000:22)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "Cross · 11x": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart:2002:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart line 2002
+The test description was:
+  Set applies leverage at 1.3x text on small Android 360x640
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: order ticket Set applies leverage at 1.3x text on small Android 360x640 [E]
+  Test failed. See exception logs above.
+  The test description was: Set applies leverage at 1.3x text on small Android 360x640
+  
+00:01 +0 -1: order ticket Set applies leverage at 1.3x text on iPhone SE 375x667
+00:01 +1 -1: feed order ticket custom leverage applies at 1.3x text on small Android 360x640
+
+Warning: A call to tap() with finder "Found 1 widget with text "Set 3x": [
+  Text("Set 3x", inherit: true, color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 17.0, weight: 700, height: 1.2x, overflow: ellipsis, maxLines: 1, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(180.0, 612.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#b027b relayoutBoundary=up2
+The hit test result at that offset is: HitTestResult(RenderPointerListener#4c261@Offset(86.5, 2.0), RenderSemanticsGestureHandler#20de4@Offset(86.5, 2.0), RenderSemanticsAnnotations#38967@Offset(86.5, 2.0), RenderPositionedBox#bab33@Offset(180.0, 2.0), RenderStack#3b753@Offset(180.0, 612.0), RenderSemanticsAnnotations#95a73@Offset(180.0, 612.0), RenderSemanticsAnnotations#457b7@Offset(180.0, 612.0), RenderSemanticsAnnotations#20037@Offset(180.0, 612.0), RenderTapRegionSurface#9cd32@Offset(180.0, 612.0), RenderSemanticsAnnotations#7f66e@Offset(180.0, 612.0), RenderSemanticsAnnotations#69305@Offset(180.0, 612.0), HitTestEntry<HitTestTarget>#39906(_ReusableRenderView#c208a), HitTestEntry<HitTestTarget>#9aab7(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart:2288:22)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Long $200 · 3x" descending from
+widgets with type "FeedOrderTicket": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart:2290:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart line 2290
+The test description was:
+  custom leverage applies at 1.3x text on small Android 360x640
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +1 -2: feed order ticket custom leverage applies at 1.3x text on small Android 360x640 [E]
+  Test failed. See exception logs above.
+  The test description was: custom leverage applies at 1.3x text on small Android 360x640
+  
+00:03 +1 -2: feed order ticket custom leverage applies at 1.3x text on iPhone SE 375x667
+00:03 +2 -2: (tearDownAll)
+00:03 +2 -2: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart: feed order ticket custom leverage applies at 1.3x text on small Android 360x640
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/mut-app/test/home_screen_test.dart: order ticket Set applies leverage at 1.3x text on small Android 360x640

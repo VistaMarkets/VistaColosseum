@@ -467,7 +467,8 @@ VistaColosseum/
 │       ├── 2026-10-04T151800-phase3-simulation-indicator.md
 │       ├── 2026-10-04T161405-phase3-review-iter1.md
 │       ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
-│       └── 2026-10-04T162846-phase3-fix-iter1.md
+│       ├── 2026-10-04T162846-phase3-fix-iter1.md
+│       └── 2026-10-04T181055-phase3-review-iter2.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -568,10 +569,34 @@ VistaColosseum/
 │       │   ├── flutter-test-has-market.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-iter-2/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-3-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── review-phase-3-iter-2-probe/
+│       │   ├── cta_probe.log
+│       │   ├── cta_probe_test.dart
+│       │   ├── h1_probe.log
+│       │   ├── h1_probe_test.dart
+│       │   ├── mm_probe_head.log
+│       │   ├── mm_probe_main.log
+│       │   ├── mm_probe_test.dart
+│       │   ├── mut-AC1-AC2-no-padding-reserve-home_screen_test.log
+│       │   ├── mut-AC1-AC2-no-pill-in-builder-home_screen_test.log
+│       │   ├── mut-AC1-AC2-no-pill-in-builder-scenario_test.log
+│       │   ├── mut-AC3-blank-simulated-label-order_ticket_test.log
+│       │   ├── mut-H1-revert-isScrollControlled-home_screen_test.log
+│       │   ├── mut-H1-revert-probe.log
+│       │   ├── mut-M2-no-popUntil-home_screen_test.log
+│       │   ├── mut-M2-no-popUntil-scenario_test.log
+│       │   ├── mutate.py
+│       │   ├── settings_reset_probe.log
+│       │   └── settings_reset_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── house-rules.md

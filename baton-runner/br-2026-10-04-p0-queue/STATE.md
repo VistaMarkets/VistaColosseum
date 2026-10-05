@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 3 of 8  unit: REVIEW
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T162846-phase3-fix-iter1.md
-units_used: 14
+phase: 3 of 8  unit: DW
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T181055-phase3-review-iter2.md
+units_used: 15
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -27,7 +27,7 @@ phases:
   - id: phase-3  spec: docs/specs/03-simulation-indicator.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-3  base: main  pr: -
     digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-3.md  review_record: docs/reviews/2026-10-04-dw-review-phase-3-simulation-indicator.md  fixer_report: baton-runner/br-2026-10-04-p0-queue/fixer-phase-3.json
-    units: 3  state: RUNNING  (work COMPLETE; old-shape review iter 1 ISSUES H1; fix iter 1 COMPLETE, gate PASS 225)
+    units: 4  state: RUNNING  (work COMPLETE; fix iter 1 COMPLETE; managed REVIEW GATE-OK 225 tests, criteria 3/3, H0/M1/L6)
   - id: phase-4  spec: docs/specs/04-arena-sort-filter-join.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: feat/br-2026-10-04-p0-queue/phase-3  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 0  state: PENDING
   - id: phase-5  spec: docs/specs/05-maker-suggestion-card.md  readiness: READY  work_agent: general-purpose
