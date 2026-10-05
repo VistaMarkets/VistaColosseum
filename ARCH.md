@@ -471,7 +471,8 @@ VistaColosseum/
 │       ├── 2026-10-04T181055-phase3-review-iter2.md
 │       ├── 2026-10-04T184857-phase3-close.md
 │       ├── 2026-10-04T190310-phase4-arena-checkpoint.md
-│       └── 2026-10-04T190946-phase4-arena-sort-filter-join.md
+│       ├── 2026-10-04T190946-phase4-arena-sort-filter-join.md
+│       └── 2026-10-04T191813-phase4-review-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -590,6 +591,11 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-4-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-4-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test-has-market.log
@@ -619,6 +625,32 @@ VistaColosseum/
 │       │   ├── mutate.py
 │       │   ├── settings_reset_probe.log
 │       │   └── settings_reset_probe_test.dart
+│       ├── review-phase-4-iter-1-probe/
+│       │   ├── arena_layout_probe.log
+│       │   ├── arena_layout_probe_test.dart
+│       │   ├── mut-arena-no-clashId-home_screen_test.log
+│       │   ├── mut-ask-field-ignores-reset-home_screen_test.log
+│       │   ├── mut-ask-no-filter-home_screen_test.log
+│       │   ├── mut-buckets-constant-home_screen_test.log
+│       │   ├── mut-card-ignores-joins-home_screen_test.log
+│       │   ├── mut-failure-joins-scenario_test.log
+│       │   ├── mut-joins-ignore-side-scenario_test.log
+│       │   ├── mut-label-dock-home_screen_test.log
+│       │   ├── mut-label-header-home_screen_test.log
+│       │   ├── mut-label-panel-home_screen_test.log
+│       │   ├── mut-list-ignores-range-home_screen_test.log
+│       │   ├── mut-no-participation-write-home_screen_test.log
+│       │   ├── mut-no-participation-write-scenario_test.log
+│       │   ├── mut-opinions-hardcode-btc-home_screen_test.log
+│       │   ├── mut-opinions-no-clashId-home_screen_test.log
+│       │   ├── mut-panel-counts-all-home_screen_test.log
+│       │   ├── mut-replay-not-deduped-scenario_test.log
+│       │   ├── mut-reset-keeps-arena-scenario_test.log
+│       │   ├── mut-reset-keeps-participation-scenario_test.log
+│       │   ├── mut-show-all-noop-home_screen_test.log
+│       │   ├── mut-sort-chips-all-volume-home_screen_test.log
+│       │   ├── mut-sort-no-tiebreak-home_screen_test.log
+│       │   └── mutate.py
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md

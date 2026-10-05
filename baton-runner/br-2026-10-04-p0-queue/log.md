@@ -71,3 +71,5 @@
 2026-10-05T02:11:38Z return: phase 4 WORK unit COMPLETE; progress=criteria 2/2; files 10; gate PASS 233 (HAS_MARKET 233); baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T190946-phase4-arena-sort-filter-join.md; commit c232ca8 (pre-rebase); units 19/75
 2026-10-05T02:11:38Z merge (user instruction): #13 squash-merged to main c95349c; phase-3 branch deleted local+remote; phase-4 replayed onto main (--onto origin/main c6d4a4f), tree identical; phase-4 base is now main
 2026-10-05T02:11:38Z spawn: phase 4 REVIEW unit (managed: gate + criteria)
+2026-10-05T02:25:49Z return: phase 4 REVIEW (managed) COMPLETE; VERDICT GATE-OK; gate PASS 233 (HAS_MARKET 233); criteria 2/2; mutants 21/21 killed; findings H0/M1/L6; M1 = Wallet position references the clash as a data field only; baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T191813-phase4-review-iter1.md; units 20/75
+2026-10-05T02:25:49Z decision (manager): spec 04 Behavior "Wallet position for that fill references the clash" is met by the data-field reference; a Wallet UI label for it is not in spec 04 and is not a gap for this phase.

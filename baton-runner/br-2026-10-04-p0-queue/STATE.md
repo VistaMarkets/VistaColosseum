@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 4 of 8  unit: REVIEW
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T190946-phase4-arena-sort-filter-join.md
-units_used: 19
+phase: 4 of 8  unit: DW
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T191813-phase4-review-iter1.md
+units_used: 20
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -30,7 +30,7 @@ phases:
     units: 7  state: DONE  head: c6d4a4f  gate: PASS @ ee8f52c (225 tests)  skeptic: APPROVE @ 42ae15b
     fixer: 4 confirmed, 3 applied (F2 F3 F4), 1 annotated real-but-decided-elsewhere (F1 tap target, user design call)
   - id: phase-4  spec: docs/specs/04-arena-sort-filter-join.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: main  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 1  state: RUNNING  (work COMPLETE, gate PASS 233)
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: main  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 2  state: RUNNING  (work COMPLETE; REVIEW GATE-OK 233, criteria 2/2, H0/M1/L6)
   - id: phase-5  spec: docs/specs/05-maker-suggestion-card.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-5  base: feat/br-2026-10-04-p0-queue/phase-4  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-5.md  units: 0  state: PENDING
   - id: phase-6  spec: docs/specs/06-fee-ledger-and-receipts.md  readiness: READY  work_agent: general-purpose

@@ -1,0 +1,45 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-4-iter-1-probe/mut-app/test/arena_layout_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: arena panel, last card, Show all, Ask hint on 360x640
+PROBE 360x640 list viewport=Rect.fromLTRB(0.0, 130.0, 360.0, 411.0)
+PROBE 360x640 slider rect=Rect.fromLTRB(16.0, 506.0, 344.0, 530.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 count rect=Rect.fromLTRB(270.3, 426.5, 344.0, 446.5) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 nav rect=Rect.fromLTRB(16.0, 540.0, 344.0, 604.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 last card Bear rect=Rect.fromLTRB(185.0, 335.0, 339.0, 381.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 Show all rect=Rect.fromLTRB(16.0, 177.0, 344.0, 223.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 Ask hint rect=Rect.fromLTRB(102.6, 177.0, 257.4, 197.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+00:01 +1: ETH opinions dock and header on 360x640
+PROBE 360x640 text: Crowd split 28% bull
+PROBE 360x640 text: Crowd split · 9 opinions
+PROBE 360x640 on opinions: 1
+PROBE 360x640 Follow Bear rect=Rect.fromLTRB(200.4, 573.5, 327.6, 600.5) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 dock label rect=Rect.fromLTRB(98.6, 494.0, 262.4, 511.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlaps=false
+PROBE 360x640 dock label overflow=false
+00:01 +2: arena panel, last card, Show all, Ask hint on 375x667
+PROBE 375x667 list viewport=Rect.fromLTRB(0.0, 126.0, 375.0, 438.0)
+PROBE 375x667 slider rect=Rect.fromLTRB(16.0, 533.0, 359.0, 557.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 count rect=Rect.fromLTRB(285.3, 453.5, 359.0, 473.5) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 nav rect=Rect.fromLTRB(16.0, 567.0, 359.0, 631.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 last card Bear rect=Rect.fromLTRB(192.5, 362.0, 354.0, 408.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 Show all rect=Rect.fromLTRB(16.0, 173.0, 359.0, 219.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 Ask hint rect=Rect.fromLTRB(110.1, 173.0, 264.9, 193.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+00:02 +3: ETH opinions dock and header on 375x667
+PROBE 375x667 text: Crowd split 28% bull
+PROBE 375x667 text: Crowd split · 9 opinions
+PROBE 375x667 on opinions: 1
+PROBE 375x667 Follow Bear rect=Rect.fromLTRB(211.7, 600.5, 338.8, 627.5) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 dock label rect=Rect.fromLTRB(106.1, 521.0, 269.9, 538.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlaps=false
+PROBE 375x667 dock label overflow=false
+00:02 +4: (tearDownAll)
+00:02 +4: All tests passed!
