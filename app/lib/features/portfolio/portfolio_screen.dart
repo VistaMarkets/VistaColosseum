@@ -198,7 +198,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       constraints: const BoxConstraints(minHeight: 50),
       child: Row(
         children: [
-          // The ledger's sum, never a stored figure; opens the ledger.
+          // Market credits only (spec 06): the ledger Total adds copy fees.
+          // Never a stored figure; opens the ledger.
           Expanded(
             child: Semantics(
               button: true,

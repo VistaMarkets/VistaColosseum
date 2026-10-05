@@ -183,6 +183,37 @@ void main() {
     expect(find.text(formatCents(0)), findsOneWidget);
   });
 
+  testWidgets('a copy fee with no market credits shows no empty state and '
+      'is the total', (tester) async {
+    // Listed fresh at the demo's now: every seeded credit predates it, so
+    // the copy row below is the only entry listed.
+    Scenario.reset(withMarket: false);
+    AccountState.listMarket(PortfolioMock.marketSymbol);
+    expect(Scenario.marketFees, isEmpty);
+    final copy = FeeEntry(
+      id: 'copy-test',
+      marketId: PortfolioMock.marketSymbol,
+      eventTitle: 'Copy fee',
+      amountCents: kCopyFeeCents,
+      at: Scenario.clock.value,
+      kind: FeeKind.copyFee,
+      counterparty: PortfolioMock.copierHandle,
+      asset: 'ETH',
+    );
+    Scenario.feeEntries.value = [copy, ...Scenario.feeEntries.value];
+    await pumpApp(tester, home: const LedgerScreen());
+    expect(find.text('No fee credits yet'), findsNothing);
+    expect(find.text('COPY FEES'), findsOneWidget);
+    expect(
+      find.text('Copy fee · @${PortfolioMock.copierHandle} · ETH'),
+      findsOneWidget,
+    );
+    // The row and the Total agree; the Wallet row and chip stay at the
+    // market credits (spec 06), here none.
+    expect(find.text(formatCents(kCopyFeeCents)), findsNWidgets(2));
+    expect(Scenario.marketFeesCents, 0);
+  });
+
   test('a fresh listing earns nothing until a credit lands after it; the '
       'HAS_MARKET seed counts its week; reset restores both', () {
     // The HAS_MARKET seed: listed before every seeded credit.

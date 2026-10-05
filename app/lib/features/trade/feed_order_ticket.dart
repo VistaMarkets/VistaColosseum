@@ -6,20 +6,28 @@ part of 'order_ticket.dart';
 /// take profit / stop loss on one track anchored at entry. [onDetails] is the
 /// card's own Details. Simulated: a market order is reviewed, then fills
 /// into Wallet; a limit order goes to Portfolio › Open orders. Nothing is
-/// sent.
+/// sent. Opened from a call, it carries [sourceCallId] and
+/// [sourceAuthorHandle]: someone else's call is a copy (VC-CPY-001).
 Future<void> showFeedOrderTicket(
   BuildContext context, {
   required String symbol,
   required TradeSide side,
   VoidCallback? onDetails,
+  String? sourceCallId,
+  String? sourceAuthorHandle,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x73000000),
-    builder: (_) =>
-        FeedOrderTicket(symbol: symbol, side: side, onDetails: onDetails),
+    builder: (_) => FeedOrderTicket(
+      symbol: symbol,
+      side: side,
+      onDetails: onDetails,
+      sourceCallId: sourceCallId,
+      sourceAuthorHandle: sourceAuthorHandle,
+    ),
   );
 }
 
@@ -29,11 +37,17 @@ class FeedOrderTicket extends StatefulWidget {
     required this.symbol,
     required this.side,
     this.onDetails,
+    this.sourceCallId,
+    this.sourceAuthorHandle,
   });
 
   final String symbol;
   final TradeSide side;
   final VoidCallback? onDetails;
+
+  /// The call the ticket opened from, if any.
+  final String? sourceCallId;
+  final String? sourceAuthorHandle;
 
   /// Leverage offered as buttons; anything else is "custom".
   static const presets = [2, 5, 10];
@@ -91,6 +105,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     icon: _market.icon,
     takeProfit: _exits ? _exitPrice(_tpPct, gain: true) : null,
     stopLoss: _exits ? _exitPrice(_slPct, gain: false) : null,
+    sourceCallId: widget.sourceCallId,
+    sourceAuthorHandle: widget.sourceAuthorHandle,
   );
 
   /// "1,234.5" → 123450, without going through `double`.
@@ -275,10 +291,17 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                           final stop = FeedOrderTicket.amountStops.reduce(
                             (a, b) => (f - a).abs() <= (f - b).abs() ? a : b,
                           );
-                          // Max leaves room for the fee, so it can be placed.
+                          // Max leaves room for the fee and a market copy's
+                          // copy fee, so it can be placed.
                           final m = math.min(
                             (_cash * stop).round(),
-                            Scenario.maxMarginCents(_leverage, _intent.feeBps),
+                            Scenario.maxMarginCents(
+                              _leverage,
+                              _intent.feeBps,
+                              copyFeeCents: _limit
+                                  ? 0
+                                  : Scenario.copyFeeCents(_intent),
+                            ),
                           );
                           if (m == _marginCents) return;
                           HapticFeedback.selectionClick();

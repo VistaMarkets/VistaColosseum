@@ -137,6 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             symbol: idea.ticker,
                             side: idea.side,
+                            sourceCallId: '${idea.callerHandle}/${idea.ticker}',
+                            sourceAuthorHandle: idea.callerHandle,
                             onDetails: () => Navigator.of(context).push(
                               idea.traderMarket
                                   ? TraderMarketScreen.route(idea.ticker)
