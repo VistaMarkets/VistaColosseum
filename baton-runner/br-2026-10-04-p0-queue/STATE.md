@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-04-p0-queue
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue
-phase: 4 of 8  unit: WORK
-current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T184857-phase3-close.md
-units_used: 18
+phase: 4 of 8  unit: REVIEW
+current_baton: baton-pass/br-2026-10-04-p0-queue/2026-10-04T190946-phase4-arena-sort-filter-join.md
+units_used: 19
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -25,12 +25,12 @@ phases:
     phase_branch: feat/br-2026-10-04-p0-queue/phase-2 (deleted after merge)  base: main  pr: https://github.com/VistaMarkets/VistaColosseum/pull/12 (MERGED d77fe59; #11 closed unmerged)
     digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-2.md  units: 6  state: DONE  gate: PASS (212 tests)  review: multi-agent-review x3, final C0/H0/M1/L16
   - id: phase-3  spec: docs/specs/03-simulation-indicator.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-3  base: main  pr: https://github.com/VistaMarkets/VistaColosseum/pull/13 (draft)
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-3 (deleted after merge)  base: main  pr: https://github.com/VistaMarkets/VistaColosseum/pull/13 (MERGED c95349c)
     digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-3.md  review_record: docs/reviews/2026-10-04-dw-review-phase-3-simulation-indicator.md  fixer_report: baton-runner/br-2026-10-04-p0-queue/fixer-phase-3.json
     units: 7  state: DONE  head: c6d4a4f  gate: PASS @ ee8f52c (225 tests)  skeptic: APPROVE @ 42ae15b
     fixer: 4 confirmed, 3 applied (F2 F3 F4), 1 annotated real-but-decided-elsewhere (F1 tap target, user design call)
   - id: phase-4  spec: docs/specs/04-arena-sort-filter-join.md  readiness: READY  work_agent: general-purpose
-    phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: feat/br-2026-10-04-p0-queue/phase-3  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 0  state: RUNNING
+    phase_branch: feat/br-2026-10-04-p0-queue/phase-4  base: main  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-4.md  units: 1  state: RUNNING  (work COMPLETE, gate PASS 233)
   - id: phase-5  spec: docs/specs/05-maker-suggestion-card.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-04-p0-queue/phase-5  base: feat/br-2026-10-04-p0-queue/phase-4  pr: -  digest: baton-runner/br-2026-10-04-p0-queue/digest-phase-5.md  units: 0  state: PENDING
   - id: phase-6  spec: docs/specs/06-fee-ledger-and-receipts.md  readiness: READY  work_agent: general-purpose

@@ -68,3 +68,6 @@
 2026-10-05T01:53:22Z pr: phase 3 draft https://github.com/VistaMarkets/VistaColosseum/pull/13 (base main) at c6d4a4f
 2026-10-05T01:53:22Z branch: feat/br-2026-10-04-p0-queue/phase-4 cut from phase-3 tip
 2026-10-05T01:53:22Z spawn: phase 4 WORK unit (opus, general-purpose) spec docs/specs/04-arena-sort-filter-join.md; continuity digests 1-3
+2026-10-05T02:11:38Z return: phase 4 WORK unit COMPLETE; progress=criteria 2/2; files 10; gate PASS 233 (HAS_MARKET 233); baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T190946-phase4-arena-sort-filter-join.md; commit c232ca8 (pre-rebase); units 19/75
+2026-10-05T02:11:38Z merge (user instruction): #13 squash-merged to main c95349c; phase-3 branch deleted local+remote; phase-4 replayed onto main (--onto origin/main c6d4a4f), tree identical; phase-4 base is now main
+2026-10-05T02:11:38Z spawn: phase 4 REVIEW unit (managed: gate + criteria)
