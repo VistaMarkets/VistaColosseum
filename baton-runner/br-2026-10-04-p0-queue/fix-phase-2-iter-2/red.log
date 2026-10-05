@@ -1,0 +1,272 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: seed → mutate everything → reset equals the fresh seed
+00:00 +1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: reset twice yields equal state
+00:00 +2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture and says so
+00:00 +3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:01 +4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:01 +5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:01 +6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:01 +7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket confirm adds a position and View in Wallet shows it
+00:02 +8: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "$10,000.00" descending from widgets
+with type "AccountTopBar": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart:171:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart line 171
+The test description was:
+  Home, detail, Arena and Wallet read one position from Scenario
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +8 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: review and receipt render without overflow on small Android 360x640
+00:02 +8 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario [E]
+  Test failed. See exception logs above.
+  The test description was: Home, detail, Arena and Wallet read one position from Scenario
+  
+00:02 +9 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +10 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +11 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +12 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +13 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly 2 matching candidates
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "$12,443.17": []>
+   Which: means none were found but some were expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart:274:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart line 274
+The test description was:
+  placeOrder rounds once and review, receipt and Wallet totals reconcile
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +13 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +13 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile [E]
+  Test failed. See exception logs above.
+  The test description was: placeOrder rounds once and review, receipt and Wallet totals reconcile
+  
+00:02 +14 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +15 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +16 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +16 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +16 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a size the cent math cannot hold fails and changes nothing [E]
+  Expected: a value greater than <1248000>
+    Actual: <-9222449699651090332>
+     Which: is not a value greater than <1248000>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 350:5                       main.<fn>
+  
+00:02 +17 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +17 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +17 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a reduce-only market order is refused; a reduce-only limit rests [E]
+  Expected: <Instance of 'OrderFailed'> with `reason`: 'Reduce only — not in the demo yet'
+    Actual: <Instance of 'OrderFilled'>
+     Which: is not an instance of 'OrderFailed'
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 399:5                       main.<fn>
+  
+00:02 +17 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +17 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: an unset or non-finite take profit or stop loss is refused [E]
+  Expected: <Instance of 'OrderFailed'> with `reason`: 'Enter a take profit'
+    Actual: <Instance of 'OrderFilled'>
+     Which: is not an instance of 'OrderFailed'
+  a-tp0
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 431:7                       main.<fn>
+  
+00:02 +18 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +18 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +18 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a dust, non-finite or unlevered order fails and changes nothing [E]
+  Expected: <Instance of 'OrderFailed'> with `reason`: 'Size too small'
+    Actual: <Instance of 'OrderFailed'>
+     Which: has `reason` with value 'Enter a size' which is different.
+            Expected: Size too s ...
+              Actual: Enter a si ...
+                      ^
+             Differ at offset 0
+  a-dust
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/scenario_test.dart 499:7                       main.<fn>
+  
+00:02 +19 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+
+Warning: A call to tap() with finder "Found 1 widget with text "Long" (ignoring all but last): [
+  Text("Long", inherit: true, color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 17.0, weight: 700, height: 1.2x, overflow: ellipsis, maxLines: 1, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(106.0, 835.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#96366 relayoutBoundary=up13
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#b7e2d(TextSpan(inherit: true, color: Color(alpha: 1.0000, red: 0.9608, green: 0.9529, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 600, height: 1.2x, "Trader-index ticket — not in the demo yet")), RenderParagraph#3416a@Offset(75.0, 1.0), RenderPadding#63332@Offset(75.0, 15.0), RenderFlex#3ce1a@Offset(75.0, 15.0), RenderWrap#d5557@Offset(75.0, 15.0), RenderPadding#16b6e@Offset(91.0, 15.0), _RenderInkFeatures#6153b@Offset(91.0, 15.0), RenderCustomPaint#f5813@Offset(91.0, 15.0), RenderPhysicalShape#b9c8f@Offset(91.0, 15.0), RenderPadding#7f3ad@Offset(106.0, 20.0), RenderPadding#19e2c@Offset(106.0, 20.0), RenderPointerListener#ae81b@Offset(106.0, 20.0), RenderSemanticsGestureHandler#01fbf@Offset(106.0, 20.0), RenderSemanticsAnnotations#c8d01@Offset(106.0, 20.0), RenderPositionedBox#b4d5c@Offset(106.0, 20.0), RenderAnimatedOpacity#ceb46@Offset(106.0, 20.0), RenderClipRect#730b2@Offset(106.0, 20.0), RenderOffstage#df969@Offset(106.0, 20.0), RenderConstrainedBox#ac9c8@Offset(106.0, 20.0), RenderCustomMultiChildLayoutBox#1091b@Offset(106.0, 835.0), _RenderInkFeatures#0fed9@Offset(106.0, 835.0), RenderPhysicalModel#3730c@Offset(106.0, 835.0), RenderSemanticsAnnotations#94841@Offset(106.0, 835.0), RenderRepaintBoundary#c602d@Offset(106.0, 835.0), RenderIgnorePointer#1486a@Offset(106.0, 835.0), RenderAnimatedOpacity#92fab@Offset(106.0, 835.0), RenderAnimatedOpacity#bc4ba@Offset(106.0, 835.0), _RenderColoredBox#9ff05@Offset(106.0, 835.0), RenderAnimatedOpacity#23192@Offset(106.0, 835.0), RenderIgnorePointer#6deec@Offset(106.0, 835.0), RenderAnimatedOpacity#31735@Offset(106.0, 835.0), RenderRepaintBoundary#046d7@Offset(106.0, 835.0), RenderSemanticsAnnotations#d8f32@Offset(106.0, 835.0), RenderOffstage#98a43@Offset(106.0, 835.0), RenderSemanticsAnnotations#09561@Offset(106.0, 835.0), _RenderTheater#9953e@Offset(106.0, 835.0), RenderAbsorbPointer#97dd9@Offset(106.0, 835.0), RenderPointerListener#a0e83@Offset(106.0, 835.0), RenderSemanticsAnnotations#d3485@Offset(106.0, 835.0), RenderSemanticsAnnotations#6fd70@Offset(106.0, 835.0), RenderSemanticsAnnotations#dcdcc@Offset(106.0, 835.0), RenderSemanticsAnnotations#d2d3d@Offset(106.0, 835.0), RenderTapRegionSurface#21bc7@Offset(106.0, 835.0), RenderSemanticsAnnotations#57203@Offset(106.0, 835.0), RenderSemanticsAnnotations#499d1@Offset(106.0, 835.0), HitTestEntry<HitTestTarget>#a4d51(_ReusableRenderView#5ab99), HitTestEntry<HitTestTarget>#8af78(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart:252:20)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:03 +20 -6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+The finder "Found 0 widgets with text "Limit" descending from widgets with type "BottomSheet": []"
+(used in a call to "tap()") could not find any matching widgets.
+
+When the exception was thrown, this was the stack:
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2095:7)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart:255:20)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  a trader-index ticket says so and creates nothing
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +20 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing [E]
+  Test failed. See exception logs above.
+  The test description was: a trader-index ticket says so and creates nothing
+  
+00:03 +20 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +21 -7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: Retry at a moved price goes back to review; Confirm fills what was reviewed
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: [Instance of 'OrderReceipt']
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart:300:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart line 300
+The test description was:
+  Retry at a moved price goes back to review; Confirm fills what was reviewed
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +21 -8: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: Retry at a moved price goes back to review; Confirm fills what was reviewed [E]
+  Test failed. See exception logs above.
+  The test description was: Retry at a moved price goes back to review; Confirm fills what was reviewed
+  
+00:04 +21 -8: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a re-quote cash cannot cover fails with no Retry
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+The finder "Found 0 widgets with text "Confirm": []" (used in a call to "tap()") could not find any
+matching widgets.
+
+When the exception was thrown, this was the stack:
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2095:7)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart:329:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  a re-quote cash cannot cover fails with no Retry
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +21 -9: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a re-quote cash cannot cover fails with no Retry [E]
+  Test failed. See exception logs above.
+  The test description was: a re-quote cash cannot cover fails with no Retry
+  
+00:04 +21 -9: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket Retry re-quotes the same dollars at the new price, for review
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: [Instance of 'OrderReceipt']
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart:359:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart line 359
+The test description was:
+  feed ticket Retry re-quotes the same dollars at the new price, for review
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +21 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket Retry re-quotes the same dollars at the new price, for review [E]
+  Test failed. See exception logs above.
+  The test description was: feed ticket Retry re-quotes the same dollars at the new price, for review
+  
+00:05 +21 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on small Android 360x640
+00:05 +22 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone SE 375x667
+00:05 +23 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 393x852
+00:05 +24 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on Pixel 7 412x915
+00:05 +25 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 Pro Max 430x932
+00:06 +26 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket cancel from review leaves the store unchanged
+00:06 +27 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap on a limit Place rests one order and closes only the ticket
+00:06 +28 -10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: (tearDownAll)
+00:06 +28 -10: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: Retry at a moved price goes back to review; Confirm fills what was reviewed
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a re-quote cash cannot cover fails with no Retry
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket Retry re-quotes the same dollars at the new price, for review
+  ... and 6 more

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../profile/profile_screen.dart';
 import 'follow_mock.dart';
 
@@ -24,11 +25,12 @@ class _FollowListScreenState extends State<FollowListScreen> {
   final _search = TextEditingController();
   String _query = '';
 
-  /// Follow state by handle; seeded from the mock, toggled locally.
-  final Map<String, bool> _following = {
-    for (final p in [...FollowMock.followers, ...FollowMock.following])
-      p.handle: p.following,
-  };
+  /// The lists and who the user follows, from the store.
+  final _follows = Listenable.merge([
+    Scenario.followers,
+    Scenario.following,
+    Scenario.followed,
+  ]);
 
   @override
   void dispose() {
@@ -46,10 +48,16 @@ class _FollowListScreenState extends State<FollowListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final people = (_tab == 0 ? FollowMock.followers : FollowMock.following)
-        .where((p) => p.handle.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _follows,
+    builder: (context, _) => _build(),
+  );
+
+  Widget _build() {
+    final people =
+        (_tab == 0 ? Scenario.followers.value : Scenario.following.value)
+            .where((p) => p.handle.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -99,7 +107,9 @@ class _FollowListScreenState extends State<FollowListScreen> {
                       separatorBuilder: (_, _) => const VistaListDivider(),
                       itemBuilder: (context, i) {
                         final p = people[i];
-                        final following = _following[p.handle] ?? false;
+                        final following = Scenario.followed.value.contains(
+                          p.handle,
+                        );
                         return VistaPersonRow(
                           name: p.handle,
                           stats: p.stats,
@@ -111,10 +121,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
                                   .push(ProfileScreen.route(p.handle)),
                           trailing: VistaFollowButton(
                             following: following,
-                            // Local only: nothing is sent anywhere.
-                            onPressed: () => setState(
-                              () => _following[p.handle] = !following,
-                            ),
+                            onPressed: () => Scenario.toggleFollow(p.handle),
                           ),
                         );
                       },

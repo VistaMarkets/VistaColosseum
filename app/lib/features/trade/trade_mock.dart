@@ -44,13 +44,9 @@ class CallerPost {
     required this.takeProfit,
     required this.stopLoss,
     required this.message,
-    this.following = true,
   });
 
   final String handle;
-
-  /// Whether the user follows this caller (the "Following" filter).
-  final bool following;
   final String age;
   final TradeSide side;
   final int leverage;
@@ -71,6 +67,14 @@ class CallerPost {
 /// ("Trade — BTC"). The chart and panels are the BTC sample for every
 /// asset; the header uses each asset's own quote. Simulated.
 abstract final class TradeMock {
+  /// Trading fees in basis points: taker 0.05%, maker 0.02%.
+  static const takerFeeBps = 5;
+  static const makerFeeBps = 2;
+
+  /// The scripted failure: AVAX's price context starts expired, so a market
+  /// order on it fails with "Price expired" until Retry refreshes it.
+  static const stalePrices = {'AVAX'};
+
   static const quotes = {
     'BTC': AssetQuote(
       ticker: 'BTC',
@@ -284,8 +288,7 @@ abstract final class TradeMock {
   static const callersLong = 8;
   static const callersShort = 4;
 
-  /// Callers' posts, newest first; `following` marks people the user
-  /// follows.
+  /// Callers' posts, newest first.
   static const callers = [
     CallerPost(
       handle: 'vega',
@@ -299,7 +302,6 @@ abstract final class TradeMock {
       message:
           'Third tap of the same ceiling today and volume is fading each '
           'time. Short with a stop just above it.',
-      following: false,
     ),
     CallerPost(
       handle: 'lunaq',
@@ -338,7 +340,6 @@ abstract final class TradeMock {
       message:
           'Bought the dip into support I have been watching all week. '
           'Adding more only if it holds on the daily close.',
-      following: false,
     ),
     CallerPost(
       handle: '0xreal',
@@ -364,7 +365,6 @@ abstract final class TradeMock {
       stopLoss: 0.996,
       message:
           'Scalp. Liquidity swept below the lows and snapped straight back.',
-      following: false,
     ),
     CallerPost(
       handle: 'deltaone',
@@ -391,7 +391,6 @@ abstract final class TradeMock {
       message:
           'Macro short, not a trade for this week. Rates and liquidity both '
           'point the same way to me.',
-      following: false,
     ),
   ];
 }

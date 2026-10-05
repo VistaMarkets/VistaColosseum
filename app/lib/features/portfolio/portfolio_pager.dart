@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
 import 'portfolio_mock.dart';
 import 'series_chart.dart';
@@ -56,7 +57,9 @@ const double _chartHeight = 170;
 const _balanceMoves = [-15.0, 26.0, 91.0, 412.0, 937.0, 3920.0];
 const _capMoves = [-0.21e6, 0.35e6, 1.8e6, 5.6e6, -2.3e6, 31.2e6];
 
-final double _balance = parseUsd(PortfolioMock.balance);
+/// The user's cash in dollars, for the chart and its change line only; the
+/// headline shows the stored cents.
+double get _balance => Scenario.cashCents.value / 100;
 const double _cap = 44.0e6;
 
 /// The balance, live.
@@ -69,8 +72,10 @@ String _change(double start, double end, {bool millions = false}) {
   final amount = millions
       ? '\$${(d.abs() / 1e6).toStringAsFixed(1)}M'
       : formatUsd(d.abs());
-  return '${d < 0 ? '−' : '+'}$amount '
-      '(${(d.abs() / start * 100).toStringAsFixed(2)}%)';
+  final moved = '${d < 0 ? '−' : '+'}$amount';
+  // No percentage of a start at or below zero.
+  if (start <= 0) return moved;
+  return '$moved (${(d.abs() / start * 100).toStringAsFixed(2)}%)';
 }
 
 /// Opacity of the outgoing page at progress 0 → 0.5 → 1 (Figma mid-swipe
@@ -83,6 +88,16 @@ class _PortfolioPagerState extends State<PortfolioPager>
     with SingleTickerProviderStateMixin {
   /// 0 = portfolio in focus, 1 = market in focus.
   late final AnimationController _page = AnimationController(vsync: this);
+
+  /// Rebuild on a swipe or when the cash changes.
+  late final _rebuild = Listenable.merge([_page, Scenario.cashCents]);
+
+  @override
+  void didUpdateWidget(PortfolioPager oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset can unlist the market; there is then no cap page to stay on.
+    if (!widget.hasMarket) _page.value = 0;
+  }
 
   @override
   void dispose() {
@@ -125,7 +140,7 @@ class _PortfolioPagerState extends State<PortfolioPager>
         onHorizontalDragUpdate: widget.hasMarket ? _onDrag : null,
         onHorizontalDragEnd: widget.hasMarket ? _onDragEnd : null,
         child: AnimatedBuilder(
-          animation: _page,
+          animation: _rebuild,
           builder: (context, _) {
             final p = _page.value;
             return Column(
@@ -151,8 +166,7 @@ class _PortfolioPagerState extends State<PortfolioPager>
                                 return _NumberPage(
                                   caption: 'My portfolio',
                                   dots: VistaAssets.pagerDots,
-                                  value: PortfolioMock.balance,
-                                  live: true,
+                                  value: formatCents(Scenario.cashCents.value),
                                   change: _change(start, live),
                                   up: live >= start,
                                   window: spanWindows[widget.span],
@@ -222,15 +236,11 @@ class _NumberPage extends StatelessWidget {
     required this.change,
     required this.up,
     required this.window,
-    this.live = false,
   });
 
   final String caption;
   final String dots;
   final String value;
-
-  /// Roll the value with the live feed (the portfolio balance).
-  final bool live;
   final String change;
   final bool up;
 
@@ -261,14 +271,7 @@ class _NumberPage extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: live
-              ? LiveUsd(
-                  feedKey: 'portfolio',
-                  base: parseUsd(value),
-                  step: 9,
-                  style: VistaType.display,
-                )
-              : Text(value, style: VistaType.display),
+          child: VistaRollingNumber(value, style: VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(

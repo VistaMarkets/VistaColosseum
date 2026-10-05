@@ -420,13 +420,17 @@ VistaColosseum/
 │   │   │   └── watchlist/  — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 │   │   │       ├── edit_favorites_screen.dart
 │   │   │       └── watchlist_state.dart
+│   │   ├── scenario/
+│   │   │   └── scenario.dart
 │   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
 │   │   ├── home_screen_test.dart
+│   │   ├── order_ticket_test.dart
 │   │   ├── replay_live_test.dart
-│   │   └── rolling_number_test.dart
+│   │   ├── rolling_number_test.dart
+│   │   └── scenario_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   └── app_icon/
 │   │       ├── app_icon_1024.png
@@ -439,6 +443,123 @@ VistaColosseum/
 │   ├── pubspec.lock
 │   ├── pubspec.yaml
 │   └── README.md
+├── baton-pass/
+│   └── br-2026-10-04-p0-queue/
+│       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
+│       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
+│       ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
+│       ├── 2026-10-04T101019-phase1-scenario-store-half2.md
+│       ├── 2026-10-04T105011-phase1-review-iter1.md
+│       ├── 2026-10-04T105911-phase1-fix-iter1.md
+│       ├── 2026-10-04T114637-phase1-review-iter2.md
+│       ├── 2026-10-04T115639-phase2-order-store-checkpoint.md
+│       ├── 2026-10-04T120621-phase2-truthful-order-confirm.md
+│       ├── 2026-10-04T124925-phase2-review-iter1.md
+│       ├── 2026-10-04T125834-phase2-fix-iter1.md
+│       ├── 2026-10-04T135405-phase2-review-iter2.md
+│       ├── 2026-10-04T140130-phase2-fix-iter2.md
+│       └── 2026-10-04T150315-phase2-review-iter3.md
+├── baton-runner/
+│   └── br-2026-10-04-p0-queue/
+│       ├── fix-phase-2-iter-2/
+│       │   ├── gate/
+│       │   │   ├── flutter-analyze.log
+│       │   │   ├── flutter-test.log
+│       │   │   └── pubspec-frozen.log
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   ├── green-targeted.log
+│       │   ├── mutant-A-confirm-guard.log
+│       │   ├── mutant-B-retry-guard.log
+│       │   ├── mutant-C-market-only-notBuilt.log
+│       │   ├── mutant-D-fee-round.log
+│       │   ├── mutant-E-units-isFinite.log
+│       │   ├── mutant-F-retry-any-failure.log
+│       │   └── red.log
+│       ├── gate-phase-1-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-1-iter-2/
+│       │   ├── extra-flutter-test-has-market-true.log
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-2-fix-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-2-iter-1/
+│       │   ├── console.txt
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-2-iter-2/
+│       │   ├── h1-probe/
+│       │   │   ├── h1-probe.log
+│       │   │   ├── h1_probe_test.dart
+│       │   │   └── overflow_probe_test.dart
+│       │   ├── console.txt
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-2-iter-3/
+│       │   ├── has-market/
+│       │   │   └── flutter-test-has-market.log
+│       │   ├── probe/
+│       │   │   ├── iter3-probe.log
+│       │   │   └── iter3_probe_test.dart
+│       │   ├── review-probes/
+│       │   │   ├── architect-reviewer/
+│       │   │   │   ├── arch-probe.log
+│       │   │   │   ├── arch-probe2.log
+│       │   │   │   ├── arch_probe2_test.dart
+│       │   │   │   └── arch_probe_test.dart
+│       │   │   ├── code-reviewer/
+│       │   │   │   ├── cr_changeline_probe.log
+│       │   │   │   ├── cr_changeline_probe_test.dart
+│       │   │   │   ├── cr_iter3_probe.log
+│       │   │   │   ├── cr_iter3_probe_test.dart
+│       │   │   │   ├── cr_nofont_probe.log
+│       │   │   │   ├── cr_nofont_probe_test.dart
+│       │   │   │   └── parse_cents_probe.dart
+│       │   │   ├── critical-thinking/
+│       │   │   │   ├── ct-probe.log
+│       │   │   │   ├── ct_probe2_test.dart
+│       │   │   │   └── ct_probe_test.dart
+│       │   │   ├── fintech-engineer/
+│       │   │   │   ├── fintech-probe.log
+│       │   │   │   ├── fintech-probe2.log
+│       │   │   │   ├── fintech_probe2_test.dart
+│       │   │   │   ├── fintech_probe_test.dart
+│       │   │   │   └── parse_cents.dart
+│       │   │   ├── silent-failure-hunter/
+│       │   │   │   ├── sfh-overflow-probe.log
+│       │   │   │   ├── sfh-probe.log
+│       │   │   │   ├── sfh_overflow_probe_test.dart
+│       │   │   │   ├── sfh_probe_test.dart
+│       │   │   │   └── wrap.dart
+│       │   │   └── tdd-guide/
+│       │   │       └── tdd_probe_test.dart
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── digest-phase-1.md
+│       ├── digest-phase-2.md
+│       ├── log.md
+│       ├── review-phase-1-iter-1-prelude.md
+│       ├── review-phase-1-iter-1.md
+│       ├── review-phase-1-iter-2-prelude.md
+│       ├── review-phase-1-iter-2.md
+│       ├── review-phase-2-iter-1.md
+│       ├── review-phase-2-iter-2-prelude.md
+│       ├── review-phase-2-iter-2.md
+│       ├── review-phase-2-iter-3.md
+│       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
 │   │   ├── domain.md
@@ -452,8 +573,22 @@ VistaColosseum/
 │   │   ├── 2026-10-01-vc-hackathon-master-prd.md
 │   │   ├── 2026-10-01-vc-hackathon-roadmap.md
 │   │   └── 2026-10-04-open-decisions-recommendations.md
-│   └── prompts/
-│       └── social-market-demo-brief-prompt.md
+│   ├── prompts/
+│   │   └── social-market-demo-brief-prompt.md
+│   ├── reviews/
+│   │   └── 2026-10-04-spec-00-baton-queue-review.md
+│   └── specs/
+│       ├── 00-baton-queue.md
+│       ├── 01-scenario-store.md
+│       ├── 02-truthful-order-confirm.md
+│       ├── 03-simulation-indicator.md
+│       ├── 04-arena-sort-filter-join.md
+│       ├── 05-maker-suggestion-card.md
+│       ├── 06-fee-ledger-and-receipts.md
+│       ├── 07-trader-record-panel.md
+│       └── 08-list-empty-failed-states.md
+├── scripts/
+│   └── gate.sh
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories

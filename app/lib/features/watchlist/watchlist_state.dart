@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 
-import '../markets/markets_mock.dart';
+import '../../scenario/scenario.dart';
 
 /// Favourite assets and trader markets, shared by every star in the app
 /// (Explore rows and Favourites rail, the asset and trader market pages).
 ///
 /// Lists keep the order items were starred, newest last, so the rail reads
-/// in follow order as the backend lists it. Held in memory: the demo sends
-/// nothing and favourites reset when the app restarts.
+/// in follow order as the backend lists it. The lists live in [Scenario]:
+/// the demo sends nothing and favourites reset on restart or Reset demo.
 ///
 /// - [assets] is the backend's followed-markets relation: the watchlist is
 ///   asset follow, toggled one at a time by `PUT` / `DELETE
@@ -15,15 +15,8 @@ import '../markets/markets_mock.dart';
 /// - [traders] has no backend relation yet (the only trader relation is
 ///   Follow, a separate button), so it stays on the device.
 abstract final class WatchlistState {
-  static final assets = ValueNotifier<List<String>>(_assetDefaults);
-  static final traders = ValueNotifier<List<String>>(_traderDefaults);
-
-  static final _assetDefaults = List<String>.unmodifiable(
-    MarketsMock.assetFavorites,
-  );
-  static final _traderDefaults = List<String>.unmodifiable(
-    MarketsMock.traderFavorites,
-  );
+  static ValueNotifier<List<String>> get assets => Scenario.favoriteAssets;
+  static ValueNotifier<List<String>> get traders => Scenario.favoriteTraders;
 
   static bool isAsset(String id) => assets.value.contains(id);
   static bool isTrader(String handle) => traders.value.contains(handle);
@@ -46,10 +39,5 @@ abstract final class WatchlistState {
     final items = [...list.value];
     items.insert(to, items.removeAt(from));
     list.value = List.unmodifiable(items);
-  }
-
-  static void reset() {
-    assets.value = _assetDefaults;
-    traders.value = _traderDefaults;
   }
 }

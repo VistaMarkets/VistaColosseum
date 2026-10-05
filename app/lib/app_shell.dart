@@ -12,6 +12,10 @@ import 'features/portfolio/portfolio_screen.dart';
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
+  /// The selected tab, so a sheet anywhere can switch it (View in Wallet).
+  static final tab = ValueNotifier<int>(0);
+  static const wallet = 3;
+
   @override
   State<AppShell> createState() => _AppShellState();
 }
@@ -19,7 +23,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   static const _home = 0;
   static const _arena = 2;
-  static const _wallet = 3;
+  static const _wallet = AppShell.wallet;
 
   static const _navItems = [
     VistaNavItem(label: 'Home', asset: VistaAssets.navHome),
@@ -30,9 +34,25 @@ class _AppShellState extends State<AppShell> {
 
   /// Opening tab; `--dart-define=START_TAB=wallet` opens on Wallet (handy for
   /// screenshots and recording the demo).
-  int _tab = const String.fromEnvironment('START_TAB') == 'wallet'
-      ? _wallet
-      : _home;
+  int get _tab => AppShell.tab.value;
+
+  @override
+  void initState() {
+    super.initState();
+    AppShell.tab
+      ..value = const String.fromEnvironment('START_TAB') == 'wallet'
+          ? _wallet
+          : _home
+      ..addListener(_onTab);
+  }
+
+  void _onTab() => setState(() {});
+
+  @override
+  void dispose() {
+    AppShell.tab.removeListener(_onTab);
+    super.dispose();
+  }
 
   void _notBuilt(String what) {
     ScaffoldMessenger.of(context)
@@ -41,7 +61,7 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _select(int i) {
-    setState(() => _tab = i);
+    AppShell.tab.value = i;
   }
 
   /// Bottom dock timing: the Arena panel folding in and out.

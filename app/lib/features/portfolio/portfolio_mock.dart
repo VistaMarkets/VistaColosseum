@@ -6,6 +6,7 @@ import '../live/market_prices.dart';
 /// One open position. Demo data only; nothing here is a real balance.
 class PortfolioPosition {
   const PortfolioPosition({
+    required this.id,
     required this.title,
     required this.side,
     required this.leverage,
@@ -13,10 +14,15 @@ class PortfolioPosition {
     required this.pnl,
     required this.pnlPercent,
     required this.detail,
+    required this.notionalCents,
+    required this.marginCents,
     this.coinAsset,
     this.initial,
+    this.clashId,
   });
 
+  /// The order's action id for a fill; a fixed id for a seed position.
+  final String id;
   final String title;
   final TradeSide side;
   final int leverage;
@@ -31,6 +37,13 @@ class PortfolioPosition {
   /// Sheet content. Only Ethereum's is designed (Figma 104:110); Solana's
   /// and 0xreal's are placeholders consistent with their rows.
   final PositionDetail detail;
+
+  /// Size and the margin it holds, in cents, as filled (never recomputed).
+  final int notionalCents;
+  final int marginCents;
+
+  /// The Arena clash a fill joined, if any (unit 04).
+  final String? clashId;
 
   bool get inProfit => !pnl.startsWith('−');
   Color get pnlColor => inProfit ? VistaColors.long : VistaColors.short;
@@ -69,7 +82,9 @@ class PositionDetail {
 /// Mock content from the Figma frame (174:110). Simulated.
 abstract final class PortfolioMock {
   static const handle = 'maya.eth';
-  static const balance = r'$12,480';
+
+  /// The user's cash, the Scenario seed: $12,480 in cents.
+  static const cashCents = 1248000;
   static const change24h = r'+$91 (0.73%)';
   static const fees = r'$42.80';
 
@@ -82,7 +97,10 @@ abstract final class PortfolioMock {
 
   static const positions = [
     PortfolioPosition(
+      id: 'p-eth',
       title: 'Ethereum',
+      notionalCents: 400000,
+      marginCents: 80000,
       side: TradeSide.long,
       leverage: 5,
       coinAsset: VistaAssets.coinPlaceholder,
@@ -102,7 +120,10 @@ abstract final class PortfolioMock {
       ),
     ),
     PortfolioPosition(
+      id: 'p-sol',
       title: 'Solana',
+      notionalCents: 50000,
+      marginCents: 5000,
       side: TradeSide.short,
       leverage: 10,
       coinAsset: VistaAssets.coinPlaceholder,
@@ -123,7 +144,10 @@ abstract final class PortfolioMock {
       ),
     ),
     PortfolioPosition(
+      id: 'p-0xreal',
       title: '0xreal',
+      notionalCents: 6750,
+      marginCents: 6750,
       side: TradeSide.long,
       leverage: 1,
       initial: '0',
