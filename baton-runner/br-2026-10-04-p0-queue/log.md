@@ -139,3 +139,5 @@
 2026-10-05T06:57:18Z pr: phase 7 draft https://github.com/VistaMarkets/VistaColosseum/pull/19 (base feat/br-2026-10-04-p0-queue/phase-6) at ea4fcea
 2026-10-05T06:57:18Z branch: feat/br-2026-10-04-p0-queue/phase-8 cut from phase-7 tip
 2026-10-05T06:57:18Z spawn: phase 8 WORK unit (opus, general-purpose) spec docs/specs/08-list-empty-failed-states.md; continuity digests 1-7
+2026-10-05T07:13:03Z return: phase 8 WORK unit COMPLETE; progress=criteria 3/3; files 14; gate PASS 287 (HAS_MARKET 287); author calls flagged: Home feed empty state reachable only via HomeScreen(feed:) because Following does not filter (pre-existing); TraderRecordPanel note and Explore "No matches" left unstyled; baton baton-pass/br-2026-10-04-p0-queue/2026-10-05T071134-phase8-empty-failed-states.md; units 40/75
+2026-10-05T07:13:03Z spawn: phase 8 REVIEW unit (managed: gate + criteria)
