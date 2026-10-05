@@ -468,7 +468,8 @@ VistaColosseum/
 │       ├── 2026-10-04T161405-phase3-review-iter1.md
 │       ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
 │       ├── 2026-10-04T162846-phase3-fix-iter1.md
-│       └── 2026-10-04T181055-phase3-review-iter2.md
+│       ├── 2026-10-04T181055-phase3-review-iter2.md
+│       └── 2026-10-04T184857-phase3-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -558,6 +559,11 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-3-fix-1/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test-has-market.log
@@ -603,6 +609,7 @@ VistaColosseum/
 │       │   └── settings_reset_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
+│       ├── digest-phase-3.md
 │       ├── fixer-phase-3.json
 │       ├── house-rules.md
 │       ├── log.md
@@ -633,6 +640,7 @@ VistaColosseum/
 │   ├── prompts/
 │   │   └── social-market-demo-brief-prompt.md
 │   ├── reviews/
+│   │   ├── 2026-10-04-dw-review-phase-3-simulation-indicator.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md

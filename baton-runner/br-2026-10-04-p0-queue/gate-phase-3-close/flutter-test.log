@@ -1,0 +1,287 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/charting_test.dart: roundTicks BTC range lands on hundreds
+00:00 +1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +8: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +9: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +11: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +12: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +13: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +14: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +15: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +16: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +17: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +18: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +19: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +20: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:02 +21: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket confirm adds a position and View in Wallet shows it
+00:02 +22: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket confirm adds a position and View in Wallet shows it
+00:02 +23: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +24: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +25: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +26: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +27: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +28: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Home renders without overflow on Pixel 7 412x915
+00:03 +29: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Home renders without overflow on Pixel 7 412x915
+00:03 +30: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Home renders without overflow on Pixel 7 412x915
+00:03 +31: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:03 +32: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:03 +33: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:03 +34: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:04 +35: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+00:04 +36: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Portfolio renders without overflow on iPhone SE 375x667
+00:04 +37: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +38: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +39: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +40: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +41: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +42: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +43: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +44: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +45: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +46: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +47: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +48: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +49: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +50: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:04 +51: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Portfolio renders without overflow on Pixel 7 412x915
+00:04 +52: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Portfolio renders without overflow on Pixel 7 412x915
+00:04 +53: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Portfolio renders without overflow on Pixel 7 412x915
+00:04 +54: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket Retry re-quotes the same dollars at the new price, for review
+00:05 +55: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket Retry re-quotes the same dollars at the new price, for review
+00:05 +56: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Portfolio survives 1.3x text scaling on the smallest phone
+00:05 +57: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on small Android 360x640
+00:05 +58: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Home survives 1.3x text scaling on the smallest phone
+00:06 +59: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone SE 375x667
+00:06 +60: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: chart replay traces on open, then holds the finished design
+00:06 +61: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 393x852
+00:06 +62: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: chart replay replays when the next card is swiped into view
+00:06 +63: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on Pixel 7 412x915
+00:06 +64: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: chart replay fills arrive oldest first and settle at design opacity
+00:07 +65: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 Pro Max 430x932
+00:07 +66: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 Pro Max 430x932
+00:07 +67: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: portfolio pager swiping the chart moves to the market cap and back
+00:07 +68: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket cancel from review leaves the store unchanged
+00:07 +69: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: portfolio pager a short drag snaps back to where it started
+00:07 +70: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: portfolio pager a short drag snaps back to where it started
+00:07 +71: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: portfolio pager a reset that unlists the market returns to My portfolio
+00:07 +72: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: portfolio pager a change from a zero start shows no percentage
+00:08 +73: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: your market opens from Portfolio and goes back
+00:08 +74: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: your market renders without overflow on small Android 360x640
+00:08 +75: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: your market renders without overflow on iPhone SE 375x667
+00:08 +76: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: your market renders without overflow on iPhone 15 393x852
+00:09 +77: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: your market renders without overflow on Pixel 7 412x915
+00:09 +78: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: your market renders without overflow on iPhone 15 Pro Max 430x932
+00:09 +79: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list Followers chip opens Followers; tabs, search, follow
+00:09 +80: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list Following chip opens on the Following tab
+00:10 +81: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list renders without overflow on small Android 360x640
+00:10 +82: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list renders without overflow on iPhone SE 375x667
+00:10 +83: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list renders without overflow on iPhone 15 393x852
+00:10 +84: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list renders without overflow on Pixel 7 412x915
+00:11 +85: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: follow list renders without overflow on iPhone 15 Pro Max 430x932
+00:11 +86: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile opens from a follower row with their handle
+00:11 +87: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile a private account without a market opens the private layout
+00:11 +88: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile private profile renders without overflow on small Android 360x640
+00:12 +89: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile private profile renders without overflow on iPhone SE 375x667
+00:12 +90: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile private profile renders without overflow on iPhone 15 393x852
+00:12 +91: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile private profile renders without overflow on Pixel 7 412x915
+00:12 +92: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile private profile renders without overflow on iPhone 15 Pro Max 430x932
+00:12 +93: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile Home caller name opens their profile
+00:13 +94: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile renders without overflow on small Android 360x640
+00:13 +95: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile renders without overflow on iPhone SE 375x667
+00:13 +96: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile renders without overflow on iPhone 15 393x852
+00:13 +97: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile renders without overflow on Pixel 7 412x915
+00:14 +98: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: profile renders without overflow on iPhone 15 Pro Max 430x932
+00:14 +99: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market opens on the Market panel, then Portfolio and Record
+00:14 +100: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market dragging the handle down opens the chart, up brings panels
+00:15 +101: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market renders without overflow on small Android 360x640
+00:15 +102: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market renders without overflow on iPhone SE 375x667
+00:15 +103: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market renders without overflow on iPhone 15 393x852
+00:16 +104: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market renders without overflow on Pixel 7 412x915
+00:16 +105: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trader market renders without overflow on iPhone 15 Pro Max 430x932
+00:16 +106: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Explore shows markets; sort, search and favourites work
+00:17 +107: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Traders tab lists trader markets and opens one
+00:17 +108: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets asset page star and Explore stars share one watchlist
+00:17 +109: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets trader page star updates the Traders favourites
+00:17 +110: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Edit favorites removes with undo, and order drives the rail
+00:18 +111: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Edit favorites renders without overflow on small Android 360x640
+00:18 +112: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Edit favorites renders without overflow on iPhone SE 375x667
+00:18 +113: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Edit favorites renders without overflow on iPhone 15 393x852
+00:18 +114: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Edit favorites renders without overflow on Pixel 7 412x915
+00:19 +115: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets Edit favorites renders without overflow on iPhone 15 Pro Max 430x932
+00:19 +116: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets renders without overflow on small Android 360x640
+00:19 +117: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets renders without overflow on iPhone SE 375x667
+00:19 +118: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets renders without overflow on iPhone 15 393x852
+00:19 +119: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets renders without overflow on Pixel 7 412x915
+00:20 +120: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets renders without overflow on iPhone 15 Pro Max 430x932
+00:20 +121: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena Arena tab shows the battles with the crowd filter
+00:20 +122: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena sort chips stay fixed while battles scroll
+00:20 +123: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena tapping a caller opens their profile
+00:21 +124: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena renders without overflow on small Android 360x640
+00:21 +125: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena renders without overflow on iPhone SE 375x667
+00:21 +126: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena renders without overflow on iPhone 15 393x852
+00:21 +127: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena renders without overflow on Pixel 7 412x915
+00:21 +128: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: arena renders without overflow on iPhone 15 Pro Max 430x932
+00:21 +129: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: opinions more opinions opens the clash detail; filters and back
+00:22 +130: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: opinions renders without overflow on small Android 360x640
+
+Warning: A call to tap() with finder "Found 1 widget with text "+21 more opinions" (ignoring all but first): [
+  Text("+21 more opinions", inherit: true, color: Color(alpha: 1.0000, red: 0.9608, green: 0.9529, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 600, height: 1.2x, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(209.6, 464.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#786b7 relayoutBoundary=up16
+The hit test result at that offset is: HitTestResult(RenderDecoratedBox#28d05@Offset(209.6, 48.0), RenderFlex#79f0b@Offset(209.6, 464.0), RenderCustomMultiChildLayoutBox#af845@Offset(209.6, 464.0), _RenderInkFeatures#689ad@Offset(209.6, 464.0), RenderPhysicalModel#40434@Offset(209.6, 464.0), RenderSemanticsAnnotations#7a7a8@Offset(209.6, 464.0), RenderRepaintBoundary#40c1f@Offset(209.6, 464.0), RenderIgnorePointer#481a0@Offset(209.6, 464.0), RenderAnimatedOpacity#d9c60@Offset(209.6, 464.0), RenderAnimatedOpacity#37b81@Offset(209.6, 464.0), _RenderColoredBox#5fdce@Offset(209.6, 464.0), RenderAnimatedOpacity#c19c6@Offset(209.6, 464.0), RenderIgnorePointer#f74ea@Offset(209.6, 464.0), RenderAnimatedOpacity#caa40@Offset(209.6, 464.0), RenderRepaintBoundary#81d71@Offset(209.6, 464.0), RenderSemanticsAnnotations#99135@Offset(209.6, 464.0), RenderOffstage#35ff7@Offset(209.6, 464.0), RenderSemanticsAnnotations#a5b32@Offset(209.6, 464.0), _RenderTheater#4ba82@Offset(209.6, 464.0), RenderAbsorbPointer#eb3b0@Offset(209.6, 464.0), RenderPointerListener#515aa@Offset(209.6, 464.0), RenderSemanticsAnnotations#fc0ff@Offset(209.6, 464.0), RenderStack#2a651@Offset(209.6, 464.0), RenderSemanticsAnnotations#a78a6@Offset(209.6, 464.0), RenderSemanticsAnnotations#29497@Offset(209.6, 464.0), RenderSemanticsAnnotations#ae4a0@Offset(209.6, 464.0), RenderTapRegionSurface#b4ea5@Offset(209.6, 464.0), RenderSemanticsAnnotations#a7cab@Offset(209.6, 464.0), RenderSemanticsAnnotations#7f930@Offset(209.6, 464.0), HitTestEntry<HitTestTarget>#3518b(_ReusableRenderView#082a0), HitTestEntry<HitTestTarget>#d17ff(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.openOpinions (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:983:20)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1016:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:22 +131: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: opinions renders without overflow on iPhone SE 375x667
+
+Warning: A call to tap() with finder "Found 1 widget with text "+21 more opinions" (ignoring all but first): [
+  Text("+21 more opinions", inherit: true, color: Color(alpha: 1.0000, red: 0.9608, green: 0.9529, blue: 1.0000, colorSpace: ColorSpace.sRGB), family: OpenRunde, size: 13.0, weight: 600, height: 1.2x, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(217.1, 460.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#523f4 relayoutBoundary=up16
+The hit test result at that offset is: HitTestResult(RenderParagraph#6496d@Offset(201.1, 3.0), RenderFlex#6f7b1@Offset(201.1, 3.0), RenderFlex#8fc95@Offset(201.1, 3.0), RenderExcludeSemantics#d4877@Offset(201.1, 3.0), RenderIgnorePointer#2409c@Offset(201.1, 3.0), RenderAnimatedOpacity#a130c@Offset(201.1, 3.0), RenderPositionedBox#4ddfb@Offset(201.1, 3.0), RenderClipRect#6783a@Offset(201.1, 3.0), RenderFlex#9fc3a@Offset(201.1, 3.0), RenderPadding#2926c@Offset(217.1, 17.0), RenderDecoratedBox#c9ae2@Offset(217.1, 17.0), RenderFlex#93ae1@Offset(217.1, 460.0), RenderCustomMultiChildLayoutBox#1dadc@Offset(217.1, 460.0), _RenderInkFeatures#37f7f@Offset(217.1, 460.0), RenderPhysicalModel#01de2@Offset(217.1, 460.0), RenderSemanticsAnnotations#85b29@Offset(217.1, 460.0), RenderRepaintBoundary#61bdc@Offset(217.1, 460.0), RenderIgnorePointer#d1908@Offset(217.1, 460.0), RenderAnimatedOpacity#351ff@Offset(217.1, 460.0), RenderAnimatedOpacity#4de63@Offset(217.1, 460.0), _RenderColoredBox#47e75@Offset(217.1, 460.0), RenderAnimatedOpacity#c6829@Offset(217.1, 460.0), RenderIgnorePointer#7ba72@Offset(217.1, 460.0), RenderAnimatedOpacity#97a28@Offset(217.1, 460.0), RenderRepaintBoundary#42e90@Offset(217.1, 460.0), RenderSemanticsAnnotations#922e6@Offset(217.1, 460.0), RenderOffstage#60806@Offset(217.1, 460.0), RenderSemanticsAnnotations#7f978@Offset(217.1, 460.0), _RenderTheater#85d7f@Offset(217.1, 460.0), RenderAbsorbPointer#25c5f@Offset(217.1, 460.0), RenderPointerListener#63ce4@Offset(217.1, 460.0), RenderSemanticsAnnotations#19f5c@Offset(217.1, 460.0), RenderStack#d9c69@Offset(217.1, 460.0), RenderSemanticsAnnotations#b1842@Offset(217.1, 460.0), RenderSemanticsAnnotations#8a8f6@Offset(217.1, 460.0), RenderSemanticsAnnotations#72e39@Offset(217.1, 460.0), RenderTapRegionSurface#9b4ba@Offset(217.1, 460.0), RenderSemanticsAnnotations#de2da@Offset(217.1, 460.0), RenderSemanticsAnnotations#4b007@Offset(217.1, 460.0), HitTestEntry<HitTestTarget>#587a7(_ReusableRenderView#082a0), HitTestEntry<HitTestTarget>#c6ebe(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.openOpinions (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:983:20)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart:1016:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:22 +132: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: opinions renders without overflow on iPhone 15 393x852
+00:22 +133: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: opinions renders without overflow on Pixel 7 412x915
+00:22 +134: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: opinions renders without overflow on iPhone 15 Pro Max 430x932
+00:22 +135: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Home top bar: handle over balance, Deposit on the right
+00:23 +136: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: Wallet top bar: handle over balance, Deposit on the right
+00:23 +137: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade Home Details opens the asset on the Market panel
+00:23 +138: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade the callers Following filter reads the follows in Scenario
+00:24 +139: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade Explore asset row opens it; handle opens the chart
+00:24 +140: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade renders without overflow on small Android 360x640
+00:24 +141: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade renders without overflow on iPhone SE 375x667
+00:25 +142: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade renders without overflow on iPhone 15 393x852
+00:25 +143: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade renders without overflow on Pixel 7 412x915
+00:25 +144: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: asset trade renders without overflow on iPhone 15 Pro Max 430x932
+00:25 +145: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet tapping a position slides its sheet up
+00:25 +146: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet a short puts stop-loss above entry
+00:26 +147: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet renders without overflow on small Android 360x640
+00:26 +148: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet renders without overflow on iPhone SE 375x667
+00:26 +149: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet renders without overflow on iPhone 15 393x852
+00:26 +150: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet renders without overflow on Pixel 7 412x915
+00:26 +151: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: position sheet renders without overflow on iPhone 15 Pro Max 430x932
+00:27 +152: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market the span drives the portfolio chart and its change
+00:27 +153: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market without a market Portfolio offers Make a market
+00:27 +154: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market the ticker field starts from the store's ticker
+unhandled element <filter/>; Picture key: Svg loader
+00:27 +155: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market create → consent → live lists the market
+00:28 +156: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market flow renders without overflow on small Android 360x640
+00:28 +157: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market flow renders without overflow on iPhone SE 375x667
+00:28 +158: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market flow renders without overflow on iPhone 15 393x852
+00:29 +159: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market flow renders without overflow on Pixel 7 412x915
+00:29 +160: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: make a market flow renders without overflow on iPhone 15 Pro Max 430x932
+00:29 +161: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings gear opens Settings; notification switches update summary
+00:29 +162: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings Display settings change the charts and the Long side
+00:30 +163: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings renders every section without overflow on small Android 360x640
+00:30 +164: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings renders every section without overflow on iPhone SE 375x667
+00:30 +165: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings renders every section without overflow on iPhone 15 393x852
+00:31 +166: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings renders every section without overflow on Pixel 7 412x915
+00:31 +167: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: settings renders every section without overflow on iPhone 15 Pro Max 430x932
+00:31 +168: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: home card replay follows the Candles / Line setting
+00:31 +169: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: replay moves the header price with the chart, events get haptics, and it lands on the live figures
+00:32 +170: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: open orders cards show the order details; Cancel removes, Undo restores
+00:32 +171: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: open orders renders without overflow on small Android 360x640
+00:32 +172: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: open orders renders without overflow on iPhone SE 375x667
+00:32 +173: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: open orders renders without overflow on iPhone 15 393x852
+00:32 +174: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: open orders renders without overflow on Pixel 7 412x915
+00:32 +175: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: open orders renders without overflow on iPhone 15 Pro Max 430x932
+00:32 +176: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets everywhere one ETH price on Home, Explore and the trade page
+00:33 +177: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets everywhere the feed has one call on every market Explore offers
+00:33 +178: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets everywhere generated replays are repeatable and fit the frame
+00:33 +179: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: markets everywhere a trader-market card opens that trader market
+00:33 +180: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket Long opens the ticket; a limit order lands in Open orders
+00:33 +181: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket a size beyond the margin blocks the order
+00:33 +182: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket Arena Bull and Home Long open the ticket on that side
+00:33 +183: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket leverage is picked on a horizontal slider
+00:33 +184: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket ticket renders without overflow on small Android 360x640
+00:33 +185: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket ticket renders without overflow on iPhone SE 375x667
+00:34 +186: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket ticket renders without overflow on iPhone 15 393x852
+00:34 +187: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket ticket renders without overflow on Pixel 7 412x915
+00:34 +188: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket ticket renders without overflow on iPhone 15 Pro Max 430x932
+00:34 +189: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket Set applies leverage at 1.3x text on small Android 360x640
+00:34 +190: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: order ticket Set applies leverage at 1.3x text on iPhone SE 375x667
+00:34 +191: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: share call Share opens the sheet with what the recipient will see
+00:34 +192: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: share call sheet renders without overflow on small Android 360x640
+00:34 +193: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: share call sheet renders without overflow on iPhone SE 375x667
+00:35 +194: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: share call sheet renders without overflow on iPhone 15 393x852
+00:35 +195: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: share call sheet renders without overflow on Pixel 7 412x915
+00:35 +196: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: share call sheet renders without overflow on iPhone 15 Pro Max 430x932
+00:35 +197: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in the rail shows the people-in count and opens who is in
+00:35 +198: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in Like starts as an outline and turns red when pressed
+00:35 +199: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in sheet renders without overflow on small Android 360x640
+00:36 +200: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in sheet renders without overflow on iPhone SE 375x667
+00:36 +201: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in sheet renders without overflow on iPhone 15 393x852
+00:36 +202: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in sheet renders without overflow on Pixel 7 412x915
+00:36 +203: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: people in sheet renders without overflow on iPhone 15 Pro Max 430x932
+00:36 +204: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket opens simple: market, 2x, $200, TP/SL on
+00:36 +205: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket custom opens the leverage slider
+00:36 +206: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket a limit order lands in Open orders
+00:37 +207: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket the amount slider snaps to its 20% stops
+00:37 +208: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket an amount over the balance blocks the order
+00:37 +209: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket renders without overflow on small Android 360x640
+00:37 +210: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket renders without overflow on iPhone SE 375x667
+00:37 +211: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket renders without overflow on iPhone 15 393x852
+00:37 +212: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket renders without overflow on Pixel 7 412x915
+00:37 +213: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket renders without overflow on iPhone 15 Pro Max 430x932
+00:37 +214: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket custom leverage applies at 1.3x text on small Android 360x640
+00:38 +215: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: feed order ticket custom leverage applies at 1.3x text on iPhone SE 375x667
+00:38 +216: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: trade page Alerts lists the feed alerts on that market
+00:38 +217: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill shows on every tab without overflow on the smallest phone at 1.0x text
+00:39 +218: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill shows on every tab without overflow on the smallest phone at 1.3x text
+00:39 +219: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill shows on every tab and inside both order tickets on iPhone SE 375x667
+00:39 +220: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill shows in the make-market flow on iPhone SE 375x667
+00:39 +221: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill shows on every tab and inside both order tickets on iPhone 14 390x844
+00:40 +222: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill shows in the make-market flow on iPhone 14 390x844
+00:40 +223: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator the pill sits above the safe area and the keyboard, opens one note, and toasts clear it
+00:40 +224: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: simulation indicator Reset demo from the pill closes the sheets and routes built on the old state, and its toast shows
+00:40 +225: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: (tearDownAll)
+00:40 +225: All tests passed!
