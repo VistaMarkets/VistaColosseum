@@ -153,3 +153,5 @@
 2026-10-05T08:47:04Z gate: full gate launched at 289ec88 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-8-close/
 2026-10-05T08:49:16Z gate: full gate at 289ec88 -> see gate-stdout.log and has-market-tail.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-8-close/
 2026-10-05T08:49:16Z spawn: phase 8 CLOSING unit (opus, general-purpose)
+2026-10-05T08:58:23Z return: phase 8 CLOSING unit COMPLETE; VERDICT CLEAN; criteria 3/3; dispositions=7 (matches confirmed 7); record docs/reviews/2026-10-04-dw-review-phase-8-list-empty-failed-states.md; digest baton-runner/br-2026-10-04-p0-queue/digest-phase-8.md; units 44/75
+2026-10-05T08:58:23Z DONE: all 8 phases CLEAN. Run-end note baton-pass/baton-queue/2026-10-05T085823-p0-runner-complete.md. Next: merge the stack 4-8 per user instruction.
