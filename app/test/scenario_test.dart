@@ -46,6 +46,14 @@ List<Object?> state() => [
   Scenario.feeEntries.value,
   Scenario.callReceipts.value,
   Scenario.marketsLoadFails.value,
+  Scenario.activePersona.value,
+  // Both personas' books, active and parked (the active ones lead above).
+  for (final p in Persona.values) ...[
+    Scenario.booksOf(p).cashCents,
+    Scenario.booksOf(p).positions,
+    Scenario.booksOf(p).openOrders,
+    Scenario.booksOf(p).receipts,
+  ],
 ];
 
 /// Changes every field, through the app's own helpers where they exist.
@@ -70,6 +78,22 @@ void mutateEverything() {
   Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
   Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
   Scenario.marketsLoadFails.value = true;
+  // The copier takes over: the creator's mutated books park, and the
+  // copier's change too.
+  Scenario.switchPersona();
+  Scenario.placeOrder(ethLong('copier', units: 0.01));
+  Scenario.placeOrder(
+    OrderIntent(
+      actionId: 'copier-limit',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      side: TradeSide.long,
+      units: 0.01,
+      price: 2900,
+      leverage: 10,
+      kind: OrderKind.limit,
+    ),
+  );
 }
 
 /// A market long on ETH at its session price, 10x unless told otherwise.

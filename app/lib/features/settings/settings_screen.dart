@@ -119,6 +119,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       verticalPadding: 13,
                       onTap: () => _say('Logged out (simulated)'),
                     ),
+                    // Presenter-only (VC-DEM-004): each persona keeps its
+                    // own paper books; switching changes none of them.
+                    VistaSettingRow(
+                      title: 'Demo persona',
+                      verticalPadding: 13,
+                      trailing: VistaSettingValue(
+                        Scenario.activePersona.value.label,
+                      ),
+                      onTap: () {
+                        setState(Scenario.switchPersona);
+                        _say(
+                          'Now acting as '
+                          '${Scenario.activePersona.value.handle}',
+                        );
+                      },
+                    ),
                     VistaSettingRow(
                       title: 'Reset demo',
                       verticalPadding: 13,

@@ -197,12 +197,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(inSheet(find.text('Review order')), findsOneWidget);
     expect(state(), equals(before)); // review changes nothing
-    // $200 margin at 2x: $400 of ETH, a 5 bps fee of $0.20.
-    expect(inSheet(find.text(r'$200.20')), findsOneWidget);
+    // $200 margin at 2x: $400 of ETH, a 5 bps fee of $0.20, and the
+    // $5.00 copy fee: kaito.eth's call is not the creator's own.
+    expect(inSheet(find.text(r'$205.20')), findsOneWidget);
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
     expect(Scenario.positions.value, hasLength(seedPositions + 1));
-    expect(Scenario.cashCents.value, PortfolioMock.cashCents - 20020);
+    expect(Scenario.cashCents.value, PortfolioMock.cashCents - 20520);
     expect(Scenario.positions.value.first.marginCents, 20000);
 
     await tester.tap(inSheet(find.text('View in Wallet')));
@@ -360,11 +361,12 @@ void main() {
     expect(Scenario.receipts.value, isEmpty);
     expect(inSheet(find.text('Review order')), findsOneWidget);
     expect(inSheet(find.text(MarketPrices.format(3000))), findsOneWidget);
-    expect(paperFunds(tester), r'$200.20'); // the same $200 at 2x
+    // The same $200 at 2x, plus the copy fee of kaito.eth's call.
+    expect(paperFunds(tester), r'$205.20');
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
     final r = Scenario.receipts.value.single;
-    expect([r.price, r.marginCents, r.totalCents], [3000, 20000, 20020]);
+    expect([r.price, r.marginCents, r.totalCents], [3000, 20000, 20520]);
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
