@@ -115,24 +115,9 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
                         Navigator.of(context)
                             .push(ReceiptsScreen.route(PortfolioMock.handle)),
                   ),
-                  Text(
-                    YourMarketMock.recordSummary,
-                    style: VistaType.bodyMedium,
-                  ),
+                  const TraderRecordPanel(handle: PortfolioMock.handle),
                   // The user's call receipts; each opens its receipt.
-                  ValueListenableBuilder(
-                    valueListenable: Scenario.callReceipts,
-                    builder: (context, calls, _) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final c in calls)
-                          if (c.author == PortfolioMock.handle) ...[
-                            gap,
-                            CallRecordItem(receipt: c),
-                          ],
-                      ],
-                    ),
-                  ),
+                  const CallRecordList(author: PortfolioMock.handle),
                 ],
               ),
             ),

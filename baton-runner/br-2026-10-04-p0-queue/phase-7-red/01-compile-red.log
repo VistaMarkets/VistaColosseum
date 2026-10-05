@@ -1,0 +1,167 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart
+test/trader_record_test.dart:46:15: Error: 'TraderRecordPanel' isn't a type.
+  (w) => w is TraderRecordPanel && w.handle == handle,
+              ^^^^^^^^^^^^^^^^^
+test/trader_record_test.dart:46:38: Error: The getter 'handle' isn't defined for the type 'Widget'.
+ - 'Widget' is from 'package:flutter/src/widgets/framework.dart' ('../../../../.local/share/flutter/packages/flutter/lib/src/widgets/framework.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'handle'.
+  (w) => w is TraderRecordPanel && w.handle == handle,
+                                     ^^^^^^
+test/trader_record_test.dart:129:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record(pair.$1), Scenario.record(pair.$2));
+                    ^^^^^^
+test/trader_record_test.dart:129:47: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record(pair.$1), Scenario.record(pair.$2));
+                                              ^^^^^^
+test/trader_record_test.dart:130:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record(pair.$1), (
+                    ^^^^^^
+test/trader_record_test.dart:142:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record(PortfolioMock.handle).hitRatePct, 50);
+                    ^^^^^^
+test/trader_record_test.dart:156:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record('x'), (
+                    ^^^^^^
+test/trader_record_test.dart:165:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record('nobody').hitRatePct, isNull);
+                    ^^^^^^
+test/trader_record_test.dart:166:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record('nobody').settled, 0);
+                    ^^^^^^
+test/trader_record_test.dart:176:26: Error: Undefined name 'ProfileIndexChart'.
+      expect(find.byType(ProfileIndexChart), findsOneWidget);
+                         ^^^^^^^^^^^^^^^^^
+test/trader_record_test.dart:183:21: Error: Member not found: 'Scenario.record'.
+    expect(Scenario.record(fresh).settled, 0);
+                    ^^^^^^
+test/trader_record_test.dart:197:26: Error: Undefined name 'ProfileIndexChart'.
+      expect(find.byType(ProfileIndexChart), findsNothing, reason: name);
+                         ^^^^^^^^^^^^^^^^^
+test/trader_record_test.dart:114:52: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+ - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+    final sizes = [for (final c in [...a, ...b]) c.sizeCents];
+                                                   ^^^^^^^^^
+test/trader_record_test.dart:116:27: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+ - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+    expect(a.map((c) => c.sizeCents), isNot(b.map((c) => c.sizeCents)));
+                          ^^^^^^^^^
+test/trader_record_test.dart:116:60: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+ - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+    expect(a.map((c) => c.sizeCents), isNot(b.map((c) => c.sizeCents)));
+                                                           ^^^^^^^^^
+test/trader_record_test.dart:121:22: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+ - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+        settled += c.sizeCents!;
+                     ^^^^^^^^^
+test/trader_record_test.dart:121:17: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
+        settled += c.sizeCents!;
+                ^
+test/trader_record_test.dart:122:55: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+ - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+        if (c.result == CallOutcome.right) right += c.sizeCents!;
+                                                      ^^^^^^^^^
+test/trader_record_test.dart:122:50: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
+        if (c.result == CallOutcome.right) right += c.sizeCents!;
+                                                 ^
+test/trader_record_test.dart:262:48: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+ - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+      expect(onReceipt(find.text(formatCents(c.sizeCents!))), findsOneWidget);
+                                               ^^^^^^^^^
+00:00 +0 -1: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart [E]
+  Failed to load "/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart":
+  Compilation failed for testPath=/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart: test/trader_record_test.dart:46:15: Error: 'TraderRecordPanel' isn't a type.
+    (w) => w is TraderRecordPanel && w.handle == handle,
+                ^^^^^^^^^^^^^^^^^
+  test/trader_record_test.dart:46:38: Error: The getter 'handle' isn't defined for the type 'Widget'.
+   - 'Widget' is from 'package:flutter/src/widgets/framework.dart' ('../../../../.local/share/flutter/packages/flutter/lib/src/widgets/framework.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'handle'.
+    (w) => w is TraderRecordPanel && w.handle == handle,
+                                       ^^^^^^
+  test/trader_record_test.dart:129:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record(pair.$1), Scenario.record(pair.$2));
+                      ^^^^^^
+  test/trader_record_test.dart:129:47: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record(pair.$1), Scenario.record(pair.$2));
+                                                ^^^^^^
+  test/trader_record_test.dart:130:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record(pair.$1), (
+                      ^^^^^^
+  test/trader_record_test.dart:142:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record(PortfolioMock.handle).hitRatePct, 50);
+                      ^^^^^^
+  test/trader_record_test.dart:156:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record('x'), (
+                      ^^^^^^
+  test/trader_record_test.dart:165:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record('nobody').hitRatePct, isNull);
+                      ^^^^^^
+  test/trader_record_test.dart:166:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record('nobody').settled, 0);
+                      ^^^^^^
+  test/trader_record_test.dart:176:26: Error: Undefined name 'ProfileIndexChart'.
+        expect(find.byType(ProfileIndexChart), findsOneWidget);
+                           ^^^^^^^^^^^^^^^^^
+  test/trader_record_test.dart:183:21: Error: Member not found: 'Scenario.record'.
+      expect(Scenario.record(fresh).settled, 0);
+                      ^^^^^^
+  test/trader_record_test.dart:197:26: Error: Undefined name 'ProfileIndexChart'.
+        expect(find.byType(ProfileIndexChart), findsNothing, reason: name);
+                           ^^^^^^^^^^^^^^^^^
+  test/trader_record_test.dart:114:52: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+   - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+      final sizes = [for (final c in [...a, ...b]) c.sizeCents];
+                                                     ^^^^^^^^^
+  test/trader_record_test.dart:116:27: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+   - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+      expect(a.map((c) => c.sizeCents), isNot(b.map((c) => c.sizeCents)));
+                            ^^^^^^^^^
+  test/trader_record_test.dart:116:60: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+   - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+      expect(a.map((c) => c.sizeCents), isNot(b.map((c) => c.sizeCents)));
+                                                             ^^^^^^^^^
+  test/trader_record_test.dart:121:22: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+   - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+          settled += c.sizeCents!;
+                       ^^^^^^^^^
+  test/trader_record_test.dart:121:17: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
+          settled += c.sizeCents!;
+                  ^
+  test/trader_record_test.dart:122:55: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+   - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+          if (c.result == CallOutcome.right) right += c.sizeCents!;
+                                                        ^^^^^^^^^
+  test/trader_record_test.dart:122:50: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
+          if (c.result == CallOutcome.right) right += c.sizeCents!;
+                                                   ^
+  test/trader_record_test.dart:262:48: Error: The getter 'sizeCents' isn't defined for the type 'CallReceipt'.
+   - 'CallReceipt' is from 'package:vista_colosseum/features/market/market_mock.dart' ('lib/features/market/market_mock.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'sizeCents'.
+        expect(onReceipt(find.text(formatCents(c.sizeCents!))), findsOneWidget);
+                                                 ^^^^^^^^^
+  .
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart

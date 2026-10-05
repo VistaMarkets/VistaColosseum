@@ -435,7 +435,8 @@ VistaColosseum/
 │   │   ├── receipts_test.dart
 │   │   ├── replay_live_test.dart
 │   │   ├── rolling_number_test.dart
-│   │   └── scenario_test.dart
+│   │   ├── scenario_test.dart
+│   │   └── trader_record_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   └── app_icon/
 │   │       ├── app_icon_1024.png
@@ -485,7 +486,9 @@ VistaColosseum/
 │       ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
 │       ├── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
 │       ├── 2026-10-05T041752-phase6-review-iter1.md
-│       └── 2026-10-05T050809-phase6-close.md
+│       ├── 2026-10-05T050809-phase6-close.md
+│       ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
+│       └── 2026-10-05T054156-phase7-trader-record-panel.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
@@ -666,6 +669,11 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── grep-all-receipts.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-7-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── has-market.log
+│       │   └── pubspec-frozen.log
 │       ├── phase-4-red/
 │       │   ├── home-green-1.log
 │       │   ├── home-red-1.log
@@ -692,6 +700,10 @@ VistaColosseum/
 │       │   ├── mutant-M4-fees-not-filtered-by-market.log
 │       │   ├── red-1-compile.log
 │       │   └── red-2-assertions.log
+│       ├── phase-7-red/
+│       │   ├── 01-compile-red.log
+│       │   ├── 02-assertions-red.log
+│       │   └── 03-mutants.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart

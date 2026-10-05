@@ -120,3 +120,5 @@
 2026-10-05T05:14:41Z pr: phase 6 draft https://github.com/VistaMarkets/VistaColosseum/pull/17 (base feat/br-2026-10-04-p0-queue/phase-5) at 3a29ada
 2026-10-05T05:14:41Z branch: feat/br-2026-10-04-p0-queue/phase-7 cut from phase-6 tip
 2026-10-05T05:14:41Z spawn: phase 7 WORK unit (opus, general-purpose) spec docs/specs/07-trader-record-panel.md; continuity digests 1-6; CF-1 named as first job
+2026-10-05T05:30:00Z RESUME: user interrupted the phase 7 WORK spawn, then said resume; re-spawning
+2026-10-05T05:43:06Z spawn: phase 7 WORK unit #2 (opus, general-purpose), told to assess the interrupted unit's 11-file uncommitted diff first

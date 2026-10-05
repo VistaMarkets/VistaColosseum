@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../market/receipt_screens.dart';
 import '../people/follow_list_screen.dart';
 import 'profile_mock.dart';
 
@@ -136,26 +137,38 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
           ),
         ),
         gap,
-        Row(
-          children: [
-            Expanded(
-              child: VistaCountStat(value: _p.settled, label: 'Settled'),
-            ),
-            Expanded(
-              child: VistaCountStat(value: _p.right, label: 'Right'),
-            ),
-            Expanded(
-              child: VistaCountStat(
-                value: _p.followers,
-                label: 'Followers',
-                onPressed: () =>
-                    Navigator.of(context).push(FollowListScreen.route()),
-              ),
-            ),
-            Expanded(
-              child: VistaCountStat(value: _p.openCalls, label: 'Open calls'),
-            ),
-          ],
+        ValueListenableBuilder(
+          valueListenable: Scenario.callReceipts,
+          builder: (context, _, _) {
+            final m = Scenario.record(widget.handle);
+            return Row(
+              children: [
+                Expanded(
+                  child: VistaCountStat(
+                    value: '${m.settled}',
+                    label: 'Settled',
+                  ),
+                ),
+                Expanded(
+                  child: VistaCountStat(value: '${m.right}', label: 'Right'),
+                ),
+                Expanded(
+                  child: VistaCountStat(
+                    value: _p.followers,
+                    label: 'Followers',
+                    onPressed: () =>
+                        Navigator.of(context).push(FollowListScreen.route()),
+                  ),
+                ),
+                Expanded(
+                  child: VistaCountStat(
+                    value: '${m.open}',
+                    label: 'Open calls',
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         gap,
         Text(
@@ -227,24 +240,8 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: VistaSpace.xl,
-          children: [
-            for (final (text, color) in _p.summary)
-              Text(text, style: VistaType.body.copyWith(color: color)),
-          ],
-        ),
-        const SizedBox(height: VistaSpace.xl),
-        for (final (rail, title, lead, color, detail) in _p.calls)
-          VistaReceipt(
-            railAsset: rail,
-            railHeight: 54,
-            compact: true,
-            title: title,
-            lead: lead,
-            leadColor: color,
-            detail: detail,
-          ),
+        TraderRecordPanel(handle: widget.handle),
+        CallRecordList(author: widget.handle),
       ],
     );
   }

@@ -12,7 +12,8 @@ import 'private_profile_screen.dart';
 import 'profile_mock.dart';
 
 /// Someone else's profile (Figma 303:102, "Profile — maya.eth · Arena
-/// receipts"). Shows [handle]; the body is the sample profile content.
+/// receipts"). Shows [handle] with their own record and calls; the rest is
+/// the sample profile content.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.handle});
 
@@ -32,7 +33,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _span = PortfolioMock.defaultSpan;
-  int _filter = 0; // 0 All, 1 Calls, 2 Arena
 
   void _openMarket() =>
       Navigator.of(context).push(TraderMarketScreen.route(widget.handle));
@@ -78,7 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Padding(padding: gutter, child: _header()),
                   const SizedBox(height: 18 + 16),
-                  _market(),
+                  _record(),
                   const SizedBox(height: 8 + 22),
                   const Padding(
                     padding: gutter,
@@ -142,41 +142,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: VistaType.caption.copyWith(color: VistaColors.textMuted),
         ),
         gap,
-        const VistaIcon(
-          VistaAssets.verdictsLast10,
-          size: 136,
-          height: 10,
-          semanticLabel: 'Last 10 verdicts',
-        ),
-        gap,
-        Row(
-          children: [
-            const Expanded(
-              child: VistaCountStat(
-                value: ProfileMock.settled,
-                label: 'Settled',
-              ),
-            ),
-            const Expanded(
-              child: VistaCountStat(value: ProfileMock.right, label: 'Right'),
-            ),
-            Expanded(
-              child: VistaCountStat(
-                value: ProfileMock.followers,
-                label: 'Followers',
-                onPressed: () =>
-                    Navigator.of(context).push(FollowListScreen.route()),
-              ),
-            ),
-            Expanded(
-              child: VistaCountStat(
-                value: ProfileMock.market,
-                label: 'Market',
-                valueColor: VistaColors.accent,
-                onPressed: _openMarket,
-              ),
-            ),
-          ],
+        ValueListenableBuilder(
+          valueListenable: Scenario.callReceipts,
+          builder: (context, _, _) {
+            final m = Scenario.record(widget.handle);
+            return Column(
+              children: [
+                // No verdicts to show before a call settles.
+                if (m.settled > 0) ...[
+                  const VistaIcon(
+                    VistaAssets.verdictsLast10,
+                    size: 136,
+                    height: 10,
+                    semanticLabel: 'Last 10 verdicts',
+                  ),
+                  gap,
+                ],
+                _stats(m),
+              ],
+            );
+          },
         ),
         gap,
         Text(
@@ -207,6 +192,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _stats(RecordMetrics m) {
+    return Row(
+      children: [
+        Expanded(
+          child: VistaCountStat(value: '${m.settled}', label: 'Settled'),
+        ),
+        Expanded(
+          child: VistaCountStat(value: '${m.right}', label: 'Right'),
+        ),
+        Expanded(
+          child: VistaCountStat(
+            value: ProfileMock.followers,
+            label: 'Followers',
+            onPressed: () =>
+                Navigator.of(context).push(FollowListScreen.route()),
+          ),
+        ),
+        Expanded(
+          child: VistaCountStat(
+            value: ProfileMock.market,
+            label: 'Market',
+            valueColor: VistaColors.accent,
+            onPressed: _openMarket,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The illustrative index (the trader's market chart) and the record it
+  /// is based on; with no settled call, no chart and no index copy.
+  Widget _record() {
+    return ValueListenableBuilder(
+      valueListenable: Scenario.callReceipts,
+      builder: (context, _, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (Scenario.record(widget.handle).settled > 0) ...[
+            _market(),
+            const SizedBox(height: VistaSpace.lg),
+          ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+            child: TraderRecordPanel(handle: widget.handle),
+          ),
+        ],
+      ),
     );
   }
 
@@ -241,7 +276,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: VistaSpace.lg),
-        const _ProfileChart(),
+        const ProfileIndexChart(),
         const SizedBox(height: VistaSpace.lg),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.md),
@@ -256,13 +291,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _calls() {
-    final receipts = ProfileMock.receipts.where(
-      (r) => switch (_filter) {
-        1 => r.kind == ReceiptKind.call,
-        2 => r.kind == ReceiptKind.arena,
-        _ => true,
-      },
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -273,45 +301,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onLink: () =>
               Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
         ),
-        Wrap(
-          spacing: VistaSpace.xl,
-          children: [
-            for (final (text, color) in ProfileMock.summary)
-              Text(text, style: VistaType.body.copyWith(color: color)),
-          ],
-        ),
-        const SizedBox(height: VistaSpace.xs),
-        Wrap(
-          spacing: VistaSpace.md,
-          children: [
-            for (var i = 0; i < ProfileMock.filters.length; i++)
-              VistaFilterChip(
-                label:
-                    '${ProfileMock.filters[i].$1} ${ProfileMock.filters[i].$2}',
-                selected: i == _filter,
-                onPressed: () => setState(() => _filter = i),
-              ),
-          ],
-        ),
-        const SizedBox(height: VistaSpace.xs),
-        for (final r in receipts)
-          VistaReceipt(
-            railAsset: r.rail,
-            title: r.title,
-            versus: r.versus,
-            lead: r.lead,
-            leadColor: r.leadColor,
-            detail: r.detail,
-          ),
+        CallRecordList(author: widget.handle),
       ],
     );
   }
 }
 
-/// Market price chart, edge to edge (static Figma vectors on a 402×180 box;
-/// x stretches with the screen).
-class _ProfileChart extends StatelessWidget {
-  const _ProfileChart();
+/// The trader's illustrative index (their market's price) chart, edge to
+/// edge (static Figma vectors on a 402×180 box; x stretches with the
+/// screen).
+class ProfileIndexChart extends StatelessWidget {
+  const ProfileIndexChart({super.key});
 
   @override
   Widget build(BuildContext context) {

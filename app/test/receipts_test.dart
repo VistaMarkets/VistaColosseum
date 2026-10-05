@@ -102,8 +102,9 @@ void main() {
       expect(e.amountCents, isPositive);
       expect(e.eventTitle, isNotEmpty);
     }
-    // Seeded from Your market's record entries, with fixture provenance.
-    expect(calls.map((c) => c.rule), [
+    // The user's are Your market's record entries; every call has fixture
+    // provenance.
+    expect(myCalls.map((c) => c.rule), [
       r'SOL reaches $300 by Fri',
       r'ETH reaches $4,000 by Oct 2',
       r'ETH reaches $4,000 by Oct 10',
@@ -289,8 +290,8 @@ void main() {
       expect(onReceipt(find.text(c.side!.label)), findsOneWidget);
       expect(onReceipt(find.text(c.entryAt!)), findsOneWidget);
       expect(onReceipt(find.text(c.odds!)), findsOneWidget);
-      // The record states no entry price, nor a settlement time for the
-      // settled calls: shown as unavailable, not blank.
+      // The record states no entry price or paper size, nor a settlement
+      // time for the settled calls: shown as unavailable, not blank.
       final open = c.result == CallOutcome.open;
       expect(c.entryPrice, isNull);
       expect(c.settledAt, isNull);
@@ -298,7 +299,9 @@ void main() {
         onReceipt(find.text('Not settled yet')),
         open ? findsOneWidget : findsNothing,
       );
-      expect(onReceipt(find.text('unavailable')), findsNWidgets(open ? 1 : 2));
+      expect(onReceipt(find.text('Paper size')), findsOneWidget);
+      expect(c.sizeCents, isNull);
+      expect(onReceipt(find.text('unavailable')), findsNWidgets(open ? 2 : 3));
       await back(tester, CallReceiptScreen);
     }
 
@@ -322,8 +325,9 @@ void main() {
     await tapAndSettle(tester, holding('BTC'));
     expect(onReceipt(find.text('BTC')), findsOneWidget);
     expect(onReceipt(find.text(noCall)), findsOneWidget);
-    // Direction, entry price and time, rule, result, settlement and odds.
-    expect(onReceipt(find.text('unavailable')), findsNWidgets(7));
+    // Direction, entry price, paper size, entry time, rule, result,
+    // settlement and odds.
+    expect(onReceipt(find.text('unavailable')), findsNWidgets(8));
     await back(tester, CallReceiptScreen);
     // Her SOL call settled Right, so no open call backs the SOL holding.
     final sol = myCalls.singleWhere((c) => c.asset == 'SOL');

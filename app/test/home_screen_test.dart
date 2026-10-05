@@ -550,22 +550,13 @@ void main() {
       // The user follows lunaq in the fixture; the profile agrees.
       expect(find.text('Following'), findsOneWidget);
 
-      // Filters: Arena shows only arena receipts.
-      final arenaChip = find.text('Arena 14');
+      // lunaq's own calls, not a sample every profile shared.
       await tester.scrollUntilVisible(
-        arenaChip,
+        find.text(r'ETH stays under $3,200 to Oct 5'),
         200,
         scrollable: profileList(),
       );
-      await tester.pumpAndSettle();
-      await tester.tap(arenaChip);
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text(r'SOL loses $190 by Sep 15'),
-        200,
-        scrollable: profileList(),
-      );
-      expect(find.text(r'BTC reclaims $66,000 by Tue'), findsNothing);
+      expect(find.text(r'SOL loses $190 by Sep 15'), findsNothing);
     });
 
     testWidgets('a private account without a market opens the private layout', (
@@ -606,7 +597,7 @@ void main() {
         await setView(tester, size, padding);
         await openFromFollowers(tester, 'lunaq');
         expect(tester.takeException(), isNull);
-        final last = find.text(r'SOL loses $190 by Sep 15');
+        final last = find.text(r'ETH stays under $3,200 to Oct 5');
         await tester.scrollUntilVisible(last, 200, scrollable: profileList());
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);

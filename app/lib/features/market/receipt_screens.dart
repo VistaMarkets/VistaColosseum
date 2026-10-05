@@ -176,6 +176,84 @@ class CallRecordItem extends StatelessWidget {
   }
 }
 
+/// [author]'s call receipts, as the store holds them, each opening its
+/// receipt.
+class CallRecordList extends StatelessWidget {
+  const CallRecordList({super.key, required this.author});
+
+  final String author;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: Scenario.callReceipts,
+      builder: (context, calls, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final c in calls)
+            if (c.author == author) ...[
+              const SizedBox(height: VistaSpace.xl),
+              CallRecordItem(receipt: c),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A trader's record panel (VC-MKT-002, VC-FED-003): sample size, outcomes,
+/// hit rate and as-of time, from [Scenario.record] at render time. With no
+/// settled call there is no record: it says so instead.
+class TraderRecordPanel extends StatelessWidget {
+  const TraderRecordPanel({super.key, required this.handle});
+
+  static const unavailableNote = 'No settled calls yet — record unavailable';
+
+  final String handle;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([Scenario.callReceipts, Scenario.clock]),
+      builder: (context, _) {
+        final m = Scenario.record(handle);
+        final pct = m.hitRatePct;
+        if (pct == null) {
+          return Text(unavailableNote, style: VistaType.bodyMedium);
+        }
+        final n = m.settled;
+        final t = m.asOf;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Illustrative index · based on $n settled '
+              'call${n == 1 ? '' : 's'} · as of '
+              '${timeLabel(t, const Duration(days: 1))} '
+              '${timeLabel(t, const Duration(hours: 1))}',
+              style: VistaType.caption.copyWith(color: VistaColors.textMuted),
+            ),
+            const SizedBox(height: VistaSpace.md),
+            Wrap(
+              spacing: VistaSpace.xl,
+              children: [
+                for (final (text, color) in [
+                  ('$n settled', VistaColors.textPrimary),
+                  ('${m.right} right', VistaColors.long),
+                  ('${m.wrong} wrong', VistaColors.short),
+                  ('${m.open} open', VistaColors.textMuted),
+                  ('Hit rate $pct%', VistaColors.textPrimary),
+                ])
+                  Text(text, style: VistaType.body.copyWith(color: color)),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 /// Every receipt for [author]: their call receipts, then, on the user's
 /// own list only, the user's paper order receipts, in a separate section.
 class ReceiptsScreen extends StatelessWidget {
@@ -294,6 +372,7 @@ class CallReceiptScreen extends StatelessWidget {
       ('Asset', r.asset),
       ('Direction', r.side?.label),
       ('Entry price', r.entryPrice),
+      ('Paper size', r.sizeCents == null ? null : formatCents(r.sizeCents!)),
       ('Entered', r.entryAt),
       ('Rule', r.rule),
       ('Result', r.result == null ? null : r.status),

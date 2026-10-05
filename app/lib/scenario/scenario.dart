@@ -10,6 +10,18 @@ import '../features/people/follow_mock.dart';
 import '../features/portfolio/portfolio_mock.dart';
 import '../features/trade/trade_mock.dart';
 
+/// A trader's record (VC-MKT-002), as [Scenario.record] derives it:
+/// settled calls (right + wrong), open ones, the hit rate as an integer
+/// percent (null with nothing settled), and the clock it is as of.
+typedef RecordMetrics = ({
+  int settled,
+  int right,
+  int wrong,
+  int open,
+  int? hitRatePct,
+  DateTime asOf,
+});
+
 /// All mutable demo state, in one place. Seeded from the mocks, which are
 /// the fixture and never live state; [reset] puts every value back to that
 /// seed. Identities, prices and calls stay const fixtures and are not here.
@@ -85,9 +97,7 @@ abstract final class Scenario {
 
   /// Published calls' receipts (VC-REC-001). Record lists and Call details
   /// resolve to these; paper fills stay in [receipts].
-  static final callReceipts = ValueNotifier<List<CallReceipt>>(
-    YourMarketMock.record,
-  );
+  static final callReceipts = ValueNotifier<List<CallReceipt>>(seedCalls);
 
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
@@ -127,6 +137,41 @@ abstract final class Scenario {
   /// What [marketFees] add up to, in int cents.
   static int get marketFeesCents =>
       marketFees.fold(0, (sum, e) => sum + e.amountCents);
+
+  /// [author]'s record, derived from [callReceipts] as of [clock] each
+  /// time it is read; nothing stores it. Right and wrong calls have
+  /// settled, open ones have not, and a call with no stated result is
+  /// unavailable and not counted. The hit rate is right ÷ settled as an
+  /// integer percent, rounded half up in integer arithmetic.
+  ///
+  /// Capital-independent: it counts outcomes only and never reads a
+  /// call's paper trade size ([CallReceipt.sizeCents]), so two traders
+  /// with the same outcomes get the same record whatever they staked.
+  static RecordMetrics record(String author) {
+    var right = 0, wrong = 0, open = 0;
+    for (final c in callReceipts.value) {
+      if (c.author != author) continue;
+      switch (c.result) {
+        case CallOutcome.right:
+          right++;
+        case CallOutcome.wrong:
+          wrong++;
+        case CallOutcome.open:
+          open++;
+        case null:
+          break;
+      }
+    }
+    final settled = right + wrong;
+    return (
+      settled: settled,
+      right: right,
+      wrong: wrong,
+      open: open,
+      hitRatePct: settled == 0 ? null : (right * 100 + settled ~/ 2) ~/ settled,
+      asOf: clock.value,
+    );
+  }
 
   /// Changes the given parts of the Arena's view.
   static void setArena({int? sort, int? from, int? to, String? query}) {
@@ -303,7 +348,7 @@ abstract final class Scenario {
     participation.value = const {};
     arena.value = ArenaMock.allBattles;
     feeEntries.value = YourMarketMock.fees;
-    callReceipts.value = YourMarketMock.record;
+    callReceipts.value = seedCalls;
   }
 }
 
