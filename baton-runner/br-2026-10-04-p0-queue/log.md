@@ -148,3 +148,8 @@
 2026-10-05T08:26:34Z decision (manager): F1 fix = scope the copy to the collection read, "No call receipts for <handle> in fixture-v1" (the ReceiptsScreen wording); keep the Profile CALLS empty state. F7 fix = preserve the Explore list's scroll offset across the failed state and Retry (keep the controller/list identity). F2-F6 test-strength: mutation-proven. F1 is before-merge: CLEAN requires it applied.
 2026-10-05T08:26:34Z workflow: finding-fixer launched over F1-F7, groups {F1} profile copy, {F7} markets scroll, {F2-F6} tests; verify = scripts/gate.sh gate-phase-8-fixer/
 2026-10-05T08:31:27Z user instruction: merge phases 4 through 8 once they are clean. Plan: after phase 8 closes CLEAN, merge #15 -> rebase phase-5 onto main -> retarget+merge #16 -> ... -> phase 8 PR, squash each, delete branches after the stack is done, pull main in the primary checkout.
+2026-10-05T08:47:04Z return: finding-fixer wf_ef428cfc-2b6 COMPLETE; F1-F7 all fix-here; applied all 7 (F1 before-merge closed); skipped none; unreported none; verify GATE: PASS; JSON baton-runner/br-2026-10-04-p0-queue/fixer-phase-8.json; units 43/75
+2026-10-05T08:47:04Z commit: 289ec88 fix(phase-8) adjudicated findings
+2026-10-05T08:47:04Z gate: full gate launched at 289ec88 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-8-close/
+2026-10-05T08:49:16Z gate: full gate at 289ec88 -> see gate-stdout.log and has-market-tail.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-8-close/
+2026-10-05T08:49:16Z spawn: phase 8 CLOSING unit (opus, general-purpose)

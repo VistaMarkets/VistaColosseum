@@ -494,7 +494,8 @@ VistaColosseum/
 │       ├── 2026-10-05T054607-phase7-review-iter1.md
 │       ├── 2026-10-05T065006-phase7-close.md
 │       ├── 2026-10-05T071134-phase8-empty-failed-states.md
-│       └── 2026-10-05T071609-phase8-review-iter1.md
+│       ├── 2026-10-05T071609-phase8-review-iter1.md
+│       └── 2026-10-05T085628-phase8-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
@@ -503,6 +504,8 @@ VistaColosseum/
 │       ├── close-phase-7/
 │       │   ├── house-rule-grep.log
 │       │   └── trader-record-test-expanded.log
+│       ├── close-phase-8/
+│       │   └── empty-states-test-expanded.log
 │       ├── fix-phase-2-iter-2/
 │       │   ├── gate/
 │       │   │   ├── flutter-analyze.log
@@ -698,6 +701,12 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── has-market.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   ├── has-market-tail.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-8-fixer/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
@@ -878,6 +887,7 @@ VistaColosseum/
 │       ├── digest-phase-5.md
 │       ├── digest-phase-6.md
 │       ├── digest-phase-7.md
+│       ├── digest-phase-8.md
 │       ├── fixer-phase-3.json
 │       ├── fixer-phase-4.json
 │       ├── fixer-phase-5.json
@@ -924,6 +934,7 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-5-maker-suggestion-card.md
 │   │   ├── 2026-10-04-dw-review-phase-6-fee-ledger-and-receipts.md
 │   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
+│   │   ├── 2026-10-04-dw-review-phase-8-list-empty-failed-states.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md
