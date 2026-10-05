@@ -331,6 +331,7 @@ VistaColosseum/
 │   │   │   │   ├── vista_chips.dart
 │   │   │   │   ├── vista_controls.dart
 │   │   │   │   ├── vista_detail.dart
+│   │   │   │   ├── vista_empty_state.dart
 │   │   │   │   ├── vista_flow.dart
 │   │   │   │   ├── vista_icon.dart
 │   │   │   │   ├── vista_list_row.dart
@@ -430,6 +431,7 @@ VistaColosseum/
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
+│   │   ├── empty_states_test.dart
 │   │   ├── home_screen_test.dart
 │   │   ├── order_ticket_test.dart
 │   │   ├── receipts_test.dart
@@ -490,7 +492,8 @@ VistaColosseum/
 │       ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
 │       ├── 2026-10-05T054156-phase7-trader-record-panel.md
 │       ├── 2026-10-05T054607-phase7-review-iter1.md
-│       └── 2026-10-05T065006-phase7-close.md
+│       ├── 2026-10-05T065006-phase7-close.md
+│       └── 2026-10-05T071134-phase8-empty-failed-states.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
@@ -694,6 +697,11 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── has-market.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── phase-4-red/
 │       │   ├── home-green-1.log
 │       │   ├── home-red-1.log
@@ -724,6 +732,10 @@ VistaColosseum/
 │       │   ├── 01-compile-red.log
 │       │   ├── 02-assertions-red.log
 │       │   └── 03-mutants.log
+│       ├── phase-8-red/
+│       │   ├── mutations.log
+│       │   ├── red-1-compile.log
+│       │   └── red-2-runtime.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart

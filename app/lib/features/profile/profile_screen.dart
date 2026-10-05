@@ -11,6 +11,7 @@ import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
 import 'profile_mock.dart';
+import '../../app_shell.dart';
 
 /// [author]'s settled calls as dots, oldest to newest, the last 10 at
 /// most, each in its receipt's colour (right long, wrong short). Order is
@@ -350,13 +351,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// The trader's call receipts under a CALLS heading; with none, no
-  /// heading either.
+  /// heading, and the empty state instead.
   Widget _calls() {
     return ValueListenableBuilder(
       valueListenable: Scenario.callReceipts,
       builder: (context, calls, _) {
         if (!calls.any((c) => c.author == widget.handle)) {
-          return const SizedBox.shrink();
+          return VistaEmptyState(
+            message: 'No calls from ${widget.handle} yet',
+            actionLabel: 'Explore markets',
+            onAction: () => AppShell.showExplore(context),
+          );
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

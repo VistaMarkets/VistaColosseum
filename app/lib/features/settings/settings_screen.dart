@@ -8,6 +8,7 @@ import '../people/follow_mock.dart';
 import '../simulation/simulation_indicator.dart';
 import 'settings_mock.dart';
 import 'settings_state.dart';
+import '../../scenario/scenario.dart';
 
 /// Settings, opened from the Portfolio gear (Figma 442:102; sections open
 /// in place as in 442:772). Rows follow the backend's account contract;
@@ -76,6 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsState.tradingPermission,
                   DisplayPrefs.chartMode,
                   DisplayPrefs.longOnRight,
+                  Scenario.marketsLoadFails,
                 ]),
                 builder: (context, _) => ListView(
                   padding: EdgeInsets.fromLTRB(
@@ -121,6 +123,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Reset demo',
                       verticalPadding: 13,
                       onTap: () => resetDemo(context),
+                    ),
+                    // Presenter-only: fails the Explore list until Retry.
+                    VistaSettingRow(
+                      title: 'Simulate load failure',
+                      subtitle: 'Explore markets list',
+                      trailing: VistaSwitch(
+                        value: Scenario.marketsLoadFails.value,
+                        semanticLabel: 'Simulate load failure',
+                        onChanged: (on) => Scenario.marketsLoadFails.value = on,
+                      ),
                     ),
                   ],
                 ),

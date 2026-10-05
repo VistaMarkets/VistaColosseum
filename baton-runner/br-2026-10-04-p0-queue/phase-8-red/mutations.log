@@ -1,0 +1,17 @@
+== M1: reset no longer clears the toggle
+  Expected: [
+  Expected: [
+Expected: [
+Expected: [
+00:03 +15 -4: Some tests failed.
+1
+== M2: Retry does not clear the toggle
+Expected: no matching candidates
+  Actual: _TextWidgetFinder:<Found 1 widget with text "Couldn't load markets": [
+00:02 +0 -1: Some tests failed.
+== M3: Positions empty state removed
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "No positions yet" descending from
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "No positions yet" descending from
+00:02 +0 -2: Some tests failed.

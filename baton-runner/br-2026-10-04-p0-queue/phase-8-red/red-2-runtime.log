@@ -1,0 +1,60 @@
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:00 +1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:00 +2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "No calls to show" descending from
+   Which: means none were found but one was expected
+#4      expectEmpty (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:81:3)
+#5      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:116:7)
+00:00 +2 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:00 +2 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x [E]
+00:00 +2 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "No calls to show" descending from
+   Which: means none were found but one was expected
+#4      expectEmpty (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:81:3)
+#5      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:116:7)
+00:00 +2 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:00 +2 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x [E]
+00:01 +2 -2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Explore markets leads to Explore, from a tab or a pushed list
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+#3      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:204:18)
+00:01 +2 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +2 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Explore markets leads to Explore, from a tab or a pushed list [E]
+00:01 +3 -3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+#3      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:232:18)
+00:02 +3 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +3 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search [E]
+00:02 +4 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:02 +5 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:03 +6 -4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+#6      main.<anonymous closure>.openSettings (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:258:7)
+#7      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart:263:5)
+00:03 +6 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:03 +6 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it [E]
+00:03 +6 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:03 +7 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a clash fill joins its side once per action; a failure joins none
+00:03 +8 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder with a repeated actionId returns the first result
+00:03 +9 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a stale price fails with no change; refreshed, the action fills once
+00:03 +10 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: more than cash covers fails and changes nothing
+00:03 +11 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a size the cent math cannot hold fails and changes nothing
+00:03 +12 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: the fee rounds down, once (VC-ORD-003)
+00:03 +13 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a reduce-only market order is refused; a reduce-only limit rests
+00:03 +14 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: an unset or non-finite take profit or stop loss is refused
+00:03 +15 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a trader-index intent is refused on every order kind and changes nothing
+00:03 +16 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a dust, non-finite or unlevered order fails and changes nothing
+00:03 +17 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: a limit intent rests in Open orders and moves no cash
+00:03 +18 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Follow buttons read and write the follows in Scenario
+00:03 +19 -5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: (tearDownAll)
+00:03 +19 -5: Some tests failed.
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Clear search brings back an emptied Ask or follow search
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart: Explore markets leads to Explore, from a tab or a pushed list

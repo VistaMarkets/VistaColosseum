@@ -163,36 +163,21 @@ class _ArenaScreenState extends State<ArenaScreen> {
     );
   }
 
-  /// No battle matches: Ask names the assets there are; an empty crowd
-  /// range offers the full range back.
+  /// No battle matches: Ask names the assets there are and offers to
+  /// clear itself; an empty crowd range offers the full range back.
   Widget _empty(ArenaView view) {
-    final unknown = ArenaMock.asked(view.query).isEmpty;
-    return Padding(
-      padding: const EdgeInsets.all(VistaSpace.gutter),
-      child: Column(
-        children: [
-          Text(
-            unknown
-                ? 'No battles on “${view.query.trim()}”'
-                : 'No battles in this crowd split',
-            textAlign: TextAlign.center,
-            style: VistaType.subhead,
-          ),
-          const SizedBox(height: VistaSpace.md),
-          if (unknown)
-            Text(
-              ArenaMock.askHint,
-              textAlign: TextAlign.center,
-              style: VistaType.body.copyWith(color: VistaColors.textMuted),
-            )
-          else
-            VistaPillButton(
-              label: 'Show all',
-              onPressed: () =>
-                  Scenario.setArena(from: 0, to: ArenaMock.bucketCount),
-            ),
-        ],
-      ),
+    if (ArenaMock.asked(view.query).isEmpty) {
+      return VistaEmptyState(
+        message: 'No battles on “${view.query.trim()}”',
+        detail: ArenaMock.askHint,
+        actionLabel: 'Clear search',
+        onAction: () => Scenario.setArena(query: ''),
+      );
+    }
+    return VistaEmptyState(
+      message: 'No battles in this crowd split',
+      actionLabel: 'Show all',
+      onAction: () => Scenario.setArena(from: 0, to: ArenaMock.bucketCount),
     );
   }
 }
