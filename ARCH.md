@@ -571,7 +571,8 @@ VistaColosseum/
 │   ├── prd/  — hackathon requirements, delivery roadmap, and dated evidence register
 │   │   ├── 2026-10-01-vc-hackathon-evidence.md
 │   │   ├── 2026-10-01-vc-hackathon-master-prd.md
-│   │   └── 2026-10-01-vc-hackathon-roadmap.md
+│   │   ├── 2026-10-01-vc-hackathon-roadmap.md
+│   │   └── 2026-10-04-open-decisions-recommendations.md
 │   ├── prompts/
 │   │   └── social-market-demo-brief-prompt.md
 │   ├── reviews/
