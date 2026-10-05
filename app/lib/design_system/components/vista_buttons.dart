@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
+import 'vista_chips.dart';
 import 'vista_icon.dart';
 import 'vista_pressable.dart';
 
@@ -136,6 +137,48 @@ class VistaSidePair extends StatelessWidget {
         SizedBox(width: gap),
         Expanded(child: second),
       ],
+    );
+  }
+}
+
+/// "Join long" / "Join short", solid in the side's colour (Figma 506:236),
+/// in a 44pt tap row: joins a call by opening the order ticket on its side.
+/// Used on Arena calls and the trade page's Callers.
+class VistaJoinPill extends StatelessWidget {
+  const VistaJoinPill({super.key, required this.side, this.onTap});
+
+  final TradeSide side;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = 'Join ${side.label.toLowerCase()}';
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: VistaPressable(
+        onTap: onTap,
+        child: SizedBox(
+          height: VistaSize.tapTarget,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: VistaSpace.xxl,
+                vertical: 7,
+              ),
+              decoration: BoxDecoration(
+                color: side.color,
+                borderRadius: BorderRadius.circular(VistaRadius.pill),
+              ),
+              child: Text(
+                label,
+                style: VistaType.body.copyWith(color: VistaColors.onAccent),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

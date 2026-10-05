@@ -502,6 +502,12 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
             onPlay: (post) =>
                 Navigator.of(context)
                     .push(CallerPlayScreen.route(post, _quote.ticker)),
+            // Join their side, as on Arena (simulated: places nothing).
+            onJoin: (post) => showOrderTicket(
+              context,
+              symbol: _quote.ticker,
+              side: post.side,
+            ),
           ),
         gap,
         const VistaHairline(),

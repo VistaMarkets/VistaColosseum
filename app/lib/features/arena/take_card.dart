@@ -345,7 +345,7 @@ class TakeItem extends StatelessWidget {
                       ),
                     ],
                     const Spacer(),
-                    _JoinButton(side: t.side, onTap: onJoin),
+                    VistaJoinPill(side: t.side, onTap: onJoin),
                   ],
                 ),
               ],
@@ -573,47 +573,6 @@ class _AgreeButton extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// "Join long" / "Join short", solid in the side's colour (Figma 506:236):
-/// opens the order ticket.
-class _JoinButton extends StatelessWidget {
-  const _JoinButton({required this.side, this.onTap});
-
-  final TradeSide side;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = 'Join ${side.label.toLowerCase()}';
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: VistaPressable(
-        onTap: onTap,
-        child: SizedBox(
-          height: VistaSize.tapTarget,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: VistaSpace.xxl,
-                vertical: 7,
-              ),
-              decoration: BoxDecoration(
-                color: side.color,
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-              ),
-              child: Text(
-                label,
-                style: VistaType.body.copyWith(color: VistaColors.onAccent),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

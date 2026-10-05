@@ -7,8 +7,9 @@ import 'trade_mock.dart';
 
 /// Callers on an asset as a post thread: each caller's reasoning in their
 /// own words over their order (side, leverage, entry, size, exits and live
-/// P&L), posts joined by a line through the avatars. Read-only: no like,
-/// repost or share. Tapping a caller opens their profile.
+/// P&L), posts joined by a line through the avatars, with Join long / Join
+/// short as on Arena (no like, repost or share here). Tapping a caller opens
+/// their profile.
 class CallerThread extends StatelessWidget {
   const CallerThread({
     super.key,
@@ -16,7 +17,11 @@ class CallerThread extends StatelessWidget {
     required this.posts,
     required this.onCaller,
     this.onPlay,
+    this.onJoin,
   });
+
+  /// Joins a caller's side: opens the order ticket on it.
+  final ValueChanged<CallerPost>? onJoin;
 
   final String ticker;
   final List<CallerPost> posts;
@@ -40,6 +45,7 @@ class CallerThread extends StatelessWidget {
               threaded: i < posts.length - 1,
               onCaller: onCaller,
               onPlay: onPlay,
+              onJoin: onJoin,
             ),
         ],
       ),
@@ -55,10 +61,12 @@ class _Post extends StatelessWidget {
     required this.threaded,
     required this.onCaller,
     this.onPlay,
+    this.onJoin,
   });
 
   final CallerPost post;
   final ValueChanged<CallerPost>? onPlay;
+  final ValueChanged<CallerPost>? onJoin;
 
   /// The market's session price the order levels are set from, and its
   /// live price for P&L.
@@ -156,6 +164,14 @@ class _Post extends StatelessWidget {
                     price: price,
                     onTap: onPlay == null ? null : () => onPlay!(p),
                   ),
+                  if (onJoin != null)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: VistaJoinPill(
+                        side: p.side,
+                        onTap: () => onJoin!(p),
+                      ),
+                    ),
                 ],
               ),
             ),

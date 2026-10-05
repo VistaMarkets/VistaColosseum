@@ -2253,6 +2253,41 @@ void main() {
     });
   });
 
+  testWidgets('trade page Callers: Join opens the ticket on their side', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const AssetTradeScreen(ticker: 'ETH'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(VistaUnderlineTabs),
+            matching: find.text('Callers'),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    final join = find.byType(VistaJoinPill).first;
+    await tester.ensureVisible(join);
+    await tester.pumpAndSettle();
+    final side = tester.widget<VistaJoinPill>(join).side;
+    await tester.tap(join);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Place market ${side.label.toLowerCase()}'),
+      findsOneWidget,
+    );
+  });
+
   group('positions', () {
     Future<void> launch(WidgetTester tester) async {
       tester.view
