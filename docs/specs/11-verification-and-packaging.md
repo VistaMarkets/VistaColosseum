@@ -9,7 +9,7 @@ This spec turns VC-DEM-001, VC-QA-001, VC-QA-003 and VC-QA-004 into a verificati
 **Problem.** M1 is the only milestone with a verification record (`docs/verification/2026-10-05-m1-shell-and-scenario.md`). The roadmap's completion definition (`roadmap.md:84`) requires that the P0 requirements pass on the chosen target, the demo resets and repeats, and the package states the mock boundary. None of that is written down for M6 and M7, so neither can exit, and VC-QA-003's exit bar (`docs/prd/2026-10-01-vc-hackathon-master-prd.md:170`: no unresolved defect that prevents a core journey or misrepresents a financial action) has never been applied.
 
 **Goals.**
-- G1: both required viewports and the desktop input path are checked and recorded against one build SHA, with evidence for passed rows (policy in Q-3).
+- G1: both required viewports and the desktop input path are checked and recorded against one build SHA, with evidence for passed rows (DR-12).
 - G2: J1 to J5 run twice from reset against that build SHA and `fixture-v1`, with cancel, one seeded error, duplicate confirm and filter reset exercised, and the VC-QA-003 defect bar applied.
 - G3: a stranger with the repo and a Mac can run and reset the demo from the README.
 - G4: the final recording exists, follows the script, and the package names build, fixture, recording, mock boundary, known limitations and deadline.
@@ -34,10 +34,10 @@ Constraints: Dart SDK `^3.13.1` (`app/pubspec.yaml:7`); no web target (`app/web/
 - FR-2: the matrix MUST record, per inventory control, that it is operable by mouse click, scroll or drag, or keyboard text entry, including the Arena crowd-split range filter by drag and every paging or swipe control by a mouse equivalent (VC-DEM-001 `master-prd.md:81`, VC-QA-001).
 - FR-3: the matrix MUST record that Back returns to the prior surface from each drill-down, and that switching sections preserves the selected call and the Arena filter state (VC-DEM-001).
 - FR-4: the matrix MUST record that the four navigation items (`app/lib/app_shell.dart:37-40`: Home, Explore, Arena, Wallet) and the market and profile drill-downs from Home, Explore and Arena each reach a destination (VC-DEM-001).
-- FR-5: the matrix MUST record, for each control on the J1 to J5 action path, its touch-target size measured with Flutter DevTools "Select widget mode" (or Xcode Accessibility Inspector, named per row); a control under 44 logical pixels goes in the Exceptions list with its measured size, and FR-5's outcome follows Q-4.
+- FR-5: the matrix MUST record, for each control on the J1 to J5 action path, its touch-target size measured with Flutter DevTools "Select widget mode" (or Xcode Accessibility Inspector, named per row); a control under 44 logical pixels goes in the Exceptions list with its measured size, and the FR-5 summary row is `passed` only when the Exceptions section carries the presenter's sign-off line (DR-13).
 - FR-6: the matrix MUST record that the Simulator's device chrome and the app's simulation strip cover no navigation item, form field or action button, and that resizing the Simulator window keeps the device viewport portrait at its logical size (VC-QA-001).
 - FR-7: the matrix MUST record that bull/bear and long/short labels are readable without colour: each carries text or a glyph, checked at both viewports (VC-QA-001).
-- FR-8: the protocol MUST define one ordered step table covering J1 to J5 from reset, with one cancel, one seeded error, one duplicate confirm, one filter reset, one entry-to-review-to-receipt instrument and direction check, and one Arena membership check after confirm (VC-QA-003 `master-prd.md:170`; roadmap minimum checks `roadmap.md:80`), and the copy-story steps per Q-2.
+- FR-8: the protocol MUST define one ordered step table covering J1 to J5 from reset, with one cancel, one seeded error, one duplicate confirm, one filter reset, one entry-to-review-to-receipt instrument and direction check, and one Arena membership check after confirm (VC-QA-003 `master-prd.md:170`; roadmap minimum checks `roadmap.md:80`), and the copy-story steps of spec 09 (persona switch, copied order, `copy` ledger credit; `docs/specs/09-copy-story.md`) (DR-11).
 - FR-9: a rehearsal MUST start with the Settings "Reset demo" row (`settings_screen.dart:123`) and record the toast "Demo reset to fixture-v1" (`app/lib/features/simulation/simulation_indicator.dart:19`), and MUST run without `--dart-define=HAS_MARKET=true` so J2 creates the market (DR-9).
 - FR-10: the seeded error MUST be the Settings "Simulate load failure" switch (`settings_screen.dart:129-134`, `scenario.dart:109`) followed by Retry on Explore, which clears it (`app/lib/features/markets/markets_screen.dart:122-123`).
 - FR-11: the duplicate confirm MUST be a fast double-click on Confirm in the shared order ticket (`app/lib/features/trade/order_ticket.dart:855-866`, the only `Scenario.placeOrder` caller, `order_ticket.dart:823,861`); the record MUST show one position and one receipt and MUST cite the widget test `app/test/order_ticket_test.dart:109` 'double tap confirm places one position' as the proof that the store guard (`scenario.dart:273-279`) holds (DR-8).
@@ -59,7 +59,7 @@ Constraints: Dart SDK `^3.13.1` (`app/pubspec.yaml:7`); no web target (`app/web/
 - FR-15 depends on FR-9: a rehearsal that did not start from reset cannot be compared.
 - FR-23's format depends on Q-1; the default zip applies until Q-1 answers.
 - FR-18's viewport is FR-1's primary one, 390x844.
-- FR-8's copy-story steps and FR-13's P0 list depend on Q-2.
+- FR-8's copy-story steps require spec 09 on `main` (DR-11).
 
 ### Non-functional
 
@@ -87,7 +87,7 @@ Constraints: Dart SDK `^3.13.1` (`app/pubspec.yaml:7`); no web target (`app/web/
 - Fixture version string is `fixture-v1`.
 - Deadline is 2026-10-12 23:59 America/Los_Angeles (DR-2). `master-prd.md:5` and `roadmap.md:35` say October 11, 23:00 and are stale.
 - Target is the iOS Simulator on the presenter Mac, devices iPhone 14 and iPhone SE (3rd generation) (DR-1).
-- Every record names one build SHA and every record in this spec names the same one (Q-2 decides which).
+- Every record names one build SHA and every record in this spec names the same one: the first `main` commit at or after the spec 09 merge that the presenter builds (DR-11).
 
 ## 5. Architecture and design
 
@@ -203,6 +203,31 @@ Seven Markdown records, one README section, one recording outside the repo.
   - Compare the creator's figures only — rejected because the copy-story steps act as the copier.
 - Consequences: the protocol gains a Persona column; before spec 09 lands every step reads `creator`.
 
+### DR-11: all records run on one post-spec-09 build
+- Decision: Phases 2 to 5 wait for spec 09 to merge; the build SHA is the first `main` commit at or after that merge which the presenter builds, and the protocol includes the copy-story steps.
+- Context: roadmap M5 and M6 require J1 to J5 plus the copy story from reset (`roadmap.md:32-33`); spec 09 is in build on `feat/br-2026-10-05-copy-story/phase-1`; the user chose this at the Phase 4 gate on October 5.
+- Rationale: one SHA across every record is what FR-15 and AC-3.2 need, and a rehearsal without S08 cannot exit M5 or M6.
+- Alternatives considered:
+  - Run now on 7d39bff with the copy story `not run` — rejected because it needs a third rehearsal later and leaves M5 unverified in the meantime.
+- Consequences: Phase 1 can be written now; nothing else starts until spec 09 is on `main`.
+
+### DR-12: evidence for passed matrix rows is one screenshot per section per journey
+- Decision: FR-1's four sections each carry five screenshots (J1 to J5), plus a screenshot for every failed or exceptional row.
+- Context: M1's record was attested for the rows its recording could not show; a `passed` row with no file proves nothing about the viewport or scale actually set; the user chose this at the Phase 4 gate on October 5.
+- Rationale: twenty files prove the device and text size were really in place for every journey without a screenshot per control.
+- Alternatives considered:
+  - Attestation only, as M1 — rejected because the matrix is the M6 exit evidence and M1 already spent the attestation precedent.
+  - One screenshot per row — rejected because hundreds of files bury the failed ones.
+- Consequences: AC-2.4 is a file count and a name check.
+
+### DR-13: under-44 px controls are recorded exceptions with the presenter's sign-off
+- Decision: the FR-5 summary row is `passed` only when the Exceptions section lists every control under 44 logical pixels with its measured size and ends with a sign-off line naming the presenter and the date; fixes are follow-ups.
+- Context: the 30 px pill tap target and the 14 px "All receipts" link are known (`digest-phase-8.md:11,23`); the PRD states 44 px as a target (`master-prd.md:168`); the user chose this at the Phase 4 gate on October 5.
+- Rationale: neither control sits on a financial action, and fixing them is app code that must wait for spec 09.
+- Alternatives considered:
+  - Block M6 until both are fixed — rejected because M6 would wait on app changes that cannot start before spec 09 merges.
+- Consequences: the outcome vocabulary stays at four words; the sign-off line is the fifth state.
+
 ## 7. Implementation plan
 
 ### Phase 1 — Rehearsal protocol and control inventory
@@ -211,12 +236,11 @@ Seven Markdown records, one README section, one recording outside the repo.
   - Create: `docs/verification/rehearsal-protocol.md`
 - Interfaces:
   - Consumes: journeys J1 to J5 (`master-prd.md:62-66`); Settings rows (`settings_screen.dart:123,129-134`); Arena actions (`arena_screen.dart:173-179`); the shared ticket (`order_ticket.dart:855-866`); roadmap minimum checks (`roadmap.md:80`); P0 rows (`grep -n '| P0 |' master-prd.md`, 31 rows) and P1 rows (`roadmap.md:46-47`).
-  - Produces: a step table (Step, Screen, Persona, Action, Expected state, PRD IDs) with step 1 = Reset demo; a control inventory (Row id, Journey, Screen, Control, Input kind); a "P0 IDs" list of 31 and a "P1 IDs" list; the copy-story steps marked `[gated: Q-2]`.
+  - Produces: a step table (Step, Screen, Persona, Action, Expected state, PRD IDs) with step 1 = Reset demo and the copy-story steps (persona switch in Settings, a copied order as copier, the `copy` ledger row as creator) after J4; a control inventory (Row id, Journey, Screen, Control, Input kind); a "P0 IDs" list of 31 and a "P1 IDs" list.
 - Gotchas: the seeded-error switch is cleared by Retry (`markets_screen.dart:122-123`) as well as by reset (`scenario.dart:383`), so the error step must observe Explore before Retry. The crowd-split filter is a drag control; list it with input kind `drag`.
 - Complexity: mechanical
 - Non-goals: running anything; the matrix.
-- Depends on: none
-- Gated on: Q-2 for the copy-story steps only
+- Depends on: none for the file; the copy-story steps cite spec 09's Settings row and ticket once it is on `main`
 - Acceptance criteria:
   - AC-1.1: given the file, the step table's first row is Reset demo with expected state "toast Demo reset to fixture-v1", and rows exist whose Action column names, respectively, a cancel on the ticket, the "Simulate load failure" switch then Retry, a fast double-click on Confirm, and "Show all" or "Clear search"; each with a non-empty Expected state and PRD IDs cell.
   - AC-1.2: given the file, rows exist for the instrument-and-direction match from entry through review to receipt, and for Arena membership after confirm.
@@ -228,21 +252,20 @@ Seven Markdown records, one README section, one recording outside the repo.
 - Outcome: `m6-viewport-input-matrix.md` records every inventory control and the FR-3 to FR-7 rows on both devices at both scales against one build SHA.
 - Files:
   - Create: `docs/verification/m6-viewport-input-matrix.md`
-  - Create: `docs/verification/evidence/m6-viewport-input-matrix-<row id>.png` per Q-3's policy, at minimum one per failed or exceptional row
+  - Create: `docs/verification/evidence/m6-viewport-input-matrix-<device>-<scale>-J<n>.png`, one per section per journey (20 files), plus `m6-viewport-input-matrix-<row id>.png` for every failed or exceptional row (DR-12)
 - Interfaces:
   - Consumes: Phase 1's control inventory and row ids; the §5 field table; the four section headings in §5.
   - Produces: the "Build / revision" cell later phases copy; `## Exceptions` listing every control under 44 px with method and size; `## Defects observed`.
 - Gotchas: 1.3x is any Dynamic Type step at or above xxxLarge because the app clamps (`main.dart:30-31`); record the step chosen in the Flags row. Measure targets with DevTools "Select widget mode", not by clicking.
 - Complexity: mechanical
 - Non-goals: fixing a failed row; Figma comparison.
-- Depends on: Phase 1
-- Gated on: Q-3 (evidence per passed row), Q-4 (FR-5 outcome with exceptions)
+- Depends on: Phase 1; spec 09 on `main` (DR-11)
 - Acceptance criteria:
   - AC-2.1: given the file, the four section headings from §5 appear exactly once each, and under each heading every row id from the Phase 1 inventory appears once with an outcome.
   - AC-2.2: given each section, rows exist for Back from each drill-down, section-switch state preservation, the four nav items, the market and profile drill-downs, chrome and strip occlusion, window resize, and bull/bear label legibility, each with an outcome.
   - AC-2.3: given a row with outcome `failed`, a `## Defects observed` entry names it, and an evidence file named for its row id exists.
-  - [gated: Q-3] AC-2.4: given a row with outcome `passed`, evidence exists per the Q-3 policy.
-  - [gated: Q-4] AC-2.5 (negative): given a control measured under 44 px, it appears in `## Exceptions` with method and size, and the FR-5 summary row is not `passed` unless Q-4's acceptance line is present.
+  - AC-2.4: given each of the four sections, five evidence files named for that device, scale and J1 to J5 exist under `docs/verification/evidence/`, each showing the simulation strip and the journey's screen; a section with fewer than five fails this criterion.
+  - AC-2.5 (negative): given a control measured under 44 px, it appears in `## Exceptions` with method and size, and the FR-5 summary row is `passed` only if `## Exceptions` ends with a line beginning `Exceptions accepted by` naming the presenter and an ISO date; absent that line the summary row is `failed`.
   - AC-2.6: every outcome cell is one of the four words; `grep -n -E 'TODO|TBD'` prints nothing.
 
 ### Phase 3 — Two rehearsals from reset
@@ -256,8 +279,7 @@ Seven Markdown records, one README section, one recording outside the repo.
 - Gotchas: run both rehearsals in one sitting on one build; if `main` moves between them, the second record fails AC-3.2 and both must be redone. Position size in coins drifts with the live mark (digest-phase-8 line 12), so compare counts, not sizes.
 - Complexity: mechanical
 - Non-goals: P1 behaviour; fixing defects.
-- Depends on: Phase 2
-- Gated on: Q-2 (copy-story steps and build SHA choice)
+- Depends on: Phase 2; spec 09 on `main` (DR-11)
 - Acceptance criteria:
   - AC-3.1: given both records, each has a distinct "Run date and start time" and its own evidence files, including the Settings clock screenshot.
   - AC-3.2: given both records, their "Build / revision" cells are identical 40-hex strings equal to the matrix's.
@@ -298,7 +320,7 @@ Seven Markdown records, one README section, one recording outside the repo.
 - Complexity: mechanical
 - Non-goals: uploading; writing the submission form text.
 - Depends on: Phase 4; the R-1 docs PR merged
-- Gated on: Q-1 for AC-5.4 only
+- Gated on: Q-1 for AC-5.4 only (waived; the zip default applies)
 - Acceptance criteria:
   - AC-5.1: given the file, Mock boundary names identities, prices and calls as constant fixtures, cash, positions, open orders, listing status, fees and receipts as simulated in `Scenario`, and states no network call is made at runtime.
   - AC-5.2: given the file, Known limitations contains every "Not exercised" ID from both rehearsal records, every P1 ID as deferred, every item still unbuilt from `digest-phase-8.md:27`, every "Defects observed" row from `docs/verification/*.md` whose fix commit is not an ancestor of the build SHA (the M1 record's Wallet-cap row is the first: `portfolio_pager.dart:183` reads a constant and no cap is stored on listing), and the demo-narrative economics sentence.
@@ -311,13 +333,13 @@ Seven Markdown records, one README section, one recording outside the repo.
 | Risk | Likelihood / Impact | Mitigation or contingency |
 |---|---|---|
 | R-1: PRD and roadmap still say October 11; someone plans to the wrong day | medium / high | DR-2 pins the date; a one-line docs PR correcting `master-prd.md:5` and `roadmap.md:35` is a dependency of Phase 5 |
-| R-2: `main` moves between phases, so one build SHA cannot hold across Phases 2 to 5 | high / high | Q-2 picks the SHA after spec 09 merges; Phases 2 and 3 run in one sitting; Phases 4 and 5 reuse that SHA even if `main` moved, and the package says so |
+| R-2: `main` moves between phases, so one build SHA cannot hold across Phases 2 to 5 | high / high | DR-11 fixes the SHA after spec 09 merges; Phases 2 and 3 run in one sitting; Phases 4 and 5 reuse that SHA even if `main` moved, and the package says so |
 | R-3: the recording is lost or re-encoded | low / high | FR-18 hash plus two named locations |
-| R-4: the matrix is self-attested and M6 exits on paper | medium / high | Q-3 evidence policy; FR-15's distinct start times and clock screenshots; FR-14's defect bar |
+| R-4: the matrix is self-attested and M6 exits on paper | medium / high | DR-12 evidence policy; FR-15's distinct start times and clock screenshots; FR-14's defect bar |
 | R-5: Q-1 stays unanswered | medium / medium | only AC-5.4 is gated; the zip default stands in |
 | R-6: every phase is manual on the Mac, so an agent session cannot progress it | high / low | an agent prepares each record skeleton with `not run` cells (never TODO) and the presenter fills outcomes |
 | R-7: no recording at 390x844 exists; the M1 recording is at a Dynamic Island viewport with no narration | high / high | Phase 4 produces the recording; the M1 recording stays M1 evidence only |
-| R-8: known under-44 px controls (30 px pill, 14 px receipts link, digest-phase-8 lines 11 and 23) make FR-5 unpassable | high / medium | Q-4 |
+| R-8: known under-44 px controls (30 px pill, 14 px receipts link, digest-phase-8 lines 11 and 23) make FR-5 unpassable | high / medium | DR-13: recorded exceptions with the presenter's sign-off; fixes are follow-ups |
 
 ## 9. Testing and validation
 
@@ -329,7 +351,7 @@ There is no test suite for records. Validation is the acceptance criteria, each 
 | FR-2 | AC-1.4, AC-2.1 | inventory input kinds; per-row operability outcome | read |
 | FR-3 | AC-2.2 | Back and state-preservation rows per section | read |
 | FR-4 | AC-2.2 | nav items and drill-down rows per section | read |
-| FR-5 | AC-2.5 | exceptions listed with method and size; summary row not passed without Q-4 line | read |
+| FR-5 | AC-2.5 | exceptions listed with method and size; summary row passed only with the sign-off line | read |
 | FR-6 | AC-2.2 | occlusion and window-resize rows | read |
 | FR-7 | AC-2.2 | bull/bear legibility row | read |
 | FR-8 | AC-1.1, AC-1.2 | required steps present with expected state and IDs | grep, read |
@@ -350,7 +372,7 @@ There is no test suite for records. Validation is the acceptance criteria, each 
 | FR-22 | AC-5.5 | no submission or live claim | grep |
 | FR-23 | AC-5.4 | artifact named with hash | sha256sum |
 | FR-13 | AC-1.3 | protocol enumerates 31 P0 IDs and the P1 IDs | count |
-| FR-1 | AC-2.4 | passed rows carry evidence per Q-3 | ls |
+| FR-1 | AC-2.4 | five evidence files per section | ls |
 | FR-5 | AC-2.3 | failed rows have a defect entry and an evidence file | ls, read |
 | global | AC-1.5, AC-2.6 | no TODO/TBD; vocabulary only; no empty Persona cell | grep |
 | global | success metrics | no TODO; `app/` diff empty | grep, git |
@@ -358,21 +380,7 @@ There is no test suite for records. Validation is the acceptance criteria, each 
 ## 10. Open questions
 
 - Q-1: what is the submission channel, required format and allowed recording length? — blocks: AC-5.4 and the length comparison in AC-5.3.
+  WAIVED 2026-10-05 by user: the brief has not stated them; the zip default stands until it does. Closed by the user pasting the submission instructions.
   Options considered: A, repo link plus video link, no artifact to build but judges need a Mac; B, zip of the repo at the build SHA plus the video file, self-contained but large; C, Simulator `.app` bundle, runnable without building but Mac-only and unsigned.
   Recommendation: A, with B as the fallback artifact; the zip is one command.
   Impact of waiting: Phases 1 to 4 proceed; Phase 5 ships with the zip default and the length cell reads `allowed length unknown`.
-
-- Q-2: do Phases 2 to 5 run on a post-spec-09 build with the copy-story steps in the protocol, or now on 7d39bff with the copy story `not run`? — blocks: Phase 1's copy-story steps, Phase 3, the build SHA for Phases 2 to 5.
-  Options considered: A, wait for spec 09, one SHA for everything, S08 exercised as the roadmap's M5 requires; B, run now, finish sooner, redo nothing but leave S08 and VC-CPY-001/002 `not run` and run a third rehearsal later.
-  Recommendation: A; spec 09 is one phase and already building, and a rehearsal without the copy story cannot exit M5 or M6.
-  Impact of waiting: Phase 1 can be written now with the copy steps marked gated; nothing else starts.
-
-- Q-3: what evidence does a `passed` matrix row need? — blocks: AC-2.4.
-  Options considered: A, one screenshot per section per journey (about 20 files) plus per-row screenshots for failed and exceptional rows; B, attestation only, as M1 did; C, one screenshot per row (hundreds of files).
-  Recommendation: A; it proves the viewport and scale were really set without drowning the evidence folder.
-  Impact of waiting: the matrix can be filled, but its passed rows are unproven until the policy is chosen.
-
-- Q-4: are the known under-44 px controls (30 px pill, 14 px receipts link) accepted as recorded exceptions, so FR-5 can read `passed with exceptions` carrying your sign-off line, or does M6 not exit until they are fixed? — blocks: AC-2.5, FR-14's verdict for M6.
-  Options considered: A, accept with a sign-off line naming each exception, fixes tracked as follow-ups; B, block M6 until fixed, which means app code changes after spec 09.
-  Recommendation: A; the PRD calls 44 px a target, not a requirement (`master-prd.md:168`), and neither control is on a financial action.
-  Impact of waiting: the matrix can be filled, but its FR-5 summary and M6's verdict stay open.
