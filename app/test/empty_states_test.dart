@@ -15,6 +15,7 @@ import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/scenario/scenario.dart';
 
 import 'home_screen_test.dart' show expectPillClear, phones;
+import 'scenario_test.dart' show ethLong;
 import 'trader_record_test.dart' show pumpApp;
 
 /// The app's font, so text measures as on a device.
@@ -155,7 +156,14 @@ void main() {
         'Explore markets',
         reason: '$name Receipts',
       );
-      expect(find.text('No paper orders yet'), findsOneWidget, reason: name);
+      expect(
+        find.descendant(
+          of: find.byType(VistaEmptyState),
+          matching: find.text('No paper orders yet'),
+        ),
+        findsOneWidget,
+        reason: name,
+      );
 
       await open(home: const LedgerScreen());
       await expectEmpty(
@@ -184,7 +192,7 @@ void main() {
       await open(home: const ProfileScreen(handle: 'kilo.sol'));
       await expectEmpty(
         tester,
-        'No calls from kilo.sol yet',
+        'No call receipts for kilo.sol in fixture-v1',
         'Explore markets',
         reason: '$name Profile calls',
       );
@@ -221,6 +229,51 @@ void main() {
     expect(find.byType(FollowListScreen), findsNothing);
     expect(AppShell.tab.value, 1);
     expect(find.text('ALL MARKETS'), findsOneWidget);
+
+    // Open orders' own action, not the Positions one tapped above.
+    AppShell.tab.value = AppShell.wallet;
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Open orders'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open orders'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Explore markets'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Explore markets'));
+    await tester.pumpAndSettle();
+    expect(AppShell.tab.value, AppShell.explore, reason: 'Open orders');
+
+    // Every other list's own action. Each list is the first route here, so
+    // nothing pops: the tab is what the tap changes.
+    final actions = find.descendant(
+      of: find.byType(VistaEmptyState),
+      matching: find.widgetWithText(VistaPillButton, 'Explore markets'),
+    );
+    Future<void> tapEach(Widget screen, int count, {String? segment}) async {
+      await pumpApp(tester, home: screen);
+      if (segment != null) {
+        await tester.tap(find.text(segment).first);
+        await tester.pumpAndSettle();
+      }
+      await tester.drag(list, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(actions, findsNWidgets(count), reason: '$screen');
+      for (var i = 0; i < count; i++) {
+        AppShell.tab.value = 0;
+        await tester.ensureVisible(actions.at(i));
+        await tester.pumpAndSettle();
+        await tester.tap(actions.at(i));
+        await tester.pumpAndSettle();
+        expect(AppShell.tab.value, AppShell.explore, reason: '$screen #$i');
+      }
+    }
+
+    await tapEach(const Scaffold(body: HomeScreen(feed: [])), 1);
+    await tapEach(const ReceiptsScreen(author: PortfolioMock.handle), 2);
+    await tapEach(const LedgerScreen(), 1);
+    await tapEach(const FollowListScreen(), 1);
+    await tapEach(const FollowListScreen(), 1, segment: 'Following');
+    await tapEach(const ProfileScreen(handle: 'kilo.sol'), 1);
   });
 
   testWidgets('Clear search brings back an emptied Ask or follow search', (
@@ -256,10 +309,16 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Settings'));
       await tester.pumpAndSettle();
-      // Presenter-only, beside Reset demo.
+      // Presenter-only, its row touching Reset demo's.
       await tester.scrollUntilVisible(failureSwitch, 200, scrollable: list);
       await tester.pumpAndSettle();
-      expect(find.text('Reset demo'), findsOneWidget);
+      Rect row(Finder f) => tester.getRect(
+        find.ancestor(of: f, matching: find.byType(VistaSettingRow)),
+      );
+      expect(
+        row(failureSwitch).inflate(0.5).overlaps(row(find.text('Reset demo'))),
+        isTrue,
+      );
     }
 
     await openSettings();
@@ -270,7 +329,8 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Back'));
     await tester.pumpAndSettle();
 
-    // No other screen depends on it.
+    // No other tab depends on it. The pushed lists (Receipts, Ledger,
+    // Follow) are checked with it on in 'seeded lists show no empty state'.
     for (final (tab, loaded) in [
       (0, TradeIdeaCard),
       (2, VistaBattleCard),
@@ -297,5 +357,62 @@ void main() {
     // Retry turned the toggle off.
     await openSettings();
     expect(tester.widget<VistaSwitch>(failureSwitch).value, isFalse);
+  });
+
+  testWidgets('Explore keeps its scroll offset across a failure and Retry', (
+    tester,
+  ) async {
+    // Small enough that the markets list scrolls.
+    await pumpApp(tester, size: const Size(360, 640));
+    AppShell.tab.value = 1;
+    await tester.pumpAndSettle();
+    final markets = find
+        .ancestor(
+          of: find.text('ALL MARKETS'),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.drag(markets, const Offset(0, -300));
+    await tester.pumpAndSettle();
+    double offset() =>
+        Scrollable.of(tester.element(find.text('ALL MARKETS'))).position.pixels;
+    final before = offset();
+    expect(before, greaterThan(0));
+
+    Scenario.marketsLoadFails.value = true;
+    await tester.pumpAndSettle();
+    expect(find.text(loadFailed), findsOneWidget);
+    await tester.tap(find.widgetWithText(VistaPillButton, 'Retry'));
+    await tester.pumpAndSettle();
+    expect(Scenario.marketsLoadFails.value, isFalse);
+    expect(find.text('ALL MARKETS'), findsOneWidget);
+    expect(offset(), before);
+  });
+
+  testWidgets('seeded lists show no empty state, with the load failure on', (
+    tester,
+  ) async {
+    Scenario.reset(withMarket: true);
+    Scenario.placeOrder(ethLong('paper-fill'));
+    // Only the Explore list reads the toggle.
+    Scenario.marketsLoadFails.value = true;
+    // Tall enough to build every row, so no stray state stays unbuilt.
+    const tall = Size(402, 3000);
+    await pumpApp(tester, size: tall);
+    AppShell.tab.value = AppShell.wallet;
+    await tester.pumpAndSettle();
+    expect(find.byType(VistaEmptyState), findsNothing, reason: 'Positions');
+    await tester.tap(find.text('Open orders'));
+    await tester.pumpAndSettle();
+    expect(find.byType(VistaEmptyState), findsNothing, reason: 'Open orders');
+
+    for (final screen in const [
+      ReceiptsScreen(author: PortfolioMock.handle),
+      LedgerScreen(),
+      FollowListScreen(),
+    ]) {
+      await pumpApp(tester, home: screen, size: tall);
+      expect(find.byType(VistaEmptyState), findsNothing, reason: '$screen');
+    }
   });
 }

@@ -109,186 +109,190 @@ class _MarketsScreenState extends State<MarketsScreen> {
           ),
           Expanded(
             // Presenter-only failure (Settings); Retry turns it off, so the
-            // list loads.
-            child: Scenario.marketsLoadFails.value
-                ? ListView(
-                    children: [
-                      VistaEmptyState(
-                        message: "Couldn't load markets",
-                        detail: 'Set by Simulate load failure in Settings',
-                        actionLabel: 'Retry',
-                        onAction: () => Scenario.marketsLoadFails.value = false,
+            // list loads. Both stay mounted, so the list keeps its scroll
+            // offset across the failure and Retry.
+            child: IndexedStack(
+              index: Scenario.marketsLoadFails.value ? 0 : 1,
+              children: [
+                ListView(
+                  children: [
+                    VistaEmptyState(
+                      message: "Couldn't load markets",
+                      detail: 'Set by Simulate load failure in Settings',
+                      actionLabel: 'Retry',
+                      onAction: () => Scenario.marketsLoadFails.value = false,
+                    ),
+                  ],
+                ),
+                ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.only(bottom: VistaSpace.gutter),
+                  children: [
+                    Padding(
+                      padding: gutter,
+                      child: VistaUnderlineTabs(
+                        labels: const ['Assets', 'Traders'],
+                        selectedIndex: _tab,
+                        onChanged: _selectTab,
                       ),
-                    ],
-                  )
-                : ListView(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: const EdgeInsets.only(bottom: VistaSpace.gutter),
-                    children: [
-                      Padding(
-                        padding: gutter,
-                        child: VistaUnderlineTabs(
-                          labels: const ['Assets', 'Traders'],
-                          selectedIndex: _tab,
-                          onChanged: _selectTab,
-                        ),
-                      ),
-                      if (favItems.isNotEmpty) ...[
-                        const SizedBox(height: VistaSpace.xl),
-                        Padding(
-                          padding: gutter,
-                          child: Row(
-                            children: [
-                              Text(
-                                '★',
-                                style: VistaType.body.copyWith(
-                                  fontSize: 15,
-                                  color: VistaColors.favorite,
-                                ),
-                              ),
-                              const SizedBox(width: VistaSpace.sm),
-                              Expanded(
-                                child: Text('Favorites', style: VistaType.tab),
-                              ),
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => Navigator.of(context).push(
-                                  EditFavoritesScreen.route(traders: _traders),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  child: Text(
-                                    'Edit',
-                                    style: VistaType.body.copyWith(
-                                      color: VistaColors.accent,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Sized by its cards, so they hug their content rather
-                        // than stretching to a fixed rail height.
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          padding: gutter,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (final (i, m) in favItems.indexed) ...[
-                                if (i > 0) const SizedBox(width: VistaSpace.lg),
-                                ValueListenableBuilder(
-                                  valueListenable: MarketPrices.of(m.id),
-                                  builder: (context, price, _) =>
-                                      VistaMarketCard(
-                                        icon: m.railIcon,
-                                        name: m.name,
-                                        badge: m.badge ?? '',
-                                        price: MarketPrices.format(
-                                          price,
-                                          compact: true,
-                                        ),
-                                        changePct: m.changePct,
-                                        sparkAsset: m.spark,
-                                        footLeft: m.footLeft,
-                                        footRight: m.footRight,
-                                        onPressed: () => _open(m),
-                                      ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
+                    ),
+                    if (favItems.isNotEmpty) ...[
                       const SizedBox(height: VistaSpace.xl),
                       Padding(
                         padding: gutter,
-                        child: Wrap(
-                          spacing: VistaSpace.md,
-                          children: [
-                            for (var i = 0; i < _sorts.length; i++)
-                              VistaFilterChip(
-                                label: _sorts[i],
-                                accent: true,
-                                selected: i == _sort[_tab],
-                                onPressed: () {
-                                  if (_sorts[i] == 'New') {
-                                    _notBuilt('Sort by new');
-                                    return;
-                                  }
-                                  setState(() => _sort[_tab] = i);
-                                },
-                              ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          VistaSpace.gutter,
-                          VistaSpace.xs,
-                          VistaSpace.gutter,
-                          VistaSpace.sm,
-                        ),
                         child: Row(
                           children: [
+                            Text(
+                              '★',
+                              style: VistaType.body.copyWith(
+                                fontSize: 15,
+                                color: VistaColors.favorite,
+                              ),
+                            ),
+                            const SizedBox(width: VistaSpace.sm),
                             Expanded(
-                              child: Text(
-                                _traders ? 'ALL TRADER MARKETS' : 'ALL MARKETS',
-                                style: VistaType.label.copyWith(
-                                  color: VistaColors.textMuted,
-                                  letterSpacing: 0.6,
+                              child: Text('Favorites', style: VistaType.tab),
+                            ),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => Navigator.of(context).push(
+                                EditFavoritesScreen.route(traders: _traders),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                child: Text(
+                                  'Edit',
+                                  style: VistaType.body.copyWith(
+                                    color: VistaColors.accent,
+                                  ),
                                 ),
                               ),
                             ),
-                            Text(
-                              'A–Z',
-                              style: VistaType.label.copyWith(
-                                color: VistaColors.textSecondary,
-                              ),
-                            ),
                           ],
                         ),
                       ),
-                      if (rows.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 24),
-                          child: Center(
-                            child: Text(
-                              'No matches',
-                              style: VistaType.bodyRegular,
-                            ),
-                          ),
+                      // Sized by its cards, so they hug their content rather
+                      // than stretching to a fixed rail height.
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: gutter,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final (i, m) in favItems.indexed) ...[
+                              if (i > 0) const SizedBox(width: VistaSpace.lg),
+                              ValueListenableBuilder(
+                                valueListenable: MarketPrices.of(m.id),
+                                builder: (context, price, _) => VistaMarketCard(
+                                  icon: m.railIcon,
+                                  name: m.name,
+                                  badge: m.badge ?? '',
+                                  price: MarketPrices.format(
+                                    price,
+                                    compact: true,
+                                  ),
+                                  changePct: m.changePct,
+                                  sparkAsset: m.spark,
+                                  footLeft: m.footLeft,
+                                  footRight: m.footRight,
+                                  onPressed: () => _open(m),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      for (final m in rows)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            6,
-                            0,
-                            6,
-                            VistaSpace.md,
-                          ),
-                          child: ValueListenableBuilder(
-                            valueListenable: MarketPrices.of(m.id),
-                            builder: (context, price, _) => VistaMarketRow(
-                              starred: favs.contains(m.id),
-                              onStar: () => _toggleFavorite(m.id),
-                              icon: m.rowIcon,
-                              name: m.name,
-                              badge: m.badge,
-                              subline: m.subline,
-                              price: MarketPrices.format(price, compact: true),
-                              changePct: m.changePct,
-                              third: m.third,
-                              onPressed: () => _open(m),
-                            ),
-                          ),
-                        ),
+                      ),
                     ],
-                  ),
+                    const SizedBox(height: VistaSpace.xl),
+                    Padding(
+                      padding: gutter,
+                      child: Wrap(
+                        spacing: VistaSpace.md,
+                        children: [
+                          for (var i = 0; i < _sorts.length; i++)
+                            VistaFilterChip(
+                              label: _sorts[i],
+                              accent: true,
+                              selected: i == _sort[_tab],
+                              onPressed: () {
+                                if (_sorts[i] == 'New') {
+                                  _notBuilt('Sort by new');
+                                  return;
+                                }
+                                setState(() => _sort[_tab] = i);
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        VistaSpace.gutter,
+                        VistaSpace.xs,
+                        VistaSpace.gutter,
+                        VistaSpace.sm,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _traders ? 'ALL TRADER MARKETS' : 'ALL MARKETS',
+                              style: VistaType.label.copyWith(
+                                color: VistaColors.textMuted,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'A–Z',
+                            style: VistaType.label.copyWith(
+                              color: VistaColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (rows.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: Center(
+                          child: Text(
+                            'No matches',
+                            style: VistaType.bodyRegular,
+                          ),
+                        ),
+                      ),
+                    for (final m in rows)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          6,
+                          0,
+                          6,
+                          VistaSpace.md,
+                        ),
+                        child: ValueListenableBuilder(
+                          valueListenable: MarketPrices.of(m.id),
+                          builder: (context, price, _) => VistaMarketRow(
+                            starred: favs.contains(m.id),
+                            onStar: () => _toggleFavorite(m.id),
+                            icon: m.rowIcon,
+                            name: m.name,
+                            badge: m.badge,
+                            subline: m.subline,
+                            price: MarketPrices.format(price, compact: true),
+                            changePct: m.changePct,
+                            third: m.third,
+                            onPressed: () => _open(m),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

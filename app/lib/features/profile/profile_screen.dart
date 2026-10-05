@@ -358,7 +358,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, calls, _) {
         if (!calls.any((c) => c.author == widget.handle)) {
           return VistaEmptyState(
-            message: 'No calls from ${widget.handle} yet',
+            message:
+                'No call receipts for ${widget.handle} in ${Scenario.fixtureVersion}',
             actionLabel: 'Explore markets',
             onAction: () => AppShell.showExplore(context),
           );
