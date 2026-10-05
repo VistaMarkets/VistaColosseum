@@ -1,0 +1,359 @@
+{
+  "verified": {
+    "verdict": "APPROVE",
+    "summary": "Scope checked. Both refs resolve: phase-6 is 5fd70c1, the same as worktree HEAD, and phase-5 is 9bf4364. The three-dot diff lists 56 files, 12 of them under app/ (10 in lib, 2 in test). The commits in range are 5fd70c1, ef02185, 63c6002 (the feature) and 09ae74d. Of the 13 findings, 12 survive and 1 is refuted. None is CRITICAL or HIGH, and nothing freezes at merge, so everything can be fixed after merge. The production code does what the spec asks: fee totals are computed in int cents from the listed entries, the 40% label appears in both places, unavailable fields render, paper orders and calls stay separate, and all 5 call sites are wired. The survivors are mostly test gaps. Three of them are backed by recorded surviving mutants (ledger-footer-no-safe, profile-wrong-handle, ledger-entry-no-market in mutate-run-1.txt). There are also two copy and data truthfulness issues (the maya.eth SOL Call details header, and credits dated before listing) and one latent rounding issue in the worked example. Before-merge: none. After merge: in priority order, the pill-clearance test, the order-leak test, then the rest.",
+    "confirmed": [
+      {
+        "severity": "MEDIUM",
+        "title": "Pill-clearance test passes with the ledger footer's safe-area padding deleted, and never runs at 375x667",
+        "location": "app/test/receipts_test.dart:193-206 (impl app/lib/features/market/receipt_screens.dart:132)",
+        "failurePath": "Mutate the footer padding at :132 to `VistaSpace.xxl`. VistaSpace.xxl is 14, below SimulationIndicator.slot (30), so the total drops into the reserved strip; the mutant is not equivalent. expectPillClear (home_screen_test.dart:57-66) checks only rect overlap. The pill is centred and the total is right-aligned at the gutter, so the two never overlap and the test passes. mutate-run-1.txt line 3 records ledger-footer-no-safe as SURVIVED. The test pumps only Size(360,640); 375x667 is never exercised.",
+        "fix": "Assert vertical clearance, for example getRect(total).bottom <= getRect(find.bySemanticsLabel(pill)).top, or run expectPillClear on find.text('Total'), whose Expanded row spans the pill's x-range. Loop over Size(360,640) and Size(375,667) at text scale 1.3.",
+        "beforeMerge": false,
+        "why": "Read receipt_screens.dart:123-133, the SimulationIndicator build (slot 30, injected into MediaQuery padding), VistaSpace.xxl = 14 in vista_metrics.dart, and expectPillClear. mutate-run-1.txt shows SURVIVED with 'All tests passed'.",
+        "id": "F1"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "\"Never the user's orders\" on another trader's receipts list is checked with no order in state",
+        "location": "app/test/receipts_test.dart:289-310 (code receipt_screens.dart:213-254)",
+        "failurePath": "setUp calls Scenario.reset, which sets receipts.value = const [] (scenario.dart:289). The kaito.eth test places no order. If the `for (final r in Scenario.receipts.value)` loop is moved after the `if (own) ...[ ]` block, kaito's list would render the user's paper fills. Nothing renders while state is empty, so the test passes. The 'separate sections' test only opens the user's own list, where the moved rows still sit below the PAPER ORDER RECEIPTS header, so it passes too.",
+        "fix": "Call Scenario.placeOrder(ethLong('r-2')) before opening the kaito.eth lists, then assert find.text('Long ETH 10x') and find.textContaining('Paper fill') find nothing on both.",
+        "beforeMerge": false,
+        "why": "Read ReceiptsScreen.build, Scenario.reset, and both list tests. The only placeOrder call is in the 'separate sections' test, which opens only the own list.",
+        "id": "F2"
+      },
+      {
+        "severity": "LOW",
+        "title": "Call details for maya.eth's SOL long says 'No call in fixture-v1 backs this holding' although fixture-v1 has her SOL long call (settled Right)",
+        "location": "app/lib/features/market/receipt_screens.dart:272-284, 310-313",
+        "failurePath": "Home -> maya.eth idea (mock_trade_idea.dart:254) -> ProfileScreen('maya.eth'), which is public -> HOLDING NOW -> SOL (Long 5x). forHolding requires result == open. maya-sol-300-fri is CallOutcome.right, so the lookup falls through to the id 'none' receipt with the noCall header. The same profile's All receipts list shows 'SOL reaches $300 by Fri - Right'. receipts_test never taps SOL on maya's profile.",
+        "fix": "Make the copy match the rule ('No open call in fixture-v1 backs this holding'), or fall back to the newest settled call on the same author, asset and side. Add a SOL assertion either way.",
+        "beforeMerge": false,
+        "why": "Traced it against the record seed (market_mock.dart:145-154), ProfileMock.holdings (SOL long) and the profile route privacy check. Demoted from MEDIUM: the fixture never links holdings to calls, and the open-only rule is documented on forHolding, so this is imprecise copy, not a wrong lookup.",
+        "id": "F3"
+      },
+      {
+        "severity": "LOW",
+        "title": "Listing MAYA fresh shows $42.80 earned, made of five credits dated before the market existed",
+        "location": "app/lib/scenario/scenario.dart:111-118 with market_mock.dart:124-139",
+        "failurePath": "Start without HAS_MARKET, list with the suggested ticker MAYA. AccountState.listMarket sets marketId to 'MAYA', and marketFees then matches all five seeded MAYA credits, dated 22-26 Sep 11:45. Scenario.clock is 26 Sep 14:45, so every credit predates the listing. The Wallet row and the Your market chip show $42.80 with no 'illustrative' cue.",
+        "fix": "Record the listing instant in Scenario at listMarket and filter credits to at >= that instant. Alternatively, seed the credits relative to the listing, or add an illustrative cue to the row and chip.",
+        "beforeMerge": false,
+        "why": "Read AccountState.listMarket (account_state.dart:16-20), the marketFees filter (marketId only), the seed times (chartEnd 2026-09-26 14:45 minus 3 to 96 h), and date confirms 26 Sep 2026 is a Saturday. The old constant showed the same $42.80, so the total is no regression; the dated rows are new.",
+        "id": "F4"
+      },
+      {
+        "severity": "LOW",
+        "title": "Ledger worked example recomputes the credit from a backed-out fee; off by one cent for odd-cent credits",
+        "location": "app/lib/features/market/receipt_screens.dart:63-71",
+        "failurePath": "fee = amountCents*100 ~/ 40, and the credit shown is fee*40 ~/ 100. For 1241 that is fee 3102 and credit 1240, so the example says $12.40 while the row lists $12.41. Today's seed values (1240, 860, 1016, 640, 524) are all even and round-trip exactly, so this is latent. Only the doc comment guards it, and nothing in lib writes feeEntries.",
+        "fix": "Print formatCents(e.amountCents) as the result, or seed feeCents and derive the credit forward. Add an odd-cent test.",
+        "beforeMerge": false,
+        "why": "Worked the integer arithmetic by hand against the code. Grep shows lib assigns feeEntries only in reset. Latent, so it stays LOW.",
+        "id": "F5"
+      },
+      {
+        "severity": "LOW",
+        "title": "Profile Call details is tested only on the user's own profile, so a hardcoded handle survives",
+        "location": "app/test/receipts_test.dart:230-242 (code profile_screen.dart:94-95)",
+        "failurePath": "Replacing widget.handle with PortfolioMock.handle in forHolding leaves the test green. On kaito.eth's profile, ETH would then open maya's Oct 10 call.",
+        "fix": "Pump ProfileScreen(handle: 'kaito.eth'), tap ETH, and assert noCall is present and eth.rule is absent.",
+        "beforeMerge": false,
+        "why": "mutate-run-1.txt line 7: profile-wrong-handle SURVIVED. Read the test and the wiring.",
+        "id": "F6"
+      },
+      {
+        "severity": "LOW",
+        "title": "Ledger rows naming their market is satisfied by the worked-example sentence alone",
+        "location": "app/test/receipts_test.dart:128 (code receipt_screens.dart:108)",
+        "failurePath": "Dropping marketId from the row subtitle still passes: textContaining('MAYA') findsWidgets matches the example's 'on MAYA'.",
+        "fix": "Assert find.textContaining('${e.marketId} \u00b7 ') findsNWidgets(entries.length).",
+        "beforeMerge": false,
+        "why": "mutate-run-1.txt line 16: ledger-entry-no-market SURVIVED. example() contains 'on ${e.marketId}'.",
+        "id": "F7"
+      },
+      {
+        "severity": "LOW",
+        "title": "Receipt detail values the fixture states (Direction, Entered, Market said, Not settled yet) are never asserted",
+        "location": "app/test/receipts_test.dart:211-221 (code receipt_screens.dart:291-305)",
+        "failurePath": "Set ('Entered', null) or ('Market said', null). The record loop asserts only rule, author, asset, status and provenance, plus 'unavailable' findsWidgets, which entryPrice already satisfies. The BTC 7-count is unaffected because the BTC fields are already null.",
+        "fix": "Assert side.label, entryAt and odds on each receipt; give an exact unavailable count per call (2 settled, 1 open); assert 'Not settled yet' for the open call.",
+        "beforeMerge": false,
+        "why": "Read the fields list, the seed values (side, entryAt and odds set) and the loop's assertions.",
+        "id": "F8"
+      },
+      {
+        "severity": "LOW",
+        "title": "A real call receipt showing the noCall header is never ruled out",
+        "location": "app/test/receipts_test.dart:211-236 (code receipt_screens.dart:310-313)",
+        "failurePath": "A header that always reads noCall passes. noCall is asserted present only on 'none' receipts and never asserted absent on real ones.",
+        "fix": "Assert noCall findsNothing and 'A published call, not an order fill' findsOneWidget in the record loop and after the ETH profile tap.",
+        "beforeMerge": false,
+        "why": "Read every onReceipt assertion. None checks the header on a real receipt.",
+        "id": "F9"
+      },
+      {
+        "severity": "LOW",
+        "title": "Worked example is checked only against today's seed",
+        "location": "app/test/receipts_test.dart:155-184 (code receipt_screens.dart:65-71, 88-91)",
+        "failurePath": "(a) A literal example string equal to today's output passes: the 'ledger total' test drops entries.first but never re-checks the example. (b) Building the guard and example from feeEntries.value instead of marketFees shows an example on the ZED ledger; that test uses exact find.text on event titles, which does not match the example sentence.",
+        "fix": "After dropping entries.first, assert the example cites rest.first. In the ZED test, assert textContaining('Example:') findsNothing.",
+        "beforeMerge": false,
+        "why": "Read the three ledger tests. None mutates the entries and then re-checks the example text.",
+        "id": "F10"
+      },
+      {
+        "severity": "LOW",
+        "title": "No test proves the record and receipts lists read Scenario.callReceipts rather than the static seed",
+        "location": "app/test/receipts_test.dart:208-223 (code your_market_screen.dart:122-135, receipt_screens.dart:196)",
+        "failurePath": "Iterating YourMarketMock.record directly passes every test. The only writes to callReceipts are in the pure seed test and in mutateEverything, and the widget tests that call mutateEverything never show YourMarketScreen or ReceiptsScreen.",
+        "fix": "Set callReceipts.value = myCalls.sublist(1), pump, and assert the first rule is gone from both lists.",
+        "beforeMerge": false,
+        "why": "Grepped every assignment to callReceipts in test/ and read the scenario_test widget tests that call mutateEverything.",
+        "id": "F11"
+      },
+      {
+        "severity": "LOW",
+        "title": "forHolding's side match is untested",
+        "location": "app/lib/features/market/receipt_screens.dart:276",
+        "failurePath": "Removing `c.side == holding.side &&` passes everything. Every seeded call is long and on SOL or ETH, the only short holding is BTC, and there is no BTC call. This cannot misfire on today's data; only a future short holding would expose it.",
+        "fix": "Add a unit test: forHolding('maya.eth', a short ETH Holding) must resolve to the 'none' receipt.",
+        "beforeMerge": false,
+        "why": "Read ProfileMock.holdings and the record seed, and checked every holding/call pair.",
+        "id": "F12"
+      }
+    ],
+    "refuted": [
+      {
+        "title": "The made-up 'unavailable' receipt still says Provenance fixture-v1, contradicting its header",
+        "reason": "The header itself scopes the claim to fixture-v1 ('No call in fixture-v1 backs this holding'). Provenance fixture-v1 names the fixture that statement of absence is made against, so the two agree. Rendering provenance as 'unavailable' would hide where the lookup ran. This is a wording preference, not a defect, and the 7-count test pins correct behaviour."
+      }
+    ],
+    "checkedClaimsThatAreWrong": [],
+    "residualRisk": [
+      "money-rounding: Did not run flutter test or the gate. I relied on the stated 5fd70c1 gate pass (261 tests) and read the code instead.",
+      "money-rounding: Out of my money lane and not reviewed in depth: layout and pill-clearance tests at 375x667, the CallReceipt detail-screen header text, the Call details forHolding matching in profile_screen and trader_market_screen, and the review-iter1 items about the receipt id not being shown, an empty All receipts list, and credits dated before listing.",
+      "money-rounding: Process note: to check the arithmetic I wrote one scratch Dart file (ex.dart) in my session scratchpad, outside the repo. The worktree and git state were not touched.",
+      "tautology-hunt: No mutants were run by me (read-only lane; running one requires writing a mutated copy). Survival claims for my new findings rest on reading the test assertions and code paths. The prior review's runs are cited where they apply.",
+      "tautology-hunt: No test runs this session. The gate result (261 tests) was taken as given.",
+      "tautology-hunt: Implementation-lane issues (money rounding in example(), L3 receipt id not shown, L4 header keyed on rule==null, L6 credit dates) were not re-litigated here beyond how the tests cover them.",
+      "tautology-hunt: Tests elsewhere that may touch the changed screens indirectly (home_screen_test, portfolio tests) were not audited for new tautologies. Only receipts_test.dart and the scenario_test.dart hunk were in scope.",
+      "tautology-hunt: Profile CALLS list and trader-market Record panel tap coverage were not reviewed (carried to phase 7 by the run manager).",
+      "receipts-truthfulness: Did not run any flutter test or render at 375x667 / 1.3x. Pill clearance is judged from the padding code plus the iter-1 probe numbers, not re-measured.",
+      "receipts-truthfulness: Did not review receipts_test.dart test strength (iter-1 M1/L1/L2 mutant claims) beyond confirming the missing SOL coverage.",
+      "receipts-truthfulness: make_market_flow.dart, your_market_screen.dart and design-system token use are outside my file list. I only read the 40% label lines and the record/chip wiring there.",
+      "receipts-truthfulness: Record-panel and Profile CALLS item tappability was ruled carry-forward to phase 7 and was not assessed."
+    ]
+  },
+  "ref": "feat/br-2026-10-04-p0-queue/phase-6",
+  "sha": "5fd70c1fb51518a21896593040cfd3176bcfcf53",
+  "rawCount": 13,
+  "reviews": [
+    {
+      "lens": "money-rounding",
+      "findings": [
+        {
+          "severity": "LOW",
+          "title": "Ledger worked example recomputes the credit from a backed-out fee instead of showing the listed credit, so it is off by one cent for any odd-cent entry",
+          "location": "app/lib/features/market/receipt_screens.dart:65-71",
+          "failurePath": "LedgerScreen.example works out fee = amountCents*100 ~/ 40, then prints formatCents(fee*40 ~/ 100) as the result and calls it 'its credit below'. That only works back exactly when amountCents is even, and nothing enforces that: FeeEntry has no assert, and the only safeguard is a doc comment ('Seeded credits are even cents'). feeEntries is a public ValueNotifier, and the ledger rebuilds on every change and always uses entries.first. If the newest entry is 1241 cents, the example reads 'traders paid $31.02 in fees. 40% of $31.02 = $12.40, its credit below', while the row below shows $12.41. A 1-cent entry gives a $0.02 fee and a $0.00 credit against a listed $0.01. A negative entry of -1241 gives -$12.40 against a listed -$12.41, because ~/ truncates toward zero. Today's seed (1240, 860, 1016, 640, 524) is all even, so the shipped app and the current test do not hit this. It breaks as soon as a seed edit or the planned phase-7 derivation adds an odd-cent credit.",
+          "fix": "Make the example's right-hand side the listed credit, formatCents(e.amountCents), so the equality cannot drift. Or seed the fee traders paid (feeCents) and derive amountCents = feeCents * 40 ~/ 100 forward, so the 40% share is the real computation, using the same floor rule as phase 2's fee. Either way, add one test with an odd-cent entry.",
+          "evidence": "Read receipt_screens.dart:63-71 and market_mock.dart, where YourMarketMock.fees seeds 1240/860/1016/640/524. Ran a scratch Dart check of the same expressions: 1241 -> fee 3102 -> credit 1240; 1 -> fee 2 -> credit 0; -1241 -> fee -3102 -> credit -1240; all five seeds round-trip exactly. Checked receipts_test.dart:171-184: it asserts the example only against the even seed.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: both refs resolve (phase-6 5fd70c1, phase-5 9bf4364). The three-dot diff lists 56 files, 10 of them under app/lib. The worktree HEAD is 5fd70c1 on feat/br-2026-10-04-p0-queue/phase-6. Commits in range, newest first: 5fd70c1, ef02185, 63c6002 (the feature commit), 09ae74d.",
+        "Every fee amount is an int in cents from seed to display. FeeEntry.amountCents is int and the seed values are int literals. Scenario.marketFeesCents is a fold over int starting at 0. Display goes through the phase-2 formatCents(int). Grepping the app/lib diff for double, toDouble, .round(), num, toStringAsFixed and '/ ' found no new double on the money path.",
+        "Totals are computed from the entries when the widget builds; nothing stores a total. The stored $42.80 constants (PortfolioMock.fees, YourMarketMock.feesThisWeek) are deleted. The Wallet row (portfolio_screen.dart _feesLine), the Your market chip (your_market_screen.dart) and the Ledger footer all render formatCents(Scenario.marketFeesCents) inside a ListenableBuilder on Listenable.merge([feeEntries, marketId]), so all three show the same value and update when an entry changes. receipts_test 'ledger total equals the sum of listed entries' drops an entry and checks that both the ledger and the Wallet row follow.",
+        "The Ledger footer and the listed rows use the same filter (Scenario.marketFees, entries whose marketId equals marketId.value) in the same synchronous build, so the footer always equals the sum of the rows shown.",
+        "Leaving out credits for other markets is intended scoping, not a silent drop. If the user lists under a ticker other than MAYA, the ledger says 'No fee credits yet' and shows $0.00, which the test 'a market with no credits shows an empty ledger and zero' covers. The seed contains only MAYA entries.",
+        "The 40% arithmetic is integer-only (~/). Its floor rounding matches phase 2's fee rule (scenario.dart:364, feeCents = notionalCents * feeBps ~/ 10000). Phase 2's margin uses .round() on a double, but that is a different quantity.",
+        "The 40% share is labelled a demo assumption in all three places: the ledger header 'Illustrative demo ledger \u00b7 40% share is a demo assumption', the worked example (it uses $pct%), and the make_market_flow line 'You earn 40% of the fees from both' with YourMarketMock.shareLabel under it. All are derived from the single const creatorSharePct = 40.",
+        "formatCents handles negative amounts (Unicode minus sign before the $) and zero ($0.00). The no-credits path renders formatCents(0).",
+        "CallReceipt.entryPrice is String? and documented as a fixed-decimal string, so no new double price type. No seeded call states one, so it always renders 'unavailable'.",
+        "Overflow: the sums are 5 small ints, and the example's amountCents*100 stays under 2^53 on web up to about 9e13 cents. No real int64 or 2^53 risk in this diff.",
+        "reset() restores feeEntries and callReceipts to the identical seed lists (receipts_test checks this with same()).",
+        "make_market_flow's 'VistaType.bodyStrong.copyWith(fontSize: 14)' predates this phase (the diff only moves it into a Column), so it is not new in this diff."
+      ],
+      "notExamined": [
+        "Did not run flutter test or the gate. I relied on the stated 5fd70c1 gate pass (261 tests) and read the code instead.",
+        "Out of my money lane and not reviewed in depth: layout and pill-clearance tests at 375x667, the CallReceipt detail-screen header text, the Call details forHolding matching in profile_screen and trader_market_screen, and the review-iter1 items about the receipt id not being shown, an empty All receipts list, and credits dated before listing.",
+        "Process note: to check the arithmetic I wrote one scratch Dart file (ex.dart) in my session scratchpad, outside the repo. The worktree and git state were not touched."
+      ]
+    },
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Pill-clearance test passes with the ledger footer's safe-area padding deleted, and never runs at 375x667",
+          "location": "app/test/receipts_test.dart:193-206 (implementation app/lib/features/market/receipt_screens.dart:132)",
+          "failurePath": "Mutate receipt_screens.dart:132 from `MediaQuery.paddingOf(context).bottom + VistaSpace.xxl` to `VistaSpace.xxl`. SimulationIndicator adds its 30 px slot to MediaQuery padding (simulation_indicator.dart:81-88), so the footer drops into the reserved strip. expectPillClear (home_screen_test.dart:57-66) only checks that the pill rect and the target rect do not overlap. The total is right-aligned and the pill is centred, so they never overlap and the test still passes (the earlier review's mutant `ledger-footer-no-safe` SURVIVED, mutate-run-1.txt). The project invariant also names 375x667, but the test only pumps Size(360, 640).",
+          "fix": "Assert vertical clearance, not just overlap: `expect(tester.getRect(totalFinder).bottom, lessThanOrEqualTo(tester.getRect(find.bySemanticsLabel(pill)).top))`, or call expectPillClear on find.text('Total'), whose full-width Expanded row does cross the pill's x-range. Run it in a loop over Size(360,640) and Size(375,667) at text scale 1.3.",
+          "evidence": "Read receipts_test.dart:193-206, the expectPillClear body at home_screen_test.dart:57-66 and SimulationIndicator.build. The mutate.py edit for ledger-footer-no-safe matches this, and mutate-run-1.txt records it as SURVIVED with 'All tests passed'.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "\"Never the user's orders\" on another trader's receipts list is checked with no order in state, so an order leak survives",
+          "location": "app/test/receipts_test.dart:289-310 (comment at :298; code app/lib/features/market/receipt_screens.dart:213-254)",
+          "failurePath": "setUp resets Scenario.receipts to const [] (scenario.dart:289), and this test places no order. Mutation: move `for (final r in Scenario.receipts.value) Padding(...)` out of the `if (own) ...[ ]` block in ReceiptsScreen. On kaito.eth's list the user's paper fills would then render under CALL RECEIPTS. The kaito check only asserts that the 'PAPER ORDER RECEIPTS' header is absent and that maya's call rules are absent. With zero orders nothing renders, so the test passes. The 'separate sections' test only opens the user's own list, where the moved rows still sit below the header, so it passes too. The worker's M3 mutant (`own` forced true) was killed only because it also brought the header.",
+          "fix": "After the own-list 'No paper orders yet' check, call `Scenario.placeOrder(ethLong('r-2'))`. Then on both kaito.eth lists assert `find.text('Long ETH 10x'), findsNothing` and `find.textContaining('Paper fill'), findsNothing`.",
+          "evidence": "Read ReceiptsScreen (receipt_screens.dart:180-260), the test at receipts_test.dart:289-323 and Scenario.reset (scenario.dart:289, `receipts.value = const []`). No placeOrder call exists in that test.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Receipt detail values that the fixture does state are never asserted, so blanking them to \"unavailable\" survives",
+          "location": "app/test/receipts_test.dart:211-221 (code app/lib/features/market/receipt_screens.dart:291-305)",
+          "failurePath": "Mutate one value in CallReceiptScreen's fields to null: `('Entered', null)`, `('Market said', null)`, `('Direction', null)`, or drop the open branch `'Not settled yet'`. For the three record calls the test asserts only rule, author, asset, status and provenance, plus `find.text('unavailable'), findsWidgets` (at least one). The receipt would then say 'unavailable' for entry time 'Thu 14:32', odds '22%' and direction 'Long', which the fixture has, and every assertion still holds. The BTC findsNWidgets(7) count does not catch it because that receipt's fields are already null. Deleting a whole row IS caught by that count, so silent field drops are covered; misreporting present data as missing is not.",
+          "fix": "In the record loop, also assert `onReceipt(find.text(c.side!.label))`, `onReceipt(find.text(c.entryAt!))` and `onReceipt(find.text(c.odds!))`. Replace findsWidgets with the exact null count per call: 2 for the right/wrong calls (entry price, settled) and 1 for the open call. For the open call add `onReceipt(find.text('Not settled yet'))`.",
+          "evidence": "Read the fields list in receipt_screens.dart:291-305 and the seed values in market_mock.dart:145-175 (side long, entryAt and odds set, entryPrice and settledAt null). The assertions at receipts_test.dart:212-221 cover none of side, entryAt, odds or settled.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "A real call receipt claiming \"No call in fixture-v1 backs this holding\" is never ruled out",
+          "location": "app/test/receipts_test.dart:211-236 (code app/lib/features/market/receipt_screens.dart:310-313)",
+          "failurePath": "Mutate the header to always read `'No call in ${Scenario.fixtureVersion} backs this holding'`. The record loop and the profile ETH Call-details check assert only rule/author/asset/status/provenance, never the header. Every published call's receipt would then say no call backs it, and the test passes. Only the opposite direction (the unavailable receipt losing the noCall line) is caught.",
+          "fix": "In the record loop and after the profile ETH tap, add `expect(onReceipt(find.text(noCall)), findsNothing)` and `expect(onReceipt(find.text('A published call, not an order fill')), findsOneWidget)`.",
+          "evidence": "Read receipt_screens.dart:310-313 and every onReceipt assertion in receipts_test.dart:208-257. noCall is asserted present for BTC, kaito SOL and kaito ETH, and never asserted absent.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Worked example is checked only against today's seed, so a hardcoded example, or one quoting a credit not in the ledger, survives",
+          "location": "app/test/receipts_test.dart:169-184 and :155-167 (code app/lib/features/market/receipt_screens.dart:65-71, 88-91)",
+          "failurePath": "(a) Replace example(e) with the literal string it produces today ('...40% of $31.00 = $12.40, its credit below.'). The 40% test derives its expectation from Scenario.feeEntries.value.first, which is that same seed. The ledger-total test drops entries.first but never re-checks the example. Passes. (b) Guard and build the example from Scenario.feeEntries.value instead of marketFees. The no-credits (ZED) ledger then shows 'Example: Saturday trading session on MAYA ... its credit below' with no such credit listed. That test checks only exact-text event titles (find.text), which do not match the example sentence. Passes. The earlier review's example-not-backed-out mutant tested the formula, not the source.",
+          "fix": "In 'ledger total equals the sum of listed entries', after `Scenario.feeEntries.value = rest`, assert that the example now cites rest.first (`textContaining('40% of ${formatCents(rest.first.amountCents*100~/40)} = ${formatCents(rest.first.amountCents)}')`) and that the old example is gone. In the no-credits test, assert `find.textContaining('Example:'), findsNothing`.",
+          "evidence": "Read LedgerScreen.example and its guard (receipt_screens.dart:65-71, 88-91) and the three tests that touch the ledger. None of them changes the entries and then re-checks the example text.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Profile Call details is only tested on the user's own profile, so a hardcoded handle survives (confirms prior L1)",
+          "location": "app/test/receipts_test.dart:230-242 (code app/lib/features/profile/profile_screen.dart:95)",
+          "failurePath": "Mutate profile_screen.dart:95 to `CallReceiptScreen.forHolding(PortfolioMock.handle, h)`. The test opens ProfileScreen(handle: PortfolioMock.handle) only, so the behaviour is identical and the test passes. In the app, tapping ETH on kaito.eth's profile would then open maya.eth's 'ETH reaches $4,000 by Oct 10' receipt, the wrong receipt for that row. The earlier review's mutant profile-wrong-handle SURVIVED. The trader-market path is covered (trader-wrong-handle killed).",
+          "fix": "Also pump ProfileScreen(handle: 'kaito.eth'), tap holding('ETH'), and assert `onReceipt(find.text(noCall))` findsOneWidget and `onReceipt(find.text(eth.rule!))` findsNothing.",
+          "evidence": "Read the profile section of the record test (receipts_test.dart:230-242) and the wiring at profile_screen.dart:95. mutate-run-1.txt shows profile-wrong-handle: SURVIVED.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Ledger rows naming their market is satisfied by the worked-example line alone (confirms prior L2)",
+          "location": "app/test/receipts_test.dart:128 (code app/lib/features/market/receipt_screens.dart:108)",
+          "failurePath": "Mutate the row subtitle at receipt_screens.dart:108 to `Text(_when(e.at), style: muted)`. `find.textContaining('MAYA'), findsWidgets` still matches the example sentence ('... on MAYA: traders paid ...'), so the test passes even though no ledger row names its market. The earlier review's mutant ledger-entry-no-market SURVIVED.",
+          "fix": "Assert per row: `expect(find.textContaining('${e.marketId} \u00b7 '), findsNWidgets(entries.length))`, or look for the marketId text inside each entry's Row via find.ancestor/descendant on its eventTitle.",
+          "evidence": "Read receipts_test.dart:128 and example() at receipt_screens.dart:68 (contains 'on ${e.marketId}'). mutate-run-1.txt shows ledger-entry-no-market: SURVIVED.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "No test proves the record list and the receipts list follow Scenario.callReceipts rather than the static seed",
+          "location": "app/test/receipts_test.dart:208-223 (code app/lib/features/market/your_market_screen.dart:124-131, receipt_screens.dart:196)",
+          "failurePath": "Mutate YourMarketScreen to iterate `YourMarketMock.record` instead of the Scenario.callReceipts listenable, or ReceiptsScreen likewise. The receipt objects are identical to the seed and no test ever changes Scenario.callReceipts while a list is on screen (only the pure seed test reassigns it). Every widget test passes. That breaks the invariant that screens read mutable state through Scenario. Phase 7 derives per-trader records from this store, so a static read would silently ignore it. The fee ledger has the equivalent drop-one-entry check; call lists do not.",
+          "fix": "In the record test, set `Scenario.callReceipts.value = myCalls.sublist(1)`, pump, and assert `find.text(myCalls.first.rule!)` findsNothing on Your market and on the All receipts list.",
+          "evidence": "Read your_market_screen.dart:124-131, ReceiptsScreen.build and every assignment to Scenario.callReceipts in the tests: only receipts_test.dart:108 (seed test, no widgets) and scenario_test.dart mutateEverything.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "forHolding's side match is untested; dropping it survives",
+          "location": "app/lib/features/market/receipt_screens.dart:276 (tests app/test/receipts_test.dart:225-256)",
+          "failurePath": "Remove `c.side == holding.side &&` from CallReceiptScreen.forHolding. All holdings (SOL long, ETH long, BTC short, profile_mock.dart) and all seeded calls (all long, none on BTC) agree on side, so no tapped row can tell the difference and every test passes. A short holding on an asset where the trader has an open long call would then open that long call's receipt as its 'Call details'.",
+          "fix": "Add a unit test calling `CallReceiptScreen.forHolding('maya.eth', <Holding ETH short>)` (or seed a short holding via the store) and assert that the resulting receipt is the unavailable one (id 'none'), not maya-eth-4000-oct10.",
+          "evidence": "Read forHolding (receipt_screens.dart:272-284), the holdings in profile_mock.dart:69-86 and the seeded calls in market_mock.dart:145-175.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: both refs resolve in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue (phase-6 5fd70c1, phase-5 9bf4364), HEAD is phase-6, and the three-dot diff lists 56 files including app/lib and app/test.",
+        "Spec-named tests exist with exact names: 'each record item opens its call receipt' (receipts_test.dart:208) and 'order receipts and call receipts render in separate sections' (:259); 'ledger total equals the sum of listed entries' is at :114.",
+        "A ledger footer replaced by a constant equal to today's sum is killed: the ledger-total test drops entries.first and asserts the old total is gone and sum(rest) shows in both the ledger and the Wallet row. A footer summing unfiltered entries is killed by the ZED no-credits test.",
+        "Wallet row and Your-market chip constants are killed (ledger-total test and ZED $0.00 tap). The Wallet row updates when entries change.",
+        "Removing the demo-assumption label from either place is killed: exact-text asserts on 'Illustrative demo ledger \u00b7 40% share is a demo assumption' and '40% share is a demo assumption'.",
+        "Order receipts rendered inside the user's own call section are killed: section-rect ordering, a getRect ambiguity on duplicated 'Long ETH 10x', and tapping the order opens no CallReceiptScreen.",
+        "'unavailable' replaced by an empty string is killed: findsWidgets in the record loop plus findsNWidgets(7) on the BTC unavailable receipt. Deleting any receipt field row is also killed by that 7-count.",
+        "A record item opening the wrong receipt is killed (asserts the rule text on the receipt). Trader-market Call details with a hardcoded handle is killed. forHolding ignoring result==open is killed.",
+        "Reset not restoring feeEntries or callReceipts is killed by the seed test's same() checks and by scenario_test state()/mutateEverything, whose per-field isNot(equals(seed)) guard covers both new fields.",
+        "Any of the three All receipts call sites still toasting is killed (each asserts ReceiptsScreen); profile and trader-market links pushing the wrong handle are killed by the kaito.eth empty-list text.",
+        "Prior review M1 (pill test) confirmed: expectPillClear only checks rect overlap, and SimulationIndicator injects the 30 px slot into MediaQuery padding, so the mutant is not equivalent. Prior L1 and L2 confirmed by reading the tests and mutate-run-1.txt."
+      ],
+      "notExamined": [
+        "No mutants were run by me (read-only lane; running one requires writing a mutated copy). Survival claims for my new findings rest on reading the test assertions and code paths. The prior review's runs are cited where they apply.",
+        "No test runs this session. The gate result (261 tests) was taken as given.",
+        "Implementation-lane issues (money rounding in example(), L3 receipt id not shown, L4 header keyed on rule==null, L6 credit dates) were not re-litigated here beyond how the tests cover them.",
+        "Tests elsewhere that may touch the changed screens indirectly (home_screen_test, portfolio tests) were not audited for new tautologies. Only receipts_test.dart and the scenario_test.dart hunk were in scope.",
+        "Profile CALLS list and trader-market Record panel tap coverage were not reviewed (carried to phase 7 by the run manager)."
+      ]
+    },
+    {
+      "lens": "receipts-truthfulness",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Call details tells the user 'No call in fixture-v1 backs this holding' for maya.eth's SOL long, but fixture-v1 has that exact call",
+          "location": "app/lib/features/market/receipt_screens.dart:272-284 (forHolding) and :310-313 (header copy)",
+          "failurePath": "Home feed -> caller maya.eth -> ProfileScreen('maya.eth') -> HOLDING NOW -> tap the SOL (Long 5x) row. forHolding('maya.eth', SOL long) skips the seeded receipt 'maya-sol-300-fri' (author maya.eth, asset SOL, side long) only because its result is CallOutcome.right, not open. It falls through to the synthetic CallReceipt(id:'none'), whose null rule picks the header 'No call in fixture-v1 backs this holding', plus 7 'unavailable' rows. Back on the same screen, 'All receipts \u203a' lists 'SOL reaches $300 by Fri - Right' by maya.eth, and the CALLS sample right under the holdings shows the same call. The receipt screen makes a false statement about the fixture. The same path applies through ProfileScreen(maya.eth) -> market -> Portfolio panel -> SOL. receipts_test.dart only checks maya's ETH and BTC rows on her own profile, so nothing catches this.",
+          "fix": "Either make the copy true ('No open call in fixture-v1 backs this holding'), or have forHolding fall back to the newest settled call by the same author on the same asset and side when no open one exists. Add a SOL assertion to 'each record item opens its call receipt' for whichever rule is chosen.",
+          "evidence": "Read forHolding (the result == CallOutcome.open filter), the market_mock.dart record seed (maya-sol-300-fri: SOL, TradeSide.long, CallOutcome.right), ProfileMock.holdings (SOL long 5x), profile_screen.dart:93-99 (HoldingsTable -> forHolding(widget.handle, h)), and ProfileScreen.route reachable for 'maya.eth' from home_screen.dart:113 via mock_trade_idea callerHandle 'maya.eth'. Checked receipts_test.dart:225-258: there is no SOL assertion for maya.eth.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "The made-up 'unavailable' receipt still says Provenance fixture-v1, which contradicts its own header",
+          "location": "app/lib/features/market/receipt_screens.dart:281-283 with market_mock.dart CallReceipt default provenance = Scenario.fixtureVersion",
+          "failurePath": "ProfileScreen('maya.eth') -> HOLDING NOW -> BTC row (or any holding on kaito.eth's profile or trader market). The screen header says 'No call in fixture-v1 backs this holding', then the Provenance row says 'fixture-v1' in strong type, next to Author and Asset. The page reads as a receipt sourced from the fixture for a call the fixture does not contain. The test expects exactly 7 'unavailable' rows, which locks in this provenance line.",
+          "fix": "Build the fallback receipt with a provenance that says what it is (for example 'none: no fixture-v1 call'). Or make provenance nullable for the synthetic case so it renders 'unavailable', and update the findsNWidgets(7) count.",
+          "evidence": "Read the CallReceipt constructor default (this.provenance = Scenario.fixtureVersion), forHolding's fallback CallReceipt(id: 'none', author, asset), the CallReceiptScreen fields list ('Provenance', r.provenance), and receipts_test.dart:239-241.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Confirmed iter-1 L6: a market listed seconds ago already shows $42.80 'earned in fees this week', all dated before it existed",
+          "location": "app/lib/scenario/scenario.dart:111-118 (marketFees filters only on marketId) with market_mock.dart:124-140 (seed dated chartEnd minus 3h to 96h)",
+          "failurePath": "Default start (no HAS_MARKET) -> Portfolio -> make-a-market flow -> keep the suggested ticker MAYA -> list. AccountState.listMarket sets Scenario.marketId to 'MAYA'. The Wallet row 'Fees from your market' jumps to $42.80, and the Ledger lists five credits for Tue 22 Sep to Sat 26 Sep (11:45), before the listing at Scenario.clock 26 Sep 14:45. The 'Illustrative demo ledger' line only appears inside the ledger. The Wallet row and the Your market chip carry no label and read as real income earned before the market existed.",
+          "fix": "In the no-market start, filter credits to those at or after the listing time (store the listing instant in Scenario at listMarket), or seed credits relative to listing. Or put an 'illustrative' cue on the Wallet row and chip. Low priority: the pre-phase constant had the same total.",
+          "evidence": "Traced AccountState.listMarket -> Scenario.marketId.value = symbol. Scenario.ticker is seeded to PortfolioMock.marketSymbol 'MAYA'. Fee seed times computed with python from TradeMock.chartEnd = 2026-09-26 14:45. Portfolio _fees row shows only when hasMarket.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope confirmed: worktree HEAD = 5fd70c1 = phase-6 ref, phase-5 ref resolves (9bf4364), and the 3-dot diff lists 12 app/ files plus bookkeeping. Commits reviewed newest first: 5fd70c1, ef02185, 63c6002.",
+        "Paper order receipts never render as calls, and calls never render as orders. CallReceipt and OrderReceipt are distinct classes. Paper orders appear only in ReceiptsScreen under 'PAPER ORDER RECEIPTS', only when author == PortfolioMock.handle, as non-tappable rows. Calls appear under 'CALL RECEIPTS' via CallRecordItem. The ledger reads only Scenario.feeEntries and never paper order fees.",
+        "Every seeded CallReceipt (the 3 maya.eth entries) gets provenance 'fixture-v1' through the constructor default, and Scenario.fixtureVersion == 'fixture-v1'.",
+        "reset() reassigns feeEntries = YourMarketMock.fees (List.unmodifiable) and callReceipts = YourMarketMock.record (const list). Nothing in lib mutates either notifier, so reset restores the identical seed object every time, which is deeper than deep equality.",
+        "Missing fields: CallReceiptScreen renders value ?? 'unavailable' for every row. CallRecordItem uses entryAt/rule ?? unavailable, and status/detail/rail handle a null result. No field access can throw and no receipt is filtered out for missing data. 'Settled' shows 'Not settled yet' only for open calls.",
+        "Call details: ETH long on maya.eth's profile resolves to maya-eth-4000-oct10. BTC short and any kaito.eth holding resolve to the 'none' receipt. The handle comes from widget.handle in both profile_screen and trader_market_screen. No case resolves to another author's call (the SOL copy problem is filed separately).",
+        "All three former _notBuilt('All receipts') sites (your_market_screen, profile_screen, trader_market_screen) now push ReceiptsScreen.route(handle). Each list shows the author and each call's rule (the event). The ledger names the market and event on every row ('<event title>' / 'MAYA \u00b7 <date>').",
+        "Ledger footer = formatCents(Scenario.marketFeesCents), a fold over the same marketFees list the rows iterate. The Wallet row and the Your market chip read the same getter. No stored constant remains (PortfolioMock.fees and YourMarketMock.feesThisWeek were deleted).",
+        "The 40% share appears in the UI only in the Ledger (with the 'Illustrative demo ledger \u00b7 40% share is a demo assumption' line) and in the make-market flow line (with the shareLabel caption beneath it). Grepped lib: no other 40% copy.",
+        "Worked example uses integer maths (amountCents*100 ~/ pct, then fee*pct ~/ 100). All five seed amounts are even, so it reproduces the listed credit exactly. Seed event day names match their computed dates (Tue 22 Sep to Sat 26 Sep 2026).",
+        "Pill strip: SimulationIndicator adds its 30 px slot to MediaQuery padding. _page reads paddingOf(context) from the route context outside the Scaffold. The list's bottom padding includes it when there is no footer, and the ledger footer pads paddingOf.bottom + xxl, so all three new screens keep content above the strip by construction.",
+        "No new success toasts or messages, no new double money in the new code, and no persona switch or phase advance added."
+      ],
+      "notExamined": [
+        "Did not run any flutter test or render at 375x667 / 1.3x. Pill clearance is judged from the padding code plus the iter-1 probe numbers, not re-measured.",
+        "Did not review receipts_test.dart test strength (iter-1 M1/L1/L2 mutant claims) beyond confirming the missing SOL coverage.",
+        "make_market_flow.dart, your_market_screen.dart and design-system token use are outside my file list. I only read the 40% label lines and the record/chip wiring there.",
+        "Record-panel and Profile CALLS item tappability was ruled carry-forward to phase 7 and was not assessed."
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "money-rounding",
+      "n": 1
+    },
+    {
+      "lens": "tautology-hunt",
+      "n": 9
+    },
+    {
+      "lens": "receipts-truthfulness",
+      "n": 3
+    }
+  ]
+}
