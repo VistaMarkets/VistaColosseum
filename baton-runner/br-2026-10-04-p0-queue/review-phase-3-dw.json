@@ -1,0 +1,218 @@
+{
+  "verified": {
+    "verdict": "APPROVE",
+    "summary": "The scope is sound. feat/br-2026-10-04-p0-queue/phase-3 resolves to 42ae15b, which is also the worktree HEAD, and the three-dot diff lists 55 files. All five findings hold up against the tree, but none is CRITICAL or HIGH and nothing here freezes at merge. Findings 2 and 5 describe the same gap and are merged below. That leaves four survivors: one MEDIUM product issue (the pill's 30px tap target, an outlier in a codebase that wraps every 30px chip in a 44px hit area and still waiting on a design call) and three LOWs. Two LOWs are test gaps: the leverage tests never check that Set clears the pill, and no test runs the Settings reset inside the real app. The third LOW is the hardcoded scrim colour. I demoted the leverage test gap from MEDIUM to LOW: the product code is correct today, and the surviving mutant is worked out on paper rather than run. Every claimed-correct item I spot-checked held. All survivors can be fixed after merge.",
+    "confirmed": [
+      {
+        "severity": "MEDIUM",
+        "title": "The pill's tap target is 30px tall, below VistaSize.tapTarget (44), and the codebase's own pattern gives every 30px chip a 44px hit area",
+        "location": "app/lib/features/simulation/simulation_indicator.dart:40, 81-97",
+        "failurePath": "On any route, at any viewport or text scale, the GestureDetector sits inside Positioned(height: SimulationIndicator.slot = 30). Its Align(widthFactor: 1) fills the 30px strip, so the hit region is the pill's width by 30px (93.5-266.5 x 610-640 at 360x640, per cta_probe.log). Outside Settings, the pill is the only way to reach the note and its Reset demo. This is the iter-1 M4, still open and waiting on a design call.",
+        "fix": "Keep the 30px strip, but let the hit area reach above it with a transparent pad to about 44px, the same way the existing chips do. Re-check that it stays clear of VistaBottomNav and of the sheets' bottom buttons. Or raise the slot to VistaSize.tapTarget. That is a design decision that costs every screen 14px.",
+        "beforeMerge": false,
+        "why": "I read simulation_indicator.dart:38-41 and 81-117, and vista_metrics.dart:27 (tapTarget = 44). I checked the reviewer's claim that every other control meets 44px. The existing 30px and 28px chips (order_ticket.dart:584-588 'Cross \u00b7 Nx', :622 _chip, open_order_card.dart:194-198) all wrap a 30px visual in SizedBox(height: 44 / VistaSize.tapTarget). The pill is the only control that does not. The iter-1 review baton records that iOSTapTargetGuideline fails at 138.9x30.",
+        "id": "F1"
+      },
+      {
+        "severity": "LOW",
+        "title": "The 1.3x leverage tests check that Set can be tapped, not that Set clears the pill. A dropped-inset mutant leaves Set 6px under the pill at both phone sizes and passes all four tests.",
+        "location": "app/test/home_screen_test.dart:1986-2004 and :2273-2292 (sheet padding: app/lib/features/trade/order_ticket.dart:1151)",
+        "failurePath": "The mutant changes `EdgeInsets.fromLTRB(16, 10, 16, 24 + safe)` to `... 24)` in the shared _LeverageSheet (feed_order_ticket.dart is `part of` order_ticket.dart). The phones map gives a bottom padding of 0, so safe is 30 (just the strip). The sheet is scroll-controlled and sized to its content (maxScroll=0 in h1_probe.log), so it shrinks by 30 and Set moves from 532-586 to 562-616 against the pill at 610-640 (360x640). At 375x667 it moves from 559-613 to 589-643 against the pill at 637-667. Set's centre stays outside the pill, so tap('Set 11x') / tap('Set 3x') still lands. The outcome text appears, nothing overflows, and all four tests pass. On a phone, the bottom 6px of the Set button sits under the pill, which breaks the spec's rule that the pill must not cover action buttons. The narrow N1 also holds: under the isScrollControlled revert, both 375x667 variants pass (mut log +2 -2, with the two 360x640 variants failing).",
+        "fix": "Lift expectPillClear (home_screen_test.dart:2362) to file scope. In each 1.3x leverage test, before tapping Set, assert the pill does not overlap Set's GestureDetector, without a hitTestable() pre-filter.",
+        "beforeMerge": false,
+        "why": "I read both tests. Their only assertions are the outcome text and takeException. order_ticket.dart:1122 sets `safe = MediaQuery.paddingOf(context).bottom` and :1151 the padding. home_screen_test.dart:48-50 gives the phones no bottom padding, and expectPillClear is used only at :2398-2448, never on the leverage sheet. h1_probe.log has the Set and pill rects, and mut-H1-revert-isScrollControlled-home_screen_test.log shows 375x667 passing under the revert. I demoted this from MEDIUM: the product code is correct, and the mutant's survival is arithmetic, not a run.",
+        "id": "F2"
+      },
+      {
+        "severity": "LOW",
+        "title": "The Settings half of the single resetDemo() path is never tested inside the app, and the pill test's name claims an equivalence it does not check (merges N4 / state-truthfulness finding)",
+        "location": "app/test/scenario_test.dart:117-137, :139-140 (code: app/lib/features/settings/settings_screen.dart:123)",
+        "failurePath": "Settings is pushed in the real app (account_top_bar.dart:72, SettingsScreen.route()). The only Settings reset test pumps MaterialApp(home: SettingsScreen()), which makes Settings the root route, so popUntil(isFirst) does nothing there. Suppose a later edit puts the old inline reset back at settings_screen.dart:123 (Scenario.reset(); SettingsState.reset(); _say(...), where _say still exists at :34). Settings then resets but stays open over a stack built on old state, which is the M2 regression. The root-mounted test still passes: the toast and state()==seed both hold. The pill test at :139 never opens Settings. The in-app check exists only as the out-of-suite baton-runner probe settings_reset_probe_test.dart, which passes today.",
+        "fix": "Promote settings_reset_probe_test.dart into the suite: pump VistaColosseumApp, mutate the store, push SettingsScreen.route(), tap Reset demo, then assert Settings is gone, canPop() is false, the toast is hit-testable, and the store equals the seed. Optionally drop 'is the Settings reset' from the pill test's name.",
+        "beforeMerge": false,
+        "why": "I grepped test/ for 'Reset demo'. Hits are only scenario_test.dart:117-165 and home_screen_test.dart:2468-2490 (both on the pill path). home_screen_test.dart:1043/1497 open Settings but never tap Reset. I read settings_screen.dart:34-40 and :123, account_top_bar.dart:72, resetDemo at simulation_indicator.dart:11-21, and the probe and its passing log.",
+        "id": "F3"
+      },
+      {
+        "severity": "LOW",
+        "title": "The new feature file hardcodes the scrim colour (and the sheet radius) outside design_system",
+        "location": "app/lib/features/simulation/simulation_indicator.dart:57, 134",
+        "failurePath": "`barrierColor: const Color(0x73000000)` is a hardcoded colour in feature code, which the project rule forbids. design_system has no scrim token (grep finds only textFaint 0x73FFFFFF). This copies 6 existing call sites on main (people_in_sheet, share_call_sheet, feed_order_ticket x2, order_ticket x2), so a scrim change is now a 7-site hand edit. Radius.circular(24) likewise has no VistaRadius token, but the rule's explicit ban is on colours and font sizes.",
+        "fix": "Add VistaColors.scrim (and optionally VistaRadius.sheet = 24), and use them here. Migrating the 6 existing sites can be a follow-up.",
+        "beforeMerge": false,
+        "why": "I read simulation_indicator.dart:57 and :132-135. `git grep` on origin/main shows the 6 existing scrim sites and the 24 radii. Grepping lib/design_system for scrim/barrier/0x73 finds no token.",
+        "id": "F4"
+      }
+    ],
+    "refuted": [
+      {
+        "title": "Finding 1 at MEDIUM severity (the test-gap substance survives at LOW)",
+        "reason": "The product code is correct. The finding is a test that could miss a future regression, and its failure path is a hypothetical mutant whose survival was worked out from the probe's rects, never run. That fits LOW, not a MEDIUM maintainability concern."
+      },
+      {
+        "title": "Finding 4: `static const double slot = 30` violates the design-token rule",
+        "reason": "The rule's explicit ban is on hardcoded colours and font sizes. `slot` is the widget's own public geometry constant, and the tests reference it by name (SimulationIndicator.slot). It is a single source of truth, not a scattered literal. Only the scrim colour part of Finding 4 is a real violation."
+      },
+      {
+        "title": "Finding 5 as a separate item",
+        "reason": "It duplicates Finding 2: same test (scenario_test.dart:117), same root-mounted-Settings blind spot. I merged it into the Settings reset finding and kept Finding 2's concrete inline-revert mutant as the failure path. Its other path, capturing ScaffoldMessenger after the pop, is speculative: Settings' context is still mounted during the pop animation."
+      }
+    ],
+    "checkedClaimsThatAreWrong": [],
+    "residualRisk": [
+      "tautology-hunt: No mutant was run (the lane is read-only, and running one would mean writing files). The survival of the dropped-inset leverage-sheet mutant is derived from the probe's measured rects, not from a run.",
+      "tautology-hunt: The ticket-CTA and TextField clearance assertions inside 'the pill shows on every tab and inside both order tickets' have never been shown to discriminate. In the no-padding-reserve mutant both ticket tests died at the earlier VistaBottomNav check (line 2369). A ticket-only inset mutant was not modelled, because OrderTicket's 30+safe fallback likely leaves the CTA touching, not overlapping, the pill.",
+      "tautology-hunt: The hitTestable() pre-filter blind spot in expectPillClear for TextField/VistaPillButton targets is already carried as L1. It was not re-examined beyond confirming the shape is unchanged.",
+      "tautology-hunt: The make-market AC1 test at 375x667 does not kill the no-padding-reserve mutant (the footer's `bottomInset > 0 ? bottomInset : 30` fallback places the button the same either way). The 390x844 variant kills it. This is a product coincidence, not a test defect, and was not pursued.",
+      "tautology-hunt: Non-test lanes (product correctness, design tokens, the LiveFeed drift) are out of scope for this reviewer.",
+      "layout-reachability: No new widget probe was run because the review is read-only. The following rely on reading the code plus the existing review probes, not on fresh runs: the position, share and people sheets at 1.3x on 360x640; the order ticket's _ReviewPanel Confirm button; CallerPlayScreen at 360x640 and 1.3x.",
+      "layout-reachability: Floating snackbars shown while the keyboard is up. Scaffold zeroes minViewPadding then, so a toast's 10px bottom margin could fall under the pill. Whether any toast fires with the keyboard open was not traced.",
+      "layout-reachability: Landscape, tablets and Android 3-button navigation insets were not considered.",
+      "layout-reachability: Semantics traversal order with a modal open (the pill sits outside the Navigator, so screen readers can reach it past the barrier) was not tested with a screen reader.",
+      "state-truthfulness: I did not run any tests. I relied on the stated gate pass at 42ae15b (225 tests, plus HAS_MARKET 225) and on reading the source.",
+      "state-truthfulness: Layout, overlap and tap-target questions (pill below the nav instead of above it, 30px tap target, isScrollControlled leverage sheets, scrollUntilVisible test changes) belong to other lanes.",
+      "state-truthfulness: Hardcoded scrim Color(0x73000000) and Radius.circular(24) in simulation_indicator.dart are a design-token issue for another lane. It copies 6 existing call sites on main.",
+      "state-truthfulness: Timing edges that need taps under ~250ms (tapping a SnackBar action while it animates out after reset, or tapping during an open-order cancel fold) were reasoned through, not reproduced. None looked reachable at human speed."
+    ]
+  },
+  "ref": "feat/br-2026-10-04-p0-queue/phase-3",
+  "sha": "42ae15b0f9f98b937f8fba803c5a6c5369461f0b",
+  "rawCount": 5,
+  "reviews": [
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "The H1 leverage tests check that Set can be tapped, not that Set is clear of the pill. Any mutant that leaves Set partly under the pill survives at both phone sizes (N1 is wider than reported).",
+          "location": "app/test/home_screen_test.dart:1987 and :2275 (sheet padding under test: app/lib/features/trade/order_ticket.dart:1151)",
+          "failurePath": "Apply this mutant to the shared _LeverageSheet (feed_order_ticket.dart is `part of` order_ticket.dart, so one class serves both tickets): change `padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe)` to `... 24)`, so the sheet ignores the 30 px strip inset. The probe geometry (h1_probe.log: sheet maxScroll=0, Set 16-344 x 532-586, pill 93.5-266.5 x 610-640 at 360x640) puts Set at y 562-616 after the mutant, which is 6 px under the pill. Set's centre is at (180, 589), which is still outside the pill, so `tap(find.text('Set 11x'))` lands on Set and `Cross \u00b7 11x` / `Long $200 \u00b7 3x` still appear. The sheet still fits, so nothing overflows and takeException stays null. At 375x667, Set moves from 559-613 to 589-643 against the pill at 637-667, again a 6 px overlap with the centre clear. All four H1 tests pass. N1 itself is confirmed: in mut-H1-revert-isScrollControlled-home_screen_test.log both 375x667 variants pass (+2 -2), so the 375x667 variants kill nothing that the 360x640 variants miss. The broader wording of N1 in the task (a sheet scroll-controlled in one ticket but not the other) is REFUTED. Each 360x640 test opens only its own ticket's sheet: OrderTicket through `Cross \u00b7 10x`, the feed ticket through `custom`. Each failed under the revert, so a single-site revert fails that ticket's 360x640 test. The 360x640 kill comes from Set being pushed off-screen (a 53 px overflow), not from any pill-clearance check. The `simulation indicator` group's `expectPillClear` never opens the leverage sheet.",
+          "fix": "Move `expectPillClear` out of the `simulation indicator` group to file scope. In each H1 test, before tapping Set, add `expectPillClear(tester, find.ancestor(of: find.text('Set 11x'), matching: find.byType(GestureDetector)).first)` (`Set 3x` for the feed ticket), without a hitTestable() pre-filter. That catches both the isScrollControlled revert at 375x667 and the dropped-inset mutant at both sizes.",
+          "evidence": "Read both H1 tests (home_screen_test.dart:1987-2004, 2275-2292): their only assertions are the outcome text and takeException. Read order_ticket.dart:1122/1151 (`safe = MediaQuery.paddingOf(context).bottom`, padding `24 + safe`) and feed_order_ticket.dart line 1 (`part of 'order_ticket.dart'`), :158 (_LeverageSheet). The Rect geometry comes from baton-runner/.../review-phase-3-iter-2-probe/h1_probe.log lines 15-16, 29-30, 44-45, and the mutant result from mut-H1-revert-isScrollControlled-home_screen_test.log. The dropped-inset mutant was not run (read-only lane). The survival claim is arithmetic on the probe's measured rects plus flutter_test's centre-point tap semantics.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Nothing guards the Settings half of the 'single resetDemo() path'. Reverting the Settings row to the old inline reset passes every test, and the scenario test's name claims an equivalence it never checks (N4 confirmed).",
+          "location": "app/test/scenario_test.dart:117-137 and :139 (code under test: app/lib/features/settings/settings_screen.dart:123)",
+          "failurePath": "Mutant: in settings_screen.dart:123, replace `onTap: () => resetDemo(context)` with the pre-diff `onTap: () { Scenario.reset(); SettingsState.reset(); _say('Demo reset to ${Scenario.fixtureVersion}'); }`. `_say` still exists at :34, so this compiles once the scenario import is restored. The only Settings reset test, 'Reset demo in Settings restores the fixture and says so', mounts `MaterialApp(home: SettingsScreen())`, which makes Settings the root route, so resetDemo's popUntil(isFirst) does nothing there. Its asserts (toast text, state()==seed, tradingPermission, longOnRight) all held on main with the inline code, so it passes. The pill test 'the simulated pill explains itself; its Reset demo is the Settings reset' never opens Settings. In the real app, Settings is pushed (account_top_bar.dart:72, CupertinoPageRoute). After the mutant, a Settings reset leaves Settings and any routes built on old state open, which is the regression M2 fixed, and no test turns red.",
+          "fix": "Add a test that pumps `VistaColosseumApp()`, mutates the store, pushes `SettingsScreen.route()` (or navigates through the account top bar), taps Reset demo, and asserts `find.byType(SettingsScreen)` findsNothing, `Navigator.canPop()` is false, the store equals seed, and the toast is hit-testable. Optionally rename the pill test to drop the 'is the Settings reset' claim.",
+          "evidence": "grep across test/ for 'Reset demo|resetDemo|SettingsScreen()' finds only scenario_test.dart:117-137 (root-mounted Settings) and :139-165 (pill path only). Read settings_screen.dart:34-40 (_say), :123, and account_top_bar.dart:72. The M2 mutant logs show that popUntil removal is caught only on the pill path.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: feat/br-2026-10-04-p0-queue/phase-3 resolves to 42ae15b in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue (worktree HEAD = branch tip, branch checked out), and the three-dot diff lists 55 files including app/lib and app/test. The scope is sound.",
+        "SimulationIndicator removed from MaterialApp.builder: killed. All 8 tests in the 'simulation indicator' group and the scenario pill test fail (mut-AC1-AC2-no-pill-in-builder-*.log).",
+        "resetDemo made a no-op: killed by three tests. The scenario pill test asserts the note closes, the toast shows, state()==seed and Settings are reset. 'Reset demo from the pill...' asserts no OrderTicket, canPop false and a hit-testable toast. 'pill sits above the safe area...' calls getRect(find.byType(SnackBar)), which throws when there is no SnackBar. Removing popUntil alone is killed by two tests (mut-M2-*.log).",
+        "Strip shrunk to 0 (slot=0): killed by both 'every tab ... smallest phone' tests through the getMaxIntrinsicHeight(face) <= SimulationIndicator.slot check. The padding reserve removed but the pill kept (no-padding-reserve mutant): 5 tests fail, all on the VistaBottomNav overlap at home_screen_test.dart:2369.",
+        "Pill copy changed: killed. The tests find the pill by the exact semantics label / text 'Simulated \u00b7 fixture-v1', the scenario test checks the note sentence verbatim, and the toast 'Demo reset to fixture-v1' is checked in both files.",
+        "Double-tap guard (_open): removing it gives two 'Reset demo' widgets and fails findsOneWidget (fix baton L13 RED, consistent with the code).",
+        "Keyboard/safe-area assertions are real. Dropping mq.padding.bottom or mq.viewInsets.bottom from Positioned.bottom moves the badge to y=844 and fails the <=810 / <=544 checks.",
+        "All 1.3x tests really set the scale and viewport. platformDispatcher.textScaleFactorTestValue=1.3 is set with clear in tearDown. pumpBtc/openFeedTicket/launch set physicalSize=size*3, dpr=3 and padding from the phones map (360x640 top 24, 375x667 top 20). The app's withClampedTextScaling(max 1.3) passes 1.3 through. pumpBtc now pumps VistaColosseumApp, so the strip is present.",
+        "'No overflow' is asserted, not just survived: each 1.3x test ends with expect(tester.takeException(), isNull), and the every-tab test checks it per tab. flutter_test also fails a test on any unclaimed FlutterError (RenderFlex overflow).",
+        "ensureVisible -> scrollUntilVisible edits (home_screen_test.dart:118-130 and the openPosition helper) only make room for the strip. The end-state assertion find.text('0xreal').hitTestable() is unchanged. scrollUntilVisible drags only while the finder is empty (the row is offstage in the lazy ListView's cache area), then calls Scrollable.ensureVisible as before. PortfolioScreen has one ListView, so .first is the vertical scrollable, and a wrong axis would fail the test rather than pass it.",
+        "order_ticket_test.dart changes only swap the bare MaterialApp harness for VistaColosseumApp(home: ...). No assertion was removed, and the pill strip is now measured in those layouts.",
+        "N1 confirmed in its narrow form: the 375x667 H1 variants pass under the isScrollControlled revert. The broad form (a revert in one ticket only) is refuted, because each 360x640 variant exercises only its own ticket and fails under the revert."
+      ],
+      "notExamined": [
+        "No mutant was run (the lane is read-only, and running one would mean writing files). The survival of the dropped-inset leverage-sheet mutant is derived from the probe's measured rects, not from a run.",
+        "The ticket-CTA and TextField clearance assertions inside 'the pill shows on every tab and inside both order tickets' have never been shown to discriminate. In the no-padding-reserve mutant both ticket tests died at the earlier VistaBottomNav check (line 2369). A ticket-only inset mutant was not modelled, because OrderTicket's 30+safe fallback likely leaves the CTA touching, not overlapping, the pill.",
+        "The hitTestable() pre-filter blind spot in expectPillClear for TextField/VistaPillButton targets is already carried as L1. It was not re-examined beyond confirming the shape is unchanged.",
+        "The make-market AC1 test at 375x667 does not kill the no-padding-reserve mutant (the footer's `bottomInset > 0 ? bottomInset : 30` fallback places the button the same either way). The 390x844 variant kills it. This is a product coincidence, not a test defect, and was not pursued.",
+        "Non-test lanes (product correctness, design tokens, the LiveFeed drift) are out of scope for this reviewer."
+      ]
+    },
+    {
+      "lens": "layout-reachability",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Pill tap target is 30px tall, below the design system's 44px VistaSize.tapTarget",
+          "location": "app/lib/features/simulation/simulation_indicator.dart:40",
+          "failurePath": "Any route, 360x640 or 375x667, text scale 1.0 or 1.3: the pill's hit region is the GestureDetector inside a Positioned of height SimulationIndicator.slot (30). The Align has no heightFactor, so it fills the 30px strip, and its width is the pill's width (x 93.5-266.5 at 360x640 per cta_probe.log). Outside Settings the pill is the only way to reach the note and its Reset demo, so its target is about 14px shorter than VistaSize.tapTarget (44), the minimum every other control in the app meets. It still meets WCAG 2.5.8 AA (24px). This is the iter-1 M4, still open.",
+          "fix": "Raise the slot to VistaSize.tapTarget, or keep the 30px strip and extend the GestureDetector's hit area upward with a transparent pad. If you extend it, re-check that it stays clear of the nav and of the sheets' primary buttons, which sit 24px or more above the strip at 360x640 and 1.3x.",
+          "evidence": "Read simulation_indicator.dart:38-41 and 82-117 (Positioned height: slot, Center > GestureDetector(opaque) > Align(widthFactor: 1)). Read VistaSize.tapTarget = 44 in design_system/tokens/vista_metrics.dart:27. Pill rect 610-640 (30px) in review-phase-3-iter-2-probe/cta_probe.log.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "New feature file hardcodes scrim colour, sheet radius and the strip size outside design_system",
+          "location": "app/lib/features/simulation/simulation_indicator.dart:40,57,134",
+          "failurePath": "The project rule says app/lib/design_system/ is the only source of colour, radius and size tokens. The new file defines `static const double slot = 30` as a layout size in feature code, uses `barrierColor: const Color(0x73000000)` and uses `BorderRadius.vertical(top: Radius.circular(24))`. VistaRadius has no 24 token and no scrim colour token exists, so a design change to the scrim, the sheet corners or the strip height has to be found and edited by hand in each file (6 or more scrim call sites already exist).",
+          "fix": "Add VistaColors.scrim, VistaRadius.sheet (24) and a VistaSize entry for the simulated strip (for example VistaSize.simulatedStrip = 30) in design_system/tokens. Have SimulationIndicator.slot point to the new size token. Moving the existing scrim and radius call sites over can be a follow-up.",
+          "evidence": "Read simulation_indicator.dart:40, 57 and 132-135. Read design_system/tokens/vista_metrics.dart:16-22 (VistaRadius: hairline 2, sm 6, md 8, card 20, pill 999; no 24). grep of lib/design_system for 'scrim|0x73000000|barrier' found nothing.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope is intact: feat/br-2026-10-04-p0-queue/phase-3 resolves to 42ae15b in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue, and `git diff --stat origin/main...` lists 55 files, including the 6 app/lib files under review.",
+        "There is exactly one pill. app/lib has one MaterialApp (main.dart:22) and no nested Navigator. SimulationIndicator is mounted only in MaterialApp.builder. MaterialApp wraps ScaffoldMessenger and Localizations around the builder output, so ScaffoldMessenger.of and Directionality both resolve above the pill.",
+        "The pill's hit region is the pill's width by the 30px strip. Center and Positioned pass hits outside the pill through to the route below, so the rest of the strip does not block taps.",
+        "The strip clears the bottom nav on every tab. AppShell's dock pads MediaQuery.paddingOf(context).bottom, now device inset + 30 (app_shell.dart:73,108), so VistaBottomNav sits VistaSpace.sm above the strip. All four tab roots use SafeArea(bottom: false) (home:49, arena:30, portfolio:66, markets:99), so the strip is not reserved twice. The Arena crowd-filter panel is inside the same dock and moves up with it.",
+        "Every vertical ListView in lib sets an explicit padding, so none picks up the extra 30px automatically and none is clipped.",
+        "Every other modal sheet pads the new inset: share_call_sheet (30+safe), people_in_sheet (16+safe), position_sheet (bottomInset, now >= 30) and the order and feed tickets (30+safe and 16+safe). All are isScrollControlled and scrollable, so their last control ends at or above the strip when scrolled to the end.",
+        "The leverage sheet fix is sound. Both call sites are now isScrollControlled: true. The sheet has a 0.92-height cap and a SingleChildScrollView. Both callers guard `l != null && mounted`, so a Reset that pops the leverage sheet returns null safely. The probe in the review baton shows Set at y 532-586 against the pill at 610-640 (360x640, 1.3x).",
+        "The Wrap change (order_ticket.dart:368) and the Expanded text in feed_order_ticket.dart:322 only let content wrap at 1.3x. The _check children are mainAxisSize.min Rows with fixed 44px height, so Wrap is safe.",
+        "The keyboard case is consistent. The pill's bottom is padding.bottom + viewInsets.bottom. dart:ui reports padding as viewPadding minus viewInsets, floored at 0, so with the keyboard up the pill sits right on the keyboard. Scaffold bodies and the tickets (which use Padding(bottom: viewInsets)) also reserve padding.bottom (= 30) above the keyboard, so the pill lands in reserved space. EditableText reveals the caret with at least scrollPadding 20 plus the handle allowance, so the caret line stays above the strip.",
+        "The make-market overflow is unchanged by this diff. The 20px overflow is inside the fixed-height (236) _previewCard Column (make_market_flow.dart:254), which does not depend on viewport height. The footer uses `bottomInset > 0 ? bottomInset : 30`, and 30 is the same on main and head for inset-free phones. mm_probe_head.log and mm_probe_main.log are identical (1.0x clean, 1.3x 20px on both 360x640 and 375x667).",
+        "The Settings Reset demo row is still reachable. Settings uses SafeArea, which takes the +30, plus list padding paddingOf(bottom) + xl. resetDemo pops the root navigator to its first route and captures ScaffoldMessenger before popping.",
+        "The pill draws above modal barriers and sheets by design. The spec wants it visible inside the ticket, and the barrier still catches taps outside the pill. _open stops a second note from stacking. The pill's own note is padded by padding.bottom, so its Reset demo button sits clear (540-594 against 610-640 at 360x640, 1.3x).",
+        "Pushed routes with their own bottom controls all take the inset into account: ChartSheet trade buttons, opinions, your_market, and the make-market _footer on all three steps. The trade buttons now sit flush with the top of the strip on inset-free phones, the same zero gap they already had above the home indicator on notched phones. They do not overlap.",
+        "The pill uses design-system tokens: VistaColors.surfaceRaised and textTertiary, VistaType.label, VistaSpace.lg and xs. Its intrinsic height at 1.3x is tested to be at most slot."
+      ],
+      "notExamined": [
+        "No new widget probe was run because the review is read-only. The following rely on reading the code plus the existing review probes, not on fresh runs: the position, share and people sheets at 1.3x on 360x640; the order ticket's _ReviewPanel Confirm button; CallerPlayScreen at 360x640 and 1.3x.",
+        "Floating snackbars shown while the keyboard is up. Scaffold zeroes minViewPadding then, so a toast's 10px bottom margin could fall under the pill. Whether any toast fires with the keyboard open was not traced.",
+        "Landscape, tablets and Android 3-button navigation insets were not considered.",
+        "Semantics traversal order with a modal open (the pill sits outside the Navigator, so screen readers can reach it past the barrier) was not tested with a screen reader."
+      ]
+    },
+    {
+      "lens": "state-truthfulness",
+      "findings": [
+        {
+          "severity": "LOW",
+          "title": "The Settings reset path changed (it now closes Settings and toasts on the shell), but no test runs it inside the real app",
+          "location": "app/test/scenario_test.dart:117",
+          "failurePath": "The test 'Reset demo in Settings restores the fixture and says so' pumps `MaterialApp(home: SettingsScreen())`. That makes Settings the first route, so `popUntil(isFirst)` in resetDemo does nothing there. This diff changed the Settings behaviour from 'reset and stay in Settings' to 'pop to the root, reset, toast on the shell'. Take that real path: Wallet/Account top bar, then Settings (CupertinoPageRoute), then Reset demo. If a later edit drops the popUntil, or captures ScaffoldMessenger after the pop, this test still passes. The only check on the real path is the out-of-suite probe baton-runner/.../settings_reset_probe_test.dart. The pill path is covered in the real app (scenario_test.dart:139, home_screen_test.dart:2479).",
+          "fix": "Point the Settings test at `VistaColosseumApp(home: ...)` or push SettingsScreen.route() from the shell. Then assert three things: Settings is gone, the store equals the seed, and 'Demo reset to fixture-v1' shows and is hit-testable.",
+          "evidence": "Read scenario_test.dart:117-137 and resetDemo in simulation_indicator.dart:11-21. This is the same item the iter-2 review baton lists as N4, re-checked against the tree.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope is intact. feat/br-2026-10-04-p0-queue/phase-3 resolves to 42ae15b in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue, and the three-dot diff lists 55 files, including the app/lib files in this lane.",
+        "One reset path. settings_screen.dart:123 runs `onTap: () => resetDemo(context)`, and the note's 'Reset demo' button (simulation_indicator.dart:156) calls the same resetDemo. The old inline Scenario.reset()+SettingsState.reset()+_say block is gone.",
+        "resetDemo restores everything the phase-1 reset did, because it calls the same Scenario.reset() (scenario.dart:220-236) and SettingsState.reset(). Scenario.reset() covers cash, positions, open orders, hasMarket/ticker/marketId (the listing), liked, favoriteAssets/Traders, followers/following/followed, clock, receipts and stalePrices. SettingsState.reset() also resets DisplayPrefs. Nothing that phase 1 restored was dropped.",
+        "Pop to root from any depth. The only Navigator is the root one (grep finds no nested Navigator and no useRootNavigator). Every sheet (showModalBottomSheet) and every pushed screen (MaterialPageRoute/CupertinoPageRoute) is on it, and the note runs on the same navigator through `navigatorKey`. So popUntil(isFirst) from either the note context or the Settings context closes the note, any order ticket or its leverage sheet, Settings, and nested market/profile routes. Local ticket state (leverage, amount, the minted action id) is disposed with its route. The leverage awaits guard with `mounted` (order_ticket.dart:582, feed_order_ticket.dart:165). A popped ticket cannot re-confirm a stale action id after the reset clears receipts.",
+        "The toast tells the truth. ScaffoldMessenger is captured before the pop, and the 'Demo reset to fixture-v1' SnackBar is shown only after Scenario.reset() and SettingsState.reset() have run. Both are plain synchronous assignments that cannot fail. MaterialApp places its ScaffoldMessenger above the builder, so the pill's note context resolves it.",
+        "A double reset is idempotent: unit test 'reset twice yields equal state'. Each reset calls hideCurrentSnackBar before showSnackBar, so a second reset replaces the first toast instead of stacking two. Every one of the 17 showSnackBar call sites in lib hides the current one first, so no stale 'Undo' snackbar can queue behind the reset toast. A quick second tap on the closing note or Settings is ignored while the route animates out. The `_open` flag stops the pill, which sits above the scrim, from opening a second note.",
+        "Root-route tabs keep no stale copies of Scenario. No initState in app_shell/home/markets/arena/portfolio/watchlist reads Scenario values into fields. They all read through listeners or getters, so the root screen redraws from the restored store. AppShell.tab is left as it is, which matches the phase-1 behaviour.",
+        "The copy is true. The pill reads 'Simulated \u00b7 ' + Scenario.fixtureVersion ('fixture-v1'). The note is the spec sentence word for word: 'All prices, fills, balances and results are simulated. Nothing leaves this device.' lib has no http, url_launcher or Share calls. The only outward side effects are Clipboard writes on the device. pubspec dependencies are flutter and flutter_svg only. Nothing claims results are live.",
+        "LiveFeed drift (carried from phase 1, not new). MarketPrices.of uses a constant base, so `_bases[key] == base` always holds and a reset never re-bases price feeds. The 'portfolio' feed re-bases only if the cash figure changed. So after any reset, from the pill or from Settings, prices and an untraded balance keep their drifted values. This diff does not change that mechanism. It makes reset reachable from every screen, and both entry points now land on the root tabs where drifting figures show. That is slightly more visible, but it is the same defect, and resetDemo is the one place to fix it. The fix is out of scope for this unit, as stated.",
+        "No persona switch and no scenario-phase control. Grepping the app/lib diff for persona, phase and advance finds nothing, and the note offers only Reset demo."
+      ],
+      "notExamined": [
+        "I did not run any tests. I relied on the stated gate pass at 42ae15b (225 tests, plus HAS_MARKET 225) and on reading the source.",
+        "Layout, overlap and tap-target questions (pill below the nav instead of above it, 30px tap target, isScrollControlled leverage sheets, scrollUntilVisible test changes) belong to other lanes.",
+        "Hardcoded scrim Color(0x73000000) and Radius.circular(24) in simulation_indicator.dart are a design-token issue for another lane. It copies 6 existing call sites on main.",
+        "Timing edges that need taps under ~250ms (tapping a SnackBar action while it animates out after reset, or tapping during an open-order cancel fold) were reasoned through, not reproduced. None looked reachable at human speed."
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "tautology-hunt",
+      "n": 2
+    },
+    {
+      "lens": "layout-reachability",
+      "n": 2
+    },
+    {
+      "lens": "state-truthfulness",
+      "n": 1
+    }
+  ]
+}
