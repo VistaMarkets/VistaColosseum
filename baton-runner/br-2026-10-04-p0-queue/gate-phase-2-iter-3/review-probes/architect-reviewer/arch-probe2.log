@@ -1,0 +1,99 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/architect-reviewer/arch_probe2_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: feed amount of 6 nines
+ARCH2 nines=6 exception=none
+00:01 +1: feed amount of 7 nines
+ARCH2 nines=7 exception=none
+00:01 +2: feed amount of 8 nines
+ARCH2 nines=8 exception=none
+00:01 +3: feed amount of 9 nines
+ARCH2 nines=9 exception=none
+00:02 +4: feed amount of 10 nines
+ARCH2 nines=10 exception=none
+00:02 +5: feed amount of 11 nines
+ARCH2 nines=11 exception=overflow
+00:02 +6: feed amount of 12 nines
+ARCH2 nines=12 exception=overflow
+00:02 +7: feed amount of 13 nines
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 42 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#7f926 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#14c85] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#87f9d] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#f8f2c] ← ⋯
+  parentData: offset=Offset(0.0, 382.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 10 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#cacf0 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#14c85] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#87f9d] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#f8f2c] ← ⋯
+  parentData: offset=Offset(0.0, 425.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ARCH2 nines=13 exception=overflow
+00:03 +8: (tearDownAll)
+00:03 +8: All tests passed!

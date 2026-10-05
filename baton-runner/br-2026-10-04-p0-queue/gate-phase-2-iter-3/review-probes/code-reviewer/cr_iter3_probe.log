@@ -1,0 +1,31 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/code-reviewer/cr_iter3_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: FEED wrap with real fonts: 184467440737095517
+FEED[184467440737095517] field=[184467440737095517] labels=[$1.68 of ETH at 2x · 0.0006 ETH, you lose the $0.84, Long $0.84 · 2x] pct=[0% of available] exception=false
+FEED[184467440737095517] review=[$12,480.00, ETH, $2,968.40, Is ETH poised for a breakout above $3,000?, $1.2k, $500, Ethereum · ETH, 0.0006 ETH · $1.68, $2,968.40, $0.84, $0.00, $0.84] exception=false
+FEED[184467440737095517] receipt margin=84 fee=0 total=84 cash=1247916
+FEED[184467440737095517] toast=[Ethereum long filled · $0.84 from paper cash (simulated), Order filled] exception=false
+00:01 +1: FEED wrap with real fonts: 4611686018427388104
+FEED[4611686018427388104] field=[4611686018427388104] labels=[$400 of ETH at 2x · 0.1348 ETH, you lose the $200, Long $200 · 2x] pct=[2% of available] exception=false
+FEED[4611686018427388104] review=[$12,480.00, ETH, $2,968.40, Is ETH poised for a breakout above $3,000?, $1.2k, $500, Ethereum · ETH, 0.1348 ETH · $400.00, $2,968.40, $200.00, $0.20, $200.20] exception=false
+FEED[4611686018427388104] receipt margin=20000 fee=20 total=20020 cash=1227980
+FEED[4611686018427388104] toast=[Ethereum long filled · $200.20 from paper cash (simulated), Order filled] exception=false
+00:01 +2: OT 13-digit BTC size with real fonts
+OT texts=[$67,412.00, +$798, OI $412M, $239M, $173M, Vol $1.2B, $64,850, $69,300, Size · at $67,412.00, $900,719,925.48 · $61,008, $4,503,599.62, Not enough funds] exception=false 
+00:01 +3: STORE wrong-side exits and infinite product
+STORE wrongSide problem=null result=OrderFilled
+STORE infProduct notional=0 problem=Size too small
+STORE 1.37e12@20x notional=900719925475 margin=45035996274 fee=450359962 problem=Not enough funds
+00:01 +4: (tearDownAll)
+00:01 +4: All tests passed!

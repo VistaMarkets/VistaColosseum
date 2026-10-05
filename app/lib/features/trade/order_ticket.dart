@@ -3,22 +3,22 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../app_shell.dart';
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
-import '../portfolio/orders_state.dart';
-import '../portfolio/portfolio_mock.dart';
+import '../../scenario/scenario.dart';
 import 'trade_mock.dart';
 
 part 'feed_order_ticket.dart';
 
 /// Opens the order ticket for [symbol] (an asset ticker or a trader
 /// market's handle) on [side] as a sheet sliding up over the page (Figma
-/// "Order · C — pro", 218:608). Simulated: placing a limit or stop order
-/// adds it to Portfolio › Open orders; a market order just confirms.
-/// Nothing is sent.
+/// "Order · C — pro", 218:608). Simulated: a market order is reviewed,
+/// then fills into Wallet; a limit or stop order rests in Portfolio › Open
+/// orders. Nothing is sent.
 Future<void> showOrderTicket(
   BuildContext context, {
   required String symbol,
@@ -32,8 +32,6 @@ Future<void> showOrderTicket(
     builder: (_) => OrderTicket(symbol: symbol, side: side),
   );
 }
-
-enum OrderKind { market, limit, stop }
 
 /// The market facts a ticket needs: its name, icon, leverage cap and what
 /// its size is counted in.
@@ -68,15 +66,16 @@ class OrderTicket extends StatefulWidget {
   final String symbol;
   final TradeSide side;
 
-  /// Margin the demo account can put on a new order.
-  static const double available = 1000;
-
   @override
   State<OrderTicket> createState() => _OrderTicketState();
 }
 
 class _OrderTicketState extends State<OrderTicket> {
+  final _actionId = _newActionId();
   late final _market = _Market.of(widget.symbol);
+
+  /// The order under review, once Place is tapped on a market order.
+  OrderIntent? _review;
   late TradeSide _side = widget.side;
   // Opens as a plain market order; limit, stop and exits are opt-in.
   OrderKind _kind = OrderKind.market;
@@ -117,11 +116,30 @@ class _OrderTicketState extends State<OrderTicket> {
   double get _entry =>
       _kind == OrderKind.market ? _live : math.max(0, _parse(_price.text));
 
-  double get _notional => _units * _entry;
-  double get _margin => _notional / _leverage;
-  double get _maxNotional => OrderTicket.available * _leverage;
-  double get _fraction =>
-      _maxNotional == 0 ? 0 : (_notional / _maxNotional).clamp(0, 1);
+  /// A trader market's ticket (its symbol is a handle): not built yet.
+  bool get _traderIndex => !Scenario.tradable(widget.symbol);
+
+  OrderIntent get _intent => OrderIntent(
+    actionId: _actionId,
+    symbol: widget.symbol,
+    name: _market.name,
+    side: _side,
+    units: _units,
+    price: _entry,
+    leverage: _leverage,
+    kind: _kind,
+    icon: _market.icon,
+    takeProfit: _exits ? _parse(_tp.text) : null,
+    stopLoss: _exits ? _parse(_sl.text) : null,
+    reduceOnly: _reduceOnly,
+  );
+
+  /// The most the slider reaches: all the cash, less room for the fee.
+  double get _maxNotional =>
+      Scenario.maxMarginCents(_leverage, _intent.feeBps) / 100 * _leverage;
+  double get _fraction => _maxNotional == 0
+      ? 0
+      : (_intent.notionalCents / 100 / _maxNotional).clamp(0, 1);
 
   bool get _long => _side == TradeSide.long;
 
@@ -130,7 +148,7 @@ class _OrderTicketState extends State<OrderTicket> {
     super.initState();
     _setPrice(_live);
     // A quarter of what the account can take, as in the design.
-    _setUnits(_maxNotional * 0.25 / _live);
+    _setUnits(_live > 0 ? _maxNotional * 0.25 / _live : 0);
     _resetExits();
   }
 
@@ -186,52 +204,19 @@ class _OrderTicketState extends State<OrderTicket> {
     });
   }
 
-  String get _problem {
-    if (_units <= 0) return 'Enter a size';
-    if (_kind != OrderKind.market && _entry <= 0) return 'Enter a price';
-    if (_margin > OrderTicket.available + 0.005) return 'Not enough margin';
-    return '';
-  }
+  String get _problem => _traderIndex ? '' : Scenario.problem(_intent) ?? '';
 
+  /// Market orders go to review; limit and stop orders rest at once. A
+  /// trader index never reaches the store.
   void _place() {
     if (_problem.isNotEmpty) return;
     HapticFeedback.mediumImpact();
-    final kind = _kind.name;
-    final side = _side.label.toLowerCase();
-    final messenger = ScaffoldMessenger.of(context);
-    if (_kind != OrderKind.market) {
-      OrdersState.add(
-        OpenOrder(
-          id: 'o-${DateTime.now().microsecondsSinceEpoch}',
-          asset: _market.name,
-          symbol: widget.symbol,
-          coinAsset: _market.icon,
-          side: _side,
-          leverage: _leverage,
-          limitPrice: _entry,
-          quantity: _units,
-          filled: 0,
-          decimals: _priceDecimals > 1 ? _priceDecimals : 0,
-          quantityDecimals: _unitDecimals,
-          takeProfit: _exits ? _parse(_tp.text) : null,
-          stopLoss: _exits ? _parse(_sl.text) : null,
-          reduceOnly: _reduceOnly,
-        ),
-      );
+    if (_traderIndex) return _notBuilt(context);
+    if (_kind == OrderKind.market) {
+      setState(() => _review = _intent);
+      return;
     }
-    Navigator.of(context).pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            _kind == OrderKind.market
-                ? 'Market $side filled (simulated)'
-                : '${kind[0].toUpperCase()}${kind.substring(1)} $side placed · '
-                      'in Open orders (simulated)',
-          ),
-        ),
-      );
+    _rest(context, _intent);
   }
 
   @override
@@ -250,10 +235,12 @@ class _OrderTicketState extends State<OrderTicket> {
           bottom: false,
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
-            child: ValueListenableBuilder(
-              valueListenable: MarketPrices.of(widget.symbol),
-              builder: (context, _, _) => _content(),
-            ),
+            child: _review != null
+                ? _ReviewPanel(intent: _review!, requote: () => _intent)
+                : ValueListenableBuilder(
+                    valueListenable: MarketPrices.of(widget.symbol),
+                    builder: (context, _, _) => _content(),
+                  ),
           ),
         ),
       ),
@@ -268,7 +255,7 @@ class _OrderTicketState extends State<OrderTicket> {
         entry == 0 ? 0 : (_parse(text) - entry) / entry * 100;
     final liquidation = _liquidation(entry, _leverage);
     final taker = _kind != OrderKind.limit;
-    final fee = _notional * (taker ? 0.0005 : 0.0002);
+    final intent = _intent;
     final problem = _problem;
 
     return Column(
@@ -409,12 +396,12 @@ class _OrderTicketState extends State<OrderTicket> {
         gap,
         _summary(
           'Margin · Liquidation',
-          '${formatUsd(_margin)} · ${MarketPrices.format(math.max(0, liquidation), compact: true)}',
+          '${formatCents(intent.marginCents)} · ${MarketPrices.format(math.max(0, liquidation), compact: true)}',
         ),
         gap,
         _summary(
           'Fee (${taker ? 'taker 0.05%' : 'maker 0.02%'})',
-          formatUsd(fee, decimals: 2),
+          formatCents(intent.feeCents),
         ),
         gap,
         Semantics(
@@ -789,6 +776,214 @@ class _OrderTicketState extends State<OrderTicket> {
           ),
         ),
         Text(value, style: VistaType.body.copyWith(fontSize: 14)),
+      ],
+    );
+  }
+}
+
+int _actions = 0;
+
+/// A new action id, minted once when a ticket opens and reused on every
+/// confirm of it, so a repeated confirm is a no-op (VC-ORD-002).
+String _newActionId() => 'act-${_actions++}';
+
+void _toast(BuildContext context, String text, {SnackBarAction? action}) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text), action: action));
+}
+
+/// Back to the app's root and onto the Wallet tab.
+void _showWallet(NavigatorState nav) {
+  nav.popUntil((route) => route.isFirst);
+  AppShell.tab.value = AppShell.wallet;
+}
+
+/// A trader-index ticket (VC-MKT-005) is not built, and the store refuses
+/// it: the ticket closes and says so, creating nothing.
+void _notBuilt(BuildContext context) {
+  Navigator.of(context).pop();
+  _toast(context, traderIndexNotBuilt);
+}
+
+/// A limit or stop order: rests in Open orders through the store, then
+/// the ticket closes and says so.
+void _rest(BuildContext context, OrderIntent intent) {
+  final result = Scenario.placeOrder(intent);
+  if (result is OrderFailed) return _toast(context, result.reason);
+  final kind = intent.kind.name;
+  Navigator.of(context).pop();
+  _toast(
+    context,
+    '${kind[0].toUpperCase()}${kind.substring(1)} '
+    '${intent.side.label.toLowerCase()} placed · in Open orders (simulated)',
+  );
+}
+
+/// Review, then the result, of a market order, inside the ticket's sheet.
+/// Confirm calls [Scenario.placeOrder] once per action; a fill shows its
+/// receipt's stored cents, a failure its reason (and Retry, for a stale
+/// price). Cancel and Done
+/// close the ticket and touch nothing.
+class _ReviewPanel extends StatefulWidget {
+  const _ReviewPanel({required this.intent, required this.requote});
+
+  final OrderIntent intent;
+
+  /// The same action at the live price, for Retry.
+  final OrderIntent Function() requote;
+
+  @override
+  State<_ReviewPanel> createState() => _ReviewPanelState();
+}
+
+class _ReviewPanelState extends State<_ReviewPanel> {
+  late OrderIntent _intent = widget.intent;
+  OrderResult? _result;
+
+  /// Shut while a submission runs, and for good once it fills.
+  bool _busy = false;
+
+  void _confirm() {
+    if (_busy) return;
+    _busy = true;
+    final result = Scenario.placeOrder(_intent);
+    setState(() {
+      _result = result;
+      _busy = result is OrderFilled;
+    });
+    if (result is! OrderFilled) return;
+    HapticFeedback.mediumImpact();
+    final r = result.receipt;
+    final nav = Navigator.of(context);
+    _toast(
+      context,
+      '${r.name} ${r.side.label.toLowerCase()} filled · '
+      '${formatCents(r.totalCents)} from paper cash (simulated)',
+      action: SnackBarAction(
+        label: 'View in Wallet',
+        onPressed: () => _showWallet(nav),
+      ),
+    );
+  }
+
+  /// Refreshes the price context and re-quotes the same action at the live
+  /// price, never the one that expired. Only the order as reviewed fills at
+  /// once; at a moved price the new figures go back to review first.
+  void _retry() {
+    if (_result is! OrderFailed) return;
+    Scenario.refreshPrice(_intent.symbol);
+    final next = widget.requote();
+    final reviewed = next.price == _intent.price && next.units == _intent.units;
+    _intent = next;
+    if (reviewed) return _confirm();
+    setState(() => _result = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final i = _intent;
+    final result = _result;
+    final filled = result is OrderFilled ? result.receipt : null;
+    // A fill shows what the store kept; until then, what it will keep.
+    final notional = filled?.notionalCents ?? i.notionalCents;
+    final margin = filled?.marginCents ?? i.marginCents;
+    final fee = filled?.feeCents ?? i.feeCents;
+    final close = Navigator.of(context).pop;
+    final muted = VistaType.body.copyWith(
+      fontSize: 14,
+      color: VistaColors.textMuted,
+    );
+    Widget row(String label, String value) => Padding(
+      key: ValueKey(label),
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: muted)),
+          Text(value, style: VistaType.body.copyWith(fontSize: 14)),
+        ],
+      ),
+    );
+    Widget button(String text, Color bg, Color fg, VoidCallback? onTap) =>
+        Expanded(
+          child: Semantics(
+            button: true,
+            enabled: onTap != null,
+            label: text,
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: Container(
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(VistaRadius.pill),
+                ),
+                child: Text(
+                  text,
+                  style: VistaType.headline.copyWith(color: fg),
+                ),
+              ),
+            ),
+          ),
+        );
+    final quiet = (VistaColors.surfaceRaised, VistaColors.textPrimary);
+    final loud = (i.side.color, VistaColors.onAccent);
+    final (left, leftTap) = filled != null
+        ? ('Done', close)
+        : ('Cancel', close);
+    final (right, rightTap) = switch (result) {
+      OrderFilled() => (
+        'View in Wallet',
+        () => _showWallet(Navigator.of(context)),
+      ),
+      // Only a stale price can come right by trying again.
+      OrderFailed(reason: priceExpired) => ('Retry', _retry),
+      OrderFailed() => (null, null),
+      _ => ('Confirm', _busy ? null : _confirm),
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Center(child: VistaDragHandle()),
+        const SizedBox(height: 12),
+        Text(switch (result) {
+          OrderFilled() => 'Order filled',
+          OrderFailed() => 'Order not placed',
+          _ => 'Review order',
+        }, style: VistaType.subhead.copyWith(fontSize: 20)),
+        if (result is OrderFailed) ...[
+          const SizedBox(height: 4),
+          Text(
+            result.reason,
+            style: VistaType.body.copyWith(color: VistaColors.short),
+          ),
+        ],
+        row('Instrument', '${i.name} · ${i.symbol}'),
+        row('Direction', '${i.side.label} ${i.leverage}x'),
+        row(
+          'Size',
+          '${groupDigits(i.units, i.unitDecimals)} ${i.symbol} · '
+              '${formatCents(notional)}',
+        ),
+        row('Reference price', MarketPrices.format(i.price)),
+        row('Margin', formatCents(margin)),
+        row('Fee', formatCents(fee)),
+        row('Paper funds required', formatCents(margin + fee)),
+        const SizedBox(height: 12),
+        Text('Simulated — no real order', style: muted),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            button(left, quiet.$1, quiet.$2, leftTap),
+            if (right != null) ...[
+              const SizedBox(width: 10),
+              button(right, loud.$1, loud.$2, rightTap),
+            ],
+          ],
+        ),
       ],
     );
   }

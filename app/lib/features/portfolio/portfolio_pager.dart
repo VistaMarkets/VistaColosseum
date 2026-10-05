@@ -57,7 +57,8 @@ const double _chartHeight = 170;
 const _balanceMoves = [-15.0, 26.0, 91.0, 412.0, 937.0, 3920.0];
 const _capMoves = [-0.21e6, 0.35e6, 1.8e6, 5.6e6, -2.3e6, 31.2e6];
 
-/// The user's cash in dollars, for display and the chart only.
+/// The user's cash in dollars, for the chart and its change line only; the
+/// headline shows the stored cents.
 double get _balance => Scenario.cashCents.value / 100;
 const double _cap = 44.0e6;
 
@@ -165,8 +166,7 @@ class _PortfolioPagerState extends State<PortfolioPager>
                                 return _NumberPage(
                                   caption: 'My portfolio',
                                   dots: VistaAssets.pagerDots,
-                                  value: formatUsd(_balance),
-                                  live: _balance,
+                                  value: formatCents(Scenario.cashCents.value),
                                   change: _change(start, live),
                                   up: live >= start,
                                   window: spanWindows[widget.span],
@@ -236,16 +236,11 @@ class _NumberPage extends StatelessWidget {
     required this.change,
     required this.up,
     required this.window,
-    this.live,
   });
 
   final String caption;
   final String dots;
   final String value;
-
-  /// Roll the value with the live feed from this base (the portfolio
-  /// balance); null shows [value] as is.
-  final double? live;
   final String change;
   final bool up;
 
@@ -276,14 +271,7 @@ class _NumberPage extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: live != null
-              ? LiveUsd(
-                  feedKey: 'portfolio',
-                  base: live!,
-                  step: 9,
-                  style: VistaType.display,
-                )
-              : Text(value, style: VistaType.display),
+          child: VistaRollingNumber(value, style: VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(

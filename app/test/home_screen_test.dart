@@ -37,7 +37,7 @@ import 'package:vista_colosseum/scenario/scenario.dart';
 /// Portfolio balance in the swipeable pager (the top bar repeats it).
 Finder get pagerBalance => find.descendant(
   of: find.byType(PortfolioPager),
-  matching: find.text(r'$12,480'),
+  matching: find.text(r'$12,480.00'),
 );
 
 /// The breakout label is the last event the trace reaches.
@@ -270,7 +270,7 @@ void main() {
         )
         .opacity;
 
-    const portfolio = r'$12,480';
+    const portfolio = r'$12,480.00';
     const market = r'$44.0M';
 
     testWidgets('swiping the chart moves to the market cap and back', (
@@ -1015,7 +1015,7 @@ void main() {
       Finder inBar(String text) =>
           find.descendant(of: bar, matching: find.text(text));
       final handle = tester.getRect(inBar('maya.eth'));
-      final balance = tester.getRect(inBar(r'$12,480'));
+      final balance = tester.getRect(inBar(r'$12,480.00'));
       expect(balance.top, greaterThanOrEqualTo(handle.bottom - 1));
       expect(balance.left, closeTo(handle.left, 1));
 
@@ -1890,9 +1890,9 @@ void main() {
       );
       await tester.enterText(size.at(0), '5'); // market: no price field
       await tester.pump();
-      expect(find.text('Not enough margin'), findsOneWidget);
+      expect(find.text('Not enough funds'), findsOneWidget);
       final before = OrdersState.open.value.length;
-      await tester.tap(find.text('Not enough margin'));
+      await tester.tap(find.text('Not enough funds'));
       await tester.pump();
       expect(OrdersState.open.value.length, before);
     });
@@ -2204,23 +2204,25 @@ void main() {
       await openFeedTicket(tester);
       final slider = find.bySemanticsLabel('Amount').last;
       final box = tester.getRect(slider);
-      // A tap just past 40% lands on 40%: $400 of $1,000.
+      // A tap just past 40% lands on 40%: $4,992 of $12,480.
       await tester.tapAt(
         Offset(box.left + 12 + (box.width - 24) * 0.43, box.center.dy),
       );
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $400 · 2x')), findsOneWidget);
-      // Dragging to the far right snaps to Max.
+      expect(inTicket(find.text(r'Long $4,992 · 2x')), findsOneWidget);
+      // Dragging to the far right snaps to Max: the cash less room for the
+      // fee at 2x and 5 bps (1,248,000 × 10,000 ~/ 10,010 cents).
       await tester.drag(slider, const Offset(600, 0));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $1,000 · 2x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $12,467.53 · 2x')), findsOneWidget);
     });
 
     testWidgets('an amount over the balance blocks the order', (tester) async {
       await openFeedTicket(tester);
-      await tester.enterText(inTicket(find.byType(TextField)).first, '5000');
+      // More than the $12,480 of paper cash.
+      await tester.enterText(inTicket(find.byType(TextField)).first, '50000');
       await tester.pump();
-      expect(inTicket(find.text('Not enough balance')), findsOneWidget);
+      expect(inTicket(find.text('Not enough funds')), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {

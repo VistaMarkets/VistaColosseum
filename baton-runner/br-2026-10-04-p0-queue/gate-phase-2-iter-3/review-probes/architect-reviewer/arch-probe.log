@@ -1,0 +1,106 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/gate-phase-2-iter-3/review-probes/architect-reviewer/arch_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: store: infinite product and wrong-side exits
+ARCH infProduct units.isFinite=true notional=0 problem=Size too small
+ARCH wrongSideExits problem=null
+ARCH wrongSideExits result=OrderFilled tp=2000.0 sl=3500.0 entry=2968.4
+00:00 +1: feed amount "184467440737095517" with fonts
+ARCH feed typed=184467440737095517 field=184467440737095517 labels=[you lose the $0.84, Long $0.84 · 2x] exception=none
+00:01 +2: feed amount "99999999999999999" with fonts
+ARCH feed typed=99999999999999999 field=99999999999999999 labels=[you lose the $0, Enter an amount] exception=none
+00:01 +3: feed amount "92233720368547759" with fonts
+ARCH feed typed=92233720368547759 field=92233720368547759 labels=[you lose the $0, Enter an amount] exception=none
+00:01 +4: feed amount "50000000000000000" with fonts
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 119 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:565:12
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#f90fe relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#a895c] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#aaeb0] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#aa093] ← ⋯
+  parentData: offset=Offset(0.0, 396.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 31.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: end
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 54 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/lib/features/trade/feed_order_ticket.dart:319:23
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#84455 relayoutBoundary=up22 OVERFLOWING:
+  creator: Row ← Column ← Padding ← _SingleChildViewport ← IgnorePointer-[GlobalKey#a895c] ← Semantics
+    ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#aaeb0] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#aa093] ← ⋯
+  parentData: offset=Offset(0.0, 439.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(w=370.0, 0.0<=h<=Infinity)
+  size: Size(370.0, 17.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ARCH feed typed=50000000000000000 field=50000000000000000 labels=[you lose the $50,000,000,000,000,000, Not enough funds] exception=Multiple exceptions (2) were detected during the running of the current test, and at least one was unexpected.
+00:02 +5: feed amount "1.2.3" with fonts
+ARCH feed typed=1.2.3 field=1.2.3 labels=[you lose the $1.20, Long $1.20 · 2x] exception=none
+00:02 +6: feed amount "12480" with fonts
+ARCH feed typed=12480 field=12480 labels=[you lose the $12,480, Not enough funds] exception=none
+00:02 +7: OrderTicket size 13 digits with fonts
+ARCH OT digits=13 labels=[$67,412.00, $239M, $173M, $64,850, $69,300, $900,719,925.48 · $61,008, $4,503,599.62, Not enough funds] exception=none
+00:02 +8: OrderTicket size 306 digits with fonts
+ARCH OT digits=306 labels=[$67,412.00, $239M, $173M, $64,850, $69,300, $0.00 · $61,008, $0.00, Size too small] exception=none
+00:02 +9: Wallet headline vs change line after a live tick
+ARCH wallet seed headline=2x change=+$91 (0.73%)
+ARCH wallet tick headline=2x change=+$100 (0.81%)
+00:03 +10: (tearDownAll)
+00:03 +10: All tests passed!

@@ -63,6 +63,18 @@ String formatUsd(double v, {int decimals = 0}) {
   return '$sign\$$whole${parts.length > 1 ? '.${parts[1]}' : ''}';
 }
 
+/// Formats int cents exactly, e.g. 36645 → $366.45. Every stored money
+/// figure (order costs, receipts) is shown through this.
+String formatCents(int cents) {
+  final abs = cents.abs();
+  final whole = (abs ~/ 100).toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+  final sign = cents < 0 ? '−' : '';
+  return '$sign\$$whole.${(abs % 100).toString().padLeft(2, '0')}';
+}
+
 /// A live dollar figure that rolls its digits as the feed moves it.
 class LiveUsd extends StatelessWidget {
   const LiveUsd({

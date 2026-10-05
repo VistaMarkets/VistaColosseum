@@ -1,0 +1,53 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: (setUpAll)
+00:00 +0: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: seed → mutate everything → reset equals the fresh seed
+00:00 +1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: reset twice yields equal state
+00:00 +2: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Reset demo in Settings restores the fixture and says so
+00:00 +3: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap confirm places one position
+00:00 +4: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:01 +5: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:01 +6: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Wallet lists the positions held in Scenario
+00:01 +7: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket confirm adds a position and View in Wallet shows it
+00:01 +8: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+00:01 +9: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: Home, detail, Arena and Wallet read one position from Scenario
+00:01 +10: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: review and receipt render without overflow on iPhone SE 375x667
+00:02 +11: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +12: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +13: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +14: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:02 +15: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +16: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +17: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +18: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +19: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +20: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +21: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +22: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +23: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +24: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +25: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +26: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a trader-index ticket says so and creates nothing
+00:02 +27: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a Home trader-market card's ticket says so and creates nothing, on Market and Limit
+00:03 +28: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: Retry at a moved price goes back to review; Confirm fills what was reviewed
+00:03 +29: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: a re-quote cash cannot cover fails with no Retry
+00:03 +30: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket Retry re-quotes the same dollars at the new price, for review
+00:03 +31: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on small Android 360x640
+00:03 +32: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone SE 375x667
+00:04 +33: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 393x852
+00:04 +34: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on Pixel 7 412x915
+00:04 +35: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed review and receipt render without overflow on iPhone 15 Pro Max 430x932
+00:04 +36: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: feed ticket cancel from review leaves the store unchanged
+00:04 +37: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: double tap on a limit Place rests one order and closes only the ticket
+00:04 +38: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/order_ticket_test.dart: (tearDownAll)
+00:04 +38: All tests passed!
