@@ -86,7 +86,6 @@ abstract final class PortfolioMock {
   /// The user's cash, the Scenario seed: $12,480 in cents.
   static const cashCents = 1248000;
   static const change24h = r'+$91 (0.73%)';
-  static const fees = r'$42.80';
 
   /// The user's own market (their TPX symbol) and its market cap.
   static const marketSymbol = 'MAYA';

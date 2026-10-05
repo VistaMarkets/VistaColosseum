@@ -1,0 +1,354 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart
+test/receipts_test.dart:9:8: Error: Error when reading 'lib/features/market/receipt_screens.dart': No such file or directory
+import 'package:vista_colosseum/features/market/receipt_screens.dart';
+       ^
+test/receipts_test.dart:62:18: Error: Type 'FeeEntry' not found.
+int sum(Iterable<FeeEntry> entries) =>
+                 ^^^^^^^^
+test/receipts_test.dart:66:6: Error: Type 'CallReceipt' not found.
+List<CallReceipt> get myCalls => [
+     ^^^^^^^^^^^
+test/receipts_test.dart:62:18: Error: 'FeeEntry' isn't a type.
+int sum(Iterable<FeeEntry> entries) =>
+                 ^^^^^^^^
+test/receipts_test.dart:63:45: Error: The getter 'amountCents' isn't defined for the type 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'amountCents'.
+    entries.fold(0, (total, e) => total + e.amountCents);
+                                            ^^^^^^^^^^^
+test/receipts_test.dart:63:41: Error: A value of type 'num' can't be returned from a function with return type 'int'.
+    entries.fold(0, (total, e) => total + e.amountCents);
+                                        ^
+test/receipts_test.dart:67:28: Error: Member not found: 'callReceipts'.
+  for (final c in Scenario.callReceipts.value)
+                           ^^^^^^^^^^^^
+test/receipts_test.dart:72:37: Error: Undefined name 'CallReceiptScreen'.
+    find.descendant(of: find.byType(CallReceiptScreen), matching: f);
+                                    ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:91:27: Error: Member not found: 'feeEntries'.
+    final fees = Scenario.feeEntries.value;
+                          ^^^^^^^^^^
+test/receipts_test.dart:92:28: Error: Member not found: 'callReceipts'.
+    final calls = Scenario.callReceipts.value;
+                           ^^^^^^^^^^^^
+test/receipts_test.dart:107:14: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value = const [];
+             ^^^^^^^^^^
+test/receipts_test.dart:108:14: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value = const [];
+             ^^^^^^^^^^^^
+test/receipts_test.dart:110:21: Error: Member not found: 'feeEntries'.
+    expect(Scenario.feeEntries.value, same(fees));
+                    ^^^^^^^^^^
+test/receipts_test.dart:111:21: Error: Member not found: 'callReceipts'.
+    expect(Scenario.callReceipts.value, same(calls));
+                    ^^^^^^^^^^^^
+test/receipts_test.dart:118:30: Error: Member not found: 'feeEntries'.
+    final entries = Scenario.feeEntries.value;
+                             ^^^^^^^^^^
+test/receipts_test.dart:123:24: Error: Undefined name 'LedgerScreen'.
+    expect(find.byType(LedgerScreen), findsOneWidget);
+                       ^^^^^^^^^^^^
+test/receipts_test.dart:135:14: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value = rest;
+             ^^^^^^^^^^
+test/receipts_test.dart:140:24: Error: Undefined name 'LedgerScreen'.
+    await back(tester, LedgerScreen);
+                       ^^^^^^^^^^^^
+test/receipts_test.dart:147:44: Error: Member not found: 'feeEntries'.
+    final total = formatCents(sum(Scenario.feeEntries.value));
+                                           ^^^^^^^^^^
+test/receipts_test.dart:151:24: Error: Undefined name 'LedgerScreen'.
+    expect(find.byType(LedgerScreen), findsOneWidget);
+                       ^^^^^^^^^^^^
+test/receipts_test.dart:162:24: Error: Undefined name 'LedgerScreen'.
+    expect(find.byType(LedgerScreen), findsOneWidget);
+                       ^^^^^^^^^^^^
+test/receipts_test.dart:163:30: Error: Member not found: 'feeEntries'.
+    for (final e in Scenario.feeEntries.value) {
+                             ^^^^^^^^^^
+test/receipts_test.dart:171:39: Error: Couldn't find constructor 'LedgerScreen'.
+    await pumpApp(tester, home: const LedgerScreen());
+                                      ^^^^^^^^^^^^
+test/receipts_test.dart:177:28: Error: Member not found: 'feeEntries'.
+    final first = Scenario.feeEntries.value.first;
+                           ^^^^^^^^^^
+test/receipts_test.dart:199:19: Error: Couldn't find constructor 'LedgerScreen'.
+      home: const LedgerScreen(),
+                  ^^^^^^^^^^^^
+test/receipts_test.dart:204:42: Error: Member not found: 'feeEntries'.
+      find.text(formatCents(sum(Scenario.feeEntries.value))),
+                                         ^^^^^^^^^^
+test/receipts_test.dart:213:26: Error: Undefined name 'CallReceiptScreen'.
+      expect(find.byType(CallReceiptScreen), findsOneWidget);
+                         ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:222:26: Error: Undefined name 'CallReceiptScreen'.
+      await back(tester, CallReceiptScreen);
+                         ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:236:24: Error: Undefined name 'CallReceiptScreen'.
+    await back(tester, CallReceiptScreen);
+                       ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:242:24: Error: Undefined name 'CallReceiptScreen'.
+    await back(tester, CallReceiptScreen);
+                       ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:260:24: Error: Undefined name 'ReceiptsScreen'.
+    expect(find.byType(ReceiptsScreen), findsOneWidget);
+                       ^^^^^^^^^^^^^^
+test/receipts_test.dart:278:24: Error: Undefined name 'CallReceiptScreen'.
+    expect(find.byType(CallReceiptScreen), findsNothing);
+                       ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:281:24: Error: Undefined name 'CallReceiptScreen'.
+    expect(find.byType(CallReceiptScreen), findsOneWidget);
+                       ^^^^^^^^^^^^^^^^^
+test/receipts_test.dart:289:24: Error: Undefined name 'ReceiptsScreen'.
+    expect(find.byType(ReceiptsScreen), findsOneWidget);
+                       ^^^^^^^^^^^^^^
+test/receipts_test.dart:295:24: Error: Undefined name 'ReceiptsScreen'.
+    expect(find.byType(ReceiptsScreen), findsOneWidget);
+                       ^^^^^^^^^^^^^^
+test/receipts_test.dart:311:24: Error: Undefined name 'ReceiptsScreen'.
+    expect(find.byType(ReceiptsScreen), findsOneWidget);
+                       ^^^^^^^^^^^^^^
+test/receipts_test.dart:228:16: Error: The getter 'asset' isn't defined for the type 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'asset'.
+      (c) => c.asset == 'ETH' && c.result == CallOutcome.open,
+               ^^^^^
+test/receipts_test.dart:228:36: Error: The getter 'result' isn't defined for the type 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'result'.
+      (c) => c.asset == 'ETH' && c.result == CallOutcome.open,
+                                   ^^^^^^
+test/scenario_test.dart:45:12: Error: Member not found: 'feeEntries'.
+  Scenario.feeEntries.value,
+           ^^^^^^^^^^
+test/scenario_test.dart:46:12: Error: Member not found: 'callReceipts'.
+  Scenario.callReceipts.value,
+           ^^^^^^^^^^^^
+test/scenario_test.dart:68:12: Error: Member not found: 'feeEntries'.
+  Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+           ^^^^^^^^^^
+test/scenario_test.dart:68:40: Error: Member not found: 'feeEntries'.
+  Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+                                       ^^^^^^^^^^
+test/scenario_test.dart:69:12: Error: Member not found: 'callReceipts'.
+  Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+           ^^^^^^^^^^^^
+test/scenario_test.dart:69:42: Error: Member not found: 'callReceipts'.
+  Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+                                         ^^^^^^^^^^^^
+00:00 +0 -1: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart [E]
+  Failed to load "/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart":
+  Compilation failed for testPath=/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart: test/receipts_test.dart:9:8: Error: Error when reading 'lib/features/market/receipt_screens.dart': No such file or directory
+  import 'package:vista_colosseum/features/market/receipt_screens.dart';
+         ^
+  test/receipts_test.dart:62:18: Error: Type 'FeeEntry' not found.
+  int sum(Iterable<FeeEntry> entries) =>
+                   ^^^^^^^^
+  test/receipts_test.dart:66:6: Error: Type 'CallReceipt' not found.
+  List<CallReceipt> get myCalls => [
+       ^^^^^^^^^^^
+  test/receipts_test.dart:62:18: Error: 'FeeEntry' isn't a type.
+  int sum(Iterable<FeeEntry> entries) =>
+                   ^^^^^^^^
+  test/receipts_test.dart:63:45: Error: The getter 'amountCents' isn't defined for the type 'Object?'.
+   - 'Object' is from 'dart:core'.
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'amountCents'.
+      entries.fold(0, (total, e) => total + e.amountCents);
+                                              ^^^^^^^^^^^
+  test/receipts_test.dart:63:41: Error: A value of type 'num' can't be returned from a function with return type 'int'.
+      entries.fold(0, (total, e) => total + e.amountCents);
+                                          ^
+  test/receipts_test.dart:67:28: Error: Member not found: 'callReceipts'.
+    for (final c in Scenario.callReceipts.value)
+                             ^^^^^^^^^^^^
+  test/receipts_test.dart:72:37: Error: Undefined name 'CallReceiptScreen'.
+      find.descendant(of: find.byType(CallReceiptScreen), matching: f);
+                                      ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:91:27: Error: Member not found: 'feeEntries'.
+      final fees = Scenario.feeEntries.value;
+                            ^^^^^^^^^^
+  test/receipts_test.dart:92:28: Error: Member not found: 'callReceipts'.
+      final calls = Scenario.callReceipts.value;
+                             ^^^^^^^^^^^^
+  test/receipts_test.dart:107:14: Error: Member not found: 'feeEntries'.
+      Scenario.feeEntries.value = const [];
+               ^^^^^^^^^^
+  test/receipts_test.dart:108:14: Error: Member not found: 'callReceipts'.
+      Scenario.callReceipts.value = const [];
+               ^^^^^^^^^^^^
+  test/receipts_test.dart:110:21: Error: Member not found: 'feeEntries'.
+      expect(Scenario.feeEntries.value, same(fees));
+                      ^^^^^^^^^^
+  test/receipts_test.dart:111:21: Error: Member not found: 'callReceipts'.
+      expect(Scenario.callReceipts.value, same(calls));
+                      ^^^^^^^^^^^^
+  test/receipts_test.dart:118:30: Error: Member not found: 'feeEntries'.
+      final entries = Scenario.feeEntries.value;
+                               ^^^^^^^^^^
+  test/receipts_test.dart:123:24: Error: Undefined name 'LedgerScreen'.
+      expect(find.byType(LedgerScreen), findsOneWidget);
+                         ^^^^^^^^^^^^
+  test/receipts_test.dart:135:14: Error: Member not found: 'feeEntries'.
+      Scenario.feeEntries.value = rest;
+               ^^^^^^^^^^
+  test/receipts_test.dart:140:24: Error: Undefined name 'LedgerScreen'.
+      await back(tester, LedgerScreen);
+                         ^^^^^^^^^^^^
+  test/receipts_test.dart:147:44: Error: Member not found: 'feeEntries'.
+      final total = formatCents(sum(Scenario.feeEntries.value));
+                                             ^^^^^^^^^^
+  test/receipts_test.dart:151:24: Error: Undefined name 'LedgerScreen'.
+      expect(find.byType(LedgerScreen), findsOneWidget);
+                         ^^^^^^^^^^^^
+  test/receipts_test.dart:162:24: Error: Undefined name 'LedgerScreen'.
+      expect(find.byType(LedgerScreen), findsOneWidget);
+                         ^^^^^^^^^^^^
+  test/receipts_test.dart:163:30: Error: Member not found: 'feeEntries'.
+      for (final e in Scenario.feeEntries.value) {
+                               ^^^^^^^^^^
+  test/receipts_test.dart:171:39: Error: Couldn't find constructor 'LedgerScreen'.
+      await pumpApp(tester, home: const LedgerScreen());
+                                        ^^^^^^^^^^^^
+  test/receipts_test.dart:177:28: Error: Member not found: 'feeEntries'.
+      final first = Scenario.feeEntries.value.first;
+                             ^^^^^^^^^^
+  test/receipts_test.dart:199:19: Error: Couldn't find constructor 'LedgerScreen'.
+        home: const LedgerScreen(),
+                    ^^^^^^^^^^^^
+  test/receipts_test.dart:204:42: Error: Member not found: 'feeEntries'.
+        find.text(formatCents(sum(Scenario.feeEntries.value))),
+                                           ^^^^^^^^^^
+  test/receipts_test.dart:213:26: Error: Undefined name 'CallReceiptScreen'.
+        expect(find.byType(CallReceiptScreen), findsOneWidget);
+                           ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:222:26: Error: Undefined name 'CallReceiptScreen'.
+        await back(tester, CallReceiptScreen);
+                           ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:236:24: Error: Undefined name 'CallReceiptScreen'.
+      await back(tester, CallReceiptScreen);
+                         ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:242:24: Error: Undefined name 'CallReceiptScreen'.
+      await back(tester, CallReceiptScreen);
+                         ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:260:24: Error: Undefined name 'ReceiptsScreen'.
+      expect(find.byType(ReceiptsScreen), findsOneWidget);
+                         ^^^^^^^^^^^^^^
+  test/receipts_test.dart:278:24: Error: Undefined name 'CallReceiptScreen'.
+      expect(find.byType(CallReceiptScreen), findsNothing);
+                         ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:281:24: Error: Undefined name 'CallReceiptScreen'.
+      expect(find.byType(CallReceiptScreen), findsOneWidget);
+                         ^^^^^^^^^^^^^^^^^
+  test/receipts_test.dart:289:24: Error: Undefined name 'ReceiptsScreen'.
+      expect(find.byType(ReceiptsScreen), findsOneWidget);
+                         ^^^^^^^^^^^^^^
+  test/receipts_test.dart:295:24: Error: Undefined name 'ReceiptsScreen'.
+      expect(find.byType(ReceiptsScreen), findsOneWidget);
+                         ^^^^^^^^^^^^^^
+  test/receipts_test.dart:311:24: Error: Undefined name 'ReceiptsScreen'.
+      expect(find.byType(ReceiptsScreen), findsOneWidget);
+                         ^^^^^^^^^^^^^^
+  test/receipts_test.dart:228:16: Error: The getter 'asset' isn't defined for the type 'Object?'.
+   - 'Object' is from 'dart:core'.
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'asset'.
+        (c) => c.asset == 'ETH' && c.result == CallOutcome.open,
+                 ^^^^^
+  test/receipts_test.dart:228:36: Error: The getter 'result' isn't defined for the type 'Object?'.
+   - 'Object' is from 'dart:core'.
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'result'.
+        (c) => c.asset == 'ETH' && c.result == CallOutcome.open,
+                                     ^^^^^^
+  test/scenario_test.dart:45:12: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value,
+             ^^^^^^^^^^
+  test/scenario_test.dart:46:12: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value,
+             ^^^^^^^^^^^^
+  test/scenario_test.dart:68:12: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+             ^^^^^^^^^^
+  test/scenario_test.dart:68:40: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+                                         ^^^^^^^^^^
+  test/scenario_test.dart:69:12: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+             ^^^^^^^^^^^^
+  test/scenario_test.dart:69:42: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+                                           ^^^^^^^^^^^^
+  .
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 1024:11   DefaultResidentCompiler._compile.<fn>
+  dart:async/zone_root.dart 48:47                  _rootRunUnary
+  dart:async/zone.dart 816:35                      _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone_root.dart 35:13                  _rootRun
+  dart:async/zone.dart 810:35                      _CustomZone.run
+  dart:async/zone.dart 702:7                       _CustomZone.runGuarded
+  dart:async/zone.dart 743:23                      _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
+  
+test/scenario_test.dart:45:12: Error: Member not found: 'feeEntries'.
+  Scenario.feeEntries.value,
+           ^^^^^^^^^^
+test/scenario_test.dart:46:12: Error: Member not found: 'callReceipts'.
+  Scenario.callReceipts.value,
+           ^^^^^^^^^^^^
+test/scenario_test.dart:68:12: Error: Member not found: 'feeEntries'.
+  Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+           ^^^^^^^^^^
+test/scenario_test.dart:68:40: Error: Member not found: 'feeEntries'.
+  Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+                                       ^^^^^^^^^^
+test/scenario_test.dart:69:12: Error: Member not found: 'callReceipts'.
+  Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+           ^^^^^^^^^^^^
+test/scenario_test.dart:69:42: Error: Member not found: 'callReceipts'.
+  Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+                                         ^^^^^^^^^^^^
+00:00 +0 -2: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart [E]
+  Failed to load "/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart":
+  Compilation failed for testPath=/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: test/scenario_test.dart:45:12: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value,
+             ^^^^^^^^^^
+  test/scenario_test.dart:46:12: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value,
+             ^^^^^^^^^^^^
+  test/scenario_test.dart:68:12: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+             ^^^^^^^^^^
+  test/scenario_test.dart:68:40: Error: Member not found: 'feeEntries'.
+    Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
+                                         ^^^^^^^^^^
+  test/scenario_test.dart:69:12: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+             ^^^^^^^^^^^^
+  test/scenario_test.dart:69:42: Error: Member not found: 'callReceipts'.
+    Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+                                           ^^^^^^^^^^^^
+  .
+00:00 +0 -2: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart

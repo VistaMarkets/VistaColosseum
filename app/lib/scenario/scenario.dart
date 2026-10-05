@@ -4,6 +4,7 @@ import '../design_system/design_system.dart';
 import '../features/arena/arena_mock.dart';
 import '../features/live/live_feed.dart';
 import '../features/live/market_prices.dart';
+import '../features/market/market_mock.dart';
 import '../features/markets/markets_mock.dart';
 import '../features/people/follow_mock.dart';
 import '../features/portfolio/portfolio_mock.dart';
@@ -75,6 +76,16 @@ abstract final class Scenario {
   /// and the crowd panel.
   static final arena = ValueNotifier<ArenaView>(ArenaMock.allBattles);
 
+  /// Fee credits to the user's market, newest first: the demo ledger
+  /// (VC-MKT-004). Every fee total is summed from these, never stored.
+  static final feeEntries = ValueNotifier<List<FeeEntry>>(YourMarketMock.fees);
+
+  /// Published calls' receipts (VC-REC-001). Record lists and Call details
+  /// resolve to these; paper fills stay in [receipts].
+  static final callReceipts = ValueNotifier<List<CallReceipt>>(
+    YourMarketMock.record,
+  );
+
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
 
@@ -94,6 +105,17 @@ abstract final class Scenario {
       f.contains(handle) ? f.where((h) => h != handle) : {...f, handle},
     );
   }
+
+  /// The credits of the user's listed market: none before listing, and
+  /// none for a market listed under another ticker.
+  static List<FeeEntry> get marketFees => [
+    for (final e in feeEntries.value)
+      if (e.marketId == marketId.value) e,
+  ];
+
+  /// What [marketFees] add up to, in int cents.
+  static int get marketFeesCents =>
+      marketFees.fold(0, (sum, e) => sum + e.amountCents);
 
   /// Changes the given parts of the Arena's view.
   static void setArena({int? sort, int? from, int? to, String? query}) {
@@ -268,6 +290,8 @@ abstract final class Scenario {
     stalePrices.value = TradeMock.stalePrices;
     participation.value = const {};
     arena.value = ArenaMock.allBattles;
+    feeEntries.value = YourMarketMock.fees;
+    callReceipts.value = YourMarketMock.record;
   }
 }
 

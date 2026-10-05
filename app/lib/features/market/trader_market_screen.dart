@@ -11,6 +11,7 @@ import '../trade/trade_mock.dart';
 import '../trade/order_ticket.dart';
 import '../watchlist/watchlist_state.dart';
 import 'chart_sheet.dart';
+import 'receipt_screens.dart';
 import 'trader_market_chart.dart';
 import 'trader_market_mock.dart';
 
@@ -272,7 +273,11 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
           ),
         ),
         const SizedBox(height: VistaSpace.md),
-        HoldingsTable(onRowTap: () => _notBuilt('Call details')),
+        HoldingsTable(
+          onRowTap: (h) =>
+              Navigator.of(context)
+                  .push(CallReceiptScreen.forHolding(widget.handle, h)),
+        ),
       ],
     );
   }
@@ -285,7 +290,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
           'Record',
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _notBuilt('All receipts'),
+            onTap: () =>
+                Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
             child: Text(
               'All receipts ›',
               style: VistaType.body.copyWith(

@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../market/receipt_screens.dart';
 import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../portfolio/portfolio_mock.dart';
@@ -90,7 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Padding(
                     padding: gutter,
                     child: HoldingsTable(
-                      onRowTap: () => _notBuilt('Call details'),
+                      onRowTap: (h) => Navigator.of(context)
+                          .push(CallReceiptScreen.forHolding(widget.handle, h)),
                     ),
                   ),
                   const SizedBox(height: 28),
@@ -268,7 +270,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: 'CALLS',
           linkLabel: 'All receipts',
           linkSize: 13,
-          onLink: () => _notBuilt('All receipts'),
+          onLink: () =>
+              Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
         ),
         Wrap(
           spacing: VistaSpace.xl,

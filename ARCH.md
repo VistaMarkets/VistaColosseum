@@ -379,6 +379,7 @@ VistaColosseum/
 │   │   │   ├── market/  — Your market screen (from Portfolio), Trader market screen (from a profile) and `chart_sheet.dart`, the shared chart + drag-up panel layout also used by asset trade (mock data)
 │   │   │   │   ├── chart_sheet.dart
 │   │   │   │   ├── market_mock.dart
+│   │   │   │   ├── receipt_screens.dart
 │   │   │   │   ├── trader_market_chart.dart
 │   │   │   │   ├── trader_market_mock.dart
 │   │   │   │   ├── trader_market_screen.dart
@@ -431,6 +432,7 @@ VistaColosseum/
 │   │   ├── charting_test.dart
 │   │   ├── home_screen_test.dart
 │   │   ├── order_ticket_test.dart
+│   │   ├── receipts_test.dart
 │   │   ├── replay_live_test.dart
 │   │   ├── rolling_number_test.dart
 │   │   └── scenario_test.dart
@@ -479,7 +481,9 @@ VistaColosseum/
 │       ├── 2026-10-04T201217-phase5-maker-suggestion-green.md
 │       ├── 2026-10-04T201519-phase5-maker-suggestion-card.md
 │       ├── 2026-10-04T202626-phase5-review-iter1.md
-│       └── 2026-10-04T205139-phase5-close.md
+│       ├── 2026-10-04T205139-phase5-close.md
+│       ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
+│       └── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -635,6 +639,12 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-6-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   ├── grep-all-receipts.log
+│       │   └── pubspec-frozen.log
 │       ├── phase-4-red/
 │       │   ├── home-green-1.log
 │       │   ├── home-red-1.log
@@ -652,6 +662,15 @@ VistaColosseum/
 │       │   ├── analyze.log
 │       │   ├── test-has-market.log
 │       │   └── test.log
+│       ├── phase-6-red/
+│       │   ├── green-1.log
+│       │   ├── green-2.log
+│       │   ├── mutant-M1-footer-stored-constant.log
+│       │   ├── mutant-M2-call-details-ignores-author.log
+│       │   ├── mutant-M3-paper-orders-on-every-list.log
+│       │   ├── mutant-M4-fees-not-filtered-by-market.log
+│       │   ├── red-1-compile.log
+│       │   └── red-2-assertions.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart

@@ -3,8 +3,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../live/live_feed.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'market_mock.dart';
+import 'receipt_screens.dart';
 
 /// The user's own market, opened from Portfolio's "Your market" button
 /// (Figma 168:110, "Your market — as built").
@@ -109,23 +111,28 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
                   VistaSectionHead(
                     title: 'RECORD',
                     linkLabel: 'All receipts',
-                    onLink: () => _notBuilt('All receipts'),
+                    onLink: () =>
+                        Navigator.of(context)
+                            .push(ReceiptsScreen.route(PortfolioMock.handle)),
                   ),
                   Text(
                     YourMarketMock.recordSummary,
                     style: VistaType.bodyMedium,
                   ),
-                  for (final e in YourMarketMock.record) ...[
-                    gap,
-                    VistaTimelineEntry(
-                      railAsset: e.rail,
-                      time: e.time,
-                      title: e.title,
-                      status: e.status,
-                      statusColor: e.color,
-                      detail: e.detail,
+                  // The user's call receipts; each opens its receipt.
+                  ValueListenableBuilder(
+                    valueListenable: Scenario.callReceipts,
+                    builder: (context, calls, _) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final c in calls)
+                          if (c.author == PortfolioMock.handle) ...[
+                            gap,
+                            CallRecordItem(receipt: c),
+                          ],
+                      ],
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -173,9 +180,17 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         const SizedBox(height: 3),
         Text(YourMarketMock.unitLine, style: VistaType.caption),
         const SizedBox(height: 3),
-        const VistaStatChip(
-          value: YourMarketMock.feesThisWeek,
-          label: 'earned in fees this week',
+        // The ledger's sum, never a stored figure; opens the ledger.
+        ListenableBuilder(
+          listenable: Listenable.merge([
+            Scenario.feeEntries,
+            Scenario.marketId,
+          ]),
+          builder: (context, _) => VistaStatChip(
+            value: formatCents(Scenario.marketFeesCents),
+            label: 'earned in fees this week',
+            onPressed: () => Navigator.of(context).push(LedgerScreen.route()),
+          ),
         ),
       ],
     );
