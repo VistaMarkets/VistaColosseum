@@ -454,7 +454,8 @@ VistaColosseum/
 ├── baton-pass/
 │   ├── baton-queue/
 │   │   ├── 2026-10-04T233424-p0-runner-paused-phase3-review.md
-│   │   └── 2026-10-05T085823-p0-runner-complete.md
+│   │   ├── 2026-10-05T085823-p0-runner-complete.md
+│   │   └── 2026-10-05T134349-handoff-remaining-work.md
 │   └── br-2026-10-04-p0-queue/
 │       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
 │       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
