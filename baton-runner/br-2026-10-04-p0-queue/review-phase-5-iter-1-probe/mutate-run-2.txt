@@ -1,0 +1,42 @@
+=== both-live: rc=1 KILLED
+    00:00 +0 -1: maker suggestion two are seeded on the demo clock, one live and one expired, each from Maker and between two idea cards [E]
+      Expected: [true, false]
+        Actual: [true, true]
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+    00:01 +0 -2: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+=== wrong-asset: rc=1 KILLED
+    Expected: (String, TradeSide):<(SOL, TradeSide.long)>
+      Actual: (String, TradeSide):<(ETH, TradeSide.long)>
+    00:03 +11 -1: maker suggestion Trade this opens the ticket on the suggestion's asset and side [E]
+    00:04 +13 -1: Some tests failed.
+=== badge-text: rc=1 KILLED
+    Expected: exactly one matching candidate
+      Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Maker suggestion · advisory"
+    00:01 +1 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+    Expected: exactly one matching candidate
+      Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Maker suggestion · advisory"
+    00:01 +1 -2: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text [E]
+    Expected: exactly one matching candidate
+      Actual: _HitTestableWidgetFinder:<Found 0 widgets with text "Maker suggestion · advisory"
+=== expired-says-trade-this: rc=1 KILLED
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+    00:01 +1 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+    00:02 +1 -2: maker suggestion both cards render without overflow on iPhone SE 375x667 at 1.0x text [E]
+    Expected: at least one matching candidate
+      Actual: _AncestorWidgetFinder:<Found 0 widgets with type "VistaPrimaryButton" that are ancestors
+=== clock-write-on-trade: rc=1 KILLED
+    Expected: [
+      Actual: [
+    00:04 +13 -1: maker suggestion viewing both suggestions and opening the ticket leave the store untouched [E]
+    00:04 +13 -1: Some tests failed.
+=== vpb-ignores-enabled: rc=1 KILLED
+    Expected: no matching candidates
+      Actual: _TypeWidgetFinder:<Found 1 widget with type "BottomSheet": [
+    00:04 +12 -1: maker suggestion an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed [E]
+    00:04 +13 -1: Some tests failed.
