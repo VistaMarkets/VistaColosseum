@@ -12,9 +12,11 @@ abstract final class AccountState {
   static ValueNotifier<bool> get hasMarket => Scenario.hasMarket;
   static ValueNotifier<String> get ticker => Scenario.ticker;
 
-  /// Records a newly created market.
+  /// Records a newly created market, listed now: credits dated before
+  /// this instant were not earned by it.
   static void listMarket(String symbol) {
     Scenario.ticker.value = symbol;
+    Scenario.listedAt.value = Scenario.clock.value;
     Scenario.marketId.value = symbol;
     Scenario.hasMarket.value = true;
   }

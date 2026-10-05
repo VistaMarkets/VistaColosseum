@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/design_system/design_system.dart';
+import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/make_market/make_market_flow.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
@@ -11,12 +13,13 @@ import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/market/your_market_screen.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/profile/holdings_table.dart';
+import 'package:vista_colosseum/features/profile/profile_mock.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/main.dart';
 import 'package:vista_colosseum/scenario/scenario.dart';
 
-import 'home_screen_test.dart' show expectPillClear;
+import 'home_screen_test.dart' show expectPillClear, pill;
 import 'scenario_test.dart' show ethLong;
 
 /// The app's font, so text measures as on a device.
@@ -71,12 +74,15 @@ List<CallReceipt> get myCalls => [
 Finder onReceipt(Finder f) =>
     find.descendant(of: find.byType(CallReceiptScreen), matching: f);
 
+Finder onList(Finder f) =>
+    find.descendant(of: find.byType(ReceiptsScreen), matching: f);
+
 Finder holding(String ticker) => find.descendant(
   of: find.byType(HoldingsTable),
   matching: find.text(ticker),
 );
 
-const noCall = 'No call in fixture-v1 backs this holding';
+const noCall = 'No open call in fixture-v1 backs this holding';
 
 void main() {
   setUpAll(_loadFonts);
@@ -125,7 +131,12 @@ void main() {
       expect(find.text(e.eventTitle), findsOneWidget);
       expect(find.text(formatCents(e.amountCents)), findsOneWidget);
     }
-    expect(find.textContaining(PortfolioMock.marketSymbol), findsWidgets);
+    // Each row names its market; the worked example's "on MAYA" is not
+    // a row.
+    expect(
+      find.textContaining('${PortfolioMock.marketSymbol} · '),
+      findsNWidgets(entries.length),
+    );
     expect(find.text('Total'), findsOneWidget);
     expect(find.text(total), findsOneWidget);
 
@@ -135,6 +146,9 @@ void main() {
     Scenario.feeEntries.value = rest;
     await tester.pumpAndSettle();
     expect(find.text(entries.first.eventTitle), findsNothing);
+    // The worked example follows: it now works the newest listed credit.
+    expect(find.text(LedgerScreen.example(entries.first)), findsNothing);
+    expect(find.text(LedgerScreen.example(rest.first)), findsOneWidget);
     expect(find.text(total), findsNothing);
     expect(find.text(formatCents(sum(rest))), findsOneWidget);
     await back(tester, LedgerScreen);
@@ -160,10 +174,43 @@ void main() {
     await pumpApp(tester, home: const YourMarketScreen());
     await tapAndSettle(tester, find.text(formatCents(0)));
     expect(find.byType(LedgerScreen), findsOneWidget);
+    // Neither as a row nor as the worked example.
     for (final e in Scenario.feeEntries.value) {
       expect(find.text(e.eventTitle), findsNothing);
+      expect(find.text(LedgerScreen.example(e)), findsNothing);
     }
     expect(find.text(formatCents(0)), findsOneWidget);
+  });
+
+  test('a fresh listing earns nothing until a credit lands after it; the '
+      'HAS_MARKET seed counts its week; reset restores both', () {
+    // The HAS_MARKET seed: listed before every seeded credit.
+    final seeded = sum(Scenario.feeEntries.value);
+    expect(Scenario.marketFeesCents, seeded);
+
+    // Listed fresh at the demo's now: every seeded credit predates it.
+    Scenario.reset(withMarket: false);
+    AccountState.listMarket(PortfolioMock.marketSymbol);
+    expect(Scenario.marketFees, isEmpty);
+    expect(Scenario.marketFeesCents, 0);
+
+    // A credit dated at the listing instant counts.
+    final credit = FeeEntry(
+      id: 'fee-new',
+      marketId: PortfolioMock.marketSymbol,
+      eventTitle: 'New session',
+      amountCents: 300,
+      at: Scenario.clock.value,
+    );
+    Scenario.feeEntries.value = [credit, ...Scenario.feeEntries.value];
+    expect(Scenario.marketFees, [credit]);
+    expect(Scenario.marketFeesCents, 300);
+
+    Scenario.reset(withMarket: true);
+    expect(Scenario.marketFeesCents, seeded);
+    Scenario.reset(withMarket: false);
+    AccountState.listMarket(PortfolioMock.marketSymbol);
+    expect(Scenario.marketFeesCents, 0);
   });
 
   testWidgets('the 40% share is labelled a demo assumption, with one worked '
@@ -190,19 +237,37 @@ void main() {
     expect(find.text('40% share is a demo assumption'), findsOneWidget);
   });
 
+  test('the worked example prints the listed credit for an odd-cent '
+      'entry', () {
+    final odd = FeeEntry(
+      id: 'fee-odd',
+      marketId: PortfolioMock.marketSymbol,
+      eventTitle: 'Odd session',
+      amountCents: 1241,
+      at: DateTime(2026, 9, 26),
+    );
+    // 1241 ÷ 40%, rounded half up, is a $31.03 fee; the result is the
+    // listed $12.41 credit, not one recomputed from the fee.
+    expect(
+      LedgerScreen.example(odd),
+      contains(r'traders paid $31.03 in fees. 40% of $31.03 = $12.41,'),
+    );
+  });
+
   testWidgets('the ledger total stays above the simulation pill on a small '
       'phone at 1.3x text', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    await pumpApp(
-      tester,
-      home: const LedgerScreen(),
-      size: const Size(360, 640),
-    );
-    expectPillClear(
-      tester,
-      find.text(formatCents(sum(Scenario.feeEntries.value))),
-    );
+    for (final size in const [Size(360, 640), Size(375, 667)]) {
+      await pumpApp(tester, home: const LedgerScreen(), size: size);
+      final total = find.text(formatCents(sum(Scenario.feeEntries.value)));
+      expectPillClear(tester, total);
+      // Above the pill's strip, not merely beside the pill.
+      final pillTop = tester.getRect(find.bySemanticsLabel(pill)).top;
+      for (final row in [total, find.text('Total')]) {
+        expect(tester.getRect(row).bottom, lessThanOrEqualTo(pillTop));
+      }
+    }
   });
 
   testWidgets('each record item opens its call receipt', (tester) async {
@@ -215,10 +280,25 @@ void main() {
       expect(onReceipt(find.text(c.author)), findsOneWidget);
       expect(onReceipt(find.text(c.asset)), findsOneWidget);
       expect(onReceipt(find.text(c.status)), findsOneWidget);
+      expect(onReceipt(find.text(noCall)), findsNothing);
+      expect(
+        onReceipt(find.text('A published call, not an order fill')),
+        findsOneWidget,
+      );
       expect(onReceipt(find.text(Scenario.fixtureVersion)), findsOneWidget);
-      // The record states no entry price: shown as unavailable, not blank.
+      expect(onReceipt(find.text(c.side!.label)), findsOneWidget);
+      expect(onReceipt(find.text(c.entryAt!)), findsOneWidget);
+      expect(onReceipt(find.text(c.odds!)), findsOneWidget);
+      // The record states no entry price, nor a settlement time for the
+      // settled calls: shown as unavailable, not blank.
+      final open = c.result == CallOutcome.open;
       expect(c.entryPrice, isNull);
-      expect(onReceipt(find.text('unavailable')), findsWidgets);
+      expect(c.settledAt, isNull);
+      expect(
+        onReceipt(find.text('Not settled yet')),
+        open ? findsOneWidget : findsNothing,
+      );
+      expect(onReceipt(find.text('unavailable')), findsNWidgets(open ? 1 : 2));
       await back(tester, CallReceiptScreen);
     }
 
@@ -233,12 +313,32 @@ void main() {
     );
     await tapAndSettle(tester, holding('ETH'));
     expect(onReceipt(find.text(eth.rule!)), findsOneWidget);
+    expect(onReceipt(find.text(noCall)), findsNothing);
+    expect(
+      onReceipt(find.text('A published call, not an order fill')),
+      findsOneWidget,
+    );
     await back(tester, CallReceiptScreen);
     await tapAndSettle(tester, holding('BTC'));
     expect(onReceipt(find.text('BTC')), findsOneWidget);
     expect(onReceipt(find.text(noCall)), findsOneWidget);
     // Direction, entry price and time, rule, result, settlement and odds.
     expect(onReceipt(find.text('unavailable')), findsNWidgets(7));
+    await back(tester, CallReceiptScreen);
+    // Her SOL call settled Right, so no open call backs the SOL holding.
+    final sol = myCalls.singleWhere((c) => c.asset == 'SOL');
+    expect(sol.result, CallOutcome.right);
+    await tapAndSettle(tester, holding('SOL'));
+    expect(onReceipt(find.text(noCall)), findsOneWidget);
+    expect(onReceipt(find.text(sol.rule!)), findsNothing);
+    await back(tester, CallReceiptScreen);
+
+    // Another trader's profile: maya.eth's ETH call backs only her own.
+    await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));
+    await tapAndSettle(tester, holding('ETH'));
+    expect(onReceipt(find.text('kaito.eth')), findsOneWidget);
+    expect(onReceipt(find.text(noCall)), findsOneWidget);
+    expect(onReceipt(find.text(eth.rule!)), findsNothing);
     await back(tester, CallReceiptScreen);
 
     // The trader market's Portfolio panel: another trader, no seeded calls.
@@ -254,6 +354,32 @@ void main() {
     await tapAndSettle(tester, holding('ETH'));
     expect(onReceipt(find.text(noCall)), findsOneWidget);
     expect(onReceipt(find.text(eth.rule!)), findsNothing);
+  });
+
+  testWidgets('Call details match the holding side: a short ETH holding is '
+      'not backed by an open ETH long', (tester) async {
+    await tester.pumpWidget(const SizedBox());
+    final context = tester.element(find.byType(SizedBox));
+    String backingId(TradeSide side) {
+      final eth = Holding(
+        ticker: 'ETH',
+        side: side,
+        leverage: 3,
+        entry: r'$2,927',
+        current: r'$2,968',
+        pnl: '+4.2%',
+      );
+      final route = CallReceiptScreen.forHolding(PortfolioMock.handle, eth);
+      final screen = (route as MaterialPageRoute<void>).builder(context);
+      return (screen as CallReceiptScreen).receipt.id;
+    }
+
+    final open = myCalls.singleWhere(
+      (c) => c.asset == 'ETH' && c.result == CallOutcome.open,
+    );
+    expect(open.side, TradeSide.long);
+    expect(backingId(TradeSide.long), open.id);
+    expect(backingId(TradeSide.short), 'none');
   });
 
   testWidgets('order receipts and call receipts render in separate sections', (
@@ -286,6 +412,23 @@ void main() {
     expect(find.byType(CallReceiptScreen), findsOneWidget);
   });
 
+  testWidgets('the record and receipts lists read the call receipt store', (
+    tester,
+  ) async {
+    final dropped = myCalls.first;
+    Scenario.callReceipts.value = myCalls.sublist(1);
+    await pumpApp(tester, home: const YourMarketScreen());
+    expect(find.text(dropped.rule!), findsNothing);
+    for (final c in myCalls) {
+      expect(find.text(c.rule!), findsOneWidget);
+    }
+    await tapAndSettle(tester, find.text('All receipts ›'));
+    expect(onList(find.text(dropped.rule!)), findsNothing);
+    for (final c in myCalls) {
+      expect(onList(find.text(c.rule!)), findsOneWidget);
+    }
+  });
+
   testWidgets('every All receipts link opens the receipts list', (
     tester,
   ) async {
@@ -295,7 +438,10 @@ void main() {
     expect(find.text('No paper orders yet'), findsOneWidget);
     await back(tester, ReceiptsScreen);
 
-    // Another trader's lists: their calls only, never the user's orders.
+    // Another trader's lists: their calls only, never the user's orders,
+    // with a paper order in state to leak.
+    Scenario.placeOrder(ethLong('r-2'));
+    expect(Scenario.receipts.value, isNotEmpty);
     await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));
     await tapAndSettle(tester, find.text('All receipts ›'));
     expect(find.byType(ReceiptsScreen), findsOneWidget);
@@ -304,6 +450,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('PAPER ORDER RECEIPTS'), findsNothing);
+    expect(onList(find.text('Long ETH 10x')), findsNothing);
+    expect(onList(find.textContaining('Paper fill')), findsNothing);
     for (final c in myCalls) {
       expect(find.text(c.rule!), findsNothing);
     }
@@ -320,5 +468,7 @@ void main() {
       find.text('No call receipts for kaito.eth in fixture-v1'),
       findsOneWidget,
     );
+    expect(onList(find.text('Long ETH 10x')), findsNothing);
+    expect(onList(find.textContaining('Paper fill')), findsNothing);
   });
 }

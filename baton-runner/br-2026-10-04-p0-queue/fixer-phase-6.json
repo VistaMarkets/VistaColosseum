@@ -1,0 +1,525 @@
+{
+  "summary": "Adjudicate review findings against the sources that decide them, then apply only the confirmed edits through a single writer",
+  "agentCount": 4,
+  "logs": [
+    "Adjudicating 3 finding group(s) against the sources",
+    "12 verdicts from 3/3 groups: F3=fix-here, F5=fix-here, F12=fix-here, F4=fix-here, F1=fix-here, F2=fix-here, F6=fix-here, F7=fix-here, F8=fix-here, F9=fix-here, F10=fix-here, F11=fix-here"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "findingId": "F3",
+        "verdict": "fix-here",
+        "evidence": "app/lib/features/market/receipt_screens.dart:272-277: forHolding returns a call only when `c.side == holding.side && c.result == CallOutcome.open`; the doc comment at 269-271 says \"the receipt of the author's open call on the same asset and side\". Line 312 prints `'No call in ${Scenario.fixtureVersion} backs this holding'` for the id 'none' receipt. market_mock.dart:146-152 seeds `id: 'maya-sol-300-fri'` with `result: CallOutcome.right`, and ProfileMock.holdings (profile_mock.dart:67-75) holds `ticker: 'SOL', side: TradeSide.long`. So maya.eth's SOL holding gets the noCall header although fixture-v1 has her settled SOL long call; the copy overstates the rule. receipts_test.dart:225-242 taps maya's ETH and BTC holdings but never SOL. House rule 10 decides the fix: change the copy to \"No open call in fixture-v1 backs this holding\", no settled fallback. No doc outside lib/test quotes the old copy (grep of docs/ found none).",
+        "rejectsValidInput": "none - a header-copy change; every holding still opens a receipt and forHolding's lookup is untouched. No document produces input this could refuse.",
+        "testProof": "app/test/receipts_test.dart: 'each record item opens its call receipt'. With the noCall constant changed to 'No open call in fixture-v1 backs this holding', the existing assertions `expect(onReceipt(find.text(noCall)), findsOneWidget)` (BTC, kaito SOL, kaito ETH) and the new maya SOL assertion fail against the current lib (which still prints 'No call in ...') and pass once line 312 changes. The new SOL block also asserts `onReceipt(find.text(sol.rule!))` findsNothing, which fails if someone later adds a settled-call fallback contrary to rule 10.",
+        "edits": [
+          {
+            "file": "app/lib/features/market/receipt_screens.dart",
+            "anchor": "312 CallReceiptScreen.build header copy",
+            "current": "              ? 'No call in ${Scenario.fixtureVersion} backs this holding'",
+            "replacement": "              ? 'No open call in ${Scenario.fixtureVersion} backs this holding'",
+            "rationale": "House rule 10: the copy states the documented open-only lookup instead of claiming no call exists."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "79 noCall",
+            "current": "const noCall = 'No call in fixture-v1 backs this holding';",
+            "replacement": "const noCall = 'No open call in fixture-v1 backs this holding';",
+            "rationale": "Test constant follows the new copy; makes the existing three noCall assertions fail before the lib edit."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "237-242 each record item opens its call receipt, BTC block",
+            "current": "    await tapAndSettle(tester, holding('BTC'));\n    expect(onReceipt(find.text('BTC')), findsOneWidget);\n    expect(onReceipt(find.text(noCall)), findsOneWidget);\n    // Direction, entry price and time, rule, result, settlement and odds.\n    expect(onReceipt(find.text('unavailable')), findsNWidgets(7));\n    await back(tester, CallReceiptScreen);",
+            "replacement": "    await tapAndSettle(tester, holding('BTC'));\n    expect(onReceipt(find.text('BTC')), findsOneWidget);\n    expect(onReceipt(find.text(noCall)), findsOneWidget);\n    // Direction, entry price and time, rule, result, settlement and odds.\n    expect(onReceipt(find.text('unavailable')), findsNWidgets(7));\n    await back(tester, CallReceiptScreen);\n    // Her SOL call settled Right, so no open call backs the SOL holding.\n    final sol = myCalls.singleWhere((c) => c.asset == 'SOL');\n    expect(sol.result, CallOutcome.right);\n    await tapAndSettle(tester, holding('SOL'));\n    expect(onReceipt(find.text(noCall)), findsOneWidget);\n    expect(onReceipt(find.text(sol.rule!)), findsNothing);\n    await back(tester, CallReceiptScreen);",
+            "rationale": "The finding's failure path (maya's SOL holding) was never exercised; this pins the open-only copy on exactly that case."
+          }
+        ]
+      },
+      {
+        "findingId": "F5",
+        "verdict": "fix-here",
+        "evidence": "app/lib/features/market/receipt_screens.dart:67 `final fee = e.amountCents * 100 ~/ pct;` and :70 `'${formatCents(fee * pct ~/ 100)}, its credit below.'`. For amountCents 1241: fee = 124100 ~/ 40 = 3102, printed credit = 124080 ~/ 100 = 1240, so the example says $12.40 while the row (line 114, `formatCents(e.amountCents)`) lists $12.41. Seeds in market_mock.dart:32-36 (1240, 860, 1016, 640, 524) are all even, so it is latent; line 64 \"Seeded credits are even cents, so the fee works back exactly\" is the only guard. House rule 12 decides the shape: print formatCents(e.amountCents) and derive the fee with explicit integer rounding. Rounding half up ((c*100 + pct~/2) ~/ pct) keeps fee x 40% within 0.2 cent of the credit, so \"40% of $31.03 = $12.41\" is true to the cent. Even seeds are unchanged: 1240 -> (124000+20)~/40 = 3100, matching the existing assertion at receipts_test.dart:178-183.",
+        "rejectsValidInput": "none - example() still accepts every FeeEntry; only the derived fee for odd-cent credits moves up by one cent and the printed credit now equals the listed one. No document produces input this refuses.",
+        "testProof": "New test in app/test/receipts_test.dart: 'the worked example prints the listed credit for an odd-cent entry' asserts `LedgerScreen.example(odd)` contains `traders paid $31.03 in fees. 40% of $31.03 = $12.41,` for amountCents 1241. Against the current code it yields `$31.02 ... = $12.40,` and fails; after the edit it passes. It also catches reverting to a truncating fee (`$31.02`). The existing 'the 40% share is labelled a demo assumption...' test keeps passing on the even 1240 seed.",
+        "edits": [
+          {
+            "file": "app/lib/features/market/receipt_screens.dart",
+            "anchor": "63-71 LedgerScreen.example",
+            "current": "  /// Works [e] back from the fee traders paid: fee × 40% = the credit.\n  /// Seeded credits are even cents, so the fee works back exactly.\n  static String example(FeeEntry e) {\n    const pct = YourMarketMock.creatorSharePct;\n    final fee = e.amountCents * 100 ~/ pct;\n    return 'Example: ${e.eventTitle} on ${e.marketId}: traders paid '\n        '${formatCents(fee)} in fees. $pct% of ${formatCents(fee)} = '\n        '${formatCents(fee * pct ~/ 100)}, its credit below.';\n  }",
+            "replacement": "  /// Works [e] back from the fee traders paid: fee × 40% = the credit.\n  /// The fee is the credit ÷ 40% in int cents, rounded half up; the result\n  /// shown is the listed credit itself, never recomputed from the fee.\n  static String example(FeeEntry e) {\n    const pct = YourMarketMock.creatorSharePct;\n    final fee = (e.amountCents * 100 + pct ~/ 2) ~/ pct;\n    return 'Example: ${e.eventTitle} on ${e.marketId}: traders paid '\n        '${formatCents(fee)} in fees. $pct% of ${formatCents(fee)} = '\n        '${formatCents(e.amountCents)}, its credit below.';\n  }",
+            "rationale": "House rule 12: the result is the listed credit, and the fee is derived with a stated integer rounding rule (half up)."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "189-191 end of the 40% demo-assumption test",
+            "current": "    expect(find.text('You earn 40% of the fees from both'), findsOneWidget);\n    expect(find.text('40% share is a demo assumption'), findsOneWidget);\n  });",
+            "replacement": "    expect(find.text('You earn 40% of the fees from both'), findsOneWidget);\n    expect(find.text('40% share is a demo assumption'), findsOneWidget);\n  });\n\n  test('the worked example prints the listed credit for an odd-cent '\n      'entry', () {\n    final odd = FeeEntry(\n      id: 'fee-odd',\n      marketId: PortfolioMock.marketSymbol,\n      eventTitle: 'Odd session',\n      amountCents: 1241,\n      at: DateTime(2026, 9, 26),\n    );\n    // 1241 ÷ 40%, rounded half up, is a $31.03 fee; the result is the\n    // listed $12.41 credit, not one recomputed from the fee.\n    expect(\n      LedgerScreen.example(odd),\n      contains(r'traders paid $31.03 in fees. 40% of $31.03 = $12.41,'),\n    );\n  });",
+            "rationale": "Odd-cent test required by house rule 12; fails on the current truncate-and-recompute code."
+          }
+        ]
+      },
+      {
+        "findingId": "F12",
+        "verdict": "fix-here",
+        "evidence": "app/lib/features/market/receipt_screens.dart:276 `c.side == holding.side &&`. Seeded calls (market_mock.dart:146-172) are all `side: TradeSide.long` on SOL/ETH; the only short holding is BTC (profile_mock.dart:84-91) with no BTC call. receipts_test.dart 'each record item opens its call receipt' taps maya's ETH (long, open call exists) and BTC (no call on that asset), so deleting the side clause leaves every assertion green: ETH long still matches, BTC still has no asset match. Holding (profile_mock.dart) and TradeSide (design_system vista_chips.dart, exported by design_system.dart) are not currently in scope in the test file; only design_system.dart and charting.dart re-export in lib, so both imports are needed and neither is unnecessary for flutter analyze.",
+        "rejectsValidInput": "none - test-only change; no lib behaviour changes. n/a for a producing document.",
+        "testProof": "New test app/test/receipts_test.dart: 'Call details match the holding side: a short ETH holding is not backed by an open ETH long'. Mutation it catches and the current suite survives: delete `c.side == holding.side &&` at receipt_screens.dart:276; then forHolding(maya.eth, short ETH) returns 'maya-eth-4000-oct10' and `expect(backingId(TradeSide.short), 'none')` fails. The control `expect(backingId(TradeSide.long), open.id)` catches flipping the comparison to `!=` and proves the test reaches the open ETH call, so the short case is 'none' because of side alone. Passes on the current code.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "5-6 imports",
+            "current": "import 'package:flutter_test/flutter_test.dart';\nimport 'package:vista_colosseum/features/live/live_feed.dart';",
+            "replacement": "import 'package:flutter_test/flutter_test.dart';\nimport 'package:vista_colosseum/design_system/design_system.dart';\nimport 'package:vista_colosseum/features/live/live_feed.dart';",
+            "rationale": "TradeSide for the side-match test."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "13-14 imports",
+            "current": "import 'package:vista_colosseum/features/profile/holdings_table.dart';\nimport 'package:vista_colosseum/features/profile/profile_screen.dart';",
+            "replacement": "import 'package:vista_colosseum/features/profile/holdings_table.dart';\nimport 'package:vista_colosseum/features/profile/profile_mock.dart';\nimport 'package:vista_colosseum/features/profile/profile_screen.dart';",
+            "rationale": "Holding for the side-match test."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "253-257 end of 'each record item opens its call receipt'",
+            "current": "    // maya.eth's open ETH call backs only her own ETH holding.\n    await tapAndSettle(tester, holding('ETH'));\n    expect(onReceipt(find.text(noCall)), findsOneWidget);\n    expect(onReceipt(find.text(eth.rule!)), findsNothing);\n  });",
+            "replacement": "    // maya.eth's open ETH call backs only her own ETH holding.\n    await tapAndSettle(tester, holding('ETH'));\n    expect(onReceipt(find.text(noCall)), findsOneWidget);\n    expect(onReceipt(find.text(eth.rule!)), findsNothing);\n  });\n\n  testWidgets('Call details match the holding side: a short ETH holding is '\n      'not backed by an open ETH long', (tester) async {\n    await tester.pumpWidget(const SizedBox());\n    final context = tester.element(find.byType(SizedBox));\n    String backingId(TradeSide side) {\n      final eth = Holding(\n        ticker: 'ETH',\n        side: side,\n        leverage: 3,\n        entry: r'$2,927',\n        current: r'$2,968',\n        pnl: '+4.2%',\n      );\n      final route = CallReceiptScreen.forHolding(PortfolioMock.handle, eth);\n      final screen = (route as MaterialPageRoute<void>).builder(context);\n      return (screen as CallReceiptScreen).receipt.id;\n    }\n\n    final open = myCalls.singleWhere(\n      (c) => c.asset == 'ETH' && c.result == CallOutcome.open,\n    );\n    expect(open.side, TradeSide.long);\n    expect(backingId(TradeSide.long), open.id);\n    expect(backingId(TradeSide.short), 'none');\n  });",
+            "rationale": "Pins the side clause: only a side mismatch separates the two holdings, so deleting the clause fails the short assertion."
+          }
+        ]
+      },
+      {
+        "findingId": "F4",
+        "verdict": "fix-here",
+        "evidence": "Confirmed against the tree.\n- app/lib/features/account/account_state.dart:16-20: `listMarket` sets only `Scenario.ticker.value = symbol; Scenario.marketId.value = symbol; Scenario.hasMarket.value = true;`. Nothing records when the market was listed.\n- app/lib/scenario/scenario.dart:111-114: `static List<FeeEntry> get marketFees => [ for (final e in feeEntries.value) if (e.marketId == marketId.value) e, ];`. It filters by market id only, with no date filter.\n- app/lib/features/market/market_mock.dart:124-138: five seeded credits with `marketId: PortfolioMock.marketSymbol` (MAYA), dated `TradeMock.chartEnd.subtract(Duration(hours: hoursAgo))` for hoursAgo 3, 24, 48, 72 and 96. Their cents are 1240+860+1016+640+524 = 4280.\n- app/lib/features/trade/trade_mock.dart:135: `chartEnd = DateTime(2026, 9, 26, 14, 45)`. scenario.dart:62 sets `clock = ValueNotifier<DateTime>(TradeMock.chartEnd)`, and nothing in lib advances the clock.\n- Result: start without HAS_MARKET and list $MAYA (portfolio_screen.dart:146 leads to make_market_flow.dart:60). Every seeded credit predates the listing, yet the Wallet row (portfolio_screen.dart:245) and the Your market chip (your_market_screen.dart:190) both render `formatCents(Scenario.marketFeesCents)` = $42.80.\n\nFix shape follows house rule 11. One wrinkle: rule 11 says to seed the HAS_MARKET listing instant at the \"fixture start\" so the seeded credits still show. But scenario.dart:61 calls chartEnd itself \"the fixture's start\", and all five credits are 3-96 h before chartEnd. Using chartEnd literally would hide every seeded credit, which defeats the rule's stated purpose. So the seed instant becomes a fixture constant, `YourMarketMock.listedAt` = chartEnd - 7 days. That is before the oldest credit (-96 h) and matches the chip label \"earned in fees this week\".\n\nNo new listener is needed. In every UI path, `listMarket` also changes `marketId` (null to symbol), and the three ListenableBuilders already merge `Scenario.marketId`. Re-listing the same symbol, the only case where `marketId` would not change, has no UI path: the Make a market button only shows in place of the fees row (portfolio_screen.dart:136-146).\n\nscenario_test.dart:26 requires every new Scenario field to be added to `state()`. `mutateEverything` already calls `AccountState.listMarket('ZED')`, which moves `listedAt` from either seed (null, or a week ago) to chartEnd. The 'field unchanged' check therefore holds without further edits.",
+        "rejectsValidInput": "Checked. After the fix, a fresh listing shows $0.00 instead of $42.80. Re-listing an already listed market would also hide its earlier credits, but there is no UI path for that: the Make a market button only renders when no market is listed.\n\nTests: home_screen_test.dart:95 and order_ticket_test.dart:103 list MAYA fresh in setUp. A grep of app/test for '42.80', 'Fees from your market', 'earned in fees', formatCents(0), LedgerScreen and matchesGoldenFile outside receipts_test finds nothing, so no test depends on fees after a fresh listing. receipts_test runs `Scenario.reset(withMarket: true)` in setUp, and the new seed instant keeps every existing fee assertion there at the seeded total.\n\nDocuments: none outside run bookkeeping tells a human to list fresh and expect $42.80. ARCH.md:63 and :351 only say HAS_MARKET=true starts with a market listed, and that path still shows $42.80. The baton-pass notes that mention $42.80 are run bookkeeping and describe the HAS_MARKET path.",
+        "testProof": "Add the test to app/test/receipts_test.dart: 'a fresh listing earns nothing until a credit lands after it; the HAS_MARKET seed counts its week; reset restores both'. It uses only APIs that exist today (AccountState.listMarket, Scenario.marketFees/marketFeesCents, FeeEntry), so it compiles against the current tree.\n\nAgainst the current tree it fails at `expect(Scenario.marketFees, isEmpty)` after `Scenario.reset(withMarket: false); AccountState.listMarket(PortfolioMock.marketSymbol);`: it finds five entries, because marketFeesCents is 4280. It passes after the edits.\n\nMutations it catches:\n- Drop `!e.at.isBefore(since)`: isEmpty fails.\n- Flip it to `e.at.isAfter(since)`: the credit dated exactly at the listing instant drops, so `expect(Scenario.marketFees, [credit])` fails.\n- Remove `Scenario.listedAt.value = Scenario.clock.value` from listMarket: listedAt stays null, so `[credit]` fails.\n- Seed `YourMarketMock.listedAt` at chartEnd: the first `expect(Scenario.marketFeesCents, seeded)` fails.\n- Drop the `listedAt` line from reset(): after `reset(withMarket: true)`, listedAt stays at chartEnd, so `expect(Scenario.marketFeesCents, seeded)` fails.\n\nThe scenario_test 'seed → mutate everything → reset equals the fresh seed' and 'reset twice yields equal state' tests cover reset restoring listedAt through the new `state()` entry.\n\nRun with: cd /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue && scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-6-fixer/. Also run `cd app && flutter test --dart-define=HAS_MARKET=true test/receipts_test.dart test/scenario_test.dart` to cover the other seed.",
+        "edits": [
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "34-38 Scenario.hasMarket/ticker/marketId",
+            "current": "  /// The user's own market: whether it is listed, its ticker (suggested\n  /// before listing), and its id once listed (the symbol, as markets use).\n  static final hasMarket = ValueNotifier<bool>(_startWithMarket);\n  static final ticker = ValueNotifier<String>(PortfolioMock.marketSymbol);\n  static final marketId = ValueNotifier<String?>(_seedMarketId);",
+            "replacement": "  /// The user's own market: whether it is listed, its ticker (suggested\n  /// before listing), its id once listed (the symbol, as markets use), and\n  /// when it was listed: the clock at listing, or the seed's\n  /// [YourMarketMock.listedAt] when `HAS_MARKET` starts with it listed.\n  static final hasMarket = ValueNotifier<bool>(_startWithMarket);\n  static final ticker = ValueNotifier<String>(PortfolioMock.marketSymbol);\n  static final marketId = ValueNotifier<String?>(_seedMarketId);\n  static final listedAt = ValueNotifier<DateTime?>(_seedListedAt);",
+            "rationale": "Rule 11: the listing instant is mutable demo state, so it lives in Scenario (invariant 8)."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "89-90 Scenario._seedMarketId",
+            "current": "  static String? get _seedMarketId =>\n      _startWithMarket ? PortfolioMock.marketSymbol : null;",
+            "replacement": "  static String? get _seedMarketId =>\n      _startWithMarket ? PortfolioMock.marketSymbol : null;\n\n  static DateTime? get _seedListedAt =>\n      _startWithMarket ? YourMarketMock.listedAt : null;",
+            "rationale": "Seeds the listing instant the same way marketId is seeded: unlisted gets null, and the HAS_MARKET seed gets the fixture's listing instant, so the seeded credits show."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "109-114 Scenario.marketFees",
+            "current": "  /// The credits of the user's listed market: none before listing, and\n  /// none for a market listed under another ticker.\n  static List<FeeEntry> get marketFees => [\n    for (final e in feeEntries.value)\n      if (e.marketId == marketId.value) e,\n  ];",
+            "replacement": "  /// The credits of the user's listed market dated at or after its listing:\n  /// none before listing, none for a market listed under another ticker,\n  /// and none from before a fresh listing existed to earn them.\n  static List<FeeEntry> get marketFees {\n    final since = listedAt.value;\n    if (since == null) return const [];\n    return [\n      for (final e in feeEntries.value)\n        if (e.marketId == marketId.value && !e.at.isBefore(since)) e,\n    ];\n  }",
+            "rationale": "The core of F4. Only credits at or after the listing instant count. marketFeesCents, the ledger rows and the footer all route through this one getter, so all callers get the fix at once."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "279-281 Scenario.reset",
+            "current": "    hasMarket.value = withMarket;\n    ticker.value = PortfolioMock.marketSymbol;\n    marketId.value = withMarket ? PortfolioMock.marketSymbol : null;",
+            "replacement": "    hasMarket.value = withMarket;\n    ticker.value = PortfolioMock.marketSymbol;\n    marketId.value = withMarket ? PortfolioMock.marketSymbol : null;\n    listedAt.value = withMarket ? YourMarketMock.listedAt : null;",
+            "rationale": "Reset restores the seed exactly (invariant 8), for both the listed and unlisted starts."
+          },
+          {
+            "file": "app/lib/features/account/account_state.dart",
+            "anchor": "15-20 AccountState.listMarket",
+            "current": "  /// Records a newly created market.\n  static void listMarket(String symbol) {\n    Scenario.ticker.value = symbol;\n    Scenario.marketId.value = symbol;\n    Scenario.hasMarket.value = true;\n  }",
+            "replacement": "  /// Records a newly created market, listed now: credits dated before\n  /// this instant were not earned by it.\n  static void listMarket(String symbol) {\n    Scenario.ticker.value = symbol;\n    Scenario.listedAt.value = Scenario.clock.value;\n    Scenario.marketId.value = symbol;\n    Scenario.hasMarket.value = true;\n  }",
+            "rationale": "Rule 11: record the listing instant at listMarket, from the demo clock. It is written before marketId, so the marketId listeners rebuild with both values set."
+          },
+          {
+            "file": "app/lib/features/market/market_mock.dart",
+            "anchor": "122-123 YourMarketMock.fees doc",
+            "current": "  /// The ledger's seed, newest first: MAYA's credits this week, each the\n  /// creator's share of one session's fees.",
+            "replacement": "  /// When the seeded market (`HAS_MARKET`) was listed: a week before the\n  /// fixture's now, so this week's seeded credits all follow it.\n  static final listedAt = TradeMock.chartEnd.subtract(const Duration(days: 7));\n\n  /// The ledger's seed, newest first: MAYA's credits this week, each the\n  /// creator's share of one session's fees.",
+            "rationale": "The fixture start for the HAS_MARKET seed. It must come before the oldest credit (chartEnd - 96 h), because chartEnd, which scenario.dart:61 calls the fixture's start, would hide all five seeded credits. The line is 79 chars."
+          },
+          {
+            "file": "app/test/scenario_test.dart",
+            "anchor": "33 state() Scenario.marketId",
+            "current": "  Scenario.marketId.value,",
+            "replacement": "  Scenario.marketId.value,\n  Scenario.listedAt.value,",
+            "rationale": "scenario_test.dart:26 says a field added to Scenario must be added to state(). mutateEverything already changes it through listMarket('ZED'), so the reset tests now cover listedAt."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "6 imports",
+            "current": "import 'package:vista_colosseum/features/live/live_feed.dart';",
+            "replacement": "import 'package:vista_colosseum/features/account/account_state.dart';\nimport 'package:vista_colosseum/features/live/live_feed.dart';",
+            "rationale": "The new test lists through the app's own helper, AccountState.listMarket."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "166-167 end of 'a market with no credits shows an empty ledger and zero'",
+            "current": "    expect(find.text(formatCents(0)), findsOneWidget);\n  });",
+            "replacement": "    expect(find.text(formatCents(0)), findsOneWidget);\n  });\n\n  test('a fresh listing earns nothing until a credit lands after it; the '\n      'HAS_MARKET seed counts its week; reset restores both', () {\n    // The HAS_MARKET seed: listed before every seeded credit.\n    final seeded = sum(Scenario.feeEntries.value);\n    expect(Scenario.marketFeesCents, seeded);\n\n    // Listed fresh at the demo's now: every seeded credit predates it.\n    Scenario.reset(withMarket: false);\n    AccountState.listMarket(PortfolioMock.marketSymbol);\n    expect(Scenario.marketFees, isEmpty);\n    expect(Scenario.marketFeesCents, 0);\n\n    // A credit dated at the listing instant counts.\n    final credit = FeeEntry(\n      id: 'fee-new',\n      marketId: PortfolioMock.marketSymbol,\n      eventTitle: 'New session',\n      amountCents: 300,\n      at: Scenario.clock.value,\n    );\n    Scenario.feeEntries.value = [credit, ...Scenario.feeEntries.value];\n    expect(Scenario.marketFees, [credit]);\n    expect(Scenario.marketFeesCents, 300);\n\n    Scenario.reset(withMarket: true);\n    expect(Scenario.marketFeesCents, seeded);\n    Scenario.reset(withMarket: false);\n    AccountState.listMarket(PortfolioMock.marketSymbol);\n    expect(Scenario.marketFeesCents, 0);\n  });",
+            "rationale": "The test the task names: a fresh listing without HAS_MARKET shows zero earned, a credit dated at the listing instant counts (the boundary), the HAS_MARKET seed keeps the seeded total, and reset restores both. It is inserted after the empty-ledger test and does not touch lines 169-191, which F5's writer edits."
+          }
+        ]
+      },
+      {
+        "findingId": "F1",
+        "verdict": "fix-here",
+        "evidence": "receipt_screens.dart:132 `MediaQuery.paddingOf(context).bottom + VistaSpace.xxl,` keeps the footer clear of the 30 px strip. SimulationIndicator adds `SimulationIndicator.slot` (30) to MediaQuery padding and centres the pill in that strip. home_screen_test.dart:57-66 `expectPillClear` checks only `rect.overlaps(target)`. The total is right-aligned and the pill is centred, so the two rects never overlap. receipts_test.dart:197-205 pumps only `Size(360, 640)`. review-phase-6-iter-1-probe/mutate-run-1.txt: `ledger-footer-no-safe: SURVIVED (exit 0)`. I re-ran this in a scratch copy of app/ (scratchpad, not the worktree): the old test SURVIVED the mutant; the new test KILLED it with `Expected: a value less than or equal to <610.0>`. The new test passes on current code, and so does the full suite (262 tests).",
+        "rejectsValidInput": "None found. SimulationIndicator's doc says the strip is reserved: \"whatever keeps clear of the home indicator keeps clear of the pill\". So every valid footer ends above the strip top. House rule 13 keeps the 30 px strip. The only layout this rejects is a footer that sits inside the strip beside the pill, and no doc describes producing one.",
+        "testProof": "Mutation: in app/lib/features/market/receipt_screens.dart, replace `MediaQuery.paddingOf(context).bottom + VistaSpace.xxl,` with `VistaSpace.xxl,`. The old 'the ledger total stays above the simulation pill on a small phone at 1.3x text' passes. The new one fails at `expect(tester.getRect(row).bottom, lessThanOrEqualTo(pillTop))` (626 > 610 at 360x640). Reached by scripts/gate.sh through flutter test.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "19 import home_screen_test",
+            "current": "import 'home_screen_test.dart' show expectPillClear;",
+            "replacement": "import 'home_screen_test.dart' show expectPillClear, pill;",
+            "rationale": "Import the pill label constant so the test can read the pill's rect."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "197-205 ledger pill test body",
+            "current": "    await pumpApp(\n      tester,\n      home: const LedgerScreen(),\n      size: const Size(360, 640),\n    );\n    expectPillClear(\n      tester,\n      find.text(formatCents(sum(Scenario.feeEntries.value))),\n    );",
+            "replacement": "    for (final size in const [Size(360, 640), Size(375, 667)]) {\n      await pumpApp(tester, home: const LedgerScreen(), size: size);\n      final total = find.text(formatCents(sum(Scenario.feeEntries.value)));\n      expectPillClear(tester, total);\n      // Above the pill's strip, not merely beside the pill.\n      final pillTop = tester.getRect(find.bySemanticsLabel(pill)).top;\n      for (final row in [total, find.text('Total')]) {\n        expect(tester.getRect(row).bottom, lessThanOrEqualTo(pillTop));\n      }\n    }",
+            "rationale": "Rect overlap misses a right-aligned total that sits beside the centred pill. Assert vertical clearance instead, and cover both small phones."
+          }
+        ]
+      },
+      {
+        "findingId": "F2",
+        "verdict": "fix-here",
+        "evidence": "scenario.dart:289 `receipts.value = const [];` runs in reset, which setUp calls. receipts_test.dart:289-323 ('every All receipts link opens the receipts list') places no order, so receipt_screens.dart:224 `for (final r in Scenario.receipts.value)` renders nothing whether or not it sits inside `if (own) ...[`. The only placeOrder (line 262) is in the 'separate sections' test, and that test opens only the user's own list. I ran it in a scratch copy with the mutant below: the old file SURVIVED; the new file KILLED it with `Expected: no matching candidates` on `onList(find.text('Long ETH 10x'))`.",
+        "rejectsValidInput": "None. Spec 06 and the code comment at receipt_screens.dart:178-179 say paper order receipts appear \"on the user's own list only\". A valid other-trader list never shows a paper fill.",
+        "testProof": "Mutation: in app/lib/features/market/receipt_screens.dart, replace `              for (final r in Scenario.receipts.value)\\n` with `            ],\\n            ...[\\n              for (final r in Scenario.receipts.value)\\n`. This moves the order rows out of the `if (own)` spread; the header stays guarded. The old 'every All receipts link opens the receipts list' passes. The new one fails at `expect(onList(find.text('Long ETH 10x')), findsNothing)` on kaito.eth's profile list.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "74 Finder holding",
+            "current": "Finder holding(String ticker) => find.descendant(",
+            "replacement": "Finder onList(Finder f) =>\n    find.descendant(of: find.byType(ReceiptsScreen), matching: f);\n\nFinder holding(String ticker) => find.descendant(",
+            "rationale": "Scope list assertions to ReceiptsScreen. F11 reuses this helper."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "296-298 kaito lists comment",
+            "current": "    await back(tester, ReceiptsScreen);\n\n    // Another trader's lists: their calls only, never the user's orders.",
+            "replacement": "    await back(tester, ReceiptsScreen);\n\n    // Another trader's lists: their calls only, never the user's orders,\n    // with a paper order in state to leak.\n    Scenario.placeOrder(ethLong('r-2'));\n    expect(Scenario.receipts.value, isNotEmpty);",
+            "rationale": "Put a paper fill in state before opening kaito.eth's lists, so the 'never the user's orders' check can fail."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "306 PAPER ORDER RECEIPTS findsNothing",
+            "current": "    expect(find.text('PAPER ORDER RECEIPTS'), findsNothing);",
+            "replacement": "    expect(find.text('PAPER ORDER RECEIPTS'), findsNothing);\n    expect(onList(find.text('Long ETH 10x')), findsNothing);\n    expect(onList(find.textContaining('Paper fill')), findsNothing);",
+            "rationale": "The fill's row must not render on the profile's list."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "319-323 trader-market list end",
+            "current": "    expect(\n      find.text('No call receipts for kaito.eth in fixture-v1'),\n      findsOneWidget,\n    );\n  });",
+            "replacement": "    expect(\n      find.text('No call receipts for kaito.eth in fixture-v1'),\n      findsOneWidget,\n    );\n    expect(onList(find.text('Long ETH 10x')), findsNothing);\n    expect(onList(find.textContaining('Paper fill')), findsNothing);\n  });",
+            "rationale": "Run the same check on the trader market's list."
+          }
+        ]
+      },
+      {
+        "findingId": "F6",
+        "verdict": "fix-here",
+        "evidence": "profile_screen.dart:94-95 `.push(CallReceiptScreen.forHolding(widget.handle, h)),`. receipts_test.dart:230-242 pumps only `ProfileScreen(handle: PortfolioMock.handle)`, where widget.handle equals the hardcoded value. mutate-run-1.txt: `profile-wrong-handle: SURVIVED (exit 0)`. In a scratch-copy re-run, the old file SURVIVED and the new file KILLED it with `Expected: exactly one matching candidate` (kaito.eth is not the author shown).",
+        "rejectsValidInput": "None. Spec 06 / VC-FED-003 says Call details resolve the author's own open call. A valid kaito.eth profile has no seeded calls, so it shows the unavailable receipt. No input that follows that procedure fails.",
+        "testProof": "Mutation: in app/lib/features/profile/profile_screen.dart, replace `.push(CallReceiptScreen.forHolding(widget.handle, h)),` with `.push(CallReceiptScreen.forHolding(PortfolioMock.handle, h)),`. The old 'each record item opens its call receipt' passes. The new one fails at `expect(onReceipt(find.text('kaito.eth')), findsOneWidget)` after tapping ETH on ProfileScreen(handle: 'kaito.eth'). Under the mutant the receipt shows maya.eth's Oct 10 call.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "241-242 BTC unavailable count",
+            "current": "    expect(onReceipt(find.text('unavailable')), findsNWidgets(7));\n    await back(tester, CallReceiptScreen);",
+            "replacement": "    expect(onReceipt(find.text('unavailable')), findsNWidgets(7));\n    await back(tester, CallReceiptScreen);\n\n    // Another trader's profile: maya.eth's ETH call backs only her own.\n    await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));\n    await tapAndSettle(tester, holding('ETH'));\n    expect(onReceipt(find.text('kaito.eth')), findsOneWidget);\n    expect(onReceipt(find.text(noCall)), findsOneWidget);\n    expect(onReceipt(find.text(eth.rule!)), findsNothing);\n    await back(tester, CallReceiptScreen);",
+            "rationale": "Exercise Call details on another trader's profile. A hardcoded handle then shows maya's call and fails. Uses the noCall constant, which the F3 writer updates under house rule 10."
+          }
+        ]
+      },
+      {
+        "findingId": "F7",
+        "verdict": "fix-here",
+        "evidence": "receipts_test.dart:128 `expect(find.textContaining(PortfolioMock.marketSymbol), findsWidgets);` is also satisfied by the example at receipt_screens.dart:68 `'Example: ${e.eventTitle} on ${e.marketId}: ...'`. mutate-run-1.txt: `ledger-entry-no-market: SURVIVED (exit 0)`. In a scratch-copy re-run, the old file SURVIVED and the new file KILLED it with `Expected: exactly 5 matching candidates`.",
+        "rejectsValidInput": "A row subtitle that names the market without the house ' · ' separator (e.g. 'MAYA, 26 Sep') would now fail. No doc asks for that format. The ' · ' separator is the house pattern (receipt_screens.dart:108, :238 and the 'Illustrative demo ledger · ...' label), and spec 06 does not specify the subtitle format. In practice nothing valid is rejected.",
+        "testProof": "Mutation: in app/lib/features/market/receipt_screens.dart, replace `Text('${e.marketId} · ${_when(e.at)}', style: muted),` with `Text(_when(e.at), style: muted),`. The old 'ledger total equals the sum of listed entries' passes. The new one fails at `find.textContaining('${PortfolioMock.marketSymbol} · ')` findsNWidgets(entries.length): it finds 0, not 5.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "128 market name assertion",
+            "current": "    expect(find.textContaining(PortfolioMock.marketSymbol), findsWidgets);",
+            "replacement": "    // Each row names its market; the worked example's \"on MAYA\" is not\n    // a row.\n    expect(\n      find.textContaining('${PortfolioMock.marketSymbol} · '),\n      findsNWidgets(entries.length),\n    );",
+            "rationale": "Count one market-naming subtitle per row, instead of accepting any text that contains MAYA."
+          }
+        ]
+      },
+      {
+        "findingId": "F8",
+        "verdict": "fix-here",
+        "evidence": "receipt_screens.dart:294-303 render ('Direction', r.side?.label), ('Entered', r.entryAt), ('Settled', open ? 'Not settled yet' : r.settledAt) and ('Market said', r.odds). The seed at market_mock.dart sets side, entryAt and odds on all three record calls, and settledAt on none. The loop at receipts_test.dart:211-223 asserts only rule, author, asset, status and provenance, plus `findsWidgets` on 'unavailable', which entryPrice alone satisfies. In a scratch-copy re-run, all four mutants below SURVIVED the old file and were KILLED by the new one.",
+        "rejectsValidInput": "None. The assertions read c.side, c.entryAt and c.odds from the store, so a fixture value change still passes. The exact unavailable count (1 open, 2 settled) follows spec 06's rule that a missing field renders 'unavailable', together with the guards `expect(c.entryPrice, isNull)` and `expect(c.settledAt, isNull)`. If a later fixture adds those values, the guards fail loudly and point at the count. The import of design_system.dart is test-only and adds no pub dependency.",
+        "testProof": "Mutations, each in app/lib/features/market/receipt_screens.dart, each surviving the old 'each record item opens its call receipt' test: (1) `('Entered', r.entryAt),` -> `('Entered', null),`; (2) `('Market said', r.odds),` -> `('Market said', null),`; (3) `('Direction', r.side?.label),` -> `('Direction', null),`; (4) `r.result == CallOutcome.open ? 'Not settled yet' : r.settledAt,` -> `r.settledAt,`. The new test fails on (1)-(3) at the `findsOneWidget` for c.entryAt / c.odds / c.side!.label, and on (4) at `onReceipt(find.text('Not settled yet'))` findsOneWidget for the open call.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "6 import live_feed",
+            "current": "import 'package:vista_colosseum/features/live/live_feed.dart';",
+            "replacement": "import 'package:vista_colosseum/design_system/design_system.dart';\nimport 'package:vista_colosseum/features/live/live_feed.dart';",
+            "rationale": "TradeSide.label is an extension (vista_chips.dart) that the design system exports."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "219-221 record loop unavailable",
+            "current": "      // The record states no entry price: shown as unavailable, not blank.\n      expect(c.entryPrice, isNull);\n      expect(onReceipt(find.text('unavailable')), findsWidgets);",
+            "replacement": "      expect(onReceipt(find.text(c.side!.label)), findsOneWidget);\n      expect(onReceipt(find.text(c.entryAt!)), findsOneWidget);\n      expect(onReceipt(find.text(c.odds!)), findsOneWidget);\n      // The record states no entry price, nor a settlement time for the\n      // settled calls: shown as unavailable, not blank.\n      final open = c.result == CallOutcome.open;\n      expect(c.entryPrice, isNull);\n      expect(c.settledAt, isNull);\n      expect(\n        onReceipt(find.text('Not settled yet')),\n        open ? findsOneWidget : findsNothing,\n      );\n      expect(onReceipt(find.text('unavailable')), findsNWidgets(open ? 1 : 2));",
+            "rationale": "Assert the Direction, Entered and Market said values the fixture states, 'Not settled yet' on the open call, and an exact unavailable count."
+          }
+        ]
+      },
+      {
+        "findingId": "F9",
+        "verdict": "fix-here",
+        "evidence": "receipt_screens.dart:310-313 `r.rule == null ? 'No call in ${Scenario.fixtureVersion} backs this holding' : 'A published call, not an order fill'`. In receipts_test.dart, noCall is asserted present at :239, :251 and :255 (all 'none' receipts) and never asserted absent on a real receipt. 'A published call, not an order fill' is never asserted. In a scratch-copy re-run, the old file SURVIVED the mutant below and the new file KILLED it with `Expected: no matching candidates`.",
+        "rejectsValidInput": "None. A receipt for a real call always has a rule. The positive check uses today's literal header copy, which no decided change (rules 10-13) touches. Rule 10 changes only the noCall copy, and the test reads that through the `noCall` constant the F3 writer must update.",
+        "testProof": "Mutation: in app/lib/features/market/receipt_screens.dart, replace `          r.rule == null\\n` with `          true\\n` (the header always reads noCall). The old 'each record item opens its call receipt' passes. The new one fails at `expect(onReceipt(find.text(noCall)), findsNothing)` on the first record receipt.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "217 status assertion",
+            "current": "      expect(onReceipt(find.text(c.status)), findsOneWidget);",
+            "replacement": "      expect(onReceipt(find.text(c.status)), findsOneWidget);\n      expect(onReceipt(find.text(noCall)), findsNothing);\n      expect(\n        onReceipt(find.text('A published call, not an order fill')),\n        findsOneWidget,\n      );",
+            "rationale": "A real call's receipt must carry the published-call header, never noCall."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "235 eth rule on own profile",
+            "current": "    expect(onReceipt(find.text(eth.rule!)), findsOneWidget);",
+            "replacement": "    expect(onReceipt(find.text(eth.rule!)), findsOneWidget);\n    expect(onReceipt(find.text(noCall)), findsNothing);\n    expect(\n      onReceipt(find.text('A published call, not an order fill')),\n      findsOneWidget,\n    );",
+            "rationale": "Run the same header check on the Call details path."
+          }
+        ]
+      },
+      {
+        "findingId": "F10",
+        "verdict": "fix-here",
+        "evidence": "receipt_screens.dart:88-91 show `example(entries.first)` only when `entries` (Scenario.marketFees) is non-empty. In the 'ledger total' test (receipts_test.dart:134-139), dropping entries.first re-checks only `find.text(entries.first.eventTitle)` (exact text, which cannot match the example sentence) and the totals. The ZED test (:163-165) uses exact `find.text(e.eventTitle)`, which also cannot match the example. In a scratch-copy re-run, both mutants below SURVIVED the old file and were KILLED by the new one. The assertions go through the public `LedgerScreen.example(FeeEntry)`, not today's literal text, so the rule-12 formula change and the rule-11 listing instant leave them valid. If rule 12 changes example's signature, the test fails to compile rather than passing silently.",
+        "rejectsValidInput": "None. A correct ledger shows exactly one example, for the first listed credit, and none when it lists no credits. Spec 06 asks for one worked example.",
+        "testProof": "Mutations in app/lib/features/market/receipt_screens.dart: (a) `Text(example(entries.first), style: muted),` -> `Text(example(YourMarketMock.fees.first), style: muted),`. The old 'ledger total equals the sum of listed entries' passes; the new one fails at `expect(find.text(LedgerScreen.example(entries.first)), findsNothing)`. (b) `if (entries.isNotEmpty) ...[` with its `Text(example(entries.first), ...)` -> `if (Scenario.feeEntries.value.isNotEmpty) ...[` with `Text(example(Scenario.feeEntries.value.first), ...)`. The old 'a market with no credits shows an empty ledger and zero' passes; the new one fails at `expect(find.text(LedgerScreen.example(e)), findsNothing)`.",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "137 dropped title gone",
+            "current": "    expect(find.text(entries.first.eventTitle), findsNothing);",
+            "replacement": "    expect(find.text(entries.first.eventTitle), findsNothing);\n    // The worked example follows: it now works the newest listed credit.\n    expect(find.text(LedgerScreen.example(entries.first)), findsNothing);\n    expect(find.text(LedgerScreen.example(rest.first)), findsOneWidget);",
+            "rationale": "After the store changes, the example must cite the newest listed credit. Checking through LedgerScreen.example means the rule-12 formula change does not break it."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "163-165 ZED loop",
+            "current": "    for (final e in Scenario.feeEntries.value) {\n      expect(find.text(e.eventTitle), findsNothing);\n    }",
+            "replacement": "    // Neither as a row nor as the worked example.\n    for (final e in Scenario.feeEntries.value) {\n      expect(find.text(e.eventTitle), findsNothing);\n      expect(find.text(LedgerScreen.example(e)), findsNothing);\n    }",
+            "rationale": "A market with no credits shows no worked example of another market's credit."
+          }
+        ]
+      },
+      {
+        "findingId": "F11",
+        "verdict": "fix-here",
+        "evidence": "your_market_screen.dart:122-135 iterate `calls` from `ValueListenableBuilder(valueListenable: Scenario.callReceipts`, and receipt_screens.dart:196 `for (final c in Scenario.callReceipts.value)`. Every widget test in receipts_test.dart pumps these screens with callReceipts equal to the seed `YourMarketMock.record` (scenario.dart:294). The only write that leaves the seed is the pure test at :108. In a scratch-copy re-run, both mutants below SURVIVED the old file and were KILLED by the new test with `Expected: no matching candidates`. This depends on F2's `onList` helper; apply F2's helper edit first, or inline `find.descendant(of: find.byType(ReceiptsScreen), matching: ...)`.",
+        "rejectsValidInput": "None. House rule 8 requires screens to read mutable state through Scenario, so a list that follows the store is the only valid behaviour. The Profile CALLS list and the trader-market Record panel are left out, per house rule 13.",
+        "testProof": "Mutations: (a) in app/lib/features/market/your_market_screen.dart, `for (final c in calls)` -> `for (final c in YourMarketMock.record)`; (b) in app/lib/features/market/receipt_screens.dart, `          for (final c in Scenario.callReceipts.value)\\n            if (c.author == author) c,` -> `          for (final c in YourMarketMock.record)\\n            if (c.author == author) c,`. Every old test passes under each. The new 'the record and receipts lists read the call receipt store' fails at `expect(find.text(dropped.rule!), findsNothing)` for (a), and at `expect(onList(find.text(dropped.rule!)), findsNothing)` for (b).",
+        "edits": [
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "289 every All receipts test header",
+            "current": "  testWidgets('every All receipts link opens the receipts list', (",
+            "replacement": "  testWidgets('the record and receipts lists read the call receipt store', (\n    tester,\n  ) async {\n    final dropped = myCalls.first;\n    Scenario.callReceipts.value = myCalls.sublist(1);\n    await pumpApp(tester, home: const YourMarketScreen());\n    expect(find.text(dropped.rule!), findsNothing);\n    for (final c in myCalls) {\n      expect(find.text(c.rule!), findsOneWidget);\n    }\n    await tapAndSettle(tester, find.text('All receipts ›'));\n    expect(onList(find.text(dropped.rule!)), findsNothing);\n    for (final c in myCalls) {\n      expect(onList(find.text(c.rule!)), findsOneWidget);\n    }\n  });\n\n  testWidgets('every All receipts link opens the receipts list', (",
+            "rationale": "Move the store away from the seed, then check that both lists follow it. Uses F2's onList helper."
+          }
+        ]
+      }
+    ],
+    "coverage": {
+      "failedGroups": [],
+      "unreported": []
+    },
+    "apply": {
+      "applied": [
+        {
+          "findingId": "F3",
+          "file": "app/lib/features/market/receipt_screens.dart",
+          "summary": "Header copy now reads 'No open call in ${Scenario.fixtureVersion} backs this holding' (F3.1). Test constant noCall updated (F3.2). New maya SOL block in 'each record item opens its call receipt' (F3.3) checks that her settled SOL call does not back the SOL holding, so the noCall header shows and sol.rule is absent. Also app/test/receipts_test.dart.",
+          "red": "Test edits applied first, run against the old lib (flutter test test/receipts_test.dart --plain-name 'each record item opens its call receipt'):\n══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════\nThe following TestFailure was thrown running a test:\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"No open call in fixture-v1 backs this\nholding\" descending from widgets with type \"CallReceiptScreen\": []>\n   Which: means none were found but one was expected\n...\nThis was caught by the test expectation on the following line:\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 239\n00:01 +0 -1: each record item opens its call receipt [E]\n00:01 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F5",
+          "file": "app/lib/features/market/receipt_screens.dart",
+          "summary": "LedgerScreen.example now derives the fee as (amountCents*100 + pct~/2) ~/ pct, which rounds half up in int cents. It prints formatCents(e.amountCents) as the result instead of recomputing the credit from the fee, and the doc comment states the rounding rule. Added the odd-cent test 'the worked example prints the listed credit for an odd-cent entry' (amountCents 1241) to app/test/receipts_test.dart.",
+          "red": "New test run against the old lib:\n00:00 +0: the worked example prints the listed credit for an odd-cent entry\n00:00 +0 -1: the worked example prints the listed credit for an odd-cent entry [E]\n  Expected: contains 'traders paid $31.03 in fees. 40% of $31.03 = $12.41,'\n    Actual: 'Example: Odd session on MAYA: traders paid $31.02 in fees. 40% of $31.02 = $12.40, its credit below.'\n     Which: does not contain 'traders paid $31.03 in fees. 40% of $31.03 = $12.41,'\n  \n  package:matcher                                     expect\n  package:flutter_test/src/widget_tester.dart 473:18  expect\n  test/receipts_test.dart 204:5                       main.<fn>\n00:00 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F12",
+          "file": "app/test/receipts_test.dart",
+          "summary": "Added the design_system.dart and profile_mock.dart imports. Merged with F8.1, which needed the same design_system import, so it is added only once. Added the test 'Call details match the holding side: a short ETH holding is not backed by an open ETH long'.",
+          "red": "Mutation: deleted `c.side == holding.side &&` in receipt_screens.dart forHolding.\nOld suite under the mutant (flutter test test/receipts_test.dart): SURVIVED\n00:02 +10: (tearDownAll)\n00:02 +10: All tests passed!\nNew test under the same mutant: KILLED\nThe following TestFailure was thrown running a test:\nExpected: 'none'\n  Actual: 'maya-eth-4000-oct10'\n   Which: is different.\n          Expected: none\n            Actual: maya-eth-4 ...\n                    ^\n           Differ at offset 0\n...\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 308\n00:00 +0 -1: Some tests failed.\nMutation reverted; the full receipts file then passed (+11)."
+        },
+        {
+          "findingId": "F4",
+          "file": "app/lib/scenario/scenario.dart",
+          "summary": "Added Scenario.listedAt (ValueNotifier<DateTime?>), seeded from _seedListedAt and restored in reset() (F4.1, F4.2, F4.4). marketFees now returns no entries while listedAt is null and counts only credits with !e.at.isBefore(listedAt) (F4.3). AccountState.listMarket records Scenario.clock.value before it sets marketId (F4.5, account_state.dart). New fixture constant YourMarketMock.listedAt = chartEnd - 7 days (F4.6, market_mock.dart). scenario_test state() now includes listedAt (F4.7). Added the account_state import and the fresh-listing test to receipts_test.dart (F4.8, F4.9). Grep found no other writers of marketId or hasMarket in lib besides listMarket. Test-only writers: receipts_test ZED test and scenario_test mutateEverything; both still pass. Also passes with --dart-define=HAS_MARKET=true on receipts_test and scenario_test (+32).",
+          "red": "New test run against the old lib (before F4.1-F4.7):\n00:00 +0: a fresh listing earns nothing until a credit lands after it; the HAS_MARKET seed counts its week; reset restores both\n00:00 +0 -1: a fresh listing earns nothing until a credit lands after it; the HAS_MARKET seed counts its week; reset restores both [E]\n  Expected: empty\n    Actual: [\n              Instance of 'FeeEntry',\n              Instance of 'FeeEntry',\n              Instance of 'FeeEntry',\n              Instance of 'FeeEntry',\n              Instance of 'FeeEntry'\n            ]\n  \n  package:matcher                                     expect\n  package:flutter_test/src/widget_tester.dart 473:18  expect\n  test/receipts_test.dart 181:5                       main.<fn>\n00:00 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F1",
+          "file": "app/test/receipts_test.dart",
+          "summary": "The import now also shows pill. The ledger pill test loops over 360x640 and 375x667, and asserts that the total and the 'Total' label both have bottom <= the pill's top, on top of expectPillClear.",
+          "red": "Mutation: `MediaQuery.paddingOf(context).bottom + VistaSpace.xxl,` -> `VistaSpace.xxl,` in the ledger footer.\nOld test under the mutant: SURVIVED\n00:00 +1: (tearDownAll)\n00:00 +1: All tests passed!\nNew test under the same mutant: KILLED\nThe following TestFailure was thrown running a test:\nExpected: a value less than or equal to <610.0>\n  Actual: <626.0>\n   Which: is not a value less than or equal to <610.0>\n...\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 255\n00:00 +0 -1: the ledger total stays above the simulation pill on a small phone at 1.3x text [E]\n00:00 +0 -1: Some tests failed.\nMutation reverted; the test then passed."
+        },
+        {
+          "findingId": "F2",
+          "file": "app/test/receipts_test.dart",
+          "summary": "Added the onList helper. 'every All receipts link opens the receipts list' now places a paper order before opening kaito.eth's lists. On both the profile list and the trader-market list it asserts that neither 'Long ETH 10x' nor 'Paper fill' renders.",
+          "red": "Mutation: moved the order rows out of the `if (own) ...[` spread in ReceiptsScreen, as the adjudicator specified.\nOld test under the mutant: SURVIVED\n00:01 +1: (tearDownAll)\n00:01 +1: All tests passed!\nNew test under the same mutant: KILLED\nExpected: no matching candidates\n  Actual: _DescendantWidgetFinder:<Found 1 widget with text \"Long ETH 10x\" descending from widget\nwith type \"ReceiptsScreen\": [ ... ]>\n   Which: means one was found but none were expected\n...\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 398\n00:01 +0 -1: Some tests failed.\nMutation reverted; the test then passed."
+        },
+        {
+          "findingId": "F6",
+          "file": "app/test/receipts_test.dart",
+          "summary": "Added the kaito.eth ProfileScreen ETH Call details block. Merged with F3.3: the block goes after the maya SOL block, not directly after the BTC back(). Otherwise the SOL block would run on kaito's profile and no longer test maya's SOL holding.",
+          "red": "Mutation: profile_screen.dart `.push(CallReceiptScreen.forHolding(widget.handle, h)),` -> `.push(CallReceiptScreen.forHolding(PortfolioMock.handle, h)),`.\nOld test under the mutant: SURVIVED\n00:01 +1: (tearDownAll)\n00:01 +1: All tests passed!\nNew test under the same mutant: KILLED\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"kaito.eth\" descending from widgets\nwith type \"CallReceiptScreen\": []>\n   Which: means none were found but one was expected\n...\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 309\n00:01 +0 -1: Some tests failed.\nMutation reverted; the test then passed."
+        },
+        {
+          "findingId": "F7",
+          "file": "app/test/receipts_test.dart",
+          "summary": "The market-name assertion now counts textContaining('MAYA · ') == entries.length, one per ledger row.",
+          "red": "Mutation: `Text('${e.marketId} · ${_when(e.at)}', style: muted),` -> `Text(_when(e.at), style: muted),`.\nOld test under the mutant: SURVIVED\n00:01 +1: (tearDownAll)\n00:01 +1: All tests passed!\nNew test under the same mutant: KILLED\nExpected: exactly 5 matching candidates\n  Actual: _TextContainingWidgetFinder:<Found 0 widgets with text containing MAYA · : []>\n   Which: means none were found but some were expected\n...\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 136\n00:01 +0 -1: Some tests failed.\nMutation reverted; the test then passed."
+        },
+        {
+          "findingId": "F8",
+          "file": "app/test/receipts_test.dart",
+          "summary": "The record loop now asserts Direction (side label), Entered, Market said, 'Not settled yet' on the open call only, and an exact unavailable count (1 open, 2 settled). The F8.1 import was already added by F12.1 and is not duplicated.",
+          "red": "Old test under each mutant: SURVIVED\nmutated 1\n00:01 +1: All tests passed!\nmutated 2\n00:01 +1: All tests passed!\nmutated 3\n00:01 +1: All tests passed!\nmutated 4\n00:01 +1: All tests passed!\nNew test under each mutant: KILLED\nmutated 1\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"Thu 14:32\" descending from widgets\n   Which: means none were found but one was expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:280:7)\n00:00 +0 -1: Some tests failed.\nmutated 2\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"22%\" descending from widgets with type\n   Which: means none were found but one was expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:281:7)\n00:00 +0 -1: Some tests failed.\nmutated 3\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"Long\" descending from widgets with\n   Which: means none were found but one was expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:279:7)\n00:00 +0 -1: Some tests failed.\nmutated 4\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"Not settled yet\" descending from\n   Which: means none were found but one was expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:287:7)\n00:00 +0 -1: Some tests failed.\n(1 = Entered->null, 2 = Market said->null, 3 = Direction->null, 4 = Settled->r.settledAt.) Mutations reverted; the test then passed."
+        },
+        {
+          "findingId": "F9",
+          "file": "app/test/receipts_test.dart",
+          "summary": "In the record loop and on the own-profile ETH Call details path, a real call's receipt must not show noCall and must show 'A published call, not an order fill'.",
+          "red": "Mutation: `          r.rule == null\\n` -> `          true\\n` in the CallReceiptScreen header.\nOld test under the mutant: SURVIVED\n00:01 +1: All tests passed!\nNew test under the same mutant: KILLED\nExpected: no matching candidates\n  Actual: _DescendantWidgetFinder:<Found 1 widget with text \"No open call in fixture-v1 backs this\nholding\" descending from widget with type \"CallReceiptScreen\": [ ... ]>\n   Which: means one was found but none were expected\n...\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart line 278\n00:00 +0 -1: Some tests failed.\nMutation reverted; the test then passed."
+        },
+        {
+          "findingId": "F10",
+          "file": "app/test/receipts_test.dart",
+          "summary": "'ledger total' now checks that after the newest credit is dropped, the worked example cites rest.first and no longer entries.first. The ZED test asserts that no seeded credit's worked example renders. Both go through LedgerScreen.example.",
+          "red": "Old tests under each mutant: SURVIVED\n== old tests vs (a)\nmutated F10a\n00:01 +1: All tests passed!\n== old tests vs (b)\nmutated F10b\n00:00 +1: All tests passed!\nNew tests under each mutant: KILLED\n== new tests vs (a)\nmutated F10a\nExpected: no matching candidates\n  Actual: _TextWidgetFinder:<Found 1 widget with text \"Example: Saturday trading session on MAYA:\n   Which: means one was found but none were expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:150:5)\n00:01 +0 -1: Some tests failed.\n== new tests vs (b)\nmutated F10b\nExpected: no matching candidates\n  Actual: _TextWidgetFinder:<Found 1 widget with text \"Example: Saturday trading session on MAYA:\n   Which: means one was found but none were expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:180:7)\n00:00 +0 -1: Some tests failed.\nMutations reverted; both tests then passed."
+        },
+        {
+          "findingId": "F11",
+          "file": "app/test/receipts_test.dart",
+          "summary": "Added the test 'the record and receipts lists read the call receipt store'. It drops the first call from Scenario.callReceipts and asserts that both Your market's record and the All receipts list (via onList) follow the store.",
+          "red": "Old suite under each mutant: SURVIVED\n== old suite vs (a)\nmutated F11a\n00:02 +12: All tests passed!\n== old suite vs (b)\nmutated F11b\n00:02 +12: All tests passed!\nNew test under each mutant: KILLED\n== new test vs (a)\nmutated F11a\nExpected: no matching candidates\n  Actual: _TextWidgetFinder:<Found 1 widget with text \"SOL reaches $300 by Fri\": [\n   Which: means one was found but none were expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:421:5)\n00:00 +0 -1: Some tests failed.\n== new test vs (b)\nmutated F11b\nExpected: no matching candidates\n  Actual: _DescendantWidgetFinder:<Found 1 widget with text \"SOL reaches $300 by Fri\" descending\n   Which: means one was found but none were expected\n#4      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/receipts_test.dart:426:5)\n00:00 +0 -1: Some tests failed.\n(a = your_market_screen.dart `for (final c in calls)` -> YourMarketMock.record; b = ReceiptsScreen calls from YourMarketMock.record.) Mutations reverted; the full receipts file then passed (+13)."
+        }
+      ],
+      "skipped": [],
+      "verification": "=== gate: flutter-analyze: flutter analyze ===\nPASS flutter-analyze\n=== gate: flutter-test: flutter test ===\nPASS flutter-test\n=== gate: pubspec-frozen: git diff --exit-code c95349cc2a9a40be16d4bddee74c512129ac0114 -- pubspec.yaml pubspec.lock ===\nPASS pubspec-frozen\n----\nGATE: PASS\nexit=0\n(extra: cd app && flutter test --dart-define=HAS_MARKET=true test/receipts_test.dart test/scenario_test.dart -> 00:03 +32: All tests passed!)"
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Adjudicate"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Apply"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "adjudicate:receipt-screens",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a2571260660df4e81",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791175062516,
+      "queuedAt": 1791175062494,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791175235149,
+      "tokens": 119203,
+      "toolCalls": 10,
+      "durationMs": 172628,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F3\",\"verdict\":\"fix-here\",\"evidence\":\"app/lib/features/market/receipt_screens.dart:272-277: forHolding returns a call only when `c.side == holding.side && c.result == CallOutcome.open`; the doc comment at 269-271 says \\\"the receipt of the author's open call on the same asset and side\\\". Line 312 prints `'No call in ${Scenario.fixtureVersion} backs this holding'` for the i…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "adjudicate:scenario-fees",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "ab93f3a2e62b30ceb",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791175062518,
+      "queuedAt": 1791175062494,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791175262932,
+      "tokens": 124955,
+      "toolCalls": 14,
+      "durationMs": 199652,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F4\",\"verdict\":\"fix-here\",\"evidence\":\"Confirmed against the tree.\\n- app/lib/features/account/account_state.dart:16-20: `listMarket` sets only `Scenario.ticker.value = symbol; Scenario.marketId.value = symbol; Scenario.hasMarket.value = true;`. Nothing records when the market was listed.\\n- app/lib/scenario/scenario.dart:111-114: `static List<FeeEntry> get marketFees => […"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "adjudicate:receipts-tests",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a6426f54dd3df4449",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791175062520,
+      "queuedAt": 1791175062494,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791175956468,
+      "tokens": 161032,
+      "toolCalls": 23,
+      "durationMs": 893187,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F1\",\"verdict\":\"fix-here\",\"evidence\":\"receipt_screens.dart:132 `MediaQuery.paddingOf(context).bottom + VistaSpace.xxl,` keeps the footer clear of the 30 px strip. SimulationIndicator adds `SimulationIndicator.slot` (30) to MediaQuery padding and centres the pill in that strip. home_screen_test.dart:57-66 `expectPillClear` checks only `rect.overlaps(target)`. The total is …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "apply:edits",
+      "phaseIndex": 2,
+      "phaseTitle": "Apply",
+      "agentId": "ac1bea315e5c15ce6",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791175958891,
+      "queuedAt": 1791175958871,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "=== gate: flutter-analyze: flutter analyze === PASS flutter…",
+      "promptPreview": "Apply the adjudicated edits below. You are the ONLY writer in this run, so apply them one at a\ntime and keep every file you touch valid throughout.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, ligh…",
+      "promptFramed": true,
+      "lastProgressAt": 1791176481992,
+      "tokens": 162645,
+      "toolCalls": 32,
+      "durationMs": 523100,
+      "resultPreview": "{\"applied\":[{\"findingId\":\"F3\",\"file\":\"app/lib/features/market/receipt_screens.dart\",\"summary\":\"Header copy now reads 'No open call in ${Scenario.fixtureVersion} backs this holding' (F3.1). Test constant noCall updated (F3.2). New maya SOL block in 'each record item opens its call receipt' (F3.3) checks that her settled SOL call does not back the SOL holding, so the noCall header shows and sol.rule…"
+    }
+  ],
+  "totalTokens": 567835,
+  "totalToolCalls": 79
+}

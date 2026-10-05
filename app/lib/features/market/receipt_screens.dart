@@ -61,13 +61,14 @@ class LedgerScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => const LedgerScreen());
 
   /// Works [e] back from the fee traders paid: fee × 40% = the credit.
-  /// Seeded credits are even cents, so the fee works back exactly.
+  /// The fee is the credit ÷ 40% in int cents, rounded half up; the result
+  /// shown is the listed credit itself, never recomputed from the fee.
   static String example(FeeEntry e) {
     const pct = YourMarketMock.creatorSharePct;
-    final fee = e.amountCents * 100 ~/ pct;
+    final fee = (e.amountCents * 100 + pct ~/ 2) ~/ pct;
     return 'Example: ${e.eventTitle} on ${e.marketId}: traders paid '
         '${formatCents(fee)} in fees. $pct% of ${formatCents(fee)} = '
-        '${formatCents(fee * pct ~/ 100)}, its credit below.';
+        '${formatCents(e.amountCents)}, its credit below.';
   }
 
   @override
@@ -309,7 +310,7 @@ class CallReceiptScreen extends StatelessWidget {
       children: [
         Text(
           r.rule == null
-              ? 'No call in ${Scenario.fixtureVersion} backs this holding'
+              ? 'No open call in ${Scenario.fixtureVersion} backs this holding'
               : 'A published call, not an order fill',
           style: VistaType.bodyMedium,
         ),

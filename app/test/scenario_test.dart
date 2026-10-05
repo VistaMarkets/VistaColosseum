@@ -31,6 +31,7 @@ List<Object?> state() => [
   Scenario.hasMarket.value,
   Scenario.ticker.value,
   Scenario.marketId.value,
+  Scenario.listedAt.value,
   Scenario.liked.value,
   Scenario.favoriteAssets.value,
   Scenario.favoriteTraders.value,

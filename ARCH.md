@@ -640,6 +640,10 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-6-fixer/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-6-iter-1/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test-has-market.log
@@ -771,6 +775,7 @@ VistaColosseum/
 │       ├── fixer-phase-3.json
 │       ├── fixer-phase-4.json
 │       ├── fixer-phase-5.json
+│       ├── fixer-phase-6.json
 │       ├── house-rules.md
 │       ├── log.md
 │       ├── review-phase-1-iter-1-prelude.md

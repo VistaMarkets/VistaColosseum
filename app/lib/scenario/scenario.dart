@@ -32,10 +32,13 @@ abstract final class Scenario {
   );
 
   /// The user's own market: whether it is listed, its ticker (suggested
-  /// before listing), and its id once listed (the symbol, as markets use).
+  /// before listing), its id once listed (the symbol, as markets use), and
+  /// when it was listed: the clock at listing, or the seed's
+  /// [YourMarketMock.listedAt] when `HAS_MARKET` starts with it listed.
   static final hasMarket = ValueNotifier<bool>(_startWithMarket);
   static final ticker = ValueNotifier<String>(PortfolioMock.marketSymbol);
   static final marketId = ValueNotifier<String?>(_seedMarketId);
+  static final listedAt = ValueNotifier<DateTime?>(_seedListedAt);
 
   /// Liked calls, keyed `callerHandle/ticker`.
   static final liked = ValueNotifier<Set<String>>(const {});
@@ -89,6 +92,9 @@ abstract final class Scenario {
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
 
+  static DateTime? get _seedListedAt =>
+      _startWithMarket ? YourMarketMock.listedAt : null;
+
   /// A handle's last entry wins, as the follow lists showed it.
   static Set<String> get _seedFollowed => Set.unmodifiable({
     for (final MapEntry(:key, :value) in {
@@ -106,12 +112,17 @@ abstract final class Scenario {
     );
   }
 
-  /// The credits of the user's listed market: none before listing, and
-  /// none for a market listed under another ticker.
-  static List<FeeEntry> get marketFees => [
-    for (final e in feeEntries.value)
-      if (e.marketId == marketId.value) e,
-  ];
+  /// The credits of the user's listed market dated at or after its listing:
+  /// none before listing, none for a market listed under another ticker,
+  /// and none from before a fresh listing existed to earn them.
+  static List<FeeEntry> get marketFees {
+    final since = listedAt.value;
+    if (since == null) return const [];
+    return [
+      for (final e in feeEntries.value)
+        if (e.marketId == marketId.value && !e.at.isBefore(since)) e,
+    ];
+  }
 
   /// What [marketFees] add up to, in int cents.
   static int get marketFeesCents =>
@@ -279,6 +290,7 @@ abstract final class Scenario {
     hasMarket.value = withMarket;
     ticker.value = PortfolioMock.marketSymbol;
     marketId.value = withMarket ? PortfolioMock.marketSymbol : null;
+    listedAt.value = withMarket ? YourMarketMock.listedAt : null;
     liked.value = const {};
     favoriteAssets.value = MarketsMock.assetFavorites;
     favoriteTraders.value = MarketsMock.traderFavorites;

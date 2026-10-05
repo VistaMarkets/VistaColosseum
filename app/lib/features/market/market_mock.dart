@@ -119,6 +119,10 @@ abstract final class YourMarketMock {
   static const creatorSharePct = 40;
   static const shareLabel = '$creatorSharePct% share is a demo assumption';
 
+  /// When the seeded market (`HAS_MARKET`) was listed: a week before the
+  /// fixture's now, so this week's seeded credits all follow it.
+  static final listedAt = TradeMock.chartEnd.subtract(const Duration(days: 7));
+
   /// The ledger's seed, newest first: MAYA's credits this week, each the
   /// creator's share of one session's fees.
   static final fees = List<FeeEntry>.unmodifiable([
