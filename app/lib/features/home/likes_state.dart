@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 
+import '../../scenario/scenario.dart';
 import 'mock_trade_idea.dart';
 
 /// Calls the viewer has liked, shared by every card showing the same call.
-/// Held in memory: the demo sends nothing and likes reset on restart.
+/// The set lives in [Scenario]: the demo sends nothing and likes reset on
+/// restart or Reset demo.
 abstract final class LikesState {
-  static final liked = ValueNotifier<Set<String>>(const {});
+  static ValueNotifier<Set<String>> get liked => Scenario.liked;
 
   static String _key(TradeIdea i) => '${i.callerHandle}/${i.ticker}';
 
@@ -20,8 +22,6 @@ abstract final class LikesState {
         : Set.unmodifiable(liked.value.where((e) => e != k));
     return on;
   }
-
-  static void reset() => liked.value = const {};
 
   /// The count with the viewer's like: "980" → "981"; rounded counts
   /// ("4.4k") don't move for one like.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../portfolio/portfolio_mock.dart';
@@ -29,7 +30,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _following = false;
   int _span = PortfolioMock.defaultSpan;
   int _filter = 0; // 0 All, 1 Calls, 2 Arena
 
@@ -186,11 +186,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Row(
           children: [
             Expanded(
-              child: VistaFollowButton(
-                following: _following,
-                // Local only: nothing is sent anywhere.
-                onPressed: () => setState(() => _following = !_following),
-                expand: true,
+              child: ValueListenableBuilder(
+                valueListenable: Scenario.followed,
+                builder: (context, followed, _) => VistaFollowButton(
+                  following: followed.contains(widget.handle),
+                  onPressed: () => Scenario.toggleFollow(widget.handle),
+                  expand: true,
+                ),
               ),
             ),
             const SizedBox(width: VistaSpace.lg),

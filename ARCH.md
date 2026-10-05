@@ -420,13 +420,16 @@ VistaColosseum/
 │   │   │   └── watchlist/  — favourites shared by every star: `WatchlistState` (assets = the backend's asset-follow relation; traders device-only) drives Explore's rows and Favorites rail, the asset and trader market page stars, and Edit favorites (drag to reorder, unstar with undo); in memory, simulated
 │   │   │       ├── edit_favorites_screen.dart
 │   │   │       └── watchlist_state.dart
+│   │   ├── scenario/
+│   │   │   └── scenario.dart
 │   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
 │   │   ├── home_screen_test.dart
 │   │   ├── replay_live_test.dart
-│   │   └── rolling_number_test.dart
+│   │   ├── rolling_number_test.dart
+│   │   └── scenario_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   └── app_icon/
 │   │       ├── app_icon_1024.png
@@ -439,6 +442,33 @@ VistaColosseum/
 │   ├── pubspec.lock
 │   ├── pubspec.yaml
 │   └── README.md
+├── baton-pass/
+│   └── br-2026-10-04-p0-queue/
+│       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
+│       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
+│       ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
+│       ├── 2026-10-04T101019-phase1-scenario-store-half2.md
+│       ├── 2026-10-04T105011-phase1-review-iter1.md
+│       ├── 2026-10-04T105911-phase1-fix-iter1.md
+│       └── 2026-10-04T114637-phase1-review-iter2.md
+├── baton-runner/
+│   └── br-2026-10-04-p0-queue/
+│       ├── gate-phase-1-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-1-iter-2/
+│       │   ├── extra-flutter-test-has-market-true.log
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── digest-phase-1.md
+│       ├── log.md
+│       ├── review-phase-1-iter-1-prelude.md
+│       ├── review-phase-1-iter-1.md
+│       ├── review-phase-1-iter-2-prelude.md
+│       ├── review-phase-1-iter-2.md
+│       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
 │   │   ├── domain.md

@@ -44,9 +44,6 @@ class RecordEntry {
 
 /// Mock content from the Figma frame (168:110). Simulated; not market data.
 abstract final class YourMarketMock {
-  static const symbol = 'MAYA';
-  static const owner = 'maya.eth';
-  static const marketCap = r'$44.0M';
   static const change24h = r'+$1.8M (4.27%)';
   static const unitLine = r'$0.4400 / unit · 100M supply';
   static const feesThisWeek = r'$42.80';

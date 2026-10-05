@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'market_mock.dart';
 
@@ -35,14 +36,17 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         bottom: false,
         child: Column(
           children: [
-            VistaDetailHeader(
-              avatarAsset: VistaAssets.portfolioAvatar,
-              title: YourMarketMock.symbol,
-              subtitle: '${YourMarketMock.owner} · your market',
-              onBack: () => Navigator.of(context).maybePop(),
-              actionGlyph: '↗',
-              actionLabel: 'Share',
-              onAction: () => _notBuilt('Share'),
+            ValueListenableBuilder(
+              valueListenable: Scenario.ticker,
+              builder: (context, ticker, _) => VistaDetailHeader(
+                avatarAsset: VistaAssets.portfolioAvatar,
+                title: ticker,
+                subtitle: '${PortfolioMock.handle} · your market',
+                onBack: () => Navigator.of(context).maybePop(),
+                actionGlyph: '↗',
+                actionLabel: 'Share',
+                onAction: () => _notBuilt('Share'),
+              ),
             ),
             Expanded(
               child: ListView(
@@ -153,7 +157,7 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(YourMarketMock.marketCap, style: VistaType.display),
+          child: Text(PortfolioMock.marketCap, style: VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(

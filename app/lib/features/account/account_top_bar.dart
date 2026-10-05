@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
+import '../../scenario/scenario.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../settings/settings_screen.dart';
 
@@ -42,12 +43,15 @@ class AccountTopBar extends StatelessWidget {
                 ),
                 Semantics(
                   label: 'Portfolio balance',
-                  child: LiveUsd(
-                    feedKey: 'portfolio',
-                    base: parseUsd(PortfolioMock.balance),
-                    step: 9,
-                    style: VistaType.body.copyWith(
-                      color: VistaColors.textSecondary,
+                  child: ValueListenableBuilder(
+                    valueListenable: Scenario.cashCents,
+                    builder: (context, cents, _) => LiveUsd(
+                      feedKey: 'portfolio',
+                      base: cents / 100,
+                      step: 9,
+                      style: VistaType.body.copyWith(
+                        color: VistaColors.textSecondary,
+                      ),
                     ),
                   ),
                 ),

@@ -16,16 +16,23 @@ class LiveFeed {
 
   static final _values = <String, ValueNotifier<double>>{};
   static final _steps = <String, double>{};
+  static final _bases = <String, double>{};
   static Timer? _timer;
   static final _random = math.Random(7);
 
   static bool get enabled => !Platform.environment.containsKey('FLUTTER_TEST');
 
   /// The live value for [key], starting at [base]. Each tick it moves by up
-  /// to [step] either way.
+  /// to [step] either way. A new [base] (cash debited, demo reset) starts a
+  /// fresh value there; callers rebuild with it, so no one is notified
+  /// mid-build.
   static ValueListenable<double> watch(String key, double base, double step) {
     _steps[key] = step;
-    final v = _values.putIfAbsent(key, () => ValueNotifier(base));
+    if (_bases[key] != base) {
+      _bases[key] = base;
+      _values[key] = ValueNotifier(base);
+    }
+    final v = _values[key]!;
     if (enabled) {
       _timer ??= Timer.periodic(const Duration(seconds: 3), (_) => _tick());
     }
@@ -54,12 +61,6 @@ String formatUsd(double v, {int decimals = 0}) {
   );
   final sign = v < 0 ? '−' : '';
   return '$sign\$$whole${parts.length > 1 ? '.${parts[1]}' : ''}';
-}
-
-/// Parses a dollar figure like "$2,968.40" or "−$13".
-double parseUsd(String s) {
-  final v = double.tryParse(s.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
-  return s.contains('−') || s.contains('-') ? -v : v;
 }
 
 /// A live dollar figure that rolls its digits as the feed moves it.
