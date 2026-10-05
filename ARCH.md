@@ -574,6 +574,7 @@ VistaColosseum/
 │       │   └── pubspec-frozen.log
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
+│       ├── house-rules.md
 │       ├── log.md
 │       ├── review-phase-1-iter-1-prelude.md
 │       ├── review-phase-1-iter-1.md
