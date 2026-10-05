@@ -94,3 +94,8 @@
 2026-10-05T03:35:13Z return: dw-review wf_6ecdbb4a-a23 COMPLETE; skeptic APPROVE; raw 6 (tautology-hunt 5, state-truthfulness 0, layout-semantics 1); confirmed 5 = F1 [MEDIUM] prefill test cannot tell suggestion asset from hardcoded SOL/long, F2 [LOW] clock link unpinned, F3 [LOW] reference line unasserted + tautological unit check, F4 [LOW] dead Confirm assertion, F5 [LOW] badge contrast 4.26:1; refuted 0; wrong claims 1 (text-scale clamp exists); residual risk 13; none before-merge; JSON baton-runner/br-2026-10-04-p0-queue/review-phase-5-dw.json; units 26/75
 2026-10-05T03:35:13Z decision (manager): F5 fix = badge label uses VistaColors.textPrimary on the accentTint fill (tokens only). F1-F4 are test-strength: mutation-proven or not done; the ETH-short-made-live case via Scenario.clock covers F1 and F2 together.
 2026-10-05T03:35:13Z workflow: finding-fixer launched over F1-F5, groups {F1,F2,F3,F4} tests, {F5} badge; verify = scripts/gate.sh gate-phase-5-fixer/
+2026-10-05T03:45:49Z return: finding-fixer wf_c48cc226-da2 COMPLETE; F1-F5 all fix-here; applied F1,F3,F4,F5 (F2's proof lives in F1's test per house rule 11, no separate edit); skipped none; unreported none; verify GATE: PASS exit 0; JSON baton-runner/br-2026-10-04-p0-queue/fixer-phase-5.json; units 27/75
+2026-10-05T03:45:49Z commit: d935436 fix(phase-5) adjudicated findings
+2026-10-05T03:45:49Z gate: full gate launched at d935436 -> baton-runner/br-2026-10-04-p0-queue/gate-phase-5-close/
+2026-10-05T03:47:35Z gate: full gate at d935436 -> see gate-stdout.log in baton-runner/br-2026-10-04-p0-queue/gate-phase-5-close/
+2026-10-05T03:47:35Z spawn: phase 5 CLOSING unit (opus, general-purpose)
