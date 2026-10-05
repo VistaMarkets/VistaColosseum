@@ -37,6 +37,13 @@ class SimulationIndicator extends StatefulWidget {
   final Widget child;
 
   /// The reserved strip: fits the pill at the app's 1.3x text-scale cap.
+  ///
+  /// Known gap (run manager, 2026-10-05): the pill's tap target is this
+  /// 30 px strip, under [VistaSize.tapTarget]. A pad above the strip would
+  /// sit on footers that end flush on it (make-market footer, ChartSheet
+  /// Long/Short, your-market 'Make a call'), which spec 03 forbids, and
+  /// raising the slot costs every screen 14 px. Closing it is the manager's
+  /// call: raise the slot, or give those footers a 14 px gap first.
   static const double slot = 30;
 
   @override
@@ -54,7 +61,7 @@ class _SimulationIndicatorState extends State<SimulationIndicator> {
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: const Color(0x73000000), // Figma scrim: black at 45%
+      barrierColor: VistaColors.scrim,
       builder: (_) => const _SimulatedNote(),
     );
     _open = false;
@@ -131,7 +138,9 @@ class _SimulatedNote extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: VistaColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(VistaRadius.sheet),
+        ),
       ),
       padding: EdgeInsets.fromLTRB(
         VistaSpace.gutter,

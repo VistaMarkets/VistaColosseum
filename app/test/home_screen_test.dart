@@ -44,6 +44,21 @@ Finder get pagerBalance => find.descendant(
 /// The breakout label is the last event the trace reaches.
 Finder get breakoutLabel => find.text(r'Broke $2,950');
 
+/// The simulated pill's label.
+const pill = 'Simulated · fixture-v1';
+
+/// The pill is on screen, on top, and covers none of [targets].
+void expectPillClear(WidgetTester tester, Finder targets) {
+  final badge = find.bySemanticsLabel(pill);
+  expect(badge.hitTestable(), findsOneWidget);
+  expect(targets, findsWidgets);
+  final rect = tester.getRect(badge);
+  for (var i = 0; i < targets.evaluate().length; i++) {
+    final target = tester.getRect(targets.at(i));
+    expect(rect.overlaps(target), isFalse, reason: '$rect covers $target');
+  }
+}
+
 /// Phone sizes (logical px) and safe-area insets the Home screen must fit.
 const phones = <String, (Size, EdgeInsets)>{
   'small Android 360x640': (Size(360, 640), EdgeInsets.only(top: 24)),
@@ -1997,6 +2012,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.bySemanticsLabel('Raise leverage'));
         await tester.pumpAndSettle();
+        // Set must clear the pill, not just keep its centre tappable.
+        expectPillClear(
+          tester,
+          find.widgetWithText(VistaPrimaryButton, 'Set 11x'),
+        );
         await tester.tap(find.text('Set 11x'));
         await tester.pumpAndSettle();
         expect(find.text('Cross · 11x'), findsOneWidget);
@@ -2285,6 +2305,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.bySemanticsLabel('Raise leverage'));
         await tester.pumpAndSettle();
+        // Set must clear the pill, not just keep its centre tappable.
+        expectPillClear(
+          tester,
+          find.widgetWithText(VistaPrimaryButton, 'Set 3x'),
+        );
         await tester.tap(find.text('Set 3x'));
         await tester.pumpAndSettle();
         expect(inTicket(find.text(r'Long $200 · 3x')), findsOneWidget);
@@ -2332,7 +2357,6 @@ void main() {
   });
 
   group('simulation indicator', () {
-    const pill = 'Simulated · fixture-v1';
     const tabs = ['Home', 'Explore', 'Arena', 'Wallet'];
     // The spec's two layout checks: iPhone SE and iPhone 14.
     const sizes = <String, (Size, EdgeInsets)>{
@@ -2356,18 +2380,6 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
-    }
-
-    /// The pill is on screen, on top, and covers none of [targets].
-    void expectPillClear(WidgetTester tester, Finder targets) {
-      final badge = find.bySemanticsLabel(pill);
-      expect(badge.hitTestable(), findsOneWidget);
-      expect(targets, findsWidgets);
-      final rect = tester.getRect(badge);
-      for (var i = 0; i < targets.evaluate().length; i++) {
-        final target = tester.getRect(targets.at(i));
-        expect(rect.overlaps(target), isFalse, reason: '$rect covers $target');
-      }
     }
 
     Finder button(String label) => find

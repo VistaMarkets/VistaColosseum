@@ -11,6 +11,9 @@ abstract final class VistaColors {
   static const Color surface = Color(0xFF1F1F1F);
   static const Color surfaceOverlay = Color(0xEB1F1F1F); // surface at 92%
   static const Color surfaceRaised = Color(0xFF333333);
+
+  /// Modal scrim behind bottom sheets (Figma: black at 45%).
+  static const Color scrim = Color(0x73000000);
   static const Color surfaceSelected = Color(0xFF858585);
 
   // Text.

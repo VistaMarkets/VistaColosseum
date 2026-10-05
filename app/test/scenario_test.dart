@@ -114,13 +114,21 @@ void main() {
     expect(once, equals(seed));
   });
 
-  testWidgets('Reset demo in Settings restores the fixture and says so', (
-    tester,
-  ) async {
+  testWidgets('Reset demo in Settings restores the fixture, closes Settings '
+      'and says so', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
     mutateEverything();
     SettingsState.tradingPermission.value = false;
     DisplayPrefs.longOnRight.value = true;
-    await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
+    // Settings is pushed over the shell from the Wallet gear, as in the app.
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Reset demo'),
@@ -128,8 +136,14 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(find.text('Reset demo'));
-    await tester.pump();
-    expect(find.text('Demo reset to fixture-v1'), findsOneWidget);
+    await tester.pumpAndSettle();
+    // Settings was built on the old state: it closes, back to the root.
+    expect(find.byType(SettingsScreen), findsNothing);
+    expect(
+      tester.state<NavigatorState>(find.byType(Navigator)).canPop(),
+      isFalse,
+    );
+    expect(find.text('Demo reset to fixture-v1').hitTestable(), findsOneWidget);
     expect(state(), equals(seed));
     // "Demo reset" covers the simulated Settings too.
     expect(SettingsState.tradingPermission.value, isTrue);
