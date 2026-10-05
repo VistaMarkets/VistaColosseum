@@ -1,24 +1,31 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
+import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
+import 'package:vista_colosseum/features/market/receipt_screens.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
+import 'package:vista_colosseum/main.dart';
 import 'package:vista_colosseum/scenario/scenario.dart';
 
 import 'order_ticket_test.dart' show homeCard, inSheet;
-import 'scenario_test.dart' show state;
+import 'receipts_test.dart' show pumpApp;
+import 'scenario_test.dart' show ethLong, state;
 
-/// A market long on ETH copied from [author]'s call, 10x by default.
+/// A long on ETH copied from [author]'s call: a market order at 10x unless
+/// told otherwise.
 OrderIntent copyOf(
   String actionId, {
   String author = PortfolioMock.handle,
   double units = 0.12345,
   int lev = 10,
+  OrderKind kind = OrderKind.market,
 }) => OrderIntent(
   actionId: actionId,
   symbol: 'ETH',
@@ -27,14 +34,12 @@ OrderIntent copyOf(
   units: units,
   price: 2968.40,
   leverage: lev,
+  kind: kind,
   sourceCallId: '$author/ETH',
   sourceAuthorHandle: author,
 );
 
-List<FeeEntry> get copyRows => [
-  for (final e in Scenario.feeEntries.value)
-    if (e.kind == FeeKind.copyFee) e,
-];
+List<FeeEntry> get copyRows => Scenario.copyFees;
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
@@ -85,10 +90,25 @@ void main() {
       Scenario.feeEntries.value,
       hasLength(YourMarketMock.fees.length + 1),
     );
+    // A copy fee is not a market credit: the fresh MAYA listing still has
+    // none, even though the row carries its ticker and the clock.
+    expect(Scenario.marketFeesCents, 0);
     // The creator's own books are untouched by the copier's order.
     final creator = Scenario.booksOf(Persona.creator);
     expect(creator.cashCents, PortfolioMock.cashCents);
     expect(creator.receipts, isEmpty);
+  });
+
+  testWidgets('the ledger lists a copy fee in its copy section and counts it '
+      'once in the total', (tester) async {
+    Scenario.switchPersona();
+    Scenario.placeOrder(copyOf('c7'));
+    await pumpApp(tester, home: const LedgerScreen());
+    expect(find.text('Copy fee · @sam.sol · ETH'), findsOneWidget);
+    // The fresh MAYA listing has no market credit, so the Total is the copy
+    // fee alone: the row and the Total both read $5.00.
+    expect(Scenario.marketFeesCents, 0);
+    expect(find.text(formatCents(500)), findsNWidgets(2));
   });
 
   testWidgets('cancelling a copied order writes nothing', (tester) async {
@@ -169,6 +189,30 @@ void main() {
     expect(Scenario.feeEntries.value, same(YourMarketMock.fees));
   });
 
+  test('a resting copy writes no fee and no ledger row', () {
+    Scenario.switchPersona();
+    final result = Scenario.placeOrder(copyOf('c5', kind: OrderKind.limit));
+
+    expect(result, isA<OrderResting>());
+    expect(Scenario.openOrders.value, hasLength(1));
+    expect(Scenario.cashCents.value, PortfolioMock.copierCashCents);
+    expect(Scenario.receipts.value, isEmpty);
+    expect(copyRows, isEmpty);
+    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));
+  });
+
+  test('a stale-price copy fails and writes nothing', () {
+    Scenario.switchPersona();
+    Scenario.stalePrices.value = const {'ETH'};
+    final before = state();
+    final result = Scenario.placeOrder(copyOf('c6'));
+
+    expect(result, isA<OrderFailed>());
+    expect((result as OrderFailed).reason, priceExpired);
+    expect(copyRows, isEmpty);
+    expect(state(), equals(before));
+  });
+
   test('switch then reset restores creator and both seeds', () {
     // The creator trades, then hands over: her books stay as she left them.
     Scenario.placeOrder(copyOf('own', author: PortfolioMock.handle));
@@ -214,5 +258,97 @@ void main() {
     expect(copier.openOrders, isEmpty);
     expect(copier.receipts, isEmpty);
     expect(Scenario.feeEntries.value, same(YourMarketMock.fees));
+  });
+
+  testWidgets('the Settings Demo persona row switches hands and says who is '
+      'acting', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    // Settings is pushed over the shell from the Wallet gear, as in the app.
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Settings'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Demo persona'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Creator'), findsOneWidget);
+    final before = state();
+
+    await tester.tap(find.text('Demo persona'));
+    await tester.pumpAndSettle();
+    // The toast names the persona the store now acts as, not the old one.
+    expect(find.text('Now acting as sam.sol').hitTestable(), findsOneWidget);
+    expect(Scenario.activePersona.value, Persona.copier);
+    expect(find.text('Copier'), findsOneWidget);
+    expect(Scenario.cashCents.value, PortfolioMock.copierCashCents);
+
+    await tester.tap(find.text('Demo persona'));
+    await tester.pumpAndSettle();
+    expect(find.text('Now acting as maya.eth').hitTestable(), findsOneWidget);
+    expect(Scenario.activePersona.value, Persona.creator);
+    expect(find.text('Creator'), findsOneWidget);
+    // A round trip through Settings changes nothing financial.
+    expect(state(), equals(before));
+  });
+
+  test('participation follows the persona, as its receipts do', () {
+    // The creator joins Bull on eth-4k; the copier never did.
+    Scenario.placeOrder(ethLong('join', clashId: 'eth-4k'));
+    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+    expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+
+    Scenario.switchPersona();
+    expect(Scenario.participation.value, isEmpty);
+    expect(Scenario.joins('eth-4k', TradeSide.long), 0);
+
+    // The copier joins Bear on sol-200; back as the creator, her side stands.
+    Scenario.placeOrder(
+      OrderIntent(
+        actionId: 'copier-join',
+        symbol: 'SOL',
+        name: 'Solana',
+        side: TradeSide.short,
+        units: 1,
+        price: 150,
+        leverage: 2,
+        clashId: 'sol-200',
+      ),
+    );
+    expect(Scenario.participation.value, {'sol-200': TradeSide.short});
+    Scenario.switchPersona();
+    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});
+    expect(Scenario.joins('eth-4k', TradeSide.long), 1);
+    expect(Scenario.joins('sol-200', TradeSide.short), 0);
+  });
+
+  testWidgets('the receipts list shows the copy line on the copier\'s own '
+      'paper receipt and no paper section under the creator', (tester) async {
+    Scenario.switchPersona();
+    expect(Scenario.placeOrder(copyOf('r1')), isA<OrderFilled>());
+    final line = copyLine(PortfolioMock.handle, kCopyFeeCents);
+
+    // The copier's own list: the paper section, with the copy line.
+    await pumpApp(
+      tester,
+      home: const ReceiptsScreen(author: PortfolioMock.copierHandle),
+    );
+    expect(find.text('PAPER ORDER RECEIPTS'), findsOneWidget);
+    expect(find.text(line), findsOneWidget);
+
+    // The creator's list while the copier is active: her calls only, so
+    // the copier's paper receipt never shows under maya.eth.
+    await pumpApp(
+      tester,
+      home: const ReceiptsScreen(author: PortfolioMock.handle),
+    );
+    expect(find.text('PAPER ORDER RECEIPTS'), findsNothing);
+    expect(find.text(line), findsNothing);
   });
 }

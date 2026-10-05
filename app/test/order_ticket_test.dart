@@ -9,6 +9,7 @@ import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
+import 'package:vista_colosseum/features/market/market_mock.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
@@ -205,6 +206,9 @@ void main() {
     expect(Scenario.positions.value, hasLength(seedPositions + 1));
     expect(Scenario.cashCents.value, PortfolioMock.cashCents - 20520);
     expect(Scenario.positions.value.first.marginCents, 20000);
+    // The creator copied kaito.eth: she pays the $5.00, and the ledger is
+    // hers, so it gains no row (she would credit herself).
+    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));
 
     await tester.tap(inSheet(find.text('View in Wallet')));
     await tester.pumpAndSettle();

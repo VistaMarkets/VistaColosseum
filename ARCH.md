@@ -920,6 +920,10 @@ VistaColosseum/
 │   │   ├── review-phase-8-dw.json
 │   │   └── STATE.md
 │   └── br-2026-10-05-copy-story/
+│       ├── gate-phase-1-fixer/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-1-iter-1/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
@@ -928,8 +932,10 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── fixer-phase-1.json
 │       ├── house-rules.md
 │       ├── log.md
+│       ├── review-phase-1-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration

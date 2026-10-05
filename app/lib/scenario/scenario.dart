@@ -87,8 +87,9 @@ abstract final class Scenario {
   /// until [refreshPrice] (the ticket's Retry).
   static final stalePrices = ValueNotifier<Set<String>>(TradeMock.stalePrices);
 
-  /// The side the user's latest fill in each Arena battle took, by clash
-  /// id. Only [placeOrder] writes it, on a fill.
+  /// The side the active persona's latest fill in each Arena battle took,
+  /// by clash id: part of its books, so it changes hands with [receipts] on
+  /// [switchPersona]. Only [placeOrder] adds to it, on a fill.
   static final participation = ValueNotifier<Map<String, TradeSide>>(const {});
 
   /// The Arena's sort, crowd-split range and Ask query, shared by the list
@@ -109,9 +110,9 @@ abstract final class Scenario {
   static final marketsLoadFails = ValueNotifier<bool>(false);
 
   /// Who the demo acts as (VC-DEM-004). [cashCents], [positions],
-  /// [openOrders] and [receipts] hold this persona's books; the other's
-  /// wait in [_parked]. Everything else is shared, and the fee ledger is
-  /// the creator's.
+  /// [openOrders], [receipts] and [participation] hold this persona's
+  /// books; the other's wait in [_parked]. Everything else is shared, and
+  /// the fee ledger is the creator's.
   static final activePersona = ValueNotifier<Persona>(Persona.creator);
   static Books _parked = _copierSeed;
 
@@ -120,6 +121,7 @@ abstract final class Scenario {
     positions: [],
     openOrders: [],
     receipts: [],
+    participation: {},
   );
 
   static Books get _active => (
@@ -127,6 +129,7 @@ abstract final class Scenario {
     positions: positions.value,
     openOrders: openOrders.value,
     receipts: receipts.value,
+    participation: participation.value,
   );
 
   /// [p]'s books, active or parked.
@@ -142,6 +145,7 @@ abstract final class Scenario {
     positions.value = next.positions;
     openOrders.value = next.openOrders;
     receipts.value = next.receipts;
+    participation.value = next.participation;
     activePersona.value = activePersona.value == Persona.creator
         ? Persona.copier
         : Persona.creator;
@@ -481,12 +485,14 @@ enum Persona {
   final String label;
 }
 
-/// One persona's financial state.
+/// One persona's books: its financial state and the Arena sides its fills
+/// took.
 typedef Books = ({
   int cashCents,
   List<PortfolioPosition> positions,
   List<OpenOrder> openOrders,
   List<OrderReceipt> receipts,
+  Map<String, TradeSide> participation,
 });
 
 /// What a copier pays per confirmed copy, flat (fixture constant).

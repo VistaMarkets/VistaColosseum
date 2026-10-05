@@ -178,7 +178,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(SettingsMock.handle, style: VistaType.subhead),
+              Text(
+                Scenario.activePersona.value.handle,
+                style: VistaType.subhead,
+              ),
               const SizedBox(height: 4),
               Text.rich(
                 TextSpan(

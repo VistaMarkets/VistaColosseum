@@ -53,6 +53,7 @@ List<Object?> state() => [
     Scenario.booksOf(p).positions,
     Scenario.booksOf(p).openOrders,
     Scenario.booksOf(p).receipts,
+    Scenario.booksOf(p).participation,
   ],
 ];
 
@@ -81,7 +82,7 @@ void mutateEverything() {
   // The copier takes over: the creator's mutated books park, and the
   // copier's change too.
   Scenario.switchPersona();
-  Scenario.placeOrder(ethLong('copier', units: 0.01));
+  Scenario.placeOrder(ethLong('copier', units: 0.01, clashId: 'sol-200'));
   Scenario.placeOrder(
     OrderIntent(
       actionId: 'copier-limit',
@@ -230,6 +231,30 @@ void main() {
     expect(find.textContaining('Positions · '), findsOneWidget);
     expect(find.text('Positions · 1'), findsOneWidget);
     expect(find.text('Ethereum'), findsNothing);
+  });
+
+  testWidgets('the top bar and Settings name the active persona', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    Scenario.switchPersona();
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    final topBar = find.byType(AccountTopBar);
+    Finder inBar(String text) =>
+        find.descendant(of: topBar, matching: find.text(text));
+    // The handle names the owner of the cash shown under it.
+    expect(inBar(PortfolioMock.copierHandle), findsOneWidget);
+    expect(inBar(PortfolioMock.handle), findsNothing);
+    expect(inBar(formatCents(PortfolioMock.copierCashCents)), findsOneWidget);
+
+    await tester.pumpWidget(const VistaColosseumApp(home: SettingsScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text(PortfolioMock.copierHandle), findsOneWidget);
+    expect(find.text(PortfolioMock.handle), findsNothing);
   });
 
   testWidgets(

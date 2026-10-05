@@ -92,7 +92,7 @@ class LedgerScreen extends StatelessWidget {
               Text(example(entries.first), style: muted),
             ],
             const SizedBox(height: VistaSpace.md),
-            if (entries.isEmpty)
+            if (entries.isEmpty && copies.isEmpty)
               VistaEmptyState(
                 message: 'No fee credits yet',
                 actionLabel: 'Explore markets',
