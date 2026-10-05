@@ -17,6 +17,7 @@ import '../../scenario/scenario.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
+import '../../app_shell.dart';
 
 /// Wallet tab (Figma 174:110, "Portfolio — dot grid · up").
 class PortfolioScreen extends StatefulWidget {
@@ -263,6 +264,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
               style: VistaType.body.copyWith(color: VistaColors.textMuted),
             ),
           ),
+          if (positions.isEmpty)
+            VistaEmptyState(
+              message: 'No positions yet',
+              actionLabel: 'Explore markets',
+              onAction: () => AppShell.showExplore(context),
+            ),
           for (final p in positions) ...[
             const SizedBox(height: VistaSpace.sm),
             VistaListRow(
@@ -304,11 +311,10 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           ),
         ),
         if (orders.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text('No open orders', style: VistaType.bodyRegular),
-            ),
+          VistaEmptyState(
+            message: 'No open orders',
+            actionLabel: 'Explore markets',
+            onAction: () => AppShell.showExplore(context),
           ),
         for (final o in orders)
           Padding(

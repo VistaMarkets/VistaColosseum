@@ -15,6 +15,14 @@ class AppShell extends StatefulWidget {
   /// The selected tab, so a sheet anywhere can switch it (View in Wallet).
   static final tab = ValueNotifier<int>(0);
   static const wallet = 3;
+  static const explore = 1;
+
+  /// Back to the app's root, on the Explore tab: where an empty list's
+  /// "Explore markets" leads.
+  static void showExplore(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    tab.value = explore;
+  }
 
   @override
   State<AppShell> createState() => _AppShellState();

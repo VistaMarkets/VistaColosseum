@@ -1,0 +1,22 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/empty_states_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: every core list renders an emptied scenario without overflow or exception on small Android 360x640 at 1.3x
+00:02 +1: every core list renders an emptied scenario without overflow or exception on iPhone SE 375x667 at 1.3x
+00:02 +2: Explore markets leads to Explore, from a tab or a pushed list
+00:03 +3: Clear search brings back an emptied Ask or follow search
+00:04 +4: Simulate load failure: only the Explore list fails; Retry clears the toggle and loads it
+00:05 +5: Explore keeps its scroll offset across a failure and Retry
+00:05 +6: seeded lists show no empty state, with the load failure on
+00:06 +7: (tearDownAll)
+00:06 +7: All tests passed!

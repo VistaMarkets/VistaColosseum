@@ -103,6 +103,11 @@ abstract final class Scenario {
   /// resolve to these; paper fills stay in [receipts].
   static final callReceipts = ValueNotifier<List<CallReceipt>>(seedCalls);
 
+  /// Presenter-only (Settings › Simulate load failure): the Explore list
+  /// shows its failed state until Retry turns this off. Nothing else
+  /// reads it.
+  static final marketsLoadFails = ValueNotifier<bool>(false);
+
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
 
@@ -375,6 +380,7 @@ abstract final class Scenario {
     arena.value = ArenaMock.allBattles;
     feeEntries.value = YourMarketMock.fees;
     callReceipts.value = seedCalls;
+    marketsLoadFails.value = false;
   }
 }
 

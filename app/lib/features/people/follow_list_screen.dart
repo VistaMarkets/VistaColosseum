@@ -4,6 +4,7 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../profile/profile_screen.dart';
 import 'follow_mock.dart';
+import '../../app_shell.dart';
 
 /// Followers / Following for a profile (Figma 308:102 and 308:244). Opens on
 /// [initialTab]: 0 = Followers, 1 = Following.
@@ -92,9 +93,29 @@ class _FollowListScreenState extends State<FollowListScreen> {
             ),
             Expanded(
               child: people.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 24),
-                      child: Text('No matches', style: VistaType.bodyRegular),
+                  ? ListView(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.paddingOf(context).bottom + 16,
+                      ),
+                      children: [
+                        if (_query.isNotEmpty)
+                          VistaEmptyState(
+                            message: 'No matches',
+                            actionLabel: 'Clear search',
+                            onAction: () => setState(() {
+                              _query = '';
+                              _search.clear();
+                            }),
+                          )
+                        else
+                          VistaEmptyState(
+                            message: _tab == 0
+                                ? 'No followers yet'
+                                : 'Not following anyone yet',
+                            actionLabel: 'Explore markets',
+                            onAction: () => AppShell.showExplore(context),
+                          ),
+                      ],
                     )
                   : ListView.separated(
                       keyboardDismissBehavior:

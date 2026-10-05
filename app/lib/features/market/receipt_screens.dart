@@ -8,6 +8,7 @@ import '../live/market_prices.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../profile/profile_mock.dart';
 import 'market_mock.dart';
+import '../../app_shell.dart';
 
 /// "26 Sep · 11:45".
 String _when(DateTime t) =>
@@ -92,9 +93,10 @@ class LedgerScreen extends StatelessWidget {
             ],
             const SizedBox(height: VistaSpace.md),
             if (entries.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: VistaSpace.xl),
-                child: Text('No fee credits yet', style: VistaType.bodyRegular),
+              VistaEmptyState(
+                message: 'No fee credits yet',
+                actionLabel: 'Explore markets',
+                onAction: () => AppShell.showExplore(context),
               ),
             for (final e in entries)
               Padding(
@@ -291,21 +293,21 @@ class ReceiptsScreen extends StatelessWidget {
             const VistaSectionHead(title: 'CALL RECEIPTS'),
             const SizedBox(height: VistaSpace.md),
             if (calls.isEmpty)
-              Text(
-                'No call receipts for $author in ${Scenario.fixtureVersion}',
-                style: VistaType.bodyRegular,
+              VistaEmptyState(
+                message:
+                    'No call receipts for $author in ${Scenario.fixtureVersion}',
+                actionLabel: 'Explore markets',
+                onAction: () => AppShell.showExplore(context),
               ),
             for (final c in calls) CallRecordItem(receipt: c),
             if (own) ...[
               const SizedBox(height: VistaSpace.xl),
               const VistaSectionHead(title: 'PAPER ORDER RECEIPTS'),
               if (Scenario.receipts.value.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: VistaSpace.md),
-                  child: Text(
-                    'No paper orders yet',
-                    style: VistaType.bodyRegular,
-                  ),
+                VistaEmptyState(
+                  message: 'No paper orders yet',
+                  actionLabel: 'Explore markets',
+                  onAction: () => AppShell.showExplore(context),
                 ),
               for (final r in Scenario.receipts.value)
                 Padding(

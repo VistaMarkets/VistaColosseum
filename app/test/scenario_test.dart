@@ -45,6 +45,7 @@ List<Object?> state() => [
   Scenario.arena.value,
   Scenario.feeEntries.value,
   Scenario.callReceipts.value,
+  Scenario.marketsLoadFails.value,
 ];
 
 /// Changes every field, through the app's own helpers where they exist.
@@ -68,6 +69,7 @@ void mutateEverything() {
   Scenario.setArena(sort: 1, from: 4, query: 'eth');
   Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
   Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
+  Scenario.marketsLoadFails.value = true;
 }
 
 /// A market long on ETH at its session price, 10x unless told otherwise.

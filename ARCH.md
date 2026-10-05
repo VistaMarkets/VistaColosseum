@@ -331,6 +331,7 @@ VistaColosseum/
 │   │   │   │   ├── vista_chips.dart
 │   │   │   │   ├── vista_controls.dart
 │   │   │   │   ├── vista_detail.dart
+│   │   │   │   ├── vista_empty_state.dart
 │   │   │   │   ├── vista_flow.dart
 │   │   │   │   ├── vista_icon.dart
 │   │   │   │   ├── vista_list_row.dart
@@ -430,6 +431,7 @@ VistaColosseum/
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
+│   │   ├── empty_states_test.dart
 │   │   ├── home_screen_test.dart
 │   │   ├── order_ticket_test.dart
 │   │   ├── receipts_test.dart
@@ -451,7 +453,8 @@ VistaColosseum/
 │   └── README.md
 ├── baton-pass/
 │   ├── baton-queue/
-│   │   └── 2026-10-04T233424-p0-runner-paused-phase3-review.md
+│   │   ├── 2026-10-04T233424-p0-runner-paused-phase3-review.md
+│   │   └── 2026-10-05T085823-p0-runner-complete.md
 │   └── br-2026-10-04-p0-queue/
 │       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
 │       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
@@ -490,7 +493,10 @@ VistaColosseum/
 │       ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
 │       ├── 2026-10-05T054156-phase7-trader-record-panel.md
 │       ├── 2026-10-05T054607-phase7-review-iter1.md
-│       └── 2026-10-05T065006-phase7-close.md
+│       ├── 2026-10-05T065006-phase7-close.md
+│       ├── 2026-10-05T071134-phase8-empty-failed-states.md
+│       ├── 2026-10-05T071609-phase8-review-iter1.md
+│       └── 2026-10-05T085628-phase8-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
@@ -499,6 +505,8 @@ VistaColosseum/
 │       ├── close-phase-7/
 │       │   ├── house-rule-grep.log
 │       │   └── trader-record-test-expanded.log
+│       ├── close-phase-8/
+│       │   └── empty-states-test-expanded.log
 │       ├── fix-phase-2-iter-2/
 │       │   ├── gate/
 │       │   │   ├── flutter-analyze.log
@@ -694,6 +702,26 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── has-market.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   ├── has-market-tail.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-fixer/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-8-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── phase-4-red/
 │       │   ├── home-green-1.log
 │       │   ├── home-red-1.log
@@ -724,6 +752,10 @@ VistaColosseum/
 │       │   ├── 01-compile-red.log
 │       │   ├── 02-assertions-red.log
 │       │   └── 03-mutants.log
+│       ├── phase-8-red/
+│       │   ├── mutations.log
+│       │   ├── red-1-compile.log
+│       │   └── red-2-runtime.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart
@@ -829,6 +861,26 @@ VistaColosseum/
 │       │   ├── probe-run.log
 │       │   ├── review7_fold_test.dart
 │       │   └── review7_probe_test.dart
+│       ├── review-phase-8-iter-1-probe/
+│       │   ├── mut-arena-clear-search-noop.log
+│       │   ├── mut-empty-line-overflows.log
+│       │   ├── mut-empty-state-overflows.log
+│       │   ├── mut-failure-leaks-to-arena.log
+│       │   ├── mut-profile-list-ignores-strip.log
+│       │   ├── mut-receipts-paper-plain-text-all.log
+│       │   ├── mut-receipts-paper-plain-text.log
+│       │   ├── mut-reset-keeps-toggle.log
+│       │   ├── mut-retry-noop.log
+│       │   ├── mut-switch-not-beside-reset-all.log
+│       │   ├── mut-switch-not-beside-reset.log
+│       │   ├── mutate-run-1.txt
+│       │   ├── mutate-run-2.txt
+│       │   ├── mutate-run-3.txt
+│       │   ├── mutate-run-4.txt
+│       │   ├── mutate-run-5.txt
+│       │   ├── mutate.py
+│       │   ├── probe-run.log
+│       │   └── review8_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md
@@ -836,11 +888,13 @@ VistaColosseum/
 │       ├── digest-phase-5.md
 │       ├── digest-phase-6.md
 │       ├── digest-phase-7.md
+│       ├── digest-phase-8.md
 │       ├── fixer-phase-3.json
 │       ├── fixer-phase-4.json
 │       ├── fixer-phase-5.json
 │       ├── fixer-phase-6.json
 │       ├── fixer-phase-7.json
+│       ├── fixer-phase-8.json
 │       ├── house-rules.md
 │       ├── log.md
 │       ├── review-phase-1-iter-1-prelude.md
@@ -858,6 +912,7 @@ VistaColosseum/
 │       ├── review-phase-5-dw.json
 │       ├── review-phase-6-dw.json
 │       ├── review-phase-7-dw.json
+│       ├── review-phase-8-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
@@ -880,6 +935,7 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-5-maker-suggestion-card.md
 │   │   ├── 2026-10-04-dw-review-phase-6-fee-ledger-and-receipts.md
 │   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
+│   │   ├── 2026-10-04-dw-review-phase-8-list-empty-failed-states.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md

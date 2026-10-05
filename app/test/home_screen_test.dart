@@ -1059,8 +1059,21 @@ void main() {
       await dragThumb(tester, 1, 0.2); // 50/50 to 60/40: no battle there
       expect(find.text('0 battles'), findsOneWidget);
       expect(find.byType(VistaBattleCard), findsNothing);
-      expect(find.text('No battles in this crowd split'), findsOneWidget);
-      expectPillClear(tester, find.widgetWithText(VistaPillButton, 'Show all'));
+      final emptyState = find.byType(VistaEmptyState);
+      expect(
+        find.descendant(
+          of: emptyState,
+          matching: find.text('No battles in this crowd split'),
+        ),
+        findsOneWidget,
+      );
+      expectPillClear(
+        tester,
+        find.descendant(
+          of: emptyState,
+          matching: find.widgetWithText(VistaPillButton, 'Show all'),
+        ),
+      );
 
       await tester.tap(find.text('Show all'));
       await tester.pumpAndSettle();

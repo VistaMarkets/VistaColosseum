@@ -1,0 +1,275 @@
+{
+  "verified": {
+    "verdict": "MERGE-WITH-FIXES",
+    "summary": "Scope checked before review. phase-8 resolves to e36eac83 and phase-7 to ea4fceac. The worktree HEAD is e36eac8 on feat/br-2026-10-04-p0-queue/phase-8, and the three-dot diff lists 49 files, 15 of them under app/. The newest code commit is 0621d10; e36eac8 and b085d7f touch only bookkeeping.\n\nOf the 9 findings, 8 survive and 1 is refuted. The two HIGH findings are the same defect seen from two lenses, so they merge into one:\n- **The defect:** the new Profile CALLS empty state says 'No calls from <handle> yet', but it only checks for seeded call receipts.\n- **How to hit it from the seed:** the first Home card is kaito.eth's call. The Followers and Following rows also say 'kaito.eth \u00b7 184 calls \u00b7 1 open'. Tap either one and the profile says kaito.eth has no calls.\n- **The fix:** change one string.\n\nThe rest are LOW test-strength gaps and one note on scroll position. I checked those against the source and the probe logs. The semantics-tap finding is real, but its cause is in VistaPillButton, which this diff does not change, so it is refuted as out of scope.\n\nNothing freezes at merge. I still recommend fixing the HIGH copy before merge because it is one string, so the verdict is MERGE-WITH-FIXES.",
+    "confirmed": [
+      {
+        "severity": "HIGH",
+        "title": "Profile CALLS empty state says a trader has no calls when the app shows their calls one tap earlier (merges the state-truthfulness and layout-empty-states HIGHs)",
+        "location": "app/lib/features/profile/profile_screen.dart:360 (_calls, 'No calls from ${widget.handle} yet')",
+        "failurePath": "Start from the seeded app with no changes. homeFeed starts with mockFeed[0] = mockTradeIdea, whose callerHandle is 'kaito.eth' (mock_trade_idea.dart:76,97-98). Tapping the caller runs home_screen.dart:131-133, which pushes ProfileScreen.route('kaito.eth'). That profile is not private, because privateProfiles holds only 'nara'. kaito.eth has no seedCalls entry: the authors are PortfolioMock.handle, kilo.sol, lunaq, kestrel and nara. So _calls() renders 'No calls from kaito.eth yet' with an 'Explore markets' button. The Followers and Following lists give a sharper path. FollowMock lists kaito.eth as '184 calls \u00b7 1 open', deltaone as '402 calls \u00b7 2 open' and mirin as '92 calls \u00b7 2 open'. Tapping any of those rows pushes ProfileScreen (follow_list_screen.dart:142), and the profile then denies the calls the row just counted. The app uses 'No calls yet' to mean zero calls (FollowMock sam.sol), so the new line makes an unqualified claim that other screens contradict. Phase 7 hid this section. The record panel above it says 'No settled calls yet \u2014 record unavailable', and ReceiptsScreen says 'No call receipts for kaito.eth in fixture-v1'. The new line is the only one that does not name the collection it reads. That puts it in the brief's 'empty state that denies data which exists' class.",
+        "fix": "Scope the copy to the collection actually read and reuse the existing ReceiptsScreen wording: message 'No call receipts for ${widget.handle} in ${Scenario.fixtureVersion}'. Then update the expectation at app/test/empty_states_test.dart:187. Dropping the empty state on Profile also works, because TraderRecordPanel already covers this case there. That would need the manager to reverse the decision to add Profile CALLS.",
+        "beforeMerge": true,
+        "why": "Read profile_screen.dart:355-381. Checked homeFeed in home_screen.dart:16-22, mockFeed order in mock_trade_idea.dart:75-100, and the seedCalls authors in market_mock.dart:157-352. Checked privateProfiles in profile_mock.dart:79, the FollowMock stats in follow_mock.dart:60-90 (kaito.eth 184 calls, mirin 92, deltaone 402), the follow-row push in follow_list_screen.dart:142, and unavailableNote in receipt_screens.dart:212. Confirmed that receipts_test.dart:471 asserts the qualified phase-7 wording for kaito.eth.",
+        "id": "F1"
+      },
+      {
+        "severity": "LOW",
+        "title": "Seven of nine 'Explore markets' actions are never tapped",
+        "location": "app/test/empty_states_test.dart:69-92 (expectEmpty), 199-224",
+        "failurePath": "Replace onAction with () {} on the Home feed, Open orders, Receipts calls, Receipts paper, Ledger, Following or Profile CALLS. expectEmpty checks only that the button is present, hit-testable and clear of the pill. The only taps are at line 208 (Wallet Positions, the first match) and line 219 (Followers). A no-op on any of the other seven survives.",
+        "fix": "In a loop over the pushed lists, tap each action and assert AppShell.tab.value == AppShell.explore and find.text('ALL MARKETS'). Push each list over the shell so that popUntil(isFirst) is exercised.",
+        "beforeMerge": false,
+        "why": "Read expectEmpty, which has no tap. grep found no 'Explore markets' or showExplore in test/ outside empty_states_test.dart. Every call site is the same one-line lambda `() => AppShell.showExplore(context)`, so the real risk is low. I demoted it from MEDIUM to LOW.",
+        "id": "F2"
+      },
+      {
+        "severity": "LOW",
+        "title": "The 'beside Reset demo' check passes when the switch is moved",
+        "location": "app/test/empty_states_test.dart:259-262",
+        "failurePath": "Move the Simulate load failure row to the top of the Settings ListView. The test still passes: it scrolls to the switch and then asserts only that find.text('Reset demo') appears somewhere in the tree.",
+        "fix": "Assert adjacency. Either the gap between the switch's VistaSettingRow and the Reset demo row is about 0, or the switch row is the next sibling.",
+        "beforeMerge": false,
+        "why": "Read lines 254-263. The probe's mutate.py moves ROW to just before _account(). mutate-run-3.txt shows 'switch-not-beside-reset: SURVIVED (exit 0) ... +313'. The iteration-1 review baton already lists this as an L item, and I confirmed it rather than re-filing it.",
+        "id": "F3"
+      },
+      {
+        "severity": "LOW",
+        "title": "Paper-receipts and Arena crowd-split empty states are not required to be VistaEmptyState",
+        "location": "app/test/empty_states_test.dart:158; app/test/home_screen_test.dart:1055-1077",
+        "failurePath": "(a) Revert PAPER ORDER RECEIPTS to a plain Text. Line 158 checks only the text, and the call-receipts VistaEmptyState on the same screen satisfies expectEmpty, so this mutant survives the full suite (+313). (b) Revert arena_screen.dart _empty's crowd-split branch to a bare VistaPillButton('Show all'). The crowd-split test uses unscoped finders, text and widgetWithText(VistaPillButton,'Show all'), with no VistaEmptyState ancestor. The emptied-scenario test reaches only the Ask branch ('doge').",
+        "fix": "Scope both checks with find.descendant(of: find.byType(VistaEmptyState), ...) for the line and its action.",
+        "beforeMerge": false,
+        "why": "mutate-run-3.txt shows that receipts-paper-plain-text SURVIVED. For (b), I read the arena diff and the finders at home_screen_test.dart:1061-1064. It follows from those finders; I did not execute it.",
+        "id": "F4"
+      },
+      {
+        "severity": "LOW",
+        "title": "No test asserts that empty states are absent beside a populated list",
+        "location": "portfolio_screen.dart:267, :313; receipt_screens.dart:95, :295, :305",
+        "failurePath": "These guards are `if (x.isEmpty) VistaEmptyState(...)` placed next to `for (final e in x)`, not in place of the rows. Flip a guard to true and the seeded Wallet shows 'No positions yet' above real positions. No test has a findsNothing on these strings or on VistaEmptyState. I did not run whether some other layout or finder test would still kill the mutant.",
+        "fix": "In one seeded-state test, assert find.byType(VistaEmptyState), findsNothing on Wallet (both segments), Ledger, and the Receipts screen of an author with calls and paper fills.",
+        "beforeMerge": false,
+        "why": "grep of test/ for each empty line and for VistaEmptyState outside empty_states_test.dart: only receipts_test.dart:442 and :471 match, and both are positive checks. The guards are correct today; this is a gap in test strength only.",
+        "id": "F5"
+      },
+      {
+        "severity": "LOW",
+        "title": "Test of 'only Explore fails' covers tabs 0, 2 and 3 only",
+        "location": "app/test/empty_states_test.dart:273-283",
+        "failurePath": "Make a pushed screen such as Receipts, Ledger, Follow or AssetTrade read marketsLoadFails. The loop never visits those screens, so the mutant would pass.",
+        "fix": "With the flag on, pump one or two pushed lists and assert loadFailed findsNothing. Or say in a test comment that the grep is the control.",
+        "beforeMerge": false,
+        "why": "`command grep -rn marketsLoadFails app/lib` finds only scenario.dart, settings_screen.dart and markets_screen.dart. The code is correct and only the test is narrow.",
+        "id": "F6"
+      },
+      {
+        "severity": "LOW",
+        "title": "Explore scroll offset resets after a simulated failure and Retry",
+        "location": "app/lib/features/markets/markets_screen.dart:113-124",
+        "failurePath": "Scroll ALL MARKETS, turn on the failure, then Retry. The loaded ListView is rebuilt fresh at offset 0. No PageStorageKey exists anywhere in lib/, so PageStorage cannot restore the offset. Query, tab and sort survive because they live in State.",
+        "fix": "Optional: give the loaded ListView a PageStorageKey('explore-list'). Otherwise accept the reset as normal reload behaviour.",
+        "beforeMerge": false,
+        "why": "Read the markets diff: two bare ListViews under one ternary. `command grep PageStorage app/lib` returns nothing. This is a note, not a defect.",
+        "id": "F7"
+      }
+    ],
+    "refuted": [
+      {
+        "title": "The empty-state action (including Markets Retry) exposes a button role and label but no semantics tap action",
+        "reason": "The claim is about code outside this diff. The Semantics(button, label, excludeSemantics: true) wrapper with no onTap is in vista_buttons.dart, last changed in 0fe0f52, and this diff does not touch it. The defect is real: excludeSemantics drops the GestureDetector's tap action, and SimulationIndicator passes onTap explicitly to avoid that. But it affects every VistaPillButton in the app, not something phase 8 added. The diff only adds more callers. File it separately as a design-system accessibility fix: add onTap: onPressed to the Semantics in VistaPillButton and check VistaSwitch for the same pattern."
+      }
+    ],
+    "checkedClaimsThatAreWrong": [],
+    "residualRisk": [
+      "tautology-hunt: I did not run any of my own mutants, because the run is read-only and creating files was forbidden. The no-op action and always-on guard survivors are inferred from the finders and from grep, not executed. The paper-receipts and switch-position survivors rely on the review probe's logs.",
+      "tautology-hunt: I did not re-run flutter test. I relied on the stated gate pass at e36eac8 (287 tests).",
+      "tautology-hunt: I did not check that a single tester.drag of -2000 builds every middle item of longer lists. In the emptied scenario the lists are short, so this is not a practical gap.",
+      "tautology-hunt: Product-code correctness outside test strength (for example, the Home and Markets failed-state ListViews have no bottom padding for the pill strip) belongs to other lanes. I only noted it, and it passes expectPillClear at the small phones.",
+      "state-truthfulness: Did not run any flutter test; all conclusions come from reading the source. The gate results (287 tests) were taken as given.",
+      "state-truthfulness: Did not check that every review-baton L item (the duplicate Explore markets buttons, the text-only paper-receipts check, the surviving mutants) still reproduces.",
+      "state-truthfulness: Follow-list empty copy ('No followers yet') sits beside static tab counts (FollowMock.followerCount '1,204'). This was not filed: the follow lists cannot be emptied by a user, only by the test's emptied scenario.",
+      "state-truthfulness: The Ledger and Positions empty states are reachable only if a user can empty those collections in the app. Did not trace the close-position or market-unlisting paths.",
+      "layout-empty-states: No device or emulator run. Layout checks rest on code reading plus the phase-8 gate logs and test assertions, not on screenshots at 360x640 or 375x667.",
+      "layout-empty-states: Whether TalkBack or VoiceOver falls back to a simulated touch when no semantics tap action is present. This decides how serious the LOW finding is in practice.",
+      "layout-empty-states: Ledger empty state after making a market under a new ticker: whether the footer total and the 'No fee credits yet' line agree. The money path is outside this lane.",
+      "layout-empty-states: The 393, 412 and 430 px widths, and keyboard-up layout on Arena while the Ask empty state shows. The CrowdFilterPanel folds while the keyboard is up; behaviour was read, not rendered.",
+      "state-truthfulness and layout-empty-states (merged): pill-strip clearance of the failed-state ListView at 1.3x was checked only by the test and code reading, not rendered; the failed ListView has no bottom padding of its own."
+    ]
+  },
+  "ref": "feat/br-2026-10-04-p0-queue/phase-8",
+  "sha": "e36eac83fd731fbff898a36867c07f7ed8c81d06",
+  "rawCount": 9,
+  "reviews": [
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Seven of the nine \"Explore markets\" actions are never tapped, so making any of them do nothing goes unnoticed",
+          "location": "app/test/empty_states_test.dart:69-92 (expectEmpty) and 199-224",
+          "failurePath": "Mutate onAction to `() {}` (or point it at the wrong tab) on any of these: Home feed (home_screen.dart \"No calls to show\"), Open orders (portfolio_screen.dart \"No open orders\"), Receipts calls and paper (receipt_screens.dart:296-311), Ledger (receipt_screens.dart:96), Following (follow_list_screen.dart, _tab==1 branch), Profile CALLS (profile_screen.dart:360). expectEmpty only checks that the button is present, hit-testable and clear of the pill; it never taps it. The only taps on \"Explore markets\" in the whole test/ tree are at empty_states_test.dart:208 (Wallet, Positions) and :219 (Followers). The spec asks for one action per empty state, and that action is only checked by behaviour on 2 of the 9 surfaces.",
+          "fix": "Tap the action on each surface and assert `AppShell.tab.value == AppShell.explore` plus `find.text('ALL MARKETS')`. For the pushed lists (Ledger, Receipts, Follow, Profile), push them over the shell rather than pumping them as `home:`, so `popUntil(isFirst)` is also checked, as the Followers half of the test at line 199 already does.",
+          "evidence": "Read expectEmpty (lines 69-92), which has no tap. Ran `grep -rn \"Explore markets\\|showExplore\" test` outside empty_states_test and found no hits. Every untapped surface's onAction in the diff is `() => AppShell.showExplore(context)`. I did not run the mutants because this review is read-only.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Confirmed: the \"beside Reset demo\" check survives moving the switch away from Reset demo",
+          "location": "app/test/empty_states_test.dart:259-262",
+          "failurePath": "Move the Simulate load failure VistaSettingRow to the top of the Settings ListView. openSettings scrolls to the switch and only asserts that `find.text('Reset demo')` is findsOneWidget somewhere in the tree. The short Settings list builds every row, so the test passes. The review probe's mutant switch-not-beside-reset SURVIVED the full suite (+313).",
+          "fix": "Compare positions: take the switch's VistaSettingRow and the Reset demo row and assert the switch row's top is roughly equal to the Reset demo row's bottom, for example `(tester.getRect(switchRow).top - tester.getRect(resetRow).bottom).abs() < 1`.",
+          "evidence": "Read lines 254-263. settings_screen.dart:122-136 has the switch row directly after Reset demo today. baton-runner/.../review-phase-8-iter-1-probe/mutate-run-*.txt shows `switch-not-beside-reset: SURVIVED (exit 0) ... +313`.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Confirmed, and the same gap exists in Arena's crowd-split state: two of the spec's empty states are not required to be VistaEmptyState",
+          "location": "app/test/empty_states_test.dart:158; app/test/home_screen_test.dart:1055-1077",
+          "failurePath": "(a) Revert PAPER ORDER RECEIPTS to a plain `Text('No paper orders yet')`. Line 158 checks the text only, and the call-receipts VistaEmptyState on the same screen satisfies expectEmpty's action and pill checks, so the mutant receipts-paper-plain-text SURVIVED the full suite. (b) Revert arena_screen.dart `_empty`'s crowd-split branch to the phase-7 Padding/Column/VistaPillButton('Show all'). The empty-scenario test only exercises the Ask branch (query 'doge'), and the crowd-split test at home_screen_test.dart:1063 finds `widgetWithText(VistaPillButton,'Show all')` with no VistaEmptyState ancestor, so this mutant survives too.",
+          "fix": "For (a), replace line 158 with an expectEmpty-style check scoped to the paper section: the text is a descendant of a VistaEmptyState that also contains an 'Explore markets' VistaPillButton. For (b), in the crowd-split test assert `find.descendant(of: find.byType(VistaEmptyState), matching: find.text('No battles in this crowd split'))` and the same for the Show all button.",
+          "evidence": "Read empty_states_test.dart:151-158 and home_screen_test.dart:1055-1077. Read the arena_screen.dart diff: the crowd-split branch is now VistaEmptyState and no test scopes it. mutate-run-*.txt shows `receipts-paper-plain-text: SURVIVED ... +313`. I did not run (b); it follows from reading the finders.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "No test checks that an empty state is absent when its list has data, for the surfaces where the empty state sits beside the list",
+          "location": "app/test/empty_states_test.dart (whole file); surfaces: portfolio_screen.dart:267 and :313, receipt_screens.dart:95, :295, :305",
+          "failurePath": "Positions, Open orders, Ledger, Receipts calls and Receipts paper render `if (x.isEmpty) VistaEmptyState(...)` next to `for (final e in x) row`, not instead of the rows. Change any guard to `if (true)` and the seeded Wallet shows \"No positions yet\" + Explore markets above real positions, or Ledger says \"No fee credits yet\" above credits. Row-count tests (receipts_test.dart:139, trader_record_test.dart:419) still match, and no test outside empty_states_test.dart mentions these lines, so the mutant would likely survive. The surfaces where the empty state replaces the list (Home ternary, Follow list ternary, Profile CALLS early return, Markets flag) are covered: there an inverted guard hides rows, which existing tests catch.",
+          "fix": "In a seeded-state test, assert `find.byType(VistaEmptyState), findsNothing` on the Wallet (both segments), the Ledger, and the Receipts screen of an author with calls after `Scenario.placeOrder(...)`.",
+          "evidence": "For each empty line, ran `grep -rn \"<empty line>\" test` excluding empty_states_test.dart. Only receipts_test.dart:442 (paper, positive, seeded-empty) and :471 (calls, positive) matched; there are no findsNothing assertions. Read the guards in the diff. Not mutation-run because this review is read-only.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "The 'only Explore fails' check covers tabs 0, 2 and 3, not pushed screens",
+          "location": "app/test/empty_states_test.dart:273-283",
+          "failurePath": "Make a pushed screen read Scenario.marketsLoadFails, for example ReceiptsScreen, LedgerScreen, FollowListScreen or AssetTradeScreen showing \"Couldn't load markets\" or hiding its rows while the flag is on. The loop only visits Home, Arena and Wallet, so the spec's \"No other screen depends on it\" is enforced only by a grep, not by a test. (The review probe killed the Arena leak; it did not try a pushed-screen leak.)",
+          "fix": "With the flag on, also pump at least the Receipts, Ledger and Follow lists with seeded data and assert their rows render and loadFailed is findsNothing. Alternatively, accept the grep as the control and say so in the test comment.",
+          "evidence": "Read lines 273-283. `grep -rn marketsLoadFails app/lib` shows only scenario.dart, settings_screen.dart and markets_screen.dart read it today, so the code is right and only the test is narrow.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: both refs resolve (phase-8 e36eac8, phase-7 ea4fcea). The worktree HEAD is e36eac8 on feat/br-2026-10-04-p0-queue/phase-8, and the three-dot diff lists 49 files including app/test/empty_states_test.dart and scenario_test.dart.",
+        "The empty-scenario test lists every surface the spec names: Home feed (through HomeScreen(feed: []), as decided), Arena (Ask variant), Positions, Open orders, Receipts calls (plus the paper line by text only), Ledger, Followers, Following, plus Profile CALLS and the Explore failed state with Retry. It runs on both 360x640 and 375x667 at text scale 1.3. The app does not clamp the text scale (grep finds no textScaler override), so 1.3 really applies.",
+        "Each surface calls expectEmpty, which asserts takeException() is null after scrolling to the end, so every screen is checked for both exceptions and overflow. The overflow detection works: the review mutants empty-line-overflows and empty-state-overflows were KILLED.",
+        "expectEmpty requires the line to be a descendant of VistaEmptyState, so replacing the widget with a bare Text fails on every surface except Receipts paper and the Arena crowd split (see findings).",
+        "expectPillClear checks every matching action button, including both Explore markets buttons on own Receipts. The profile-list-ignores-strip mutant was KILLED.",
+        "Retry not clearing the flag is caught: after Retry, the test checks the loadFailed text is gone, ALL MARKETS and VistaMarketRow are back, and the Settings switch reads false (retry-noop KILLED).",
+        "The switch wired to a different flag is caught: the switch value is checked true, and the Explore failed state must appear.",
+        "reset not clearing the flag is caught: scenario_test state() includes marketsLoadFails and mutateEverything sets it to true (reset-keeps-toggle KILLED). resetDemo goes through Scenario.reset.",
+        "A failure leaking to Arena, Home or Wallet is caught by the loop at lines 273-283 (failure-leaks-to-arena KILLED).",
+        "The Clear search actions on Arena and the Follow list, the Positions and Followers Explore markets actions, and Arena Show all (home_screen_test.dart:1065) are all tapped, and their effects are asserted.",
+        "VistaEmptyState.onAction is a required non-null VoidCallback, so a disabled-button mutant cannot compile. Only a no-op mutant is possible."
+      ],
+      "notExamined": [
+        "I did not run any of my own mutants, because the run is read-only and creating files was forbidden. The no-op action and always-on guard survivors are inferred from the finders and from grep, not executed. The paper-receipts and switch-position survivors rely on the review probe's logs.",
+        "I did not re-run flutter test. I relied on the stated gate pass at e36eac8 (287 tests).",
+        "I did not check that a single tester.drag of -2000 builds every middle item of longer lists. In the emptied scenario the lists are short, so this is not a practical gap.",
+        "Product-code correctness outside test strength (for example, the Home and Markets failed-state ListViews have no bottom padding for the pill strip) belongs to other lanes. I only noted it, and it passes expectPillClear at the small phones."
+      ]
+    },
+    {
+      "lens": "state-truthfulness",
+      "findings": [
+        {
+          "severity": "HIGH",
+          "title": "Profile CALLS empty state says a trader has no calls while the Home feed shows that trader's call",
+          "location": "app/lib/features/profile/profile_screen.dart:359-364",
+          "failurePath": "Seeded app, no changes. The first Home card is kaito.eth's ETH long call (mockTradeIdea, callerHandle 'kaito.eth', mock_trade_idea.dart:76). Tap the caller, and onCaller (home_screen.dart:132-133) pushes ProfileScreen('kaito.eth'), which is not a private profile (privateProfiles holds only 'nara'). Scroll to the bottom and the new empty state reads \"No calls from kaito.eth yet\" with an \"Explore markets\" button. kaito.eth has no Scenario.callReceipts (trader_record_test.dart:390 asserts callsBy('kaito.eth') is empty), so _calls() takes the empty branch. The same happens for 0xreal and deltaone, who also author feed cards but have no seeded receipts. The collection the code reads (call receipts) is empty, but the copy makes a wider claim (no calls at all), and the screen the user just left disproves it. Phase 7 avoided this: it hid the section, the record panel above says \"No settled calls yet \u2014 record unavailable\", and ReceiptsScreen says \"No call receipts for kaito.eth in fixture-v1\" for the same empty collection (receipts_test.dart:471). This new line is the only unqualified one. It is an empty state that denies data which exists in the app (the brief's fail-safe class).",
+          "fix": "Scope the copy to the collection actually read, matching the phase-7 wording, for example `'No call receipts for ${widget.handle} in ${Scenario.fixtureVersion}'` (the ReceiptsScreen string). Then update the expected text in empty_states_test.dart:187. One string, no logic change.",
+          "evidence": "Read profile_screen.dart:355-381 (_calls reads Scenario.callReceipts and filters on author == handle), mock_trade_idea.dart:75-135 (feed callers kaito.eth, 0xreal, kilo.sol, lunaq, nara, deltaone, kestrel, maya.eth), market_mock.dart seedCalls authors (maya.eth via PortfolioMock.handle, kilo.sol, lunaq, kestrel, nara only), profile_mock.dart:79 (privateProfiles = {nara}), home_screen.dart:132-133 (onCaller pushes ProfileScreen.route(callerHandle)), trader_record_test.dart:387-398 and receipts_test.dart:463-472 (the phase-7 qualified copy for kaito.eth).",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Explore list scroll position is lost after a simulated failure and Retry",
+          "location": "app/lib/features/markets/markets_screen.dart:113-124",
+          "failurePath": "On Explore, scroll down the ALL MARKETS list. Go to Wallet, then Settings, and turn on Simulate load failure. The always-mounted MarketsScreen rebuilds and swaps the real ListView for the failed ListView, so the real list's ScrollPosition is disposed. Return to Explore and tap Retry: the list rebuilds at offset 0. Filter state survives: _query, _tab and _sort live in State, and the search field stays mounted with its text. Only the scroll offset resets. A real reload often lands at the top too, so this is a note rather than a defect.",
+          "fix": "If keeping the offset matters, give the loaded ListView a `PageStorageKey('explore-list')` (or keep a ScrollController in State and pass it in) so it restores after Retry. Otherwise accept it as the behaviour of a reload.",
+          "evidence": "Read markets_screen.dart in full at phase-8. Both branches are bare ListViews with no key or controller under one conditional. The tab, query and sort fields are on _MarketsScreenState (lines 28-31), and VistaSearchTopBar stays outside the conditional.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope check: phase-8 resolves to e36eac83 and phase-7 to ea4fceac. The three-dot diff lists 49 files, and the worktree HEAD is the phase-8 tip on branch feat/br-2026-10-04-p0-queue/phase-8. The newest code commit is 0621d10; the two commits after it touch only bookkeeping.",
+        "The markets_screen.dart rewrite (307 lines) is behaviour-preserving apart from the failed state. A whitespace-stripped character diff of phase-7 against phase-8 shows only the scenario import, the ValueListenableBuilder-to-ListenableBuilder(merge) swap, the failed-state ternary branch, and trailing commas. Sorting (_sorted), search, tab switching, favourites, navigation (_open) and the 'No matches' text are unchanged.",
+        "Only markets_screen.dart reads Scenario.marketsLoadFails (grep over lib/). Settings writes it, Scenario.reset clears it, and no other screen depends on it.",
+        "The flag lives in a static ValueNotifier on Scenario, so it survives navigation. The Settings ListenableBuilder includes it, so the switch reflects Retry. Scenario.reset sets it to false, and resetDemo (simulation_indicator.dart:11-21) calls Scenario.reset from both the pill and Settings.",
+        "Retry sets the flag to false. The always-mounted MarketsScreen rebuilds through the merged listenable and renders the real list. There is no toast or success copy, so nothing is claimed that did not happen.",
+        "The failed state names its real cause: the detail line 'Set by Simulate load failure in Settings'. The switch's label and subtitle ('Simulate load failure' / 'Explore markets list') truthfully describe a simulated failure.",
+        "No double-filtering or stale reads at the call sites. Positions read Scenario.positions; Open orders read OrdersState.open; Ledger reads Scenario.marketFees under a listener on feeEntries and marketId; Receipts reads callReceipts and receipts under a merged listener; Follow lists filter Scenario.followers/following once by _query; Arena uses ArenaMock.visible(view), with Scenario.arena as its listenable. Each empty branch tests exactly the collection it renders.",
+        "Arena 'Clear search' calls Scenario.setArena(query: ''). The Ask field follows through _followView, and 'Show all' resets only the range, so it always reveals the non-empty set that asked() matches.",
+        "Follow-list 'Clear search' resets both _query and the controller. With a query present it shows 'No matches' and Clear search; with no query it shows 'No followers yet' / 'Not following anyone yet'.",
+        "AppShell.showExplore pops to the first route, then sets AppShell.tab, which _AppShellState listens to.",
+        "When the Home feed is empty, the PageController is never attached. _pages is used only in _onScrollEnd and dispose, so nothing throws."
+      ],
+      "notExamined": [
+        "Did not run any flutter test; all conclusions come from reading the source. The gate results (287 tests) were taken as given.",
+        "Layout and pill-strip clearance of the failed-state ListView at 1.3x text scale was not checked. That belongs to the layout lane, and the failed ListView has no bottom padding of its own.",
+        "Did not check that every review-baton L item (the duplicate Explore markets buttons, the text-only paper-receipts check, the surviving mutants) still reproduces.",
+        "Follow-list empty copy ('No followers yet') sits beside static tab counts (FollowMock.followerCount '1,204'). This was not filed: the follow lists cannot be emptied by a user, only by the test's emptied scenario.",
+        "The Ledger and Positions empty states are reachable only if a user can empty those collections in the app. Did not trace the close-position or market-unlisting paths."
+      ]
+    },
+    {
+      "lens": "layout-empty-states",
+      "findings": [
+        {
+          "severity": "HIGH",
+          "title": "Profile CALLS empty state says a trader has no calls when their call is the first card on Home, and repeats the record panel's note in different words",
+          "location": "app/lib/features/profile/profile_screen.dart:360",
+          "failurePath": "Seed state, any viewport and text scale. On Home the first card is kaito.eth's ETH call (mockFeed[0]; the second card is 0xreal, the same case). Tap the caller and ProfileScreen(handle: 'kaito.eth') opens. kaito.eth has no seeded call receipts, so the screen now shows the TraderRecordPanel note 'No settled calls yet \u2014 record unavailable' and, below it, the new 'No calls from kaito.eth yet' with an 'Explore markets' button. The new line denies a call the user just tapped, and the app's own copy calls feed items calls ('No calls to show'). One screen now has two wordings for one situation, and a third exists on ReceiptsScreen ('No call receipts for kaito.eth in fixture-v1'). Phase 7 hid this section for exactly this trader (trader_record_test.dart: 'a trader with no call receipts gets no CALLS heading'). The diff turns that silence into a false claim. The same applies to deltaone, mirin and renatafx.",
+          "fix": "Keep the new empty state but make its line truthful and use the wording that already exists. Either reuse the Receipts copy ('No call receipts for <handle> in fixture-v1'), or drop the empty state on Profile, since TraderRecordPanel already states the situation on that screen. Update the matching expectation in empty_states_test.dart.",
+          "evidence": "Read profile_screen.dart _calls() (diff) and _record()/TraderRecordPanel (receipt_screens.dart:209-228, unavailableNote). homeFeed starts with mockFeed[0] = mockTradeIdea (callerHandle 'kaito.eth', mock_trade_idea.dart:75-76,97-98). home_screen.dart onCaller pushes ProfileScreen.route(idea.callerHandle). seedCalls authors are maya.eth, kilo.sol, lunaq, kestrel and nara only (market_mock.dart). The phase-7 test at trader_record_test.dart:387-398 uses kaito.eth as the trader with no receipts.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "The empty-state action (including Markets Retry) exposes a button role and label but no semantics tap action",
+          "location": "app/lib/design_system/components/vista_empty_state.dart:43",
+          "failurePath": "Any empty state or the Markets failed state with a screen reader or Switch/Voice Access on. VistaEmptyState's one action is a VistaPillButton, which wraps its GestureDetector in Semantics(button: true, label, excludeSemantics: true) with no onTap. Excluding child semantics drops the GestureDetector's tap action, so the node reports isButton=true and hasAction(tap)=false. Assistive tech that activates through semantics actions gets a button it cannot press, and on Markets that button is Retry, the only way out of the failed state. SimulationIndicator already handles this by passing onTap to its Semantics.",
+          "fix": "Root fix, in one place: add `onTap: onPressed` to the Semantics in VistaPillButton (vista_buttons.dart:38-41), as SimulationIndicator does. That fixes every empty-state action at once. VistaSwitch (the new Simulate load failure toggle) has the same pattern.",
+          "evidence": "Ran a scratch widget test outside the repo (scratchpad/sem_test.dart, run with flutter test from app/; the tree is unchanged per git status). It pumped VistaEmptyState(actionLabel: 'Retry') and printed: tap=false, button=true, size=Size(768.0, 46.0). This is pre-existing in VistaPillButton, but the new shared widget inherits it on every surface in this diff.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: phase-8 resolves to e36eac83 and phase-7 to ea4fceac. The worktree is on phase-8 at e36eac83, and the three-dot diff lists 49 files including every app/ call site.",
+        "Tap target: VistaPillButton has minHeight VistaSize.pillButton = 46, which meets the 44 px tapTarget. The button stretches to the column's full width (measured 768 wide in a free layout). VistaSwitch's hit box is 44x44.",
+        "Tokens: VistaEmptyState uses only VistaSpace, VistaType and VistaColors. New feature code adds no hardcoded colours or font sizes (Markets' fontSize: 15 on the star was only moved). follow_list adds a `+ 16` literal for spacing, which the invariant does not forbid.",
+        "Pill strip and bottom nav on tab screens (Home, Explore, Arena, Wallet): tabs sit in AppShell's Column above the dock, and the dock's bottom padding includes the strip, so no empty state or Retry can sit under the nav or the pill. A scroll view with no explicit padding (Home empty, Markets failed) also adds MediaQuery bottom padding.",
+        "Pushed routes: Receipts and Follow list pad their bottom with MediaQuery.paddingOf(context).bottom (strip included) and Profile with that plus 24. Ledger's list ends above a footer that is kept clear of the strip. Settings pads with MediaQuery bottom plus xl. The last empty state on each route clears the 30 px strip once the list is scrolled to its end.",
+        "empty_states_test.dart covers 360x640 and 375x667 at 1.3x for every listed surface plus Markets Retry, using hitTestable and expectPillClear. Text scale 1.0 only gives more room. The message wraps, and the action label is one line with an ellipsis, so neither can overflow.",
+        "Two 'Explore markets' buttons on the user's own Receipts: not a layout defect. They are two independent sections (CALL RECEIPTS and PAPER ORDER RECEIPTS), and both are empty only in the test's emptied scenario. In the app, maya.eth's call receipts are seeded (YourMarketMock.record), so the seed shows only the paper-orders empty state. The second button is the list's last child, so after scrolling to the end it clears the strip.",
+        "Arena 'Clear search' calls Scenario.setArena(query: ''), and _followView puts the text back into the Ask field. Follow 'Clear search' clears both _query and the controller.",
+        "Markets failed state: the detail line names the real cause ('Set by Simulate load failure in Settings'). Retry sets Scenario.marketsLoadFails false, and the ListenableBuilder rebuilds into the list. Reset clears the flag. Only markets_screen and settings read it.",
+        "No empty state sits inside a bottom sheet in this diff; the position sheet and the simulated note are unchanged.",
+        "AppShell.showExplore pops to the first route and then sets the tab, so it works from a tab or from a pushed list.",
+        "The tree was left unmodified: git status --short was empty after the scratch test run."
+      ],
+      "notExamined": [
+        "No device or emulator run. Layout checks rest on code reading plus the phase-8 gate logs and test assertions, not on screenshots at 360x640 or 375x667.",
+        "Whether TalkBack or VoiceOver falls back to a simulated touch when no semantics tap action is present. This decides how serious the LOW finding is in practice.",
+        "Follow list empty lines ('No followers yet' and 'Not following anyone yet') sit under the hardcoded tab counts (1,204 and 128). They contradict each other only in the test's emptied scenario, because Scenario.followers and following are never emptied in the app. Not filed.",
+        "Ledger empty state after making a market under a new ticker: whether the footer total and the 'No fee credits yet' line agree. The money path is outside this lane.",
+        "The 393, 412 and 430 px widths, and keyboard-up layout on Arena while the Ask empty state shows. The CrowdFilterPanel folds while the keyboard is up; behaviour was read, not rendered."
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "tautology-hunt",
+      "n": 5
+    },
+    {
+      "lens": "state-truthfulness",
+      "n": 2
+    },
+    {
+      "lens": "layout-empty-states",
+      "n": 2
+    }
+  ]
+}
