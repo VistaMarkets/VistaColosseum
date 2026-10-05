@@ -26,6 +26,7 @@ import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
+import 'package:vista_colosseum/features/portfolio/positions_state.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
@@ -100,6 +101,7 @@ void main() {
     LikesState.reset();
     TakeLikes.reset();
     CallsStore.reset();
+    PositionsState.reset();
     BattlesStore.reset();
     SettingsState.reset();
     WatchlistState.reset();
@@ -1609,14 +1611,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Close'), findsOneWidget);
 
-      // Close dismisses the sheet (simulated).
+      // Close dismisses the sheet and closes the position (simulated).
       await tester.tap(find.bySemanticsLabel('Close position'));
       await tester.pumpAndSettle();
       expect(find.byType(PositionSheet), findsNothing);
-      expect(
-        find.text('Close position (simulated) — not in the demo yet'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Closed Ethereum'), findsOneWidget);
     });
 
     testWidgets('a short puts stop-loss above entry', (tester) async {
@@ -2251,6 +2250,74 @@ void main() {
       await tester.pumpAndSettle();
       expect(firstHandle(), HomeFeed.forYou(CallsStore.all.value).first.handle);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('positions', () {
+    Future<void> launch(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a market order from Home lands in Portfolio', (tester) async {
+      await launch(tester);
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(r'Long $200 · 2x'));
+      await tester.pump(VistaMotion.confirmHold);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('in Positions'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      expect(PositionsState.open.value, hasLength(4));
+      // The new one first: the card's market, long at 2x.
+      final first = PositionsState.open.value.first;
+      expect(first.tag, 'LONG 2x');
+      expect(first.detail.opened, 'just now');
+    });
+
+    testWidgets('Close removes the position; Undo puts it back', (
+      tester,
+    ) async {
+      await launch(tester);
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      final row = find.descendant(
+        of: find.byType(PortfolioScreen),
+        matching: find.text('Ethereum'),
+      );
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Close position'));
+      await tester.pumpAndSettle();
+      expect(
+        PositionsState.open.value.map((p) => p.title),
+        isNot(contains('Ethereum')),
+      );
+      expect(find.textContaining('Closed Ethereum'), findsOneWidget);
+      expect(find.textContaining('realised'), findsOneWidget);
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(PositionsState.open.value.first.title, 'Ethereum');
+    });
+
+    testWidgets('no positions: the + picker points to Explore', (tester) async {
+      await launch(tester);
+      PositionsState.open.value = const [];
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      expect(find.text('No open positions yet'), findsOneWidget);
+      await tester.tap(find.text('Find a market'));
+      await tester.pumpAndSettle();
+      expect(find.text('ALL MARKETS'), findsOneWidget);
     });
   });
 

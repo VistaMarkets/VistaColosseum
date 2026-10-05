@@ -17,10 +17,13 @@ import 'take_card.dart';
 /// battle (with a chip linking it) or a plain call on a market (no chip);
 /// backed takes carry their position.
 class ArenaScreen extends StatefulWidget {
-  const ArenaScreen({super.key, this.onNotBuilt});
+  const ArenaScreen({super.key, this.onNotBuilt, this.onExplore});
 
   /// Called with a feature name when a control leads somewhere not built yet.
   final ValueChanged<String>? onNotBuilt;
+
+  /// Switches to the Explore tab (from the + flow's empty state).
+  final VoidCallback? onExplore;
 
   @override
   State<ArenaScreen> createState() => _ArenaScreenState();
@@ -37,7 +40,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
   /// The + : pick the position to back the take, write it, post it. The
   /// new take goes to the top of the feed.
   Future<void> _newTake() async {
-    final take = await Navigator.of(context).push(PickPositionScreen.route());
+    final take = await Navigator.of(context)
+        .push(PickPositionScreen.route(onExplore: widget.onExplore));
     if (take != null) CallsStore.add(take);
   }
 

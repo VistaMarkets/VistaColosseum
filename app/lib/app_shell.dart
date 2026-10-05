@@ -19,6 +19,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   static const _home = 0;
+  static const _explore = 1;
   static const _wallet = 3;
 
   static const _navItems = [
@@ -79,7 +80,10 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   HomeScreen(visible: _tab == _home, onNotBuilt: _notBuilt),
                   MarketsScreen(onNotBuilt: _notBuilt),
-                  ArenaScreen(onNotBuilt: _notBuilt),
+                  ArenaScreen(
+                    onNotBuilt: _notBuilt,
+                    onExplore: () => _select(_explore),
+                  ),
                   PortfolioScreen(onNotBuilt: _notBuilt),
                 ],
               ),

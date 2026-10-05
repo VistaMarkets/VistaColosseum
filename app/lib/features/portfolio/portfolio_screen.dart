@@ -11,6 +11,7 @@ import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
 import 'open_order_card.dart';
 import 'orders_state.dart';
+import 'positions_state.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
@@ -271,8 +272,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     );
   }
 
-  Widget _positions() {
-    const positions = PortfolioMock.positions;
+  Widget _positions() => ValueListenableBuilder(
+    valueListenable: PositionsState.open,
+    builder: (context, positions, _) => _positionList(positions),
+  );
+
+  Widget _positionList(List<PortfolioPosition> positions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

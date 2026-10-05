@@ -152,7 +152,22 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     HapticFeedback.mediumImpact();
     final side = widget.side.label.toLowerCase();
     final messenger = ScaffoldMessenger.of(context);
-    if (_limit) {
+    if (!_limit) {
+      // A market order fills at once: it opens a position in Portfolio.
+      PositionsState.add(
+        PositionsState.fromFill(
+          symbol: widget.symbol,
+          name: _market.name,
+          traderMarket: TradeMock.quotes[widget.symbol] == null,
+          side: widget.side,
+          leverage: _leverage,
+          entry: _entry,
+          notional: _notional,
+          takeProfit: _exits ? _exitPrice(_tpPct, gain: true) : null,
+          stopLoss: _exits ? _exitPrice(_slPct, gain: false) : null,
+        ),
+      );
+    } else {
       final units = _notional / _entry;
       OrdersState.add(
         OpenOrder(
@@ -186,7 +201,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
             content: Text(
               _limit
                   ? 'Limit $side placed · in Open orders (simulated)'
-                  : 'Market $side filled (simulated)',
+                  : 'Market $side filled · in Positions (simulated)',
             ),
           ),
         );

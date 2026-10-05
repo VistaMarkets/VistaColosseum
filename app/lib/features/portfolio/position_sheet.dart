@@ -9,6 +9,7 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../home/signal_replay_chart.dart';
 import 'portfolio_mock.dart';
+import 'positions_state.dart';
 import 'series_chart.dart';
 
 /// Slides the position sheet up from the bottom (Figma 104:110, "Position
@@ -261,15 +262,26 @@ class _PositionSheetState extends State<PositionSheet> {
     });
   }
 
+  /// Closes the position: it leaves Portfolio and its P/L is realised.
+  /// Simulated: nothing is sent. Undo puts it back where it was.
   void _close() {
+    final p = widget.position;
     final messenger = ScaffoldMessenger.of(context);
+    HapticFeedback.mediumImpact();
     Navigator.of(context).pop();
-    // Simulated only: nothing is closed anywhere.
+    final at = PositionsState.remove(p);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('Close position (simulated) — not in the demo yet'),
+        SnackBar(
+          content: Text(
+            'Closed ${p.title} ${p.tag} · realised ${p.detail.pnl} '
+            '(simulated)',
+          ),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () => PositionsState.insert(at, p),
+          ),
         ),
       );
   }

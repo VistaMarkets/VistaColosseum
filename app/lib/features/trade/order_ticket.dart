@@ -9,6 +9,7 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
 import '../portfolio/orders_state.dart';
+import '../portfolio/positions_state.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'trade_mock.dart';
 
@@ -233,7 +234,22 @@ class _OrderTicketState extends State<OrderTicket> {
     final kind = _kind.name;
     final side = _side.label.toLowerCase();
     final messenger = ScaffoldMessenger.of(context);
-    if (_kind != OrderKind.market) {
+    if (_kind == OrderKind.market) {
+      // A market order fills at once: it opens a position in Portfolio.
+      PositionsState.add(
+        PositionsState.fromFill(
+          symbol: widget.symbol,
+          name: _market.name,
+          traderMarket: TradeMock.quotes[widget.symbol] == null,
+          side: _side,
+          leverage: _leverage,
+          entry: _entry,
+          notional: _notional,
+          takeProfit: _exits ? _parse(_tp.text) : null,
+          stopLoss: _exits ? _parse(_sl.text) : null,
+        ),
+      );
+    } else {
       OrdersState.add(
         OpenOrder(
           id: 'o-${DateTime.now().microsecondsSinceEpoch}',
@@ -265,7 +281,7 @@ class _OrderTicketState extends State<OrderTicket> {
           SnackBar(
             content: Text(
               _kind == OrderKind.market
-                  ? 'Market $side filled (simulated)'
+                  ? 'Market $side filled · in Positions (simulated)'
                   : '${kind[0].toUpperCase()}${kind.substring(1)} $side placed · '
                         'in Open orders (simulated)',
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../portfolio/positions_state.dart';
 import 'arena_mock.dart';
 import 'compose_take_screen.dart';
 
@@ -9,14 +10,22 @@ import 'compose_take_screen.dart';
 /// positions. Tapping one goes on to write the take; the page pops with
 /// the posted take.
 class PickPositionScreen extends StatelessWidget {
-  const PickPositionScreen({super.key});
+  const PickPositionScreen({super.key, this.onExplore});
 
-  static Route<Take> route() =>
-      MaterialPageRoute(builder: (_) => const PickPositionScreen());
+  /// Takes the viewer to Explore to open a position (the empty state).
+  final VoidCallback? onExplore;
+
+  static Route<Take> route({VoidCallback? onExplore}) => MaterialPageRoute(
+    builder: (_) => PickPositionScreen(onExplore: onExplore),
+  );
 
   @override
-  Widget build(BuildContext context) {
-    const positions = PortfolioMock.positions;
+  Widget build(BuildContext context) => ValueListenableBuilder(
+    valueListenable: PositionsState.open,
+    builder: (context, positions, _) => _page(context, positions),
+  );
+
+  Widget _page(BuildContext context, List<PortfolioPosition> positions) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
       body: SafeArea(
@@ -85,6 +94,16 @@ class PickPositionScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // No positions yet: a call needs one, so point the way.
+                  if (positions.isEmpty)
+                    _NoPositions(
+                      onExplore: onExplore == null
+                          ? null
+                          : () {
+                              Navigator.of(context).pop();
+                              onExplore!();
+                            },
+                    ),
                   for (final (i, p) in positions.indexed) ...[
                     if (i > 0) const SizedBox(height: VistaSpace.sm),
                     VistaListRow(
@@ -114,6 +133,47 @@ class PickPositionScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The picker with nothing to pick: a call is made from a position, so
+/// this sends the viewer to Explore to open one.
+class _NoPositions extends StatelessWidget {
+  const _NoPositions({this.onExplore});
+
+  final VoidCallback? onExplore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(VistaSpace.gutter + VistaSpace.xs),
+      decoration: BoxDecoration(
+        color: VistaColors.surface,
+        borderRadius: BorderRadius.circular(VistaRadius.card),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('No open positions yet', style: VistaType.headline),
+          const SizedBox(height: VistaSpace.xs),
+          Text(
+            'A call is made from a position, so others can see it play '
+            'out live. Open one on any market, then come back here.',
+            style: VistaType.bodyMedium.copyWith(
+              color: VistaColors.textSecondary,
+            ),
+          ),
+          if (onExplore != null) ...[
+            const SizedBox(height: VistaSpace.gutter),
+            VistaPillButton(
+              label: 'Find a market',
+              variant: VistaPillVariant.accent,
+              onPressed: onExplore,
+            ),
+          ],
+        ],
       ),
     );
   }
