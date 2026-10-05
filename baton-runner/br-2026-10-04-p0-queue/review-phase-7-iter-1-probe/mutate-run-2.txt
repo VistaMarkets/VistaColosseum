@@ -1,0 +1,2 @@
+panel-stats-row-overflows: KILLED (exit 1) fails=1 :: 00:03 +35 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test
+restore byte-check OK

@@ -1,0 +1,30 @@
+PROBE kilo after flip (asOf: 2026-09-26 14:45:00.000, hitRatePct: 33, open: 1, right: 1, settled: 3, wrong: 2)
+PROBE lunaq after flip (asOf: 2026-09-26 14:45:00.000, hitRatePct: 67, open: 1, right: 2, settled: 3, wrong: 1)
+PROBE header "1" widgets=1
+PROBE after clock move: Illustrative index · based on 3 settled calls · as of 1 Oct 09:05
+PROBE lunaq rights only: Illustrative index · based on 2 settled calls · as of 1 Oct 09:05 | (asOf: 2026-10-01 09:05:00.000, hitRatePct: 100, open: 0, right: 2, settled: 2, wrong: 0)
+PROBE chart.top=440.0 caption.top=676.0 captionAboveChart=false
+PROBE mirin exception=null note=1 chart=0 items=0
+PROBE 0xreal exception=null note=1 chart=0 items=0
+PROBE renatafx exception=null note=1 chart=0 items=0
+PROBE kaito.eth exception=null note=1 chart=0 items=0
+PROBE arena "71% accuracy" shown=1
+PROBE arena "77% accuracy" shown=1
+PROBE arena "82% accuracy" shown=1
+PROBE arena "79% accuracy" shown=1
+PROBE record kilo.sol = 67
+PROBE record lunaq = 67
+PROBE record maya.eth = 50
+PROBE record mirin = null
+PROBE record 0xreal = null
+PROBE record renatafx = null
+PROBE after tap kilo.sol: profile=1 hit67=1
+PROBE trader-market lunaq all 4 items open own receipt
+PROBE after reset: same(seedCalls)=true clock=2026-09-26 14:45:00.000 rec=(asOf: 2026-09-26 14:45:00.000, hitRatePct: 67, open: 1, right: 2, settled: 3, wrong: 1)
+PROBE reset restores panel: ok
+PROBE small Android 360x640 trader-market Record last=Rect.fromLTRB(16.0, 468.0, 344.0, 541.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlap=false ex=null
+The following StateError was thrown running a test:
+When the exception was thrown, this was the stack:
+00:02 +6 -1: P7 pill clearance at 1.3x: trader-market Record, Your market, nara [E]
+00:02 +6 -1: (tearDownAll)
+00:02 +6 -1: Some tests failed.

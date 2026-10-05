@@ -1,0 +1,11 @@
+PROBE x1.0 small Android 360x640 screenH=640.0 caption.top=700.0 onScreen=false
+PROBE x1.0 iPhone SE 375x667 screenH=667.0 caption.top=696.0 onScreen=false
+PROBE x1.0 iPhone 15 393x852 screenH=852.0 caption.top=735.0 onScreen=true
+PROBE x1.0 Pixel 7 412x915 screenH=915.0 caption.top=700.0 onScreen=true
+PROBE x1.0 iPhone 15 Pro Max 430x932 screenH=932.0 caption.top=735.0 onScreen=true
+PROBE x1.3 small Android 360x640 screenH=640.0 caption.top=761.0 onScreen=false
+PROBE x1.3 iPhone SE 375x667 screenH=667.0 caption.top=757.0 onScreen=false
+PROBE x1.3 iPhone 15 393x852 screenH=852.0 caption.top=796.0 onScreen=true
+PROBE x1.3 Pixel 7 412x915 screenH=915.0 caption.top=761.0 onScreen=true
+PROBE x1.3 iPhone 15 Pro Max 430x932 screenH=932.0 caption.top=796.0 onScreen=true
+00:00 +1: All tests passed!

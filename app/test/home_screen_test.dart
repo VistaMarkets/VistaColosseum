@@ -550,22 +550,13 @@ void main() {
       // The user follows lunaq in the fixture; the profile agrees.
       expect(find.text('Following'), findsOneWidget);
 
-      // Filters: Arena shows only arena receipts.
-      final arenaChip = find.text('Arena 14');
+      // lunaq's own calls, not a sample every profile shared.
       await tester.scrollUntilVisible(
-        arenaChip,
+        find.text(r'ETH stays under $3,200 to Oct 5'),
         200,
         scrollable: profileList(),
       );
-      await tester.pumpAndSettle();
-      await tester.tap(arenaChip);
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text(r'SOL loses $190 by Sep 15'),
-        200,
-        scrollable: profileList(),
-      );
-      expect(find.text(r'BTC reclaims $66,000 by Tue'), findsNothing);
+      expect(find.text(r'SOL loses $190 by Sep 15'), findsNothing);
     });
 
     testWidgets('a private account without a market opens the private layout', (
@@ -577,10 +568,30 @@ void main() {
       expect(find.text('Private account'), findsOneWidget);
       expect(find.text('Positions are private'), findsOneWidget);
       expect(find.text('Open calls'), findsOneWidget);
+      // The header counts nara's receipts as the store holds them...
+      Finder stat(String label, int n) => find.byWidgetPredicate(
+        (w) => w is VistaCountStat && w.label == label && w.value == '$n',
+      );
+      final m = Scenario.record('nara');
+      // Right is 0 at the seed clock: her Right call's settlement time
+      // ("Tue 16:00") cannot be placed against the clock.
+      expect([m.settled, m.open], everyElement(greaterThan(0)));
+      expect(stat('Settled', m.settled), findsOneWidget);
+      expect(stat('Right', m.right), findsOneWidget);
+      expect(stat('Open calls', m.open), findsOneWidget);
       // No market or holdings for a private account.
       expect(find.text('HOLDING NOW'), findsNothing);
       expect(find.text('market'), findsNothing);
       expect(find.text(r'BTC holds $64,000 to Oct 3'), findsOneWidget);
+      // ...and follows the store: with nara's calls gone, every count is 0.
+      Scenario.callReceipts.value = [
+        for (final c in Scenario.callReceipts.value)
+          if (c.author != 'nara') c,
+      ];
+      await tester.pumpAndSettle();
+      expect(stat('Settled', 0), findsOneWidget);
+      expect(stat('Right', 0), findsOneWidget);
+      expect(stat('Open calls', 0), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -606,7 +617,7 @@ void main() {
         await setView(tester, size, padding);
         await openFromFollowers(tester, 'lunaq');
         expect(tester.takeException(), isNull);
-        final last = find.text(r'SOL loses $190 by Sep 15');
+        final last = find.text(r'ETH stays under $3,200 to Oct 5');
         await tester.scrollUntilVisible(last, 200, scrollable: profileList());
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
@@ -1161,6 +1172,8 @@ void main() {
       expect(find.text('Crowd split 28% bull'), findsOneWidget);
       expect(find.text('Crowd split · 9 opinions'), findsOneWidget);
       expect(find.text('@lunaq'), findsOneWidget);
+      // The subtitle's accuracy is lunaq's derived record, not a stored 77%.
+      expect(find.text('Sniper · 67% accuracy'), findsOneWidget);
       await tester.tap(find.text('Follow Bear'));
       await tester.pumpAndSettle();
       final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));

@@ -12,7 +12,7 @@ import 'vista_icon.dart';
 class VistaBattleSide {
   const VistaBattleSide({
     required this.caller,
-    required this.accuracy,
+    this.accuracy = '',
     required this.price,
     required this.change,
     required this.thesis,
@@ -21,6 +21,9 @@ class VistaBattleSide {
   });
 
   final String caller;
+
+  /// The caller's accuracy line, filled at render time from their record;
+  /// never a stored figure.
   final String accuracy;
   final String price;
   final String change;
@@ -32,8 +35,12 @@ class VistaBattleSide {
   /// Others on this side, e.g. "and 14".
   final String crowd;
 
-  /// This side with [crowd] as its crowd line.
-  VistaBattleSide withCrowd(String crowd) => VistaBattleSide(
+  /// This side with its crowd and accuracy lines, both filled at render
+  /// time.
+  VistaBattleSide withLines({
+    required String crowd,
+    required String accuracy,
+  }) => VistaBattleSide(
     caller: caller,
     accuracy: accuracy,
     price: price,

@@ -1,0 +1,432 @@
+{
+  "verified": {
+    "verdict": "MERGE-WITH-FIXES",
+    "summary": "Scope check passed. phase-7 resolves to c2b1566, which is the worktree HEAD and matches the gate SHA. phase-6 resolves to 3a29ada. The three-dot diff touches 12 files under app/. Twelve of the filed findings survive after merging duplicates. One is HIGH: Scenario.record drops receipts that have a null result with a bare `case null: break;`. RecordMetrics has no field for those calls, and the unit test at trader_record_test.dart:157 pins the drop. The fail-safe rule makes this class HIGH. It is latent, though: no seeded receipt has a null result, and callReceipts is written only at init and in reset. Four are MEDIUM. Arena accuracy is hard-coded (the known F1). The profile header stats are unpinned (the known F2). The panel copy is tested only on the pair at the seed clock, so a hard-coded caption or hit rate, swapped right/wrong labels, the wrong handle on Your market or the private profile, or a dropped clock listener would all stay green. The static 'Last 10 verdicts' icon (7 right, 3 wrong) sits above derived figures of 3 settled, and this diff gated it and pinned it with a test. Seven are LOW. I refuted three: the share card and the Markets rows are outside this diff (the share preview is a declared queue residual), and the nara 'Illustrative index' copy is what the spec requires; the feed also opens a nara trader market (mock_trade_idea.dart:324). Nothing in this diff freezes at merge, so no finding is must-fix-before-merge. The HIGH is a three-line fix and the reviewers recommend doing it in this phase.",
+    "confirmed": [
+      {
+        "severity": "HIGH",
+        "title": "Scenario.record silently drops a call receipt with a null result: no count, no trace, and the panel cannot reconcile with the list under it",
+        "location": "app/lib/scenario/scenario.dart:161-162 (RecordMetrics typedef :16-23; panel app/lib/features/market/receipt_screens.dart:207-252; pinned by app/test/trader_record_test.dart:157)",
+        "failurePath": "CallReceipt.result is nullable, and status/color/rail render null as 'unavailable' (market_mock.dart:62-82). CallOutcome has no void value, so an unknown or voided call can only be null. record() runs `case null: break;` and RecordMetrics has nowhere to count it. Example: a kilo.sol receipt with result null. CallRecordList shows 5 items, one marked 'unavailable', while TraderRecordPanel still reads '3 settled \u00b7 2 right \u00b7 1 wrong \u00b7 1 open \u00b7 Hit rate 67%' with nothing to say a call is missing. The test feeds author 'x' one null receipt and expects it gone from every count. Latent today: every seeded receipt has a result, and callReceipts is written only at scenario.dart:100 (init) and :351 (reset).",
+        "fix": "Add `int unavailable` to RecordMetrics and count `case null` into it. Keep it out of settled and the hit rate. When it is above 0, show '$unavailable unavailable' in the panel's Wrap. Change the test at :161-168 to expect unavailable: 1 instead of the drop.",
+        "beforeMerge": false,
+        "why": "Read scenario.dart:141-174 (the switch with `case null: break;`), the RecordMetrics typedef (5 counts plus asOf, no unavailable field), market_mock.dart:8 (enum right/wrong/open) and :49-50 (nullable result), trader_record_test.dart:149-168, and every `result:` in the seed (none null). Merged from the metrics-single-source and wiring-ux lanes. Note: docs/specs/00-baton-queue.md row 7 lists 'unavailable-call state' as a VC-FED-003 residual. That residual covers building the UI state. It does not excuse a record that drops the call without a trace, which the run's fail-safe rule rates HIGH.",
+        "id": "F1"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Arena sides and opinion subtitles hard-code accuracy that contradicts the derived record (known F1, confirmed)",
+        "location": "app/lib/features/arena/arena_mock.dart:143,151,162,174 (also :107,117,200,208,219)",
+        "failurePath": "The eth-4k battle card shows kilo.sol '71% accuracy' and lunaq '77% accuracy'. Tapping either name (the AC3 path, arena_screen.dart:153) opens a panel that reads 'Hit rate 67%' for both, since each derives (3,2,1,1,67). So the VC-MKT-002 equal pair looks unequal one tap before the screen that shows them equal. maya.eth shows '82%' against a derived 50%. mirin, renatafx and 0xreal show figures but have no receipts, so their panels read 'record unavailable'. The Arena AC3 test (trader_record_test.dart:323-331) never compares the card figure with the panel.",
+        "fix": "Derive the side and subtitle accuracy from Scenario.record(caller).hitRatePct at render time, showing 'no record yet' when it is null. Then assert in the Arena test that the tapped side's percent equals the panel's.",
+        "beforeMerge": false,
+        "why": "Read arena_mock.dart accuracy/caller lines (grep confirmed 107,117,143,151,162,174,200,208,219). Worked the pair's records from market_mock.dart. `grep accuracy app/test` finds nothing. Merges three duplicate filings, one from each lane.",
+        "id": "F2"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Profile and private-profile header Settled / Right / Open calls values are unpinned (known F2, confirmed)",
+        "location": "app/lib/features/profile/profile_screen.dart:202,205; app/lib/features/profile/private_profile_screen.dart:143-170",
+        "failurePath": "Revert '${m.settled}' / '${m.right}' to '62' / '36', the constants spec 07's Gap names, or set the private header's Open calls to a constant. The suite stays green. The pair test scopes '3 settled' to inPanel, so the header's VistaCountStat value is never read. The nara private-profile test (home_screen_test.dart:562-573) asserts only the 'Open calls' label and one list item.",
+        "fix": "In the pair profile test, assert that VistaCountStat 'Settled' shows '3' and 'Right' shows '2' for kilo.sol. In the nara private-profile test, assert Settled '2', Right '1' and Open calls '2'.",
+        "beforeMerge": false,
+        "why": "grep of app/test for 'Settled', 'Right' and 'Open calls' finds only home_screen_test.dart:570 (a label) and :1831 (an unrelated tap). Read both header implementations in the diff. Merges two duplicate filings.",
+        "id": "F3"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Panel copy is tested at one data point only: a hard-coded caption or hit rate, swapped right/wrong labels, the wrong handle on Your market or the private profile, a dropped clock listener, or a constant open-calls chip all stay green",
+        "location": "app/lib/features/market/receipt_screens.dart:217-246; app/lib/features/market/your_market_screen.dart:118; app/lib/features/profile/private_profile_screen.dart:243; app/lib/features/market/trader_market_screen.dart:46-50 (tests app/test/trader_record_test.dart:38-39,174-331)",
+        "failurePath": "Every widget assertion on panel text uses kilo.sol or lunaq at the seed clock, and the two have identical metrics. Each of these mutations survives: (a) replace the caption, '$n settled' and 'Hit rate $pct%' with the literals 'Illustrative index \u00b7 based on 3 settled calls \u00b7 as of 26 Sep 14:45', '3 settled' and 'Hit rate 67%', keeping the pct==null gate; (b) swap the '${m.right} right' and '${m.wrong} wrong' labels, since '2 right', '1 wrong' and '1 open' are never asserted; (c) TraderRecordPanel(handle: 'kilo.sol') on Your market or nara's private profile; (d) listen only to callReceipts, since no test moves Scenario.clock with a panel mounted; (e) a constant in _openCalls, since 'open call' never appears in a test. Mutation (a) is exactly the 'stored constant' the invariant forbids. The hit-rate unit test pins Scenario.record, not what the panel renders.",
+        "fix": "Add one widget assertion at a second data point: on Your market, expect 'Hit rate 50%' and 'based on 2 settled calls' in panelFor('maya.eth'), and nara's '2 settled'/'Hit rate 50%' on the private profile. With a panel mounted, move Scenario.clock forward, pump, and expect the new 'as of' caption. Assert '2 right', '1 wrong' and '1 open' inside the pair panel, and find.text('1 open call') on TraderMarketScreen('kilo.sol').",
+        "beforeMerge": false,
+        "why": "Read trader_record_test.dart in full. grep of app/test outside that file finds no 'Illustrative', 'Hit rate', 'TraderRecordPanel' or 'open call' assertion. The only clock writes in tests are at trader_record_test.dart:160 (a unit test with no widget), home_screen_test.dart:2904/2926 (Maker card) and scenario_test.dart:65. Merges the tautology-hunt MEDIUM with the LOW known F3/F4 item.",
+        "id": "F4"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Static 'Last 10 verdicts' icon (10 dots, 7 right) sits above derived Settled 3 / Right 2, and this diff gated it and pinned it with a test",
+        "location": "app/lib/features/profile/profile_screen.dart:152-160 (test app/test/trader_record_test.dart:182)",
+        "failurePath": "This diff wraps the header in a callReceipts listener and shows VistaAssets.verdictsLast10 whenever m.settled > 0. On kilo.sol's, lunaq's or maya.eth's profile, a fixed 10-verdict strip labelled 'Last 10 verdicts' sits directly over derived stats of 3 settled (or 2 for maya.eth). That is a stored second copy of the record next to the derived one, the same stale-duplicate class as F1, and the test at :182 asserts it is present.",
+        "fix": "Drop the icon until a derived version exists (building dots from receipts would be new UI, which the spec excludes), and update the test at :182 to expect it absent. Or draw min(10, settled) dots from the receipts with a 'Last N verdicts' label.",
+        "beforeMerge": false,
+        "why": "Read the diff hunk that adds the `if (m.settled > 0)` gate around the unchanged const VistaIcon, and trader_record_test.dart:182. Before this diff the icon sat beside the old constants 62/36, so the contradiction is new here. Merges two duplicate filings. The iter-1 review rated it F10 LOW; it is ranked MEDIUM here to match F1, since it is the same class.",
+        "id": "F5"
+      },
+      {
+        "severity": "LOW",
+        "title": "The 'rounded half up' test cannot tell half-up from ceiling or from a double-based .round()",
+        "location": "app/test/trader_record_test.dart:145-171 (code app/lib/scenario/scenario.dart:171)",
+        "failurePath": "Every hit rate the suite asserts has a fractional part of 0 or at least .5: 1/8 = 12.5, 2/3 = 66.7, 1/2 = 50. Ceiling `(right*100 + settled-1) ~/ settled` gives 13, 67 and 50. `(right*100/settled).round()` gives 13, 67 and 50 too, and it puts a double back on the display path. Both stay green. With ceiling, 1 right of 3 would show 34% instead of 33%.",
+        "fix": "Add a case below .5, for example 1 right and 2 wrong expecting hitRatePct 33.",
+        "beforeMerge": false,
+        "why": "Worked the arithmetic for every asserted value (maya.eth 50 at :147, 'x' 13 at :166, the pair 67 at :140). The current code `(right*100 + settled~/2) ~/ settled` is correct; only the test is weak.",
+        "id": "F6"
+      },
+      {
+        "severity": "LOW",
+        "title": "Test title says the caption is 'above the index chart', but it renders below and nothing checks the order (known F5)",
+        "location": "app/test/trader_record_test.dart:174-175",
+        "failurePath": "ProfileScreen._record() builds _market(), which holds ProfileIndexChart, first and TraderRecordPanel after it (profile_screen.dart:235-241). So the caption is under the chart, and the test only checks that both exist.",
+        "fix": "Rename the test to '... with the index chart', or assert the vertical order with getRect.",
+        "beforeMerge": false,
+        "why": "Read profile_screen.dart:229-246 and the test body.",
+        "id": "F7"
+      },
+      {
+        "severity": "LOW",
+        "title": "Profile CALLS section is an empty heading for traders with no receipts",
+        "location": "app/lib/features/market/receipt_screens.dart:181-203 (used at app/lib/features/profile/profile_screen.dart:304)",
+        "failurePath": "Opening a profile for kaito.eth, 0xreal or deltaone (feed callerHandles) or mirin/renatafx/0xreal (Arena sides) shows 'CALLS \u00b7 All receipts' with nothing under it, because CallRecordList returns an empty Column. ReceiptsScreen already has an empty line ('No call receipts for $author in ...', receipt_screens.dart:288); the new list does not. Correction to the filing: maya.eth is not in this set. It is PortfolioMock.handle and has 3 seeded receipts.",
+        "fix": "When no receipt matches the author, have CallRecordList render the same empty line ReceiptsScreen uses.",
+        "beforeMerge": false,
+        "why": "Read CallRecordList, the ReceiptsScreen empty branch, the receipt authors in the seed (maya.eth, kilo.sol, lunaq, kestrel, nara) and the callerHandles in mock_trade_idea.dart.",
+        "id": "F8"
+      },
+      {
+        "severity": "LOW",
+        "title": "Zero-history trader: Profile hides the index chart, but the trader-market route still draws the market price chart that this diff's own doc calls the index (known F11)",
+        "location": "app/lib/features/market/trader_market_screen.dart:62-66",
+        "failurePath": "Lunaq's feed card at mock_trade_idea.dart:276 has ticker 'kestrel' with traderMarket true; its Details button, or the Profile 'Market' stat, opens TraderMarketScreen('kestrel'). That screen draws TraderMarketChart. Swipe to Record and the panel says 'No settled calls yet \u2014 record unavailable' under the chart. The diff's ProfileIndexChart doc says 'the trader's illustrative index (their market's price) chart', so the spec's 'no index chart' holds on Profile only.",
+        "fix": "Gate the chart on Scenario.record(handle).settled > 0 with a placeholder, or reword the ProfileIndexChart doc if the market chart is deliberately not the index.",
+        "beforeMerge": false,
+        "why": "Read trader_market_screen.dart:52-70 and the ProfileIndexChart doc in the diff, and confirmed the kestrel ticker at mock_trade_idea.dart:276.",
+        "id": "F9"
+      },
+      {
+        "severity": "LOW",
+        "title": "Zero-history profile keeps 'Record since Jun 2026 \u00b7 14 mo' beside 'record unavailable' (known F9)",
+        "location": "app/lib/features/profile/profile_screen.dart:140-143",
+        "failurePath": "kestrel's profile shows ProfileMock.recordSince above a panel that says 'No settled calls yet \u2014 record unavailable'. The zero-history state is new in this diff.",
+        "fix": "Hide the recordSince line when Scenario.record(handle).settled == 0.",
+        "beforeMerge": false,
+        "why": "Read profile_screen.dart:140-143. The line is unconditional.",
+        "id": "F10"
+      },
+      {
+        "severity": "LOW",
+        "title": "Your market's panel says 'as of 26 Sep 14:45' but counts maya-eth-4000-oct2, a call dated Oct 2 and settled Wrong",
+        "location": "app/lib/features/market/market_mock.dart:163-170 (copy at app/lib/features/market/receipt_screens.dart:225-230)",
+        "failurePath": "Scenario.clock seeds to TradeMock.chartEnd = 2026-09-26 14:45. record() counts every receipt, so 'based on 2 settled calls \u00b7 as of 26 Sep 14:45' includes a verdict on 'ETH reaches $4,000 by Oct 2' (entryAt 'Oct 2'). That verdict could not exist yet at the stated as-of time. The fixture dates from phase 6; the as-of claim is new here.",
+        "fix": "Re-date that fixture to settle before Sep 26, or make it open.",
+        "beforeMerge": false,
+        "why": "Read market_mock.dart:163-170, trade_mock.dart:135, and the phase-6 copy of the fixture (git show), which already held it.",
+        "id": "F11"
+      },
+      {
+        "severity": "LOW",
+        "title": "Retiring the old record lists left VistaReceipt, VistaVersus and the record/arena rail asset constants unreferenced",
+        "location": "app/lib/design_system/components/vista_profile.dart:161-170; app/lib/design_system/vista_assets.dart:71-75,106-108",
+        "failurePath": "Nothing breaks at runtime. These are dead design-system symbols whose last callers this diff removed (profile_screen, trader_market_screen, private_profile_screen).",
+        "fix": "Delete them, or keep them on purpose for Figma parity and say so.",
+        "beforeMerge": false,
+        "why": "grep of lib/ and test/ outside the defining files finds no reference to VistaReceipt, VistaVersus, railCallOpen or railRecordWrong. The diff shows the removed VistaReceipt call sites.",
+        "id": "F12"
+      }
+    ],
+    "refuted": [
+      {
+        "title": "Share-card record is a per-handle hash that contradicts the derived record",
+        "reason": "share_call_card.dart is not in this diff. docs/specs/00-baton-queue.md row 7 lists the share preview as a declared VC-FED-003 residual, and the filing itself calls it carry-forward. Out of scope for phase 7."
+      },
+      {
+        "title": "Markets Traders rows hard-code call and open counts that disagree with the receipts",
+        "reason": "markets_mock.dart is not in this diff and its rows are unchanged. Before this diff the trader-market chip was a single TraderMarketMock.openCalls constant for every trader, so the rows and the chip already disagreed. This diff did not create the mismatch. It is pre-existing and belongs with the F1 fix-shape decision, not with this phase."
+      },
+      {
+        "title": "Private profile shows 'Illustrative index' copy for an account that has no market or index",
+        "reason": "Spec 07 mandates the panel copy 'Illustrative index \u00b7 based on N settled calls \u00b7 as of <clock>' with no private-account exemption. The premise that no index exists is not established either: the feed opens TraderMarketScreen('nara') from kilo.sol's trader-market card (mock_trade_idea.dart:324, ticker 'nara', traderMarket true). The real issue is a pre-existing fixture contradiction (private notice versus a nara market), not this diff's copy."
+      }
+    ],
+    "checkedClaimsThatAreWrong": [],
+    "residualRisk": [
+      "No mutation was run by me: I stayed read-only and created no mutated copy. Survival claims rest on an exhaustive grep of test assertions plus the prior reviewer's mutate-run logs for the mutants it recorded. (tautology-hunt)",
+      "Unchanged widgets the AC3 tests reach (home_screen.dart feed link, arena_screen.dart onCaller, VistaBattleCard side-to-handle mapping) were read only far enough to confirm the tap reaches ProfileScreen.route(handle). (tautology-hunt)",
+      "scenario_test.dart reset-snapshot comparison logic beyond the mutateEverything list (lines 35-80). (tautology-hunt)",
+      "Behaviour at text scale 1.3 on the Your market and private-profile panels; covered only by the probe, not by me. (tautology-hunt)",
+      "Did not run flutter test or the gate. Relied on the stated gate pass at c2b1566 (274 tests, plus HAS_MARKET) and read the code instead. (metrics-single-source, wiring-ux)",
+      "Did not check pixel layout or the 30 px simulation-pill clearance myself. The iter-1 probe logs report it; I did not re-run them. (metrics-single-source)",
+      "Did not review the Arena card's tap target wiring (arena_screen.dart) or the feed card link beyond the test that exercises them. (metrics-single-source)",
+      "Opinion hitRate '80%' on @bitcoinninja (opinions_mock.dart:93) is a handle with no receipts. I did not judge whether it should read 'no record'. (metrics-single-source)",
+      "TraderMarketScreen header '_openCalls' chip and ProfileScreen._record listen to callReceipts only via rebuilds. Today only reset writes callReceipts, and reset pops every route, so I could not build a concrete stale-render path. (wiring-ux)",
+      "Did not measure on-device pixel positions myself. The below-the-fold landing at 360x640/375x667 (iter1 F6) is a claim I did not re-verify. (wiring-ux)",
+      "Metric arithmetic, capital-independence and reset exactness belong to the data lane. I checked them only where they feed the panel display. (wiring-ux)",
+      "Markets Traders rows and the share card's synthesized records (iter1 F7/F8) are outside my lane files and I did not re-verify them. (wiring-ux)"
+    ]
+  },
+  "ref": "feat/br-2026-10-04-p0-queue/phase-7",
+  "sha": "c2b1566eb958ff783732bf5c2ed55a27baf4540a",
+  "rawCount": 21,
+  "reviews": [
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Panel copy and counts are tested at only one data point: hard-coded N, clock or hit rate survives, and swapping right and wrong survives",
+          "location": "app/lib/features/market/receipt_screens.dart:225-245 (tests: app/test/trader_record_test.dart:39,174-184,286-307,309-334)",
+          "failurePath": "Every assertion on TraderRecordPanel text uses kilo.sol or lunaq at the seed clock. Both have identical records: 3 settled, 2 right, 1 wrong, 1 open, 67%, 26 Sep 14:45. Mutation A: in TraderRecordPanel, replace the caption with the literal 'Illustrative index \u00b7 based on 3 settled calls \u00b7 as of 26 Sep 14:45', and replace '$n settled' and 'Hit rate $pct%' with '3 settled' and 'Hit rate 67%', keeping the pct==null gate. Every test stays green. Kestrel still shows the unavailable note, and no test renders a panel for maya.eth (Your market, 50%), nara (private, 50%), a moved clock, or a changed outcome. Mutation B: swap the labels to ('${m.wrong} right') and ('${m.right} wrong'), or drop the open entry. Also green, because '2 right', '1 wrong' and '1 open' are never asserted anywhere. The panel would then claim 1 right and 2 wrong next to 'Hit rate 67%'. The unit test at :145 pins Scenario.record, but nothing checks that the panel renders what Scenario.record returns. The clock and N hand-checks in the review baton (probe P2) were throwaway probes, not suite tests. This is wider than the known F4 (dropped clock listener): there the panel still reads m.asOf on rebuild, while here nothing reads it at all.",
+          "fix": "Add one widget assertion at a second data point. For example, pump the panel for maya.eth (Your market or ProfileScreen('maya.eth')) and expect 'Illustrative index \u00b7 based on 2 settled calls \u00b7 as of 26 Sep 14:45' and 'Hit rate 50%'. Or move Scenario.clock (and flip one of kilo.sol's outcomes) with the panel mounted, pump, and expect the new caption and hit rate. Also assert inPanel(pair.$1, find.text('2 right')), '1 wrong' and '1 open' in the pair panel test.",
+          "evidence": "Read trader_record_test.dart in full. Every inPanel/find.text on panel copy uses pairCaption, 'Hit rate 67%', '3 settled' or unavailableNote. `grep -rn \"Illustrative\\|Hit rate\\|settled call\\|right'\\|wrong'\" app/test` finds no panel-copy assertion outside trader_record_test.dart. No golden files exist. The only Scenario.clock writes in tests are trader_record_test.dart:160 (unit test, no widget), home_screen_test.dart:2904/2926 (Maker card) and scenario_test.dart:65 (reset). setUp resets to the seed clock. Panel code is at receipt_screens.dart:217-250.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Confirmed (known F2): the Profile and private-profile header Settled, Right and Open calls stats are unpinned",
+          "location": "app/lib/features/profile/profile_screen.dart:202,205; app/lib/features/profile/private_profile_screen.dart:143-165",
+          "failurePath": "Revert '${m.settled}' to '62' and '${m.right}' to '36' in the Profile header, which are the exact constants spec 07's Gap names. Do the same for the private header (or set Open calls to '2'). The suite stays green. The pair test scopes '3 settled' to the panel with inPanel, so the header's VistaCountStat value is never read. The private-profile test (home_screen_test.dart:570) checks only the 'Open calls' label.",
+          "fix": "In the pair panel test, assert the header too, e.g. find.widgetWithText(VistaCountStat, 'Settled') contains '3' and 'Right' contains '2' for kilo.sol. In the private-profile test, assert nara's '2' Settled, '1' Right and '2' Open calls.",
+          "evidence": "`grep -rn \"Settled\\|'Right'\\|Open calls\" app/test` shows only home_screen_test.dart:570 (label) and :1831 (an unrelated 'Right' tap). The review artifact mutate-run-1.txt records profile-header-settled-const, profile-header-right-const and private-header-const as SURVIVED.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Confirmed (known F1): the Arena AC3 test lands on 'Hit rate 67%' one tap after a card that says '77% accuracy', and never compares the two",
+          "location": "app/lib/features/arena/arena_mock.dart:143,151 (test: app/test/trader_record_test.dart:323-334)",
+          "failurePath": "The eth-4k card hard-codes kilo.sol '71% accuracy' and lunaq '77% accuracy'. Opinion subtitles at :162 and :174 repeat them. The derived records for both traders are 67%. The Arena trader-link test taps lunaq on this card and asserts 'Hit rate 67%' on the panel, but asserts nothing about the card's figure. So the stale duplicate record, which also puts the VC-MKT-002 pair at unequal records head to head, passes the suite.",
+          "fix": "Derive the side's accuracy label from Scenario.record(caller).hitRatePct (or say 'no record' when it is null). Then in the Arena test assert the tapped side shows the same percent as the panel, e.g. find.text('67% accuracy') findsNWidgets(2) before the tap.",
+          "evidence": "Read arena_mock.dart:138-176 and `grep -rn accuracy app/test` (no hits). Read the Arena test at trader_record_test.dart:323-334.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "The 'rounded half up' test cannot tell half-up from ceiling, or from a double-based .round()",
+          "location": "app/test/trader_record_test.dart:145-171 (code: app/lib/scenario/scenario.dart:171)",
+          "failurePath": "Every hit rate the suite checks has a fractional part of exactly 0 or at least .5: 1/8 = 12.5%, 2/3 = 66.7%, 1/2 = 50%. Mutation to ceiling, `(right * 100 + settled - 1) ~/ settled`, gives 13, 67 and 50, so all green. Mutation to `(right * 100 / settled).round()` is also all green, and it brings a double back onto the path to display, which the int-only invariant forbids and the analyzer does not flag. With ceiling, a trader with 1 right of 3 would show 34% instead of 33%. Truncation and banker's rounding are caught (12.5 \u2192 12).",
+          "fix": "Add a case with a fractional part below .5 to the hit-rate test, e.g. 1 right and 2 wrong \u2192 hitRatePct 33 (ceiling gives 34). For the no-double rule, a grep in the gate is the right control, not this test.",
+          "evidence": "Worked through the arithmetic for every hit rate the suite asserts: trader_record_test.dart:146 (maya.eth 50), :162-170 (x, 13) and :128-135 (pair, 67). Fixture outcomes are in market_mock.dart:150-345 (nara 1/2, maya.eth 1/2). The review's 03-mutants.log tried only hit-rate-truncates.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Confirmed (known F3/F4): the Your market and private-profile panel handles, the panel's clock listener, and the trader-market open-calls chip are all unpinned",
+          "location": "app/lib/features/market/your_market_screen.dart:118; app/lib/features/profile/private_profile_screen.dart:243; app/lib/features/market/receipt_screens.dart:217; app/lib/features/market/trader_market_screen.dart:47-50",
+          "failurePath": "Each of these mutations stays green. (1) TraderRecordPanel(handle: 'kilo.sol') on Your market, which would show the user someone else's record. (2) The same on nara's private profile. (3) Listening to Scenario.callReceipts only, so the as-of time freezes while the clock moves. (4) `const n = 9` in _openCalls. No test asserts panel text on Your market or the private profile, none moves the clock with a panel mounted, and none reads the 'N open call(s)' chip. Note also that _openCalls reads Scenario.record without listening, so the chip only updates when its parent rebuilds.",
+          "fix": "Assert 'Hit rate 50%' inside panelFor('maya.eth') on Your market and inside panelFor('nara') on the private profile. With a panel mounted, set Scenario.clock forward, pump, and expect the new 'as of' caption. Expect find.text('1 open call') on TraderMarketScreen(handle: 'kilo.sol').",
+          "evidence": "`grep -rn \"open call\" app/test` finds only the receipts_test noCall string. The home_screen_test private-profile tests (:562-584) assert labels and nara's list item, never panel copy. The review artifact mutate-run-1.txt shows panel-ignores-clock, trader-open-calls-const, your-market-panel-wrong-handle and private-panel-wrong-handle SURVIVED.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Confirmed (known F5): the test title says the caption is 'above the index chart', but it renders below and the test checks no order",
+          "location": "app/test/trader_record_test.dart:174",
+          "failurePath": "ProfileScreen._record() builds _market() (which holds ProfileIndexChart) first and TraderRecordPanel after it (profile_screen.dart:236 then :241), so the caption sits under the chart. The test only checks that both exist. Moving the panel above or below the chart leaves it green either way, so the title claims something nothing enforces.",
+          "fix": "Rename it to '... with the index chart', or, if order matters, assert tester.getRect(caption).top against the ProfileIndexChart rect.",
+          "evidence": "Read profile_screen.dart:228-246 and trader_record_test.dart:174-184.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: phase-7 resolves to c2b1566 (matching the gate SHA) and phase-6 to 3a29ada. The three-dot diff lists 48 files, 12 of them under app/. The worktree HEAD is c2b1566 on feat/br-2026-10-04-p0-queue/phase-7.",
+        "The spec-named tests exist with their exact names: 'feed card trader link opens the record panel' (:309) and 'Arena card trader link opens the record panel' (:323). The AC1 and AC2 tests match the bullet text: 'two traders, same outcomes, different sizes \u2192 equal metrics' (:109) and 'zero-history trader \u2192 unavailable state, no crash' (:186).",
+        "The AC1 test is not a tautology. The fixture has every size stated and different, a size-weighted share that differs between the two traders (52 vs 31), record equality, and a pin to (3,2,1,1,67,clock). A stored constant, size weighting, or the two traders diverging would each fail it.",
+        "The hit-rate unit test replaces callReceipts with a synthetic author 'x' and moves the clock, so Scenario.record reading a stored constant or the wall clock fails it. Null results are excluded from settled, and nothing settled gives hitRatePct null, not 0.",
+        "Zero-history: kestrel has an open call (precondition asserted). The panel's unavailable note, no ProfileIndexChart, no 'Last 10 verdicts', no 'Illustrative index' and no exceptions are all asserted at 1.3x on 5 phones. The trader-market Record panel is covered too.",
+        "Wrong-trader links: since the pair's metrics are identical, only panelFor's handle predicate tells kilo.sol from lunaq. It does, so a feed or Arena link that opens the other trader's profile, or a profile wired to a fixed handle, fails.",
+        "Profile CALLS: every one of lunaq's 4 items is tapped and its rule, author, status and paper size checked on CallReceiptScreen. An item opening the wrong receipt fails. The retired sample strings are asserted absent.",
+        "Reset: receipts_test asserts `same(calls)` after clearing. scenario_test includes callReceipts in mutateEverything. Reset to the old YourMarketMock.record seed would empty callsBy(pair) and fail AC1.",
+        "The home_screen_test and receipts_test edits are sound: scrollUntilVisible throws if lunaq's last call is missing, and the receipts_test unavailable counts (open ? 2 : 3, 8) plus the Paper size row match the new receipt row.",
+        "The pill clearance of the trader-market Record panel is structurally guaranteed: ChartSheet keeps the Long/Short buttons below the panels. Its missing expectPillClear is not a gap."
+      ],
+      "notExamined": [
+        "No mutation was run by me: I stayed read-only and created no mutated copy. Survival claims rest on an exhaustive grep of test assertions plus the prior reviewer's mutate-run logs for the mutants it recorded.",
+        "Unchanged widgets the AC3 tests reach (home_screen.dart feed link, arena_screen.dart onCaller, VistaBattleCard side-to-handle mapping) were read only far enough to confirm the tap reaches ProfileScreen.route(handle).",
+        "scenario_test.dart reset-snapshot comparison logic beyond the mutateEverything list (lines 35-80).",
+        "Behaviour at text scale 1.3 on the Your market and private-profile panels; covered only by the probe, not by me."
+      ]
+    },
+    {
+      "lens": "metrics-single-source",
+      "findings": [
+        {
+          "severity": "HIGH",
+          "title": "Scenario.record silently drops a call receipt whose result it cannot classify (null), with no count or trace in the record",
+          "location": "app/lib/scenario/scenario.dart:162",
+          "failurePath": "CallReceipt.result is nullable by design. The class doc says an unstated field is null and shows as 'unavailable', and CallOutcome has no void value, so a voided or unknown call can only be null. Scenario.record's loop does `case null: break;`, and RecordMetrics has no field for such calls. The suite pins this: trader_record_test.dart:157 seeds 1 right, 7 wrong, 1 open and 1 null receipt for author 'x', and expects (settled 8, right 1, wrong 7, open 1, hitRatePct 13). In that state the panel reads 'based on 8 settled calls ... 1 open' while CallRecordList shows 10 items, one marked 'unavailable'. The trader-market chip says '1 open call', and nothing in the record shows that a call exists without a verdict. The queue's own unit-07 row lists 'unavailable-call state' as a VC-FED-003 residual, and the record has nowhere to carry it. This is latent with today's seed: no seeded receipt has a null result, and only reset() writes callReceipts. Under the run's fail-safe rule this class is rated HIGH.",
+          "fix": "Count `case null` into a new RecordMetrics field (e.g. `int unavailable`). Show it in TraderRecordPanel when it is above 0 (e.g. '\u00b7 1 call unavailable'), and change the test at :157 to expect it instead of the drop. Settled and hit rate stay right+wrong only.",
+          "evidence": "Read scenario.dart:141-174 (switch with `case null: break;`, RecordMetrics typedef lines 13-23), market_mock.dart:8 (enum has no void) and :49-50 (nullable result), and trader_record_test.dart:145-171. grep shows callReceipts is written only at scenario.dart:100 and :351. docs/specs/00-baton-queue.md:13 residual text.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Arena sides and opinion subtitles hard-code accuracy that contradicts the derived record (known ruling, confirmed)",
+          "location": "app/lib/features/arena/arena_mock.dart:143",
+          "failurePath": "The eth-4k battle card shows kilo.sol '71% accuracy' (:143) against lunaq '77% accuracy' (:151), and the opinion subtitles say the same (:162, :174). VistaBattle renders side.accuracy at vista_battle.dart:257. Tapping either name (the AC3 path) opens a panel reading 'Hit rate 67%' for both: Scenario.record gives (3,2,1,1,67) for each. So the VC-MKT-002 equal pair looks unequal one tap before the screen that proves them equal. maya.eth '82% accuracy' (:107) derives to 50% (1 right of 2 settled).",
+          "fix": "Derive the side label from Scenario.record(caller).hitRatePct at render time, or show 'no record' when it is null. Do not keep the string constant.",
+          "evidence": "Read arena_mock.dart:105-175 and vista_battle.dart:257. Computed the records from market_mock.dart:186-353 and matched them to the test expectation at trader_record_test.dart:134-141.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Static 'Last 10 verdicts' icon (7 right, 3 wrong) sits beside derived Settled/Right figures that contradict it, and a test now pins it",
+          "location": "app/lib/features/profile/profile_screen.dart:152",
+          "failurePath": "This diff wraps the header in a ValueListenableBuilder on callReceipts and shows VistaAssets.verdictsLast10 whenever record.settled > 0. The asset (app/assets/figma/verdicts_last10.svg) is fixed at 10 circles: 7 #34D399 and 3 #F16082. On kilo.sol's or lunaq's profile the header reads Settled 3 / Right 2 directly under an icon whose semantics label is 'Last 10 verdicts' and which draws 10 verdicts, 7 of them right. maya.eth (Settled 2, Right 1) shows the same. So the screen carries a second, stale copy of the record next to the derived one. trader_record_test.dart:182 asserts the icon is present for the pair, which locks the contradiction in. The iter-1 review filed this as LOW F10. I rate it MEDIUM because this diff gated it and pinned it beside the new derived stats.",
+          "fix": "Draw the dots from the trader's last min(10, settled) settled receipts (green for right, red for wrong) and label them 'Last N verdicts', or drop the icon. Update the test at :182 to match.",
+          "evidence": "Read profile_screen.dart:139-165. Counted fills in verdicts_last10.svg (7 #34D399, 3 #F16082). Read trader_record_test.dart:174-184.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Profile and private-profile header Settled/Right/Open stats are derived but not tested (known ruling, confirmed)",
+          "location": "app/lib/features/profile/profile_screen.dart:198",
+          "failurePath": "_stats(m) shows '${m.settled}' and '${m.right}', and private_profile_screen.dart:143-167 also shows '${m.open}'. No test asserts these values: grep for 'Settled'/'Right' in app/test finds only home_screen_test.dart:570 (the 'Open calls' label) and :1831 (a tap on 'Right'). Reverting either header to the old '62'/'36' constants, the exact gap spec 07 names, would leave the suite green.",
+          "fix": "Add assertions to the pair's profile test (Settled = '3', Right = '2' for kilo.sol) and to a nara private-profile test (Settled '2', Right '1', Open calls '2').",
+          "evidence": "grep -rn \"'Settled'\\|'Right'\\|Open calls\" app/test; read profile_screen.dart:198-225 and private_profile_screen.dart:140-172.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Share-card record is a per-handle hash that contradicts the derived record for the seeded traders",
+          "location": "app/lib/features/share/share_call_card.dart:13",
+          "failurePath": "callerRecord() makes up (right, settled) from a hash of the handle. From the same feed card that AC3 tests, the share sheet shows kilo.sol '28 of 58 right' and lunaq '46 of 69 right' (the equal pair, unequal again). kestrel shows '33 of 68 right' while its panel says 'No settled calls yet \u2014 record unavailable', and maya.eth shows '46 of 77'. The derived records are 2/3, 2/3, 0 settled and 1/2. The queue lists share preview as a VC-FED-003 residual, so this is carry-forward, not a defect in this phase.",
+          "fix": "Read Scenario.record(i.callerHandle) (right/settled) in ShareCallCard, falling back to 'no record yet' when settled == 0. Keep kaito.eth's designed figure only if it is seeded as receipts.",
+          "evidence": "Read share_call_card.dart:10-37 and :100. Ran the hash in python3: kilo.sol 28/58, lunaq 46/69, kestrel 33/68, nara 23/42, maya.eth 46/77. Feed ideas for these handles are at mock_trade_idea.dart:118, :141, :230, :254, and the share sheet opens from trade_idea_card.dart:362.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Markets Traders rows hard-code call and open counts that disagree with the receipts, and the 'Open calls' sort ranks on them",
+          "location": "app/lib/features/markets/markets_mock.dart:202",
+          "failurePath": "Hard-coded rows vs derived records: kestrel '87 calls', 0 open (1 receipt, 1 open, and its trader-market chip says '1 open call'); nara 31 calls, 0 open (4 receipts, 2 open); kilo.sol 54/1 and lunaq 118/1 (4 receipts each); maya.eth 62/3 (3 receipts, 1 open). The 'Open calls' sort orders rows by these constants (open.toDouble() at :153), so a sort shows a different open count than the record one tap away.",
+          "fix": "Build subline, footRight and the 'Open calls' sort value from Scenario.record(handle) (total = settled + open, plus open) at render time.",
+          "evidence": "Read markets_mock.dart:140-230 and checked them against Scenario.record over the seed in market_mock.dart.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Your-market panel says 'as of 26 Sep 14:45' but counts a call entered and decided on Oct 2",
+          "location": "app/lib/features/market/receipt_screens.dart:229",
+          "failurePath": "Scenario.clock seeds to TradeMock.chartEnd = 2026-09-26 14:45. Scenario.record counts every receipt whatever its time. maya.eth's seeded receipt 'maya-eth-4000-oct2' (entryAt 'Oct 2', rule 'ETH reaches $4,000 by Oct 2', result wrong) is counted, so Your market's panel reads 'based on 2 settled calls \u00b7 as of 26 Sep 14:45' while one of those verdicts could not exist until 6 days after the stated as-of time. The fixture came from phase 6; the as-of claim is new in this diff. Only maya's seed is affected: every settled trader call added here settles Sep 9 to Sep 24.",
+          "fix": "Fix the fixture (re-date maya-eth-4000-oct2 to settle before Sep 26, or make it open). Receipts carry no comparable time, so the record cannot filter by the clock.",
+          "evidence": "Read trade_mock.dart:135 (chartEnd), market_mock.dart:160-169, and receipt_screens.dart:217-233. The iter-1 probe saw the 'as of 26 Sep 14:45' copy.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope OK: phase-7 resolves to c2b1566 (worktree HEAD), phase-6 to 3a29ada, and the three-dot diff lists 48 files including 11 app/lib and app/test files. The diff adds commits fa52f71, d3d0be3, de952c1 and c2b1566.",
+        "Hit rate is an integer percent with explicit half-up rounding: (right*100 + settled~/2) ~/ settled. 0 settled gives null and the panel shows 'No settled calls yet \u2014 record unavailable' (no division by zero). 1 settled gives 100 or 0 and the copy says '1 settled call'. Open calls are counted apart and left out of settled and hit rate.",
+        "The record never reads trade size: sizeCents appears in lib only on the receipt screen's 'Paper size' row (receipt_screens.dart:375) and in doc comments.",
+        "Equal-outcome pair verified in the fixture. kilo.sol and lunaq are both right, wrong, right, open in order. Sizes differ: kilo 50000/120000/80000/50000 vs lunaq 4000000/9000000/100000/2500000. Both derive (3,2,1,1,67).",
+        "Zero-history trader kestrel has exactly one open receipt and nothing settled, so settled is 0, hitRatePct is null and the unavailable note shows. Profile hides ProfileIndexChart and the verdicts icon for it.",
+        "As-of comes from Scenario.clock.value at read time, and the panel listens to callReceipts and clock. reset() sets clock back to TradeMock.chartEnd and callReceipts back to seedCalls (an unmodifiable list).",
+        "VC-ARN-005: only scenario.dart:100 (init) and :351 (reset) write callReceipts. setArena and the other filters do not touch it, and the old Profile All/Calls/Arena filter was removed, so no display or filter change can alter a record.",
+        "CF-1: TraderMarketMock.record/recordSummary/openCalls, YourMarketMock.recordSummary, ProfileMock.settled/right/summary/receipts/filters and PrivateProfile.settled/right/openCalls/summary/calls are all removed. Profile, private profile, trader-market and Your market now render CallRecordList(author) and TraderRecordPanel(handle).",
+        "Panel uses only VistaType, VistaColors and VistaSpace tokens, and no double was added in the record path."
+      ],
+      "notExamined": [
+        "Did not run flutter test or the gate. Relied on the stated gate pass at c2b1566 and read the code instead.",
+        "Did not check pixel layout or the 30 px simulation-pill clearance myself. The iter-1 probe logs report it; I did not re-run them.",
+        "Did not review the Arena card's tap target wiring (arena_screen.dart) or the feed card link beyond the test that exercises them.",
+        "Opinion hitRate '80%' on @bitcoinninja (opinions_mock.dart:93) is a handle with no receipts. I did not judge whether it should read 'no record'."
+      ]
+    },
+    {
+      "lens": "wiring-ux",
+      "findings": [
+        {
+          "severity": "HIGH",
+          "title": "Record panel silently drops call receipts with no result; its totals stop matching the list below it",
+          "location": "app/lib/scenario/scenario.dart:161 (shown by app/lib/features/market/receipt_screens.dart:207-252)",
+          "failurePath": "CallReceipt.result is nullable, and CallReceipt.status/rail/color already handle null by showing '\u2014'. Suppose a fixture or a later writer adds a receipt for kilo.sol with no result. CallRecordList (receipt_screens.dart:181) lists 5 items, one with status '\u2014'. Scenario.record's `case null: break;` leaves that call out of every count, so TraderRecordPanel still reads '3 settled \u00b7 2 right \u00b7 1 wrong \u00b7 1 open \u00b7 Hit rate 67%' and has no count or note for the call it dropped. The audit trail cannot reconcile, and the call that cannot be classified, which is the anomaly, leaves no trace in the record. Today this is latent: no seed receipt has a null result, and the only writer of callReceipts is reset (scenario.dart:351). The brief rates this class HIGH.",
+          "fix": "Add `int unavailable` to RecordMetrics and count `case null` into it, leaving it out of settled and hit rate. When unavailable > 0, TraderRecordPanel shows '$unavailable unavailable' in the Wrap. Add one test with a null-result receipt so the counts plus the list reconcile.",
+          "evidence": "Read scenario.dart:141-174, the record() switch with `case null: break;`; market_mock.dart:62-82, null handling in status/color/rail; receipt_screens.dart:181-252. grep shows `callReceipts.value =` only at scenario.dart:351 (reset), and every traderCalls/YourMarketMock.record entry has a result.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Known (confirmed): Arena sides hard-code accuracy that contradicts the derived record, one tap away",
+          "location": "app/lib/features/arena/arena_mock.dart:143",
+          "failurePath": "Arena tab, eth-4k battle card, any viewport: the sides read kilo.sol '71% accuracy' and lunaq '77% accuracy' (arena_mock.dart:143,151). Tapping either name runs arena_screen.dart:153 to ProfileScreen.route(handle), where the panel says 'Hit rate 67%' for both. That is (2*100+1)~/3 = 67 from 2 right and 1 wrong. The same class shows on maya.eth '82%' (:107), 0xreal '68%' (:117), mirin '79%' (:200) and renatafx '64%' (:208). maya.eth's derived rate is 50% (per review iter1). The other three have no receipts, so tapping them lands on 'No settled calls yet \u2014 record unavailable'. Opinion subtitles at :162,174,219 repeat the figures.",
+          "fix": "Derive the side's accuracy label from Scenario.record(side.caller).hitRatePct, and show 'No record yet' when it is null. Apply the same to the opinion subtitles.",
+          "evidence": "Read arena_mock.dart caller/accuracy lines, vista_battle.dart:270-282 (onCaller(side.caller)), arena_screen.dart:153-154, scenario.dart record(), and the traderCalls outcomes for kilo.sol and lunaq. This matches the ruled F1 in the iter1 review baton.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Profile shows a fixed 'Last 10 verdicts' strip (7 right, 3 wrong) above a derived record of 3 settled calls",
+          "location": "app/lib/features/profile/profile_screen.dart:154",
+          "failurePath": "Feed card or Arena side, tap kilo.sol or lunaq, any viewport. The header draws verdicts_last10.svg: ten circles, 7 green and 3 red, with semantics label 'Last 10 verdicts'. The derived stats directly beneath read 'Settled 3 \u00b7 Right 2'. This diff added the `if (m.settled > 0)` gate, so it actively chose to keep a stored constant as a record display. That breaks the invariant that record metrics derive from callReceipts and are never a stored constant. Iter1 filed this as F10 LOW. I confirm it, and I rate it with F1 because it is the same stale-duplicate class sitting on the panel's own screen.",
+          "fix": "Render up to the last 10 settled receipts for the handle as tokened dots (VistaColors.long/short), with the semantics label 'Last N verdicts'. Or drop the vector until that exists.",
+          "evidence": "Read assets/figma/verdicts_last10.svg (10 hard-coded circles: #34D399 x7, #F16082 x3) and profile_screen.dart:145-165. kilo.sol and lunaq each have 4 receipts, 3 of them settled (market_mock.dart traderCalls).",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Profile CALLS section is now an empty heading for traders with no receipts",
+          "location": "app/lib/features/market/receipt_screens.dart:181",
+          "failurePath": "Feed card maya.eth, kaito.eth, 0xreal or deltaone, or Arena side maya.eth, 0xreal, mirin or renatafx, opens ProfileScreen. Scroll to the bottom, at any size and scale. The 'CALLS \u00b7 All receipts' head (profile_screen.dart:296-304) has nothing under it, because CallRecordList renders an empty Column. The only explanation is the panel note far above, past HOLDING NOW. Before this diff the section always had items, so retiring the shared sample created the empty section. The sibling ReceiptsScreen already has an empty state ('No call receipts for $author in fixture-v1', receipt_screens.dart ~286); the new list widget does not.",
+          "fix": "In CallRecordList, when no receipt matches the author, render the ReceiptsScreen empty line. Or have ProfileScreen._calls show it, since the trader-market and private panels already sit right above their own note.",
+          "evidence": "Read CallRecordList (receipt_screens.dart:181-203), ProfileScreen._calls (profile_screen.dart:293-306) and the ReceiptsScreen empty branch. traderCalls has authors only for kilo.sol, lunaq, kestrel and nara. The feed callerHandles are in mock_trade_idea.dart and the arena callers in arena_mock.dart.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Zero-history trader: Profile hides the index chart, but the trader-market route still draws it",
+          "location": "app/lib/features/market/trader_market_screen.dart:66",
+          "failurePath": "Take kestrel, the seeded zero-history trader. Feed card trader-market Details (mock_trade_idea.dart:276, traderMarket true) or Profile 'Market' stat (profile_screen.dart:220, _openMarket) opens TraderMarketScreen('kestrel'). It draws TraderMarketChart, the market-price series this diff's ProfileIndexChart doc calls 'the trader's illustrative index'. Swipe to Record and you get 'No settled calls yet \u2014 record unavailable' under that chart. 'No index chart' holds on Profile only. This confirms iter1 F11.",
+          "fix": "Gate the ChartSheet chart (or show a 'no record yet' placeholder) on Scenario.record(handle).settled > 0, the same way ProfileScreen._record does. Or reword ProfileIndexChart's doc if the market chart is deliberately not the index.",
+          "evidence": "Read trader_market_screen.dart:59-93 and :296-314, profile_screen.dart:228-245 and :307-313 (ProfileIndexChart doc), and home_screen.dart:104-108.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Private profile shows 'Illustrative index' copy for an account that has no market or index",
+          "location": "app/lib/features/profile/private_profile_screen.dart:243",
+          "failurePath": "Tap nara on a feed card (mock_trade_idea.dart:164) and ProfileScreen.route opens PrivateProfileScreen. The notice says \"nara hasn't listed a market\", and the panel below reads 'Illustrative index \u00b7 based on 2 settled calls \u00b7 as of 26 Sep 14:45'. No index exists for that account.",
+          "fix": "Give TraderRecordPanel a flag (or derive it from privateProfiles.containsKey) that drops the 'Illustrative index \u00b7 ' prefix for accounts without a market, e.g. 'Record \u00b7 based on N settled calls \u00b7 as of \u2026'.",
+          "evidence": "Read private_profile_screen.dart:195-246 and receipt_screens.dart:225-234. nara has 2 settled receipts (1 right, 1 wrong) in traderCalls.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Retirement left VistaReceipt, VistaVersus and 8 rail asset constants unreferenced",
+          "location": "app/lib/design_system/components/vista_profile.dart:170",
+          "failurePath": "After this diff, nothing in lib/ or test/ outside their own definitions references VistaReceipt (vista_profile.dart:170), VistaVersus (:161) or the asset constants railCallOpen/railCallRight/railArenaOpen/railArenaRight/railArenaWrong/railRecordOpen/railRecordRight/railRecordWrong (vista_assets.dart:71-75,106-108). This is dead design-system surface with no runtime failure, and the brief asks about dead leftovers.",
+          "fix": "Delete the two components and the 8 constants (and their SVGs if the asset folder is not frozen). Or leave them, if the design system intentionally keeps Figma parity.",
+          "evidence": "grep -rln for each symbol across app/lib and app/test returns only its definition file.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Zero-history profile keeps 'Record since Jun 2026 \u00b7 14 mo' beside 'record unavailable'",
+          "location": "app/lib/features/profile/profile_screen.dart:141",
+          "failurePath": "Tap kestrel (or any trader without receipts) from a feed card or Arena side. The header shows 'Record since Jun 2026 \u00b7 14 mo' (ProfileMock.recordSince), and the panel below says 'No settled calls yet \u2014 record unavailable'. This confirms iter1 F9.",
+          "fix": "Hide the recordSince line when Scenario.record(handle).settled == 0, or derive it from the earliest receipt's entryAt.",
+          "evidence": "Read profile_screen.dart:138-143 and profile_mock.dart:28.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: phase-7 resolves to c2b1566 (= worktree HEAD, branch feat/br-2026-10-04-p0-queue/phase-7) and phase-6 to 3a29ada; the three-dot diff lists 48 files, 12 of them under app/; log is d3d0be3 (feature), de952c1 and c2b1566 (bookkeeping)",
+        "Feed card trader link: home_screen.dart:111-113 and caller_play_screen.dart:40-42 push ProfileScreen.route(idea.callerHandle), which is the card's own caller and not the viewer or a fixed handle. ProfileScreen and PrivateProfileScreen both render TraderRecordPanel(handle: widget.handle)",
+        "Arena side link: VistaBattleCard _Side calls onCaller(side.caller) (vista_battle.dart:278) and arena_screen.dart:153 pushes ProfileScreen.route(handle). VistaBattleCard is used only in arena_screen. Opinions (opinions_screen.dart:129-130, '@' stripped), the asset-trade caller thread, people_in_sheet and the follow list all route through the same ProfileScreen.route",
+        "CF-1: Profile CALLS (profile_screen.dart:304), trader-market Record (trader_market_screen.dart:312-313), Your market RECORD and the private profile all use CallRecordList(author), filtered by c.author == author. Each CallRecordItem pushes CallReceiptScreen.route(receipt) with that exact receipt object",
+        "Retired symbols (ProfileReceipt, ReceiptKind, RecordCall, ProfileMock.settled/right/summary/receipts/filters, TraderMarketMock.record/recordSummary/openCalls, YourMarketMock.recordSummary) have no references left. The _filter state is gone. _notBuilt is still used for Share/More, with no dangling toast",
+        "Layout: TraderRecordPanel uses a wrapping Text and a Wrap, so it cannot overflow horizontally. ProfileScreen and PrivateProfileScreen ListViews pad the bottom by MediaQuery.paddingOf(context).bottom, which SimulationIndicator inflates by its 30px slot, so the last item clears the pill. trader_record_test.dart:186 and :223 cover the zero-history and pair panels at 1.3x on all 5 phones, including 360x640 and 375x667, with expectPillClear",
+        "Tokens: the new widget code uses only VistaColors/VistaType/VistaSpace. No new hard-coded colour or font size in the lane files (trader_market_screen fontSize: 14 is pre-existing)",
+        "Trader-market tickers for trader markets equal handles (mock_trade_idea traderMarket entries, markets_screen m.name), so Scenario.record(widget.handle) gets a real author"
+      ],
+      "notExamined": [
+        "Did not run flutter test or the gate. I relied on the stated gate pass at c2b1566 (274 tests, plus HAS_MARKET) and on reading the source",
+        "TraderMarketScreen header '_openCalls' chip and ProfileScreen._record listen to callReceipts only via rebuilds. Today only reset writes callReceipts, and reset pops every route, so I could not build a concrete stale-render path",
+        "Did not measure on-device pixel positions myself. The below-the-fold landing at 360x640/375x667 (iter1 F6) is a claim I did not re-verify",
+        "Metric arithmetic, capital-independence and reset exactness belong to the data lane. I checked them only where they feed the panel display",
+        "Markets Traders rows and the share card's synthesized records (iter1 F7/F8) are outside my lane files and I did not re-verify them"
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "tautology-hunt",
+      "n": 6
+    },
+    {
+      "lens": "metrics-single-source",
+      "n": 7
+    },
+    {
+      "lens": "wiring-ux",
+      "n": 8
+    }
+  ]
+}

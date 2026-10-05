@@ -435,7 +435,8 @@ VistaColosseum/
 │   │   ├── receipts_test.dart
 │   │   ├── replay_live_test.dart
 │   │   ├── rolling_number_test.dart
-│   │   └── scenario_test.dart
+│   │   ├── scenario_test.dart
+│   │   └── trader_record_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   └── app_icon/
 │   │       ├── app_icon_1024.png
@@ -485,12 +486,19 @@ VistaColosseum/
 │       ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
 │       ├── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
 │       ├── 2026-10-05T041752-phase6-review-iter1.md
-│       └── 2026-10-05T050809-phase6-close.md
+│       ├── 2026-10-05T050809-phase6-close.md
+│       ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
+│       ├── 2026-10-05T054156-phase7-trader-record-panel.md
+│       ├── 2026-10-05T054607-phase7-review-iter1.md
+│       └── 2026-10-05T065006-phase7-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
 │       │   ├── house-rule-grep.log
 │       │   └── receipts-test-expanded.log
+│       ├── close-phase-7/
+│       │   ├── house-rule-grep.log
+│       │   └── trader-record-test-expanded.log
 │       ├── fix-phase-2-iter-2/
 │       │   ├── gate/
 │       │   │   ├── flutter-analyze.log
@@ -666,6 +674,26 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── grep-all-receipts.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-7-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   ├── has-market-tail.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-7-fixer/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-7-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── has-market.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-7-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── has-market.log
+│       │   └── pubspec-frozen.log
 │       ├── phase-4-red/
 │       │   ├── home-green-1.log
 │       │   ├── home-red-1.log
@@ -692,6 +720,10 @@ VistaColosseum/
 │       │   ├── mutant-M4-fees-not-filtered-by-market.log
 │       │   ├── red-1-compile.log
 │       │   └── red-2-assertions.log
+│       ├── phase-7-red/
+│       │   ├── 01-compile-red.log
+│       │   ├── 02-assertions-red.log
+│       │   └── 03-mutants.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart
@@ -777,16 +809,38 @@ VistaColosseum/
 │       │   ├── mutate.py
 │       │   ├── probe-run.log
 │       │   └── review6_probe_test.dart
+│       ├── review-phase-7-iter-1-probe/
+│       │   ├── mut-panel-ignores-clock.log
+│       │   ├── mut-panel-stats-row-overflows.log
+│       │   ├── mut-private-header-const.log
+│       │   ├── mut-private-panel-wrong-handle.log
+│       │   ├── mut-profile-chart-gate-on-any-call.log
+│       │   ├── mut-profile-header-right-const.log
+│       │   ├── mut-profile-header-settled-const.log
+│       │   ├── mut-trader-market-panel-dropped.log
+│       │   ├── mut-trader-open-calls-const.log
+│       │   ├── mut-your-market-panel-wrong-handle.log
+│       │   ├── mutate-run-1.txt
+│       │   ├── mutate-run-2.txt
+│       │   ├── mutate.py
+│       │   ├── probe-run-fold.log
+│       │   ├── probe-run-full.log
+│       │   ├── probe-run-p7.log
+│       │   ├── probe-run.log
+│       │   ├── review7_fold_test.dart
+│       │   └── review7_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md
 │       ├── digest-phase-4.md
 │       ├── digest-phase-5.md
 │       ├── digest-phase-6.md
+│       ├── digest-phase-7.md
 │       ├── fixer-phase-3.json
 │       ├── fixer-phase-4.json
 │       ├── fixer-phase-5.json
 │       ├── fixer-phase-6.json
+│       ├── fixer-phase-7.json
 │       ├── house-rules.md
 │       ├── log.md
 │       ├── review-phase-1-iter-1-prelude.md
@@ -803,6 +857,7 @@ VistaColosseum/
 │       ├── review-phase-4-dw.json
 │       ├── review-phase-5-dw.json
 │       ├── review-phase-6-dw.json
+│       ├── review-phase-7-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
@@ -824,6 +879,7 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-4-arena-sort-filter-join.md
 │   │   ├── 2026-10-04-dw-review-phase-5-maker-suggestion-card.md
 │   │   ├── 2026-10-04-dw-review-phase-6-fee-ledger-and-receipts.md
+│   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md

@@ -49,7 +49,8 @@ bool _onBoundary(DateTime t, Duration spacing) {
   return day % spacing.inDays == 0;
 }
 
-const _months = [
+/// Month abbreviations as labels and fixture dates write them ("Sep").
+const monthAbbrs = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
@@ -57,7 +58,7 @@ const _months = [
 /// Clock time for intraday candles ("14:00"), date for daily ones ("26 Sep").
 String timeLabel(DateTime t, Duration period) {
   if (period >= const Duration(days: 1)) {
-    return '${t.day} ${_months[t.month - 1]}';
+    return '${t.day} ${monthAbbrs[t.month - 1]}';
   }
   String pad(int v) => v.toString().padLeft(2, '0');
   return '${pad(t.hour)}:${pad(t.minute)}';

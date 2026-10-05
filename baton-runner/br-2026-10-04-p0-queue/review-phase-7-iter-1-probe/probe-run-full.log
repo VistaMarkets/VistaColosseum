@@ -1,0 +1,77 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test/review7_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: P1 outcome change changes metrics live; pair diverges
+PROBE kilo after flip (asOf: 2026-09-26 14:45:00.000, hitRatePct: 33, open: 1, right: 1, settled: 3, wrong: 2)
+PROBE lunaq after flip (asOf: 2026-09-26 14:45:00.000, hitRatePct: 67, open: 1, right: 2, settled: 3, wrong: 1)
+PROBE header "1" widgets=1
+00:00 +1: P2 caption N and clock come from Scenario, live
+PROBE after clock move: Illustrative index · based on 3 settled calls · as of 1 Oct 09:05
+PROBE lunaq rights only: Illustrative index · based on 2 settled calls · as of 1 Oct 09:05 | (asOf: 2026-10-01 09:05:00.000, hitRatePct: 100, open: 0, right: 2, settled: 2, wrong: 0)
+PROBE chart.top=440.0 caption.top=676.0 captionAboveChart=false
+00:00 +2: P3 trader with no calls at all (Arena mirin) and kaito
+PROBE mirin exception=null note=1 chart=0 items=0
+PROBE 0xreal exception=null note=1 chart=0 items=0
+PROBE renatafx exception=null note=1 chart=0 items=0
+PROBE kaito.eth exception=null note=1 chart=0 items=0
+00:00 +3: P4 Arena accuracy vs derived record
+PROBE arena "71% accuracy" shown=1
+PROBE arena "77% accuracy" shown=1
+PROBE arena "82% accuracy" shown=1
+PROBE arena "79% accuracy" shown=1
+PROBE record kilo.sol = 67
+PROBE record lunaq = 67
+PROBE record maya.eth = 50
+PROBE record mirin = null
+PROBE record 0xreal = null
+PROBE record renatafx = null
+PROBE after tap kilo.sol: profile=1 hit67=1
+00:01 +4: P5 trader-market Record: every item opens its own receipt
+PROBE trader-market lunaq all 4 items open own receipt
+00:02 +5: P6 resetDemo restores receipts, clock and panel
+PROBE after reset: same(seedCalls)=true clock=2026-09-26 14:45:00.000 rec=(asOf: 2026-09-26 14:45:00.000, hitRatePct: 67, open: 1, right: 2, settled: 3, wrong: 1)
+PROBE reset restores panel: ok
+00:02 +6: P7 pill clearance at 1.3x: trader-market Record, Your market, nara
+PROBE small Android 360x640 trader-market Record last=Rect.fromLTRB(16.0, 468.0, 344.0, 541.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlap=false ex=null
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: No element
+
+When the exception was thrown, this was the stack:
+#0      Iterable.last (dart:core/iterable.dart:679:7)
+#1      _LastFinderMixin.filter (package:flutter_test/src/finders.dart:1410:28)
+#3      Iterable.single (dart:core/iterable.dart:694:13)
+#4      WidgetController.element (package:flutter_test/src/controller.dart:888:30)
+#5      WidgetController.ensureVisible (package:flutter_test/src/controller.dart:2389:32)
+#6      main.<anonymous closure>.check (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test/review7_probe_test.dart:160:17)
+#7      main.<anonymous closure> (file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test/review7_probe_test.dart:172:13)
+<asynchronous suspension>
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 2 frames from dart:async-patch and package:stack_trace)
+
+The test description was:
+  P7 pill clearance at 1.3x: trader-market Record, Your market, nara
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +6 -1: P7 pill clearance at 1.3x: trader-market Record, Your market, nara [E]
+  Test failed. See exception logs above.
+  The test description was: P7 pill clearance at 1.3x: trader-market Record, Your market, nara
+  
+00:02 +6 -1: (tearDownAll)
+00:02 +6 -1: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test/review7_probe_test.dart: P7 pill clearance at 1.3x: trader-market Record, Your market, nara

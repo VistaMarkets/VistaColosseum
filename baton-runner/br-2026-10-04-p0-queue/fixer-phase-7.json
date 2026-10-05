@@ -1,0 +1,812 @@
+{
+  "summary": "Adjudicate review findings against the sources that decide them, then apply only the confirmed edits through a single writer",
+  "agentCount": 5,
+  "logs": [
+    "Adjudicating 4 finding group(s) against the sources",
+    "12 verdicts from 4/4 groups: F1=fix-here, F6=fix-here, F11=fix-here, F2=fix-here, F3=fix-here, F5=fix-here, F8=fix-here, F10=fix-here, F4=fix-here, F7=fix-here, F9=fix-here, F12=fix-here"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "findingId": "F1",
+        "verdict": "fix-here",
+        "evidence": "app/lib/scenario/scenario.dart:16-23 `typedef RecordMetrics = ({ int settled, int right, int wrong, int open, int? hitRatePct, DateTime asOf, });` has no unavailable field. :161-162 `case null:\n          break;` drops the receipt. market_mock.dart:50 `final CallOutcome? result;` and :66 `null => unavailable,` show a null result is legal and is rendered as 'unavailable' in the list. trader_record_test.dart:149-168 feeds `call(9, null)` and expects `settled: 8, right: 1, wrong: 7, open: 1` with no trace of it. Panel receipt_screens.dart:221-223 and :240-246 have nowhere to show it. House rule 10 sets the fix shape. The panel's empty branch also gets the count: without it, a trader whose only verdicts are unavailable would read 'No settled calls yet' with the receipts silently gone. Applying F11 makes that happen for maya.eth. Verified in a scratch copy (/tmp/.../scratchpad/f1611/app): with F1+F11+F6 applied, flutter analyze reports 'No issues found!' and the full flutter test run reports '+276: All tests passed!'.",
+        "rejectsValidInput": "none. No input is refused. A null-result receipt still renders. It now also counts in `unavailable` and stays out of settled and the hit rate, as before. RecordMetrics gains a required named field, so every record literal must name it. The only literals are in app/test/trader_record_test.dart (:135-142 and :161-168), and both are updated here. grep finds no other `RecordMetrics` literal or `Scenario.record(` destructure in app/lib.",
+        "testProof": "app/test/trader_record_test.dart, test 'the hit rate is an integer percent rounded half up, ...': `expect(Scenario.record('x'), (settled: 8, right: 1, wrong: 7, open: 1, unavailable: 1, hitRatePct: 13, asOf: later))`. Against the current code this fails to compile, because RecordMetrics has no unavailable field. New widget test 'a call with no outcome shows in the panel as unavailable, never dropped' has two checks: `expect(inPanel(pair.$1, find.text('1 unavailable')), findsOneWidget)` covers the Wrap branch, and `expect(inPanel(fresh, find.text('$unavailableNote · 1 unavailable')), findsOneWidget)` covers the empty branch. Mutation checked in scratch: putting `case null: break;` back makes both tests fail. It reports 'Expected ... unavailable: 1 ... Actual ... unavailable: 0' and 'Found 0 widgets with text \"1 unavailable\"'.",
+        "edits": [
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "13-21 RecordMetrics typedef",
+            "current": "/// A trader's record (VC-MKT-002), as [Scenario.record] derives it:\n/// settled calls (right + wrong), open ones, the hit rate as an integer\n/// percent (null with nothing settled), and the clock it is as of.\ntypedef RecordMetrics = ({\n  int settled,\n  int right,\n  int wrong,\n  int open,\n  int? hitRatePct,\n",
+            "replacement": "/// A trader's record (VC-MKT-002), as [Scenario.record] derives it:\n/// settled calls (right + wrong), open ones, unavailable ones (calls with\n/// no outcome the record can count, in no other figure), the hit rate as\n/// an integer percent (null with nothing settled), and the clock it is as\n/// of.\ntypedef RecordMetrics = ({\n  int settled,\n  int right,\n  int wrong,\n  int open,\n  int unavailable,\n  int? hitRatePct,\n",
+            "rationale": "Gives the record a place to count a receipt with no outcome (rule 10)."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "143-145 Scenario.record doc",
+            "current": "  /// settled, open ones have not, and a call with no stated result is\n  /// unavailable and not counted. The hit rate is right ÷ settled as an\n  /// integer percent, rounded half up in integer arithmetic.\n",
+            "replacement": "  /// settled, open ones have not, and a call with no outcome is counted\n  /// as unavailable and in no other figure, never dropped. The hit rate is\n  /// right ÷ settled as an integer percent, rounded half up in integer\n  /// arithmetic.\n",
+            "rationale": "The doc said the call is 'not counted'. It is now counted as unavailable."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "151 Scenario.record counters",
+            "current": "    var right = 0, wrong = 0, open = 0;\n",
+            "replacement": "    var right = 0, wrong = 0, open = 0, unavailable = 0;\n",
+            "rationale": "Adds the counter."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "161-162 Scenario.record case null",
+            "current": "        case null:\n          break;\n",
+            "replacement": "        case null:\n          unavailable++;\n",
+            "rationale": "Counts the receipt instead of dropping it."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "170-171 Scenario.record return",
+            "current": "      open: open,\n      hitRatePct: settled == 0 ? null : (right * 100 + settled ~/ 2) ~/ settled,\n",
+            "replacement": "      open: open,\n      unavailable: unavailable,\n      hitRatePct: settled == 0 ? null : (right * 100 + settled ~/ 2) ~/ settled,\n",
+            "rationale": "Returns the count. Settled and the hit rate are unchanged."
+          },
+          {
+            "file": "app/lib/features/market/receipt_screens.dart",
+            "anchor": "221-223 TraderRecordPanel empty branch",
+            "current": "        if (pct == null) {\n          return Text(unavailableNote, style: VistaType.bodyMedium);\n        }\n",
+            "replacement": "        if (pct == null) {\n          return Text(\n            m.unavailable == 0\n                ? unavailableNote\n                : '$unavailableNote · ${m.unavailable} unavailable',\n            style: VistaType.bodyMedium,\n          );\n        }\n",
+            "rationale": "With nothing settled the panel still shows the unavailable count. Text is unchanged when the count is 0, so the existing kestrel assertions still hold."
+          },
+          {
+            "file": "app/lib/features/market/receipt_screens.dart",
+            "anchor": "244-245 TraderRecordPanel Wrap",
+            "current": "                  ('${m.open} open', VistaColors.textMuted),\n                  ('Hit rate $pct%', VistaColors.textPrimary),\n",
+            "replacement": "                  ('${m.open} open', VistaColors.textMuted),\n                  if (m.unavailable > 0)\n                    ('${m.unavailable} unavailable', VistaColors.textMuted),\n                  ('Hit rate $pct%', VistaColors.textPrimary),\n",
+            "rationale": "Shows 'N unavailable' when it is above zero (rule 10). Uses existing tokens only."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "138-140 pair record literal",
+            "current": "      wrong: 1,\n      open: 1,\n      hitRatePct: 67,\n",
+            "replacement": "      wrong: 1,\n      open: 1,\n      unavailable: 0,\n      hitRatePct: 67,\n",
+            "rationale": "The record literal must name the new field."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "164-166 'x' record literal",
+            "current": "      wrong: 7,\n      open: 1,\n      hitRatePct: 13,\n",
+            "replacement": "      wrong: 7,\n      open: 1,\n      unavailable: 1,\n      hitRatePct: 13,\n",
+            "rationale": "Flips the pinned silent drop to expect unavailable: 1 (rule 10)."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "186 before 'zero-history trader' test",
+            "current": "  testWidgets('zero-history trader → unavailable state, no crash', (\n",
+            "replacement": "  testWidgets('a call with no outcome shows in the panel as unavailable, '\n      'never dropped', (tester) async {\n    CallReceipt noOutcome(String author) =>\n        CallReceipt(id: '$author-none', author: author, asset: 'SOL');\n    Scenario.callReceipts.value = [\n      ...Scenario.callReceipts.value,\n      noOutcome(pair.$1),\n      noOutcome(fresh),\n    ];\n    await pumpApp(tester, home: ProfileScreen(handle: pair.$1));\n    expect(inPanel(pair.$1, find.text('1 unavailable')), findsOneWidget);\n    expect(inPanel(pair.$1, find.text('3 settled')), findsOneWidget);\n    await pumpApp(tester, home: const ProfileScreen(handle: fresh));\n    expect(\n      inPanel(fresh, find.text('$unavailableNote · 1 unavailable')),\n      findsOneWidget,\n    );\n  });\n\n  testWidgets('zero-history trader → unavailable state, no crash', (\n",
+            "rationale": "Proves the panel shows the count in both branches and that settled is not inflated."
+          }
+        ]
+      },
+      {
+        "findingId": "F6",
+        "verdict": "fix-here",
+        "evidence": "scenario.dart:171 `hitRatePct: settled == 0 ? null : (right * 100 + settled ~/ 2) ~/ settled,` is correct. The test is the weak part. Every value it asserts has a fractional part of 0 or at least .5: trader_record_test.dart:147 `hitRatePct, 50` (1 of 2), :140 `hitRatePct: 67` (2 of 3), :166 `hitRatePct: 13` (1 of 8). A ceiling mutation `(right * 100 + settled - 1) ~/ settled` gives 50, 67 and 13 for these, so the test passes. 1 of 3 separates them: half-up gives 33, ceiling gives 34. Truncation is already caught by 1 of 8 (12) and by the pair (66). On `(right*100/settled).round()`: no value assertion can catch it. For these small integers the double result equals integer half-up exactly, because Dart's round() is half away from zero. That remains a rule-3 review check, not a test. Also, F11's edit removes the maya 1-of-2 = 50 line. That line separated nothing (50 under every mutation), so nothing is lost.",
+        "rejectsValidInput": "none. Test-only change. It adds an assertion on the current, correct behaviour.",
+        "testProof": "app/test/trader_record_test.dart, test 'the hit rate is an integer percent rounded half up, ...'. New assertion `expect(Scenario.record('x').hitRatePct, 33)` on 1 right + 2 wrong. Mutation the current test survives: scenario.dart:171 changed to `(right * 100 + settled - 1) ~/ settled` (ceiling). Checked in a scratch copy: the old assertions stay green, and the new one fails with 'Expected: <33> Actual: <34>'. It passes on the unmutated code.",
+        "edits": [
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "169 before 'Nothing settled' comment",
+            "current": "    // Nothing settled: no hit rate at all, not 0%.\n",
+            "replacement": "    // 1 right of 3 is 33.3%: half up gives 33, ceiling 34.\n    Scenario.callReceipts.value = [\n      call(0, CallOutcome.right),\n      call(1, CallOutcome.wrong),\n      call(2, CallOutcome.wrong),\n    ];\n    expect(Scenario.record('x').hitRatePct, 33);\n    // Nothing settled: no hit rate at all, not 0%.\n",
+            "rationale": "A fraction below .5 is the only kind that separates half-up from ceiling. It reuses the test's existing `call` helper."
+          }
+        ]
+      },
+      {
+        "findingId": "F11",
+        "verdict": "fix-here",
+        "evidence": "trade_mock.dart:135 `static final chartEnd = DateTime(2026, 9, 26, 14, 45);` seeds Scenario.clock (scenario.dart:77). market_mock.dart:163-172: maya-eth-4000-oct2 has `entryAt: 'Oct 2'`, `result: CallOutcome.wrong`, and no settledAt. scenario.dart:154 `switch (c.result) {` ignores the clock, so maya.eth's panel counts that verdict 'as of 26 Sep 14:45'. Rule 16 sets the shape: settled only when settledAt is at or before the clock, later counts as open, no seed date changes. Gap the rule does not cover: settledAt is a display String (market_mock.dart:41-44, 'nothing computes with them'). maya.eth's two verdicts have none (receipts_test.dart:296-297 pins `expect(c.settledAt, isNull)` for her record), and nara-btc-66k-tue uses the weekday form `settledAt: 'Tue 16:00'`. Without changing seeds, the only rule-16-consistent way to exclude the Oct 2 call is to refuse to count a verdict whose settlement date cannot be placed against the clock. It is counted as unavailable (F1's bucket), not open, so the 'N open calls' label (trader_market_screen.dart:48) never claims a verdict is unsettled. The fix reads only the 'Sep 12' form, in the clock's year, compared by day. It reuses the month list in charting/time_marks.dart:52, made public, rather than duplicating it. Consequences the manager should know before accepting: (1) maya.eth's Your market RECORD panel and Profile no longer show a hit rate. They read 'No settled calls yet — record unavailable · 2 unavailable', because her Right SOL call also has no settledAt. Under F2, the Arena side for caller maya.eth (arena_mock.dart:106) would read 'no record yet'. (2) nara's 'Tue 16:00' Right becomes unavailable, so her private profile shows Settled 1, Right 0. The alternative, adding settledAt values to maya's seed, is a seed-date change that rule 16 forbids, and it would break receipts_test.dart:297. Verified in scratch: full suite '+276: All tests passed!' and analyze clean, with F1+F11+F6. Every edit applies in any order and alone.",
+        "rejectsValidInput": "Settled receipts whose settledAt is null or not in the 'Mon d' form no longer count as settled. The record now shows them as unavailable. That covers maya-sol-300-fri, maya-eth-4000-oct2 and nara-btc-66k-tue in the seed. The weekday form is valid input by the fixture's own documentation: market_mock.dart:41-42 says settledAt is written 'as the fixture states them (\"Thu 14:32\")'. That doc is the producing procedure, so this fix updates it to say the record reads only the 'Sep 12' form. YourMarketMock's doc at market_mock.dart:149-151 ('The record states no entry prices or settlement times') explains why maya's verdicts have no date. Fixture dates are read in the clock's year, so a December date against a January clock would be misplaced. No seed crosses a year.",
+        "testProof": "app/test/trader_record_test.dart, new test 'a call settled after the clock is open at the clock; a verdict with no settlement date is unavailable'. Seed assertion: `expect(Scenario.record(PortfolioMock.handle), (settled: 0, right: 0, wrong: 0, open: 1, unavailable: 2, hitRatePct: null, asOf: asOf))`. Today it returns settled: 2, wrong: 1, hitRatePct: 50, so it fails. Synthetic assertion: wrong calls dated 'Sep 26', 'Sep 27' and 'Tue 16:00' yield `(settled: 1, right: 0, wrong: 1, open: 1, unavailable: 1, hitRatePct: 0, asOf: asOf)`. After `Scenario.clock.value = asOf.add(const Duration(days: 1))`: `settled == 2` and `open == 0`. Mutations checked in scratch: putting back `switch (c.result)` fails with 'Actual ... hitRatePct: 50, ... settled: 2'. Replacing the clock comparison with `return result;` fails with 'Actual ... open: 0, ... settled: 2'.",
+        "edits": [
+          {
+            "file": "app/lib/charting/time_marks.dart",
+            "anchor": "52 _months",
+            "current": "const _months = [\n",
+            "replacement": "/// Month abbreviations as labels and fixture dates write them (\"Sep\").\nconst monthAbbrs = [\n",
+            "rationale": "Reuses the existing month list instead of a second copy in Scenario."
+          },
+          {
+            "file": "app/lib/charting/time_marks.dart",
+            "anchor": "60 timeLabel",
+            "current": "    return '${t.day} ${_months[t.month - 1]}';\n",
+            "replacement": "    return '${t.day} ${monthAbbrs[t.month - 1]}';\n",
+            "rationale": "Follows the rename."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "3 imports",
+            "current": "import '../design_system/design_system.dart';\n",
+            "replacement": "import '../charting/time_marks.dart';\nimport '../design_system/design_system.dart';\n",
+            "rationale": "Imports monthAbbrs."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "142 Scenario.record doc",
+            "current": "  /// time it is read; nothing stores it. Right and wrong calls have\n",
+            "replacement": "  /// time it is read; nothing stores it. Each call counts by its outcome\n  /// at the clock ([_outcomeAt]): right and wrong calls have\n",
+            "rationale": "States that the record is gated on the clock."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "154 Scenario.record switch",
+            "current": "      switch (c.result) {\n",
+            "replacement": "      switch (_outcomeAt(c, clock.value)) {\n",
+            "rationale": "Counts each receipt by its outcome as of the clock (rule 16). F1's case null then takes unplaceable verdicts."
+          },
+          {
+            "file": "app/lib/scenario/scenario.dart",
+            "anchor": "176 before setArena",
+            "current": "  /// Changes the given parts of the Arena's view.\n",
+            "replacement": "  /// [c]'s outcome as of [at]. A right or wrong call has settled only once\n  /// its settlement date ([CallReceipt.settledAt], \"Sep 12\", read in\n  /// [at]'s year) is on or before [at]'s day; settling later, it is still\n  /// open at [at]. A verdict with no settlement date in that form cannot be\n  /// placed against the clock, so it has no outcome there (unavailable).\n  static CallOutcome? _outcomeAt(CallReceipt c, DateTime at) {\n    final result = c.result;\n    if (result == null || result == CallOutcome.open) return result;\n    if (c.settledAt?.split(' ') case [final m, final d]) {\n      final month = monthAbbrs.indexOf(m) + 1;\n      final day = int.tryParse(d);\n      if (month > 0 && day != null) {\n        final on = DateTime(at.year, month, day);\n        return on.isAfter(at) ? CallOutcome.open : result;\n      }\n    }\n    return null;\n  }\n\n  /// Changes the given parts of the Arena's view.\n",
+            "rationale": "The smallest helper that does the rule-16 comparison on the fixture's string dates and fails safe when a date cannot be read."
+          },
+          {
+            "file": "app/lib/features/market/market_mock.dart",
+            "anchor": "41-42 CallReceipt.entryAt/settledAt doc",
+            "current": "  /// Entry and settlement times as the fixture states them (\"Thu 14:32\");\n  /// nothing computes with them.\n",
+            "replacement": "  /// Entry and settlement times as the fixture states them (\"Thu 14:32\").\n  /// `Scenario.record` reads a settlement time in the \"Sep 12\" form only, to\n  /// place the verdict against the clock; a verdict whose settlement time is\n  /// missing or in another form counts as unavailable.\n",
+            "rationale": "The doc said nothing computes with these strings, which is now false. It is also where a fixture author learns which form counts."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "147-150 maya assertion + call helper",
+            "current": "    expect(Scenario.record(PortfolioMock.handle).hitRatePct, 50);\n\n    CallReceipt call(int i, CallOutcome? result) =>\n        CallReceipt(id: 'c$i', author: 'x', asset: 'BTC', result: result);\n",
+            "replacement": "    CallReceipt call(int i, CallOutcome? result) => CallReceipt(\n      id: 'c$i',\n      author: 'x',\n      asset: 'BTC',\n      result: result,\n      settledAt: 'Sep 20',\n    );\n",
+            "rationale": "maya's 50% was the defect itself. Her record is now asserted in full in the new test. Synthetic verdicts need a readable settlement date before the clock, or they would count as unavailable."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "174 before 'both traders' panels' test",
+            "current": "  testWidgets('both traders\\' panels show the same sample size, hit rate and '\n",
+            "replacement": "  test('a call settled after the clock is open at the clock; a verdict '\n      'with no settlement date is unavailable', () {\n    final asOf = Scenario.clock.value;\n    // maya.eth's Oct 2 call is Wrong in the fixture, but the clock is\n    // 26 Sep and neither of her verdicts states a settlement date.\n    expect(Scenario.record(PortfolioMock.handle), (\n      settled: 0,\n      right: 0,\n      wrong: 0,\n      open: 1,\n      unavailable: 2,\n      hitRatePct: null,\n      asOf: asOf,\n    ));\n    CallReceipt wrongOn(String settledAt) => CallReceipt(\n      id: settledAt,\n      author: 'x',\n      asset: 'BTC',\n      result: CallOutcome.wrong,\n      settledAt: settledAt,\n    );\n    Scenario.callReceipts.value = [\n      wrongOn('Sep 26'),\n      wrongOn('Sep 27'),\n      wrongOn('Tue 16:00'),\n    ];\n    expect(Scenario.record('x'), (\n      settled: 1,\n      right: 0,\n      wrong: 1,\n      open: 1,\n      unavailable: 1,\n      hitRatePct: 0,\n      asOf: asOf,\n    ));\n    // A day on, the Sep 27 call has settled too.\n    Scenario.clock.value = asOf.add(const Duration(days: 1));\n    expect(Scenario.record('x').settled, 2);\n    expect(Scenario.record('x').open, 0);\n  });\n\n  testWidgets('both traders\\' panels show the same sample size, hit rate and '\n",
+            "rationale": "Pins the as-of gate: the seeded Oct 2 call, the same-day boundary, the after-clock case, the unreadable form, and the clock advancing."
+          }
+        ]
+      },
+      {
+        "findingId": "F2",
+        "verdict": "fix-here",
+        "evidence": "Confirmed against the tree. Every caller figure is a stored string. In app/lib/features/arena/arena_mock.dart the card fields are 107 `accuracy: '82% accuracy',` (maya.eth), 117 `'68% accuracy'` (0xreal), 143 `'71% accuracy'` (kilo.sol), 151 `'77% accuracy'` (lunaq), 200 `'79% accuracy'` (mirin) and 208 `'64% accuracy'` (renatafx). The opinion subtitles are 162 `subtitle: 'Trader · 71% accuracy',`, 174 `'Sniper · 77% accuracy'` and 219 `'Contractor · 79% accuracy'`. The card prints them as they are: vista_battle.dart:256-257 `Text(side.accuracy, ...)`, and `withCrowd` (vista_battle.dart:36-38) copies `accuracy: accuracy`. The opinions screen passes `subtitle: o.subtitle,` (opinions_screen.dart:123).\n\nWhat the record derives instead. Scenario.record (scenario.dart:150-173) counts callReceipts and gives `hitRatePct: settled == 0 ? null : (right * 100 + settled ~/ 2) ~/ settled`. From market_mock.dart, kilo.sol and lunaq each have right, wrong, right and open, so both come to 67%. maya.eth (PortfolioMock.handle) has right, wrong and open, so 50%; trader_record_test.dart:147 pins `hitRatePct, 50`. mirin, renatafx and 0xreal have no receipts, so their record is null and the panel reads `No settled calls yet — record unavailable`. The card therefore shows lunaq at 77% one tap before a panel that reads `Hit rate 67%`.\n\nThe current AC3 test (trader_record_test.dart:323-331) never reads the card figure. It only checks `inPanel(pair.$2, find.text('Hit rate 67%'))`, and `grep accuracy app/test` finds nothing, so a stored figure passes.\n\nA second gap the finding does not name: the Arena's ListenableBuilder (arena_screen.dart:70-75) merges only `Scenario.arena, Scenario.receipts, Scenario.participation, DisplayPrefs.longOnRight`. A figure read at render time would go stale when callReceipts or clock change. The edits add both, matching the panel, which listens to `Listenable.merge([Scenario.callReceipts, Scenario.clock])` (receipt_screens.dart:213).\n\nOne sibling outside the finding's line list: opinions_mock.dart:93 `hitRate: '80%',` on @bitcoinninja. That is a stored hit-rate badge for a caller with no receipts. With derived subtitles the same row would read '... · no record yet' beside an '80%' badge, so the edits delete that one fixture line.\n\nWhere the helper goes: `accuracyLine` is a top-level function in opinions_screen.dart, which arena_screen.dart already imports (line 9). Putting it in arena_mock.dart would have a fixture read Scenario, and scenario.dart already imports arena_mock.dart.\n\nSpec 07 has no Out-of-scope section. Spec 07 Behavior says `tapping a trader name on a feed card or Arena side opens this panel`, which is unchanged. This work is decision 11 exactly.",
+        "rejectsValidInput": "None. Checked:\n- VistaBattleSide.accuracy goes from required to defaulting to '', so every existing constructor call still compiles. The only one outside the fixture is the home_screen_test.dart:985-986 reuse of `ArenaMock.battles.first.bull/bear`, which is unaffected.\n- `withCrowd` has exactly one caller (arena_screen.dart:146-147), and it is rewritten. grep finds no other.\n- No test asserts any of the removed strings, the BTC opinion subtitles or the '80%' badge (grep of app/test for accuracy, streak, 'sniper of charts' and 80% finds none).\n\nOne visible display change: BTC opinions now end in ' · no record yet'. That is a display change only, and maxLines 1 with ellipsis in VistaSideDetail keeps it from overflowing. No document tells a human to produce a stored accuracy string. Spec 07 and PRD VC-MKT-002 require it to be derived.",
+        "testProof": "app/test/trader_record_test.dart: 'Arena card trader link opens the record panel', as rewritten. Four checks:\n1. Against today's code, `expect(side('67% accuracy'), findsOneWidget)` fails, because lunaq's side reads '77% accuracy' (arena_mock.dart:151). This is the mutation 'a constant accuracy that disagrees with the panel'.\n2. A constant written to match the seed ('67% accuracy') passes step 1. It then fails `expect(side('100% accuracy'), findsOneWidget)` after the test drops lunaq's wrong receipt. The panel's `Hit rate 100%` proves the two agree after the change too.\n3. Dropping Scenario.callReceipts from the Arena's Listenable.merge leaves the card stale after Back, which the same final expect is there to catch.\n4. app/test/home_screen_test.dart: \"a battle's opinions trade that battle's asset and clash\" gains `expect(find.text('Sniper · 67% accuracy'), findsOneWidget)`. It fails today, because the subtitle is the stored 'Sniper · 77% accuracy'.\n\nBoth tests are reached by: cd /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue && scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-7-fixer/",
+        "edits": [
+          {
+            "file": "app/lib/design_system/components/vista_battle.dart",
+            "anchor": "15 VistaBattleSide constructor accuracy",
+            "current": "    required this.accuracy,",
+            "replacement": "    this.accuracy = '',",
+            "rationale": "The fixture no longer stores accuracy. The line is filled at render time by withLines."
+          },
+          {
+            "file": "app/lib/design_system/components/vista_battle.dart",
+            "anchor": "24 VistaBattleSide.accuracy",
+            "current": "  final String caller;\n  final String accuracy;",
+            "replacement": "  final String caller;\n\n  /// The caller's accuracy line, filled at render time from their record;\n  /// never a stored figure.\n  final String accuracy;",
+            "rationale": "Document that accuracy is derived and never a stored figure (VC-MKT-002, decision 11)."
+          },
+          {
+            "file": "app/lib/design_system/components/vista_battle.dart",
+            "anchor": "35-37 VistaBattleSide.withCrowd",
+            "current": "  /// This side with [crowd] as its crowd line.\n  VistaBattleSide withCrowd(String crowd) => VistaBattleSide(\n    caller: caller,\n    accuracy: accuracy,",
+            "replacement": "  /// This side with its crowd and accuracy lines, both filled at render\n  /// time.\n  VistaBattleSide withLines({\n    required String crowd,\n    required String accuracy,\n  }) => VistaBattleSide(\n    caller: caller,\n    accuracy: accuracy,",
+            "rationale": "The one place the card side is rebuilt at render time now takes the derived accuracy as well as the crowd. It is renamed because it no longer sets only the crowd. Its single caller is arena_screen.dart:146-147."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "107 _btc bull maya.eth",
+            "current": "      caller: 'maya.eth',\n      accuracy: '82% accuracy',",
+            "replacement": "      caller: 'maya.eth',",
+            "rationale": "Delete the stored figure (decision 11). maya.eth derives 50%."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "117 _btc bear 0xreal",
+            "current": "      caller: '0xreal',\n      accuracy: '68% accuracy',",
+            "replacement": "      caller: '0xreal',",
+            "rationale": "Delete the stored figure. 0xreal has no receipts, so the line reads 'no record yet'."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "143 _eth bull kilo.sol",
+            "current": "      caller: 'kilo.sol',\n      accuracy: '71% accuracy',",
+            "replacement": "      caller: 'kilo.sol',",
+            "rationale": "Delete the stored figure. kilo.sol derives 67%."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "151 _eth bear lunaq",
+            "current": "      caller: 'lunaq',\n      accuracy: '77% accuracy',",
+            "replacement": "      caller: 'lunaq',",
+            "rationale": "Delete the stored figure. lunaq derives 67%, the same as kilo.sol (the VC-MKT-002 pair)."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "200 _sol bull mirin",
+            "current": "      caller: 'mirin',\n      accuracy: '79% accuracy',",
+            "replacement": "      caller: 'mirin',",
+            "rationale": "Delete the stored figure. mirin has no receipts."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "208 _sol bear renatafx",
+            "current": "      caller: 'renatafx',\n      accuracy: '64% accuracy',",
+            "replacement": "      caller: 'renatafx',",
+            "rationale": "Delete the stored figure. renatafx has no receipts."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "162 _eth opinion @kilo.sol subtitle",
+            "current": "        subtitle: 'Trader · 71% accuracy',",
+            "replacement": "        subtitle: 'Trader',",
+            "rationale": "The subtitle keeps only the role. The opinions screen appends the derived accuracy."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "174 _eth opinion @lunaq subtitle",
+            "current": "        subtitle: 'Sniper · 77% accuracy',",
+            "replacement": "        subtitle: 'Sniper',",
+            "rationale": "The subtitle keeps only the role. The opinions screen appends the derived accuracy."
+          },
+          {
+            "file": "app/lib/features/arena/arena_mock.dart",
+            "anchor": "219 _sol opinion @mirin subtitle",
+            "current": "        subtitle: 'Contractor · 79% accuracy',",
+            "replacement": "        subtitle: 'Contractor',",
+            "rationale": "The subtitle keeps only the role. The opinions screen appends the derived accuracy."
+          },
+          {
+            "file": "app/lib/features/arena/opinions_mock.dart",
+            "anchor": "22 Opinion.subtitle",
+            "current": "  final String subtitle;",
+            "replacement": "  /// Role line; the opinions screen appends the caller's accuracy, derived\n  /// from their record at render time.\n  final String subtitle;",
+            "rationale": "State that the fixture holds no accuracy figure."
+          },
+          {
+            "file": "app/lib/features/arena/opinions_mock.dart",
+            "anchor": "93 @bitcoinninja hitRate",
+            "current": "      hitRate: '80%',",
+            "replacement": "",
+            "rationale": "A stored hit-rate badge for a caller with no receipts. Once subtitles are derived, this row would show '80%' beside 'no record yet'. Delete the fixture value; the badge then stays hidden because hitRate is null."
+          },
+          {
+            "file": "app/lib/features/arena/opinions_screen.dart",
+            "anchor": "1-10 imports and accuracyLine helper",
+            "current": "import '../../design_system/design_system.dart';\nimport '../profile/profile_screen.dart';",
+            "replacement": "import '../../design_system/design_system.dart';\nimport '../../scenario/scenario.dart';\nimport '../profile/profile_screen.dart';",
+            "rationale": "The helper below reads Scenario.record."
+          },
+          {
+            "file": "app/lib/features/arena/opinions_screen.dart",
+            "anchor": "8-10 before OpinionsScreen doc",
+            "current": "import 'opinions_mock.dart';\n\n/// Every opinion on a battle (Figma 48:430, \"13 · Clash detail — scrolled\"),",
+            "replacement": "import 'opinions_mock.dart';\n\n/// [handle]'s accuracy line, from [Scenario.record] at render time\n/// (VC-MKT-002): \"N% accuracy\", or \"no record yet\" with nothing settled.\nString accuracyLine(String handle) {\n  final pct = Scenario.record(handle).hitRatePct;\n  return pct == null ? 'no record yet' : '$pct% accuracy';\n}\n\n/// Every opinion on a battle (Figma 48:430, \"13 · Clash detail — scrolled\"),",
+            "rationale": "One derivation shared by the battle card and the opinion subtitles. arena_screen.dart already imports this file."
+          },
+          {
+            "file": "app/lib/features/arena/opinions_screen.dart",
+            "anchor": "123 VistaSideDetail subtitle",
+            "current": "                      subtitle: o.subtitle,",
+            "replacement": "                      subtitle:\n                          '${o.subtitle} · '\n                          '${accuracyLine(o.handle.replaceFirst('@', ''))}',",
+            "rationale": "The opinion subtitle's accuracy is derived from the caller's record. The handle is stripped the same way as the onCaller route on line 130."
+          },
+          {
+            "file": "app/lib/features/arena/arena_screen.dart",
+            "anchor": "73-74 Listenable.merge",
+            "current": "                Scenario.participation,\n                DisplayPrefs.longOnRight,",
+            "replacement": "                Scenario.participation,\n                Scenario.callReceipts,\n                Scenario.clock,\n                DisplayPrefs.longOnRight,",
+            "rationale": "The card now reads the record at render time, so it rebuilds on the same inputs as the panel (receipt_screens.dart:213). Without this the figure goes stale."
+          },
+          {
+            "file": "app/lib/features/arena/arena_screen.dart",
+            "anchor": "146-147 _card bull/bear",
+            "current": "      bull: b.bull.withCrowd(crowd(b.bullCount, TradeSide.long)),\n      bear: b.bear.withCrowd(crowd(b.bearCount, TradeSide.short)),",
+            "replacement": "      bull: b.bull.withLines(\n        crowd: crowd(b.bullCount, TradeSide.long),\n        accuracy: accuracyLine(b.bull.caller),\n      ),\n      bear: b.bear.withLines(\n        crowd: crowd(b.bearCount, TradeSide.short),\n        accuracy: accuracyLine(b.bear.caller),\n      ),",
+            "rationale": "Side accuracy comes from Scenario.record(caller).hitRatePct at render time (decision 11)."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "323-331 'Arena card trader link opens the record panel'",
+            "current": "  testWidgets('Arena card trader link opens the record panel', (tester) async {\n    await pumpApp(tester, size: const Size(402, 2400));\n    await tester.tap(find.bySemanticsLabel('Arena'));\n    await tester.pumpAndSettle();\n    await tapAndSettle(tester, find.text(pair.$2).hitTestable());\n    expect(find.byType(ProfileScreen), findsOneWidget);\n    expect(inPanel(pair.$2, find.text(pairCaption)), findsOneWidget);\n    expect(inPanel(pair.$2, find.text('Hit rate 67%')), findsOneWidget);\n  });",
+            "replacement": "  testWidgets('Arena card trader link opens the record panel', (tester) async {\n    await pumpApp(tester, size: const Size(402, 2400));\n    await tester.tap(find.bySemanticsLabel('Arena'));\n    await tester.pumpAndSettle();\n    // The tapped side's accuracy is the panel's hit rate, read from the\n    // receipts at render time, never a stored figure.\n    Finder side(String text) => find.descendant(\n      of: find\n          .ancestor(of: find.text(pair.$2), matching: find.byType(Column))\n          .first,\n      matching: find.text(text),\n    );\n    expect(side('67% accuracy'), findsOneWidget);\n    await tapAndSettle(tester, find.text(pair.$2).hitTestable());\n    expect(find.byType(ProfileScreen), findsOneWidget);\n    expect(inPanel(pair.$2, find.text(pairCaption)), findsOneWidget);\n    expect(inPanel(pair.$2, find.text('Hit rate 67%')), findsOneWidget);\n\n    // Drop lunaq's wrong call: panel and card both follow, so a constant\n    // that happens to match the seed fails here.\n    Scenario.callReceipts.value = [\n      for (final c in Scenario.callReceipts.value)\n        if (c.author != pair.$2 || c.result != CallOutcome.wrong) c,\n    ];\n    await tester.pumpAndSettle();\n    expect(inPanel(pair.$2, find.text('Hit rate 100%')), findsOneWidget);\n    await tester.tap(find.bySemanticsLabel('Back').last);\n    await tester.pumpAndSettle();\n    expect(side('100% accuracy'), findsOneWidget);\n  });",
+            "rationale": "Decision 11: assert the tapped side's percent equals the panel's. Changing the receipts also catches a stored constant that matches the seed, and a card that does not listen to callReceipts. CallOutcome comes from market_mock.dart, which this test file already imports and uses."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1154 \"a battle's opinions trade that battle's asset and clash\"",
+            "current": "      expect(find.text('@lunaq'), findsOneWidget);\n      await tester.tap(find.text('Follow Bear'));",
+            "replacement": "      expect(find.text('@lunaq'), findsOneWidget);\n      // The subtitle's accuracy is lunaq's derived record, not a stored 77%.\n      expect(find.text('Sniper · 67% accuracy'), findsOneWidget);\n      await tester.tap(find.text('Follow Bear'));",
+            "rationale": "Pins the opinion subtitle to the derived record. It fails today against the stored 'Sniper · 77% accuracy'."
+          }
+        ]
+      },
+      {
+        "findingId": "F3",
+        "verdict": "fix-here",
+        "evidence": "Both headers are wired correctly today but nothing reads them. profile_screen.dart:202 `child: VistaCountStat(value: '${m.settled}', label: 'Settled'),` and :205 `child: VistaCountStat(value: '${m.right}', label: 'Right'),`. private_profile_screen.dart:147-167 reads `value: '${m.settled}'`, `value: '${m.right}'` and `value: '${m.open}'` with `label: 'Open calls'`. trader_record_test.dart:180 scopes the count to the panel: `expect(inPanel(handle, find.text('3 settled')), findsOneWidget);`, so the header's VistaCountStat is never read. home_screen_test.dart:570 asserts only the label: `expect(find.text('Open calls'), findsOneWidget);`. No test in app/test reads a VistaCountStat value. Because VistaCountStat exposes `value` and `label` fields (vista_profile.dart:56-57), a predicate finder pins the rendered value with no new hook. Seed numbers: kilo.sol and lunaq are 3 settled / 2 right (trader_record_test.dart:135-142). Their settledAt dates (Sep 12/18/24, Sep 9/17/23) are all before the clock 2026-09-26 14:45, so F11 cannot move them. kestrel has 0 settled. The nara leg takes its expected values from Scenario.record('nara') rather than literals, so it survives F11's clock rule whichever way 'Tue 16:00' resolves. It then empties nara's receipts, so a constant that happens to equal the seeded value is still caught.",
+        "rejectsValidInput": "none. These are test-only additions and the header code is unchanged. Checked: no correct header rendering fails them. The kestrel '0' and nara empty-store legs assert what Scenario.record returns for those states.",
+        "testProof": "Mutation-proven as house rule 19 requires. (1) In profile_screen.dart:202 replace '${m.settled}' with '62', and at :205 '${m.right}' with '36' (the Gap constants spec 07 names). The current suite stays green. The new `countStat('Settled', '3')` in trader_record_test.dart \"both traders' panels show the same sample size...\" finds nothing and fails. (2) Replace '${m.settled}' with the constant '3'. The pair assertion survives, but the new `countStat('Settled', '0')` in 'zero-history trader → unavailable state, no crash' fails. (3) In private_profile_screen.dart:165 replace '${m.open}' with '2'. home_screen_test.dart 'a private account without a market opens the private layout' passes today, and its new `stat('Open calls', 0)` after nara's receipts are removed fails. The same holds for Settled and Right at :148/:153. Run: scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-7-fixer/",
+        "edits": [
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "5-6 imports",
+            "current": "import 'package:flutter_test/flutter_test.dart';\nimport 'package:vista_colosseum/features/home/home_screen.dart';",
+            "replacement": "import 'package:flutter_test/flutter_test.dart';\nimport 'package:vista_colosseum/design_system/design_system.dart';\nimport 'package:vista_colosseum/features/home/home_screen.dart';",
+            "rationale": "VistaCountStat for the header finder."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "49-50 inPanel",
+            "current": "Finder inPanel(String handle, Finder f) =>\n    find.descendant(of: panelFor(handle), matching: f);",
+            "replacement": "Finder inPanel(String handle, Finder f) =>\n    find.descendant(of: panelFor(handle), matching: f);\n\n/// The profile header's [label] count, showing [value].\nFinder countStat(String label, String value) => find.byWidgetPredicate(\n  (w) => w is VistaCountStat && w.label == label && w.value == value,\n);",
+            "rationale": "Reads the header's rendered value, which the panel-scoped text checks never reach."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "180 pair panel test",
+            "current": "      expect(inPanel(handle, find.text('3 settled')), findsOneWidget);",
+            "replacement": "      expect(inPanel(handle, find.text('3 settled')), findsOneWidget);\n      // The header shows the same derived counts, not stored ones.\n      expect(countStat('Settled', '3'), findsOneWidget);\n      expect(countStat('Right', '2'), findsOneWidget);",
+            "rationale": "Pins the header Settled/Right to the derived record (kills reverting to '62'/'36')."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "201 zero-history test loop",
+            "current": "      expect(inPanel(fresh, find.text(unavailableNote)), findsOneWidget);",
+            "replacement": "      expect(inPanel(fresh, find.text(unavailableNote)), findsOneWidget);\n      // The header counts what the store holds: nothing settled.\n      expect(countStat('Settled', '0'), findsOneWidget, reason: name);\n      expect(countStat('Right', '0'), findsOneWidget, reason: name);",
+            "rationale": "A second data point, so a constant equal to the pair's value ('3'/'2') cannot pass."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "570-574 nara private-profile test",
+            "current": "      expect(find.text('Open calls'), findsOneWidget);\n      // No market or holdings for a private account.\n      expect(find.text('HOLDING NOW'), findsNothing);\n      expect(find.text('market'), findsNothing);\n      expect(find.text(r'BTC holds $64,000 to Oct 3'), findsOneWidget);",
+            "replacement": "      expect(find.text('Open calls'), findsOneWidget);\n      // The header counts nara's receipts as the store holds them...\n      Finder stat(String label, int n) => find.byWidgetPredicate(\n        (w) => w is VistaCountStat && w.label == label && w.value == '$n',\n      );\n      final m = Scenario.record('nara');\n      expect([m.settled, m.right, m.open], everyElement(greaterThan(0)));\n      expect(stat('Settled', m.settled), findsOneWidget);\n      expect(stat('Right', m.right), findsOneWidget);\n      expect(stat('Open calls', m.open), findsOneWidget);\n      // No market or holdings for a private account.\n      expect(find.text('HOLDING NOW'), findsNothing);\n      expect(find.text('market'), findsNothing);\n      expect(find.text(r'BTC holds $64,000 to Oct 3'), findsOneWidget);\n      // ...and follows the store: with nara's calls gone, every count is 0.\n      Scenario.callReceipts.value = [\n        for (final c in Scenario.callReceipts.value)\n          if (c.author != 'nara') c,\n      ];\n      await tester.pumpAndSettle();\n      expect(stat('Settled', 0), findsOneWidget);\n      expect(stat('Right', 0), findsOneWidget);\n      expect(stat('Open calls', 0), findsOneWidget);",
+            "rationale": "Pins the private header's Settled, Right and Open calls to Scenario.record and proves they re-derive when the store changes. Comparing against Scenario.record keeps the leg valid under F11's clock rule. The file-level setUp (home_screen_test.dart:93-94) resets the store."
+          }
+        ]
+      },
+      {
+        "findingId": "F5",
+        "verdict": "fix-here",
+        "evidence": "profile_screen.dart:151-160 renders a fixed asset whenever anything is settled: `if (m.settled > 0) ...[ const VistaIcon( VistaAssets.verdictsLast10, ... semanticLabel: 'Last 10 verdicts',`. verdicts_last10.svg is ten hard-coded circles (7 #34D399, 3 #F16082), drawn above derived 'Settled 3 / Right 2'. trader_record_test.dart:182 pins it: `expect(find.bySemanticsLabel(verdicts), findsOneWidget);` with `const verdicts = 'Last 10 verdicts';` (:37). House rule 12 decides the fix: render the trader's actual settled receipts (at most 10, oldest to newest) titled 'Last N verdicts' with the real N, and hide the strip when there are none. Order: CallReceipt says its dates are display strings and 'nothing computes with them' (market_mock.dart:39-41), so store order is the only order available. For every trader who gets ProfileScreen, store order is oldest first: kilo.sol Sep 8/14/19/25, lunaq Sep 5/13/18/25, kestrel Sep 26, maya.eth Thu 14:32 / Oct 2 / Mon 09:10. nara is stored newest first, but nara always routes to PrivateProfileScreen (ProfileScreen.route, privateProfiles), which has no strip. Colours come from CallReceipt.color (VistaColors.long/short), and spacing uses VistaSpace.xs, so no colour is hardcoded (house rule 7). The 10 px dot with a 4 px gap reproduces the asset's 136×10 footprint. Interaction to flag for the writer: F11 will make record() count a receipt as settled only when settledAt <= clock. VerdictStrip filters on result alone. Today the two agree for every ProfileScreen trader except maya.eth, whose receipts carry no settledAt (market_mock.dart:152-182). If F11's edit adds a settled-at-clock predicate to Scenario, route VerdictStrip's filter through it so the strip's N always equals the Settled count. Once VerdictStrip lands, VistaAssets.verdictsLast10 has no caller and is deleted (rule 7 allows deleting dead design-system code; the svg file stays).",
+        "rejectsValidInput": "none found. A trader with more than 10 settled calls shows only the last 10, which is the decided rule 12. Receipts with a null result are excluded, consistent with F1 (unavailable is never settled). The only stored-newest-first trader is nara, who never reaches ProfileScreen. No document tells anyone to rely on the fixed 10-dot asset; the only consumer was trader_record_test.dart:182, which this edit updates.",
+        "testProof": "trader_record_test.dart, new test \"the verdicts strip shows the trader's last 10 settled calls, oldest to newest, and no open call\". It seeds author 'x' with [wrong, wrong, right×9, open, wrong] and asserts the dot colours equal [right×9, wrong] with label 'Last 10 verdicts'. Each mutation below fails it: reversing the order (first colour becomes short), taking the first 10 instead of the last (leads with two shorts), or counting the open call (a fees-coloured dot appears). The test cannot pass against the current code: VerdictStrip does not exist, and the static asset has no DecoratedBox dots. Also, in \"both traders' panels show the same sample size...\", `find.bySemanticsLabel('Last 3 verdicts')` fails against today's fixed 'Last 10 verdicts' label. The zero-history test's `find.bySemanticsLabel(verdicts)` now matches any 'Last N verdicts' label, so kestrel's no-strip assertion is no longer tied to the literal 10.",
+        "edits": [
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "6 imports",
+            "current": "import '../market/receipt_screens.dart';",
+            "replacement": "import '../market/market_mock.dart';\nimport '../market/receipt_screens.dart';",
+            "rationale": "CallOutcome for VerdictStrip's filter."
+          },
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "14 before ProfileScreen doc comment",
+            "current": "/// Someone else's profile (Figma 303:102, \"Profile — maya.eth · Arena",
+            "replacement": "/// [author]'s settled calls as dots, oldest to newest, the last 10 at\n/// most, each in its receipt's colour (right long, wrong short). Order is\n/// the store's, which lists each profile trader's calls oldest first.\n/// With nothing settled it shows nothing.\nclass VerdictStrip extends StatelessWidget {\n  const VerdictStrip({super.key, required this.author});\n\n  final String author;\n\n  @override\n  Widget build(BuildContext context) {\n    final settled = [\n      for (final c in Scenario.callReceipts.value)\n        if (c.author == author &&\n            (c.result == CallOutcome.right || c.result == CallOutcome.wrong))\n          c,\n    ];\n    if (settled.isEmpty) return const SizedBox.shrink();\n    final last = settled.length > 10\n        ? settled.sublist(settled.length - 10)\n        : settled;\n    return Padding(\n      padding: const EdgeInsets.only(bottom: VistaSpace.xl),\n      child: Semantics(\n        container: true,\n        label: 'Last ${last.length} verdicts',\n        child: Row(\n          mainAxisSize: MainAxisSize.min,\n          children: [\n            for (final (i, c) in last.indexed) ...[\n              if (i > 0) const SizedBox(width: VistaSpace.xs),\n              SizedBox.square(\n                dimension: 10,\n                child: DecoratedBox(\n                  decoration: BoxDecoration(\n                    color: c.color,\n                    shape: BoxShape.circle,\n                  ),\n                ),\n              ),\n            ],\n          ],\n        ),\n      ),\n    );\n  }\n}\n\n/// Someone else's profile (Figma 303:102, \"Profile — maya.eth · Arena",
+            "rationale": "A derived strip in place of the stored 10-dot asset (rule 12). It sits above the screen class so its edit does not overlap the doc comments F9 may touch. The parent header's callReceipts listener rebuilds it."
+          },
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "151-160 _header verdicts block",
+            "current": "                // No verdicts to show before a call settles.\n                if (m.settled > 0) ...[\n                  const VistaIcon(\n                    VistaAssets.verdictsLast10,\n                    size: 136,\n                    height: 10,\n                    semanticLabel: 'Last 10 verdicts',\n                  ),\n                  gap,\n                ],",
+            "replacement": "                VerdictStrip(author: widget.handle),",
+            "rationale": "Shows the real settled receipts with the real N. It hides itself, including its trailing gap, when none have settled."
+          },
+          {
+            "file": "app/lib/design_system/vista_assets.dart",
+            "anchor": "61-62 verdictsLast10",
+            "current": "  // Profile (Figma 303:102).\n  static const String verdictsLast10 = '$_dir/verdicts_last10.svg';",
+            "replacement": "  // Profile (Figma 303:102).",
+            "rationale": "The constant has no caller once the strip is derived. Rule 7 allows deleting dead design-system code; the asset file stays."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "37 verdicts const",
+            "current": "const verdicts = 'Last 10 verdicts';",
+            "replacement": "/// Any verdicts strip, whatever its count.\nfinal verdicts = RegExp(r'^Last \\d+ verdicts$');",
+            "rationale": "The zero-history check must rule out a strip of any size, not only the old literal 10."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "182 pair panel test",
+            "current": "      expect(find.bySemanticsLabel(verdicts), findsOneWidget);",
+            "replacement": "      // Their three settled calls, not a stored ten.\n      expect(find.bySemanticsLabel('Last 3 verdicts'), findsOneWidget);",
+            "rationale": "Flips the assertion that pinned the static strip."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "186 before zero-history test",
+            "current": "  testWidgets('zero-history trader → unavailable state, no crash', (",
+            "replacement": "  testWidgets('the verdicts strip shows the trader\\'s last 10 settled calls, '\n      'oldest to newest, and no open call', (tester) async {\n    CallReceipt call(int i, CallOutcome result) => CallReceipt(\n      id: 'v$i',\n      author: 'x',\n      asset: 'BTC',\n      result: result,\n      settledAt: result == CallOutcome.open ? null : 'Sep 20',\n    );\n    // Twelve settled calls and an open one, oldest first: the strip keeps\n    // the last ten settled, in order.\n    final calls = [\n      call(0, CallOutcome.wrong),\n      call(1, CallOutcome.wrong),\n      for (var i = 2; i < 11; i++) call(i, CallOutcome.right),\n      call(11, CallOutcome.open),\n      call(12, CallOutcome.wrong),\n    ];\n    Scenario.callReceipts.value = calls;\n    await pumpApp(tester, home: const ProfileScreen(handle: 'x'));\n    expect(find.bySemanticsLabel('Last 10 verdicts'), findsOneWidget);\n    final dots = tester.widgetList<DecoratedBox>(\n      find.descendant(\n        of: find.byType(VerdictStrip),\n        matching: find.byType(DecoratedBox),\n      ),\n    );\n    expect(\n      [for (final d in dots) (d.decoration as BoxDecoration).color],\n      [for (final c in [...calls.sublist(2, 11), calls[12]]) c.color],\n    );\n  });\n\n  testWidgets('zero-history trader → unavailable state, no crash', (",
+            "rationale": "Proves the cap, the order and the open-call exclusion, and that each dot's colour comes from its receipt."
+          }
+        ]
+      },
+      {
+        "findingId": "F8",
+        "verdict": "fix-here",
+        "evidence": "profile_screen.dart:293-307 always renders `VistaSectionHead( title: 'CALLS', linkLabel: 'All receipts', ...)` above `CallRecordList(author: widget.handle)`. CallRecordList (receipt_screens.dart:181-202) yields an empty Column when no receipt matches the author. kaito.eth, deltaone and the other feed or Arena callers have no seeded receipts (the authors are maya.eth, kilo.sol, lunaq, kestrel and nara, market_mock.dart:152-345). House rule 13 decides the fix: hide the Profile CALLS heading when the trader has no receipts, and do not build an empty-state widget. That overrides the finding's suggested empty line. PrivateProfileScreen is untouched: its 'Calls' tab is a different heading, and nara has receipts. Cost found while checking: receipts_test.dart:449-455 walks the now-removed path. It opens `ProfileScreen(handle: 'kaito.eth')`, taps 'All receipts ›' and expects 'No call receipts for kaito.eth in fixture-v1'. That leg must move to a trader with receipts. The empty receipts list stays reachable and tested through the trader-market leg of the same test (receipts_test.dart:464-472, `TraderMarketScreen(handle: 'kaito.eth')`).",
+        "rejectsValidInput": "One previously valid path is removed. On a profile with no call receipts, the user could tap 'All receipts ›' and land on ReceiptsScreen's 'No call receipts for <handle> in fixture-v1' line. receipts_test.dart:436 'every All receipts link opens the receipts list' (lines 449-455) is the document that teaches and exercises that path. The edit below updates it: the profile leg now uses kestrel, a trader with receipts, and the empty-list case stays covered from the trader market, where the link remains. No spec or doc prose describes the profile path; rule 13 is the decision.",
+        "testProof": "trader_record_test.dart, new test 'a trader with no call receipts gets no CALLS heading'. It pumps ProfileScreen('kaito.eth') at 402×2400 and asserts `find.text('CALLS')` findsNothing. That fails today, because the heading renders unconditionally at profile_screen.dart:297-303. A positive control on lunaq asserts `find.text('CALLS')` findsOneWidget, so the negative cannot pass from lazy building. Mutation: drop the `if (!calls.any(...)) return const SizedBox.shrink();` guard and the test fails. Without the receipts_test edit, receipts_test.dart 'every All receipts link opens the receipts list' would fail after the fix (no 'All receipts ›' on kaito's profile), so that edit is required.",
+        "edits": [
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "293-307 _ProfileScreenState._calls",
+            "current": "  Widget _calls() {\n    return Column(\n      crossAxisAlignment: CrossAxisAlignment.stretch,\n      children: [\n        VistaSectionHead(\n          title: 'CALLS',\n          linkLabel: 'All receipts',\n          linkSize: 13,\n          onLink: () =>\n              Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),\n        ),\n        CallRecordList(author: widget.handle),\n      ],\n    );\n  }",
+            "replacement": "  /// The trader's call receipts under a CALLS heading; with none, no\n  /// heading either.\n  Widget _calls() {\n    return ValueListenableBuilder(\n      valueListenable: Scenario.callReceipts,\n      builder: (context, calls, _) {\n        if (!calls.any((c) => c.author == widget.handle)) {\n          return const SizedBox.shrink();\n        }\n        return Column(\n          crossAxisAlignment: CrossAxisAlignment.stretch,\n          children: [\n            VistaSectionHead(\n              title: 'CALLS',\n              linkLabel: 'All receipts',\n              linkSize: 13,\n              onLink: () => Navigator.of(\n                context,\n              ).push(ReceiptsScreen.route(widget.handle)),\n            ),\n            CallRecordList(author: widget.handle),\n          ],\n        );\n      },\n    );\n  }",
+            "rationale": "Rule 13: hide the heading when the trader has no receipts. No empty-state widget is built. It reads through Scenario.callReceipts, so a receipt added live brings the heading back."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "257 before Profile CALLS test",
+            "current": "  testWidgets('Profile CALLS lists the trader\\'s own call receipts and each '",
+            "replacement": "  testWidgets('a trader with no call receipts gets no CALLS heading', (\n    tester,\n  ) async {\n    const none = 'kaito.eth';\n    expect(callsBy(none), isEmpty);\n    await pumpApp(\n      tester,\n      home: const ProfileScreen(handle: none),\n      size: const Size(402, 2400),\n    );\n    expect(find.text('HOLDING NOW'), findsOneWidget);\n    expect(find.text('CALLS'), findsNothing);\n    expect(find.text('All receipts ›'), findsNothing);\n\n    // A trader with calls keeps it, at the same size.\n    await pumpApp(\n      tester,\n      home: const ProfileScreen(handle: 'lunaq'),\n      size: const Size(402, 2400),\n    );\n    expect(find.text('CALLS'), findsOneWidget);\n  });\n\n  testWidgets('Profile CALLS lists the trader\\'s own call receipts and each '",
+            "rationale": "Fails today, when the heading always renders. The lunaq control stops the negative from passing on lazy building."
+          },
+          {
+            "file": "app/test/receipts_test.dart",
+            "anchor": "449-455 every All receipts link test, profile leg",
+            "current": "    await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));\n    await tapAndSettle(tester, find.text('All receipts ›'));\n    expect(find.byType(ReceiptsScreen), findsOneWidget);\n    expect(\n      find.text('No call receipts for kaito.eth in fixture-v1'),\n      findsOneWidget,\n    );",
+            "replacement": "    // A profile with no calls has no CALLS heading to link from; the empty\n    // list is reached from the trader market below.\n    await pumpApp(tester, home: const ProfileScreen(handle: 'kestrel'));\n    await tapAndSettle(tester, find.text('All receipts ›'));\n    expect(find.byType(ReceiptsScreen), findsOneWidget);\n    expect(onList(find.text(r'BTC reaches $72,000 by Oct 3')), findsOneWidget);",
+            "rationale": "The profile leg used the link this fix removes for receipt-less traders. kestrel (one seeded call, market_mock.dart:293-304) keeps the leak checks that follow meaningful, and the kaito empty-list case stays covered by the TraderMarketScreen leg at :464-472."
+          }
+        ]
+      },
+      {
+        "findingId": "F10",
+        "verdict": "fix-here",
+        "evidence": "profile_screen.dart:139-143 renders the stored constant unconditionally: `Text( ProfileMock.recordSince, ...)`, with profile_mock.dart:28 `static const recordSince = 'Record since Jun 2026 · 14 mo';`. kestrel (one open call, Sep 26) therefore reads 'Record since Jun 2026 · 14 mo' above 'No settled calls yet — record unavailable', and kaito.eth (no receipts) shows it too. House rule 15 decides the fix: derive the line from the trader's earliest receipt entryAt and hide it when the trader has no receipts. entryAt is a display string (market_mock.dart:39-41, 'nothing computes with them'), so 'earliest' is the first receipt in store order. I checked that this is the earliest for every ProfileScreen trader: kilo.sol 'Sep 8', lunaq 'Sep 5', kestrel 'Sep 26' (only call), maya.eth 'Thu 14:32' (Thu Sep 24, before 'Oct 2' and 'Mon 09:10'). nara is stored newest first but only reaches PrivateProfileScreen, which has no Record since line. A first receipt with a null entryAt also hides the line, which is the fail-safe choice and needs no 'unavailable' import. ProfileMock.recordSince has no other reference in app/lib or app/test (grep), so it is deleted.",
+        "rejectsValidInput": "none. The stored 'Jun 2026 · 14 mo' was never derived from state, so no correct input produced it. Traders with receipts still get a line, now true to their first call. The only new hiding beyond rule 15 is a first receipt with no stated entryAt, and no seeded receipt has one (market_mock.dart: every receipt states entryAt). No document tells anyone to expect the fixed string: grep of app/test and docs for 'Record since' finds nothing.",
+        "testProof": "trader_record_test.dart, new test \"Record since dates from the trader's first call, and a trader with no calls has no Record since line\". `find.text('Record since Sep 8')` on ProfileScreen(kilo.sol) fails today, because the screen shows 'Record since Jun 2026 · 14 mo'. `find.textContaining('Record since')` findsNothing on ProfileScreen('kaito.eth') also fails today. Mutations: restoring ProfileMock.recordSince fails the first assertion. Dropping the `if (since == null) return const SizedBox.shrink();` guard and rendering 'Record since null' fails the second.",
+        "edits": [
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "139-143 _header recordSince line",
+            "current": "        gap,\n        Text(\n          ProfileMock.recordSince,\n          style: VistaType.caption.copyWith(color: VistaColors.textMuted),\n        ),",
+            "replacement": "        ValueListenableBuilder(\n          valueListenable: Scenario.callReceipts,\n          builder: (context, calls, _) {\n            // Dated from the trader's first call (the store lists each\n            // profile trader's oldest first); with none, no line.\n            final since = calls\n                .where((c) => c.author == widget.handle)\n                .firstOrNull\n                ?.entryAt;\n            if (since == null) return const SizedBox.shrink();\n            return Padding(\n              padding: const EdgeInsets.only(top: VistaSpace.xl),\n              child: Text(\n                'Record since $since',\n                style: VistaType.caption.copyWith(color: VistaColors.textMuted),\n              ),\n            );\n          },\n        ),",
+            "rationale": "Rule 15: derived from the earliest receipt and hidden with none. The leading gap moves into the Padding (gap is VistaSpace.xl), so the spacing is unchanged when the line shows and no gap is left behind when it hides. firstOrNull and indexed come from the same dart:core-visible extension the codebase already uses."
+          },
+          {
+            "file": "app/lib/features/profile/profile_mock.dart",
+            "anchor": "27-28 ProfileMock.recordSince",
+            "current": "abstract final class ProfileMock {\n  static const recordSince = 'Record since Jun 2026 · 14 mo';",
+            "replacement": "abstract final class ProfileMock {",
+            "rationale": "The stored figure has no caller once the line is derived. Deleting it stops a second copy from coming back."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "309 before feed card test",
+            "current": "  testWidgets('feed card trader link opens the record panel', (tester) async {",
+            "replacement": "  testWidgets('Record since dates from the trader\\'s first call, and a '\n      'trader with no calls has no Record since line', (tester) async {\n    expect(callsBy(pair.$1).first.entryAt, 'Sep 8');\n    await pumpApp(tester, home: ProfileScreen(handle: pair.$1));\n    expect(find.text('Record since Sep 8'), findsOneWidget);\n\n    expect(callsBy('kaito.eth'), isEmpty);\n    await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));\n    expect(find.textContaining('Record since'), findsNothing);\n  });\n\n  testWidgets('feed card trader link opens the record panel', (tester) async {",
+            "rationale": "Fails today on both legs: the stored 'Jun 2026 · 14 mo' line, and the line showing for a trader with no receipts."
+          }
+        ]
+      },
+      {
+        "findingId": "F4",
+        "verdict": "fix-here",
+        "evidence": "app/test/trader_record_test.dart: every panel assertion uses pair.$1/pair.$2 at the seed clock. Lines 38-39 `'Illustrative index · based on 3 settled calls · as of 26 Sep 14:45'`, lines 179-180 `'Hit rate 67%'` / `'3 settled'`, lines 320/330 the same. kilo.sol and lunaq share one record (line 134 `expect(Scenario.record(pair.$1), Scenario.record(pair.$2))`). No test asserts '2 right', '1 wrong', '1 open' or 'open call'. The only clock write (line 160) is in a unit test with no widget mounted. The panel is at receipt_screens.dart:217-246 (`listenable: Listenable.merge([Scenario.callReceipts, Scenario.clock])`, `('${m.right} right', ...)`, `('${m.wrong} wrong', ...)`). The open chip is trader_market_screen.dart:47-50 `return '$n open call${n == 1 ? '' : 's'}';`. The handles are your_market_screen.dart:118 `const TraderRecordPanel(handle: PortfolioMock.handle)` and private_profile_screen.dart:243 `TraderRecordPanel(handle: widget.handle)`. Every seeded trader with a market (kilo.sol, lunaq, kestrel) has exactly 1 open call, so a constant '1 open call' cannot be caught without adding an open call.\n\nI did not use the skeptic's hard-coded maya.eth figures ('Hit rate 50%', '2 settled'). maya's receipts carry no settledAt (market_mock.dart:150-185, \"The record states no entry prices or settlement times\"). nara's right call has `settledAt: 'Tue 16:00'`. The sibling F11 proposal (`_outcomeAt`) makes both of those unavailable, so hard-coded figures would break. The nara assertions are therefore derived from Scenario.record('nara') at test time. Guards (`hitRatePct isNotNull`, `settled != pair's settled`) keep the stored-constant mutation catchable under the old or new counting rules. Your market only asserts that panelFor(maya.eth) exists, which on its own catches the wrong-handle mutation.\n\nI checked this in a scratch copy of app/. flutter analyze: no issues. trader_record_test.dart: 12/12 pass. With the sibling F1+F11+F6 proposals also applied: 14/14 pass. Mutation results: each mutation passed the ORIGINAL test file, and each is caught by the new tests:\n(a) caption, '3 settled' and 'Hit rate 67%' hard-coded → 'each panel shows its own trader's record, right and wrong apart' and 'a mounted panel follows the demo clock' FAIL.\n(b) right/wrong labels swapped → 'each panel…' FAIL.\n(c1) Your market panel given handle 'kilo.sol' → 'each panel…' FAIL.\n(c2) private profile panel given handle 'kilo.sol' → 'each panel…' and 'a mounted panel…' FAIL.\n(d) listenable reduced to Scenario.callReceipts → 'a mounted panel follows the demo clock' FAIL.\n(e) _openCalls returns a constant '1 open call' → 'the trader market's open-calls chip counts…' FAIL.",
+        "rejectsValidInput": "none. These are test-only additions. They read the panel's own source of truth (Scenario.record) for nara, so a correct change to counting rules (F1 unavailable, F11 clock-gated settlement) still passes: checked against the sibling proposals, 14/14 green. The kilo.sol '2 right / 1 wrong / 1 open' figures are already pinned at line 135-142 and survive F11, because the kilo settledAt values Sep 12/18/24 are before the clock. No document produces input these tests reject.",
+        "testProof": "app/test/trader_record_test.dart, three new tests. (1) 'each panel shows its own trader's record, right and wrong apart' asserts inPanel(pair.$1, find.text('2 right')) and inPanel('nara', find.text('${m.settled} settled')) / 'Hit rate ${m.hitRatePct}%' / textContaining('based on ${m.settled} settled call'), plus panelFor(PortfolioMock.handle) on YourMarketScreen. It catches: hard-coded caption/settled/hit rate in TraderRecordPanel; swapped '${m.right} right'/'${m.wrong} wrong'; TraderRecordPanel(handle: 'kilo.sol') on YourMarketScreen or PrivateProfileScreen. (2) 'a mounted panel follows the demo clock' moves Scenario.clock by 1d2h with nara's private profile mounted and asserts textContaining('as of 27 Sep 16:45'). It catches `listenable: Scenario.callReceipts` replacing the merge. (3) 'the trader market's open-calls chip counts the trader's open calls' adds a second open kilo.sol CallReceipt and asserts find.text('2 open calls'). It catches `_openCalls` returning a constant '1 open call'. All five mutations survive the current file and fail the new tests (run in a scratch copy). Gate: scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-7-fixer/.",
+        "edits": [
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "11-13 imports",
+            "current": "import 'package:vista_colosseum/features/market/trader_market_screen.dart';\nimport 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';\nimport 'package:vista_colosseum/features/profile/profile_screen.dart';",
+            "replacement": "import 'package:vista_colosseum/features/market/trader_market_screen.dart';\nimport 'package:vista_colosseum/features/market/your_market_screen.dart';\nimport 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';\nimport 'package:vista_colosseum/features/profile/private_profile_screen.dart';\nimport 'package:vista_colosseum/features/profile/profile_screen.dart';",
+            "rationale": "The new tests mount YourMarketScreen and PrivateProfileScreen. Kept in alphabetical order."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "331-332 end of main()",
+            "current": "  });\n}",
+            "replacement": "  });\n\n  testWidgets('each panel shows its own trader\\'s record, right and wrong '\n      'apart', (tester) async {\n    // kilo.sol has 2 right and 1 wrong, so swapped labels would show.\n    await pumpApp(\n      tester,\n      home: ProfileScreen(handle: pair.$1),\n      size: const Size(402, 2400),\n    );\n    expect(inPanel(pair.$1, find.text('2 right')), findsOneWidget);\n    expect(inPanel(pair.$1, find.text('1 wrong')), findsOneWidget);\n    expect(inPanel(pair.$1, find.text('1 open')), findsOneWidget);\n\n    // nara's record is not the pair's, so a panel that drew stored figures\n    // or another trader's record would show the wrong numbers.\n    final m = Scenario.record('nara');\n    expect(m.hitRatePct, isNotNull);\n    expect(m.settled, isNot(Scenario.record(pair.$1).settled));\n    await pumpApp(\n      tester,\n      home: const PrivateProfileScreen(handle: 'nara'),\n      size: const Size(402, 2400),\n    );\n    expect(\n      inPanel('nara', find.textContaining('based on ${m.settled} settled call')),\n      findsOneWidget,\n    );\n    expect(inPanel('nara', find.text('${m.settled} settled')), findsOneWidget);\n    expect(\n      inPanel('nara', find.text('Hit rate ${m.hitRatePct}%')),\n      findsOneWidget,\n    );\n    expect(inPanel('nara', find.text('${m.open} open')), findsOneWidget);\n\n    // Your market's panel is the user's own.\n    await pumpApp(\n      tester,\n      home: const YourMarketScreen(),\n      size: const Size(402, 2400),\n    );\n    expect(panelFor(PortfolioMock.handle), findsOneWidget);\n  });\n\n  testWidgets('a mounted panel follows the demo clock', (tester) async {\n    expect(Scenario.record('nara').hitRatePct, isNotNull);\n    await pumpApp(\n      tester,\n      home: const PrivateProfileScreen(handle: 'nara'),\n      size: const Size(402, 2400),\n    );\n    Scenario.clock.value = Scenario.clock.value.add(\n      const Duration(days: 1, hours: 2),\n    );\n    await tester.pumpAndSettle();\n    expect(\n      inPanel('nara', find.textContaining('as of 27 Sep 16:45')),\n      findsOneWidget,\n    );\n  });\n\n  testWidgets('the trader market\\'s open-calls chip counts the trader\\'s '\n      'open calls', (tester) async {\n    // A second open call, so a fixed \"1 open call\" would show.\n    Scenario.callReceipts.value = [\n      ...Scenario.callReceipts.value,\n      const CallReceipt(\n        id: 'kilo-extra-open',\n        author: 'kilo.sol',\n        asset: 'BTC',\n        result: CallOutcome.open,\n      ),\n    ];\n    await pumpApp(tester, home: TraderMarketScreen(handle: pair.$1));\n    expect(find.text('2 open calls'), findsOneWidget);\n  });\n}",
+            "rationale": "Adds a second data point (nara, derived from Scenario.record so it survives the F1/F11 edits), the right/wrong/open labels on the pair panel, the Your market handle, a clock move with a panel mounted, and a non-1 open-calls chip. Each catches one of the five mutations the current tests survive."
+          }
+        ]
+      },
+      {
+        "findingId": "F7",
+        "verdict": "fix-here",
+        "evidence": "app/test/trader_record_test.dart:174-175: `testWidgets('both traders\\' panels show the same sample size, hit rate and ' 'as-of time above the index chart'`. The body only checks `expect(find.byType(ProfileIndexChart), findsOneWidget);` (line 181) and never checks order. profile_screen.dart _record() (lines 229-246) builds `_market()` (which holds `const ProfileIndexChart()`) first and `TraderRecordPanel` after it. So the caption sits below the chart and the title is false. Run 19 treats F7 as a test-strength finding, so beyond the retitle I propose an order check that is mutation-proven. In a scratch copy, swapping the two children in _record (panel first, then _market) passes the current test file. With the edit it fails 'both traders' panels show the same sample size, hit rate and as-of time below the index chart'. With the edit unmutated the file passes 12/12.",
+        "rejectsValidInput": "Pins the current layout: panel below the index chart on Profile. Spec 07 does not fix the order (\"Panel copy: ... Reuse the existing profile/record widgets\"), so a deliberate future move of the panel above the chart would need this assertion changed. No document instructs producing that layout today.",
+        "testProof": "app/test/trader_record_test.dart: 'both traders' panels show the same sample size, hit rate and as-of time below the index chart' now asserts `tester.getRect(panelFor(handle)).top` greaterThanOrEqualTo `tester.getRect(find.byType(ProfileIndexChart)).bottom`. Mutation it catches, which the current test survives: in app/lib/features/profile/profile_screen.dart _record(), move the `Padding(... TraderRecordPanel ...)` child above the `if (Scenario.record(widget.handle).settled > 0) ...[ _market(), ... ]` block. Checked in a scratch copy.",
+        "edits": [
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "174-175 testWidgets title",
+            "current": "  testWidgets('both traders\\' panels show the same sample size, hit rate and '\n      'as-of time above the index chart', (tester) async {",
+            "replacement": "  testWidgets('both traders\\' panels show the same sample size, hit rate and '\n      'as-of time below the index chart', (tester) async {",
+            "rationale": "The title claimed the wrong order. The panel renders after _market() in ProfileScreen._record()."
+          },
+          {
+            "file": "app/test/trader_record_test.dart",
+            "anchor": "181 ProfileIndexChart order check",
+            "current": "      expect(find.byType(ProfileIndexChart), findsOneWidget);",
+            "replacement": "      expect(find.byType(ProfileIndexChart), findsOneWidget);\n      expect(\n        tester.getRect(panelFor(handle)).top,\n        greaterThanOrEqualTo(\n          tester.getRect(find.byType(ProfileIndexChart)).bottom,\n        ),\n      );",
+            "rationale": "Makes the title's claim checked. A swap of chart and panel now fails (mutation-proven per rule 19)."
+          }
+        ]
+      },
+      {
+        "findingId": "F9",
+        "verdict": "fix-here",
+        "evidence": "Manager decision 14 settles the behaviour: \"the trader-market route's chart is the market price series, not the index; keep the chart and correct the doc comment that called it the index.\" The comments at fault are in app/lib/features/profile/profile_screen.dart:\n- lines 310-312: `/// The trader's illustrative index (their market's price) chart, edge to` / `/// edge (static Figma vectors on a 402×180 box; x stretches with the` / `/// screen).`\n- lines 227-228: `/// The illustrative index (the trader's market chart) and the record it` / `/// is based on; with no settled call, no chart and no index copy.`\nBoth equate the index with the market price chart. That is the equation the finding used to argue the trader-market route breaks spec 07's \"no index chart\". The trader-market chart's own comment (trader_market_screen.dart:63, `// Line is the designed market-cap chart; candles draw the unit price.`) already calls it a market chart, so it needs no edit. Before this diff, the class was documented as `/// Market price chart, edge to edge` (git diff c95349cc HEAD). Only the comments change, and flutter analyze stays clean in a scratch copy.",
+        "rejectsValidInput": "none - comment-only edit, no code path reads it.",
+        "testProof": "n/a - doc comments only; nothing executable changes (flutter analyze clean in a scratch copy).",
+        "edits": [
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "227-228 _ProfileScreenState._record doc",
+            "current": "  /// The illustrative index (the trader's market chart) and the record it\n  /// is based on; with no settled call, no chart and no index copy.",
+            "replacement": "  /// The illustrative index chart and the record it is based on; with no\n  /// settled call, no chart and no index copy.",
+            "rationale": "Stops equating the index with the trader's market chart (decision 14)."
+          },
+          {
+            "file": "app/lib/features/profile/profile_screen.dart",
+            "anchor": "310-312 ProfileIndexChart doc",
+            "current": "/// The trader's illustrative index (their market's price) chart, edge to\n/// edge (static Figma vectors on a 402×180 box; x stretches with the\n/// screen).",
+            "replacement": "/// The trader's illustrative index chart on Profile, edge to edge (static\n/// Figma vectors on a 402×180 box; x stretches with the screen). It is not\n/// the trader-market route's chart, which plots the market's price series.",
+            "rationale": "Decision 14: the trader-market chart is the market price series, not the index. The doc now says so instead of calling the price chart the index."
+          }
+        ]
+      },
+      {
+        "findingId": "F12",
+        "verdict": "fix-here",
+        "evidence": "`command grep -rn` over app/lib and app/test finds VistaReceipt and VistaVersus only at their definitions (vista_profile.dart:161-162, 170-171, 195). It finds no reference to railCallOpen, railCallRight, railArenaOpen, railArenaRight, railArenaWrong, railRecordOpen, railRecordRight or railRecordWrong outside their declarations (vista_assets.dart:71-75, 106-108). opponentAvatarLong/opponentAvatarShort (vista_assets.dart:76-77) are also unreferenced. At merge-base c95349cc their only callers were the VistaVersus mocks in profile_mock.dart:117/137/157, which this diff removed along with the VistaReceipt call sites (trader_market_screen.dart:308, private_profile_screen.dart:239, profile_screen.dart:295 at the merge-base). No .md outside baton-runner/baton-pass mentions any of them, and no test enumerates VistaAssets. Manager decision 17: \"delete the unreferenced VistaReceipt, VistaVersus and the record/arena rail asset constants from the design system; leave the asset files in place.\" Removing VistaReceipt leaves `import 'vista_icon.dart';` unused, because VistaIcon is used only at lines 203 and 239 inside VistaReceipt. gate.sh runs `flutter analyze`, so that import must go too. In a scratch copy with all edits applied: flutter analyze `No issues found!`, trader_record_test 12/12 pass. The opponent-avatar deletion is a separate edit: those constants are arena-receipt constants, not rail constants, so the writer can drop that one edit if decision 17 is read strictly. Asset .svg files are untouched.",
+        "rejectsValidInput": "none. Every deleted symbol has zero references in app/lib and app/test (grep), and analyze is clean after deletion. No document tells anyone to use VistaReceipt/VistaVersus or these constants. Asset files stay on disk per decision 17.",
+        "testProof": "n/a - dead-code deletion; nothing executable that any path reaches changes. The proof is `flutter analyze` (the gate's flutter-analyze step) staying clean, which fails if any remaining file referenced a deleted symbol or if the unused vista_icon import were left behind. Verified clean in a scratch copy.",
+        "edits": [
+          {
+            "file": "app/lib/design_system/components/vista_profile.dart",
+            "anchor": "5-6 vista_icon import",
+            "current": "import '../tokens/vista_typography.dart';\nimport 'vista_icon.dart';",
+            "replacement": "import '../tokens/vista_typography.dart';",
+            "rationale": "VistaIcon is used only inside VistaReceipt. Leaving the import would raise unused_import and fail the gate's flutter analyze."
+          },
+          {
+            "file": "app/lib/design_system/components/vista_profile.dart",
+            "anchor": "158-275 VistaVersus, VistaReceipt",
+            "current": "}\n\n/// Opponent line on an arena receipt: \"ARENA vs (avatar) name\".\nclass VistaVersus {\n  const VistaVersus({required this.name, required this.avatarAsset});\n\n  final String name;\n  final String avatarAsset;\n}\n\n/// A call or arena receipt in a timeline: rail segment, title, optional\n/// versus line, and a coloured lead with quieter detail.\nclass VistaReceipt extends StatelessWidget {\n  const VistaReceipt({\n    super.key,\n    required this.railAsset,\n    required this.title,\n    required this.lead,\n    required this.leadColor,\n    required this.detail,\n    this.versus,\n    this.railHeight,\n    this.compact = false,\n  });\n\n  /// Rail vector (10 wide; 56 tall for calls, 76 for arena receipts).\n  final String railAsset;\n\n  /// Overrides the rail height (e.g. 54 in the compact record panel).\n  final double? railHeight;\n\n  /// Tighter spacing, no bottom padding (the rail sets the row height).\n  final bool compact;\n  final String title;\n  final String lead;\n  final Color leadColor;\n  final String detail;\n  final VistaVersus? versus;\n\n  @override\n  Widget build(BuildContext context) {\n    final meta = VistaType.chip.copyWith(fontWeight: FontWeight.w500);\n    return Row(\n      crossAxisAlignment: CrossAxisAlignment.start,\n      children: [\n        VistaIcon(\n          railAsset,\n          size: 10,\n          height: railHeight ?? (versus == null ? 56 : 76),\n        ),\n        const SizedBox(width: VistaSpace.xl),\n        Expanded(\n          child: Padding(\n            padding: EdgeInsets.only(bottom: compact ? 0 : VistaSpace.gutter),\n            child: Column(\n              crossAxisAlignment: CrossAxisAlignment.start,\n              children: [\n                Text(title, style: VistaType.subhead),\n                if (versus != null) ...[\n                  const SizedBox(height: VistaSpace.xs),\n                  Row(\n                    children: [\n                      Container(\n                        padding: const EdgeInsets.symmetric(\n                          horizontal: 6,\n                          vertical: 2,\n                        ),\n                        decoration: BoxDecoration(\n                          color: VistaColors.surfaceRaised,\n                          borderRadius: BorderRadius.circular(VistaRadius.sm),\n                        ),\n                        child: Text('ARENA', style: VistaType.micro),\n                      ),\n                      const SizedBox(width: VistaSpace.sm),\n                      Text(\n                        'vs',\n                        style: VistaType.label.copyWith(\n                          color: VistaColors.textSecondary,\n                        ),\n                      ),\n                      const SizedBox(width: VistaSpace.sm),\n                      VistaIcon(versus!.avatarAsset, size: 16),\n                      const SizedBox(width: VistaSpace.sm),\n                      Flexible(\n                        child: Text(\n                          versus!.name,\n                          style: VistaType.chip,\n                          maxLines: 1,\n                          overflow: TextOverflow.ellipsis,\n                        ),\n                      ),\n                    ],\n                  ),\n                ],\n                SizedBox(height: compact ? 3 : VistaSpace.xs),\n                Text.rich(\n                  TextSpan(\n                    children: [\n                      TextSpan(\n                        text: lead,\n                        style: meta.copyWith(\n                          fontWeight: FontWeight.w700,\n                          color: leadColor,\n                        ),\n                      ),\n                      TextSpan(text: ' · $detail'),\n                    ],\n                  ),\n                  style: meta.copyWith(color: VistaColors.textSecondary),\n                ),\n              ],\n            ),\n          ),\n        ),\n      ],\n    );\n  }\n}",
+            "replacement": "}",
+            "rationale": "Decision 17: delete the unreferenced VistaVersus and VistaReceipt. The leading `}` closes the previous class, so the file still ends with a single newline."
+          },
+          {
+            "file": "app/lib/design_system/vista_assets.dart",
+            "anchor": "70-75 railCall*/railArena* constants",
+            "current": "  static const String coinCashBackground = '$_dir/coin_cash_bg.svg';\n  static const String railCallOpen = '$_dir/rail_call_open.svg';\n  static const String railCallRight = '$_dir/rail_call_right.svg';\n  static const String railArenaOpen = '$_dir/rail_arena_open.svg';\n  static const String railArenaRight = '$_dir/rail_arena_right.svg';\n  static const String railArenaWrong = '$_dir/rail_arena_wrong.svg';",
+            "replacement": "  static const String coinCashBackground = '$_dir/coin_cash_bg.svg';",
+            "rationale": "Decision 17: unreferenced call/arena rail constants. The .svg files stay."
+          },
+          {
+            "file": "app/lib/design_system/vista_assets.dart",
+            "anchor": "76-77 opponentAvatarLong/opponentAvatarShort",
+            "current": "  static const String opponentAvatarLong = '$_dir/opponent_avatar_long.svg';\n  static const String opponentAvatarShort = '$_dir/opponent_avatar_short.svg';\n  // Trader market (Figma 236:102 chart open; 237/241 swiped up). The chart",
+            "replacement": "  // Trader market (Figma 236:102 chart open; 237/241 swiped up). The chart",
+            "rationale": "These existed only to feed VistaVersus.avatarAsset. This diff removed their last callers (the profile_mock VistaVersus entries), so they are dead with VistaVersus. They are separate from the rail edit so the writer can drop this one if decision 17 is read as rails only."
+          },
+          {
+            "file": "app/lib/design_system/vista_assets.dart",
+            "anchor": "105-108 railRecord* constants",
+            "current": "  static const String liveDotSmall = '$_dir/live_dot_small.svg';\n  static const String railRecordOpen = '$_dir/rail_record_open.svg';\n  static const String railRecordRight = '$_dir/rail_record_right.svg';\n  static const String railRecordWrong = '$_dir/rail_record_wrong.svg';",
+            "replacement": "  static const String liveDotSmall = '$_dir/live_dot_small.svg';",
+            "rationale": "Decision 17: unreferenced record rail constants. The .svg files stay."
+          }
+        ]
+      }
+    ],
+    "coverage": {
+      "failedGroups": [],
+      "unreported": []
+    },
+    "apply": {
+      "applied": [
+        {
+          "findingId": "F1",
+          "file": "app/lib/scenario/scenario.dart, app/lib/features/market/receipt_screens.dart, app/test/trader_record_test.dart",
+          "summary": "Added an `unavailable` count to RecordMetrics. Scenario.record counts a null outcome as unavailable instead of dropping it. The panel shows 'N unavailable' in the Wrap when the count is above 0, and '<note> · N unavailable' in the empty branch. The pinned silent-drop test now expects unavailable: 1, and there is a new widget test covering both branches. Note: the red was a runtime record-shape mismatch, not a compile failure, because expect() takes dynamic.",
+          "red": "Expected: ({DateTime asOf, int hitRatePct, int open, int right, int settled, int unavailable, int wrong}):<(asOf: 2026-09-26 14:45:00.000, hitRatePct: 67, open: 1, right: 2, settled: 3, unavailable: 0, wrong: 1)>\n    Actual: ({DateTime asOf, int hitRatePct, int open, int right, int settled, int wrong}):<(asOf: 2026-09-26 14:45:00.000, hitRatePct: 67, open: 1, right: 2, settled: 3, wrong: 1)>\n  test/trader_record_test.dart 135:5                  main.<fn>\n  Expected: ({DateTime asOf, int hitRatePct, int open, int right, int settled, int unavailable, int wrong}):<(asOf: 2026-09-26 16:45:00.000, hitRatePct: 13, open: 1, right: 1, settled: 8, unavailable: 1, wrong: 7)>\n    Actual: ({DateTime asOf, int hitRatePct, int open, int right, int settled, int wrong}):<(asOf: 2026-09-26 16:45:00.000, hitRatePct: 13, open: 1, right: 1, settled: 8, wrong: 7)>\n  test/trader_record_test.dart 162:5                  main.<fn>\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"1 unavailable\" descending from widgets\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 198\n  a call with no outcome shows in the panel as unavailable, never dropped"
+        },
+        {
+          "findingId": "F6",
+          "file": "app/test/trader_record_test.dart",
+          "summary": "Added the 1-right-of-3 case, expecting hitRatePct 33. Mutation-proven: with scenario.dart's hit rate changed to the ceiling form `(right * 100 + settled - 1) ~/ settled`, the old test file passed (00:03 +10: All tests passed!). The new assertion failed on the same mutation. The mutation was then reverted and the file passed (+10).",
+          "red": "[mutation: ceiling rounding, old tests] 00:03 +10: (tearDownAll)\n00:03 +10: All tests passed!\n[same mutation, new assertion]\n  Expected: <33>\n    Actual: <34>\n  test/trader_record_test.dart 177:5                  main.<fn>\n00:03 +9 -1: Some tests failed."
+        },
+        {
+          "findingId": "F11",
+          "file": "app/lib/scenario/scenario.dart, app/lib/charting/time_marks.dart, app/lib/features/market/market_mock.dart, app/test/trader_record_test.dart",
+          "summary": "Scenario.record now counts each receipt by its outcome at the clock. A verdict settled after the clock is open. A verdict with no settlement date, or a date not in the 'Sep 12' form, is unavailable. Month parsing reuses time_marks' list, renamed to the public monthAbbrs. To merge with F5, the helper was made public as `Scenario.outcomeAt` instead of `_outcomeAt`, so VerdictStrip goes through the same rule. The CallReceipt doc is updated. The maya 50% line is removed, the synthetic `call` helper now carries settledAt 'Sep 20', and there is a new clock-gate test.",
+          "red": "  Expected: ({DateTime asOf, Null hitRatePct, int open, int right, int settled, int unavailable, int wrong}):<(asOf: 2026-09-26 14:45:00.000, hitRatePct: null, open: 1, right: 0, settled: 0, unavailable: 2, wrong: 0)>\n    Actual: ({DateTime asOf, int hitRatePct, int open, int right, int settled, int unavailable, int wrong}):<(asOf: 2026-09-26 14:45:00.000, hitRatePct: 50, open: 1, right: 1, settled: 2, unavailable: 0, wrong: 1)>\n  test/trader_record_test.dart 191:5                  main.<fn>\n00:04 +10 -1: Some tests failed."
+        },
+        {
+          "findingId": "F2",
+          "file": "app/lib/design_system/components/vista_battle.dart, app/lib/features/arena/arena_mock.dart, app/lib/features/arena/arena_screen.dart, app/lib/features/arena/opinions_mock.dart, app/lib/features/arena/opinions_screen.dart, app/test/trader_record_test.dart, app/test/home_screen_test.dart",
+          "summary": "Deleted the stored accuracy figures and the role-subtitle percentages. Added accuracyLine(handle), which derives the line from Scenario.record. withCrowd becomes withLines(crowd, accuracy). The Arena now listens to callReceipts and clock. Opinion subtitles append the derived accuracy. Deleted @bitcoinninja's stored '80%' hitRate line (the line was removed, not left blank). The Arena test checks that the card's percent equals the panel's, before and after a receipt change. home_screen_test checks 'Sniper · 67% accuracy'.",
+          "red": "[trader_record_test Arena card trader link]\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"67% accuracy\" descending from widgets\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 407\n00:01 +0 -1: Some tests failed.\n[home_screen_test a battle's opinions trade]\nExpected: exactly one matching candidate\n  Actual: _TextWidgetFinder:<Found 0 widgets with text \"Sniper · 67% accuracy\": []>\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 1156\n00:01 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F3",
+          "file": "app/test/trader_record_test.dart, app/test/home_screen_test.dart",
+          "summary": "Added a countStat finder and header Settled/Right checks on the pair (3/2) and on kestrel (0/0). The nara private-header leg follows Scenario.record, then drops nara's receipts and expects zeros. Adapted from the adjudicated text: under F11, nara's 'Tue 16:00' Right is unavailable, so m.right == 0 at the seed clock. The edit's guard `expect([m.settled, m.right, m.open], everyElement(greaterThan(0)))` would always fail, so it is narrowed to `[m.settled, m.open]`, with a comment. Remaining weakness: on the private header, a Right hard-coded to '0' would survive. Mutation-proven: profile_screen Settled→'62' and Right→'36' plus private_profile Open calls→'2' left the old trader_record_test and home_screen_test green (00:37 +209: All tests passed!). The new tests failed on them. Settled hard-coded to '3' was caught by the kestrel leg (line 284). All mutations reverted, then green (+209).",
+          "red": "[mutations: Settled '62', Right '36' (profile_screen), Open calls '2' (private_profile_screen); old tests] 00:37 +209: All tests passed!\n[same mutations, new tests]\nExpected: exactly one matching candidate\n  Actual: _WidgetPredicateWidgetFinder:<Found 0 widgets with widget matching predicate: []>\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 241\nExpected: exactly one matching candidate\n  Actual: _WidgetPredicateWidgetFinder:<Found 0 widgets with widget matching predicate: []>\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 284\nExpected: exactly one matching candidate\n  Actual: _WidgetPredicateWidgetFinder:<Found 0 widgets with widget matching predicate: []>\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 594\n00:40 +206 -3: Some tests failed.\n[mutation: Settled '3' only, new tests]\n  Actual: _WidgetPredicateWidgetFinder:<Found 0 widgets with widget matching predicate: []>\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 284\n00:03 +10 -1: Some tests failed."
+        },
+        {
+          "findingId": "F5",
+          "file": "app/lib/features/profile/profile_screen.dart, app/lib/design_system/vista_assets.dart, app/test/trader_record_test.dart",
+          "summary": "Replaced the static 10-dot asset with VerdictStrip. It shows the trader's settled receipts in store order, keeps the last 10, takes each dot's colour from its receipt, and is labelled 'Last N verdicts'. It hides itself when there are none. As the adjudicator advised, settled is decided through Scenario.outcomeAt (F11's clock rule), so the strip's N always equals the header's Settled. Deleted VistaAssets.verdictsLast10; the svg file stays. `verdicts` is now a RegExp, the pair asserts 'Last 3 verdicts', and there is a new strip order/cap/open-exclusion test.",
+          "red": "test/trader_record_test.dart:292:25: Error: Undefined name 'VerdictStrip'.\n  Compilation failed for testPath=/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart: test/trader_record_test.dart:292:25: Error: Undefined name 'VerdictStrip'.\n00:00 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F8",
+          "file": "app/lib/features/profile/profile_screen.dart, app/test/trader_record_test.dart, app/test/receipts_test.dart",
+          "summary": "Profile _calls now listens to callReceipts and hides the CALLS heading and list when the trader has no receipts. No empty-state widget was built. New test: kaito.eth has no CALLS heading, with lunaq as the positive control. The profile leg of receipts_test moved from kaito.eth to kestrel.",
+          "red": "Expected: no matching candidates\n  Actual: _TextWidgetFinder:<Found 1 widget with text \"CALLS\": [\n   Which: means one was found but none were expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 387\n00:00 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F10",
+          "file": "app/lib/features/profile/profile_screen.dart, app/lib/features/profile/profile_mock.dart, app/test/trader_record_test.dart",
+          "summary": "'Record since' now comes from the entryAt of the trader's first receipt and is hidden when there are none; its gap moved into a Padding. Deleted ProfileMock.recordSince. New test covers kilo.sol ('Record since Sep 8') and kaito.eth (no line).",
+          "red": "Expected: exactly one matching candidate\n  Actual: _TextWidgetFinder:<Found 0 widgets with text \"Record since Sep 8\": []>\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 455\n00:00 +0 -1: Some tests failed."
+        },
+        {
+          "findingId": "F4",
+          "file": "app/test/trader_record_test.dart",
+          "summary": "Added three tests: each panel shows its own trader's record (right/wrong/open apart, nara derived, Your market handle); a mounted panel follows the clock; and the open-calls chip counts a second open call. Mutation-proven against a temporary copy of the pre-F4 file, since deleted. Mutations b (swapped labels), c1 (Your market panel handle 'kilo.sol'), c2 (private panel handle 'kilo.sol'), d (listenable = callReceipts only) and e (constant '1 open call') each passed the old file and failed the new tests. Mutation a (hard-coded caption, '3 settled', 'Hit rate 67%') was already caught by the old file, through F2's rewritten Arena test ('Hit rate 100%'), and the new tests catch it too. Every mutation was reverted.",
+          "red": "== b_swapped\n  OLD: 00:03 +14: All tests passed!\n  NEW: FAIL: each panel shows its own trader's record, right and wrong apart\n     Expected: exactly one matching candidate\n     Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"2 right\" descending from widgets with\n== c1_yourmarket\n  OLD: 00:03 +14: All tests passed!\n  NEW: FAIL: each panel shows its own trader's record, right and wrong apart\n     Actual: _WidgetPredicateWidgetFinder:<Found 0 widgets with widget matching predicate: []>\n== c2_private\n  OLD: 00:03 +14: All tests passed!\n  NEW: FAIL: a mounted panel follows the demo clock; FAIL: each panel shows its own trader's record, right and wrong apart\n     Actual: _DescendantWidgetFinder:<Found 0 widgets with text containing based on 1 settled call\n     Actual: _DescendantWidgetFinder:<Found 0 widgets with text containing as of 27 Sep 16:45\n== d_listenable\n  OLD: 00:03 +14: All tests passed!\n  NEW: FAIL: a mounted panel follows the demo clock\n     Actual: _DescendantWidgetFinder:<Found 0 widgets with text containing as of 27 Sep 16:45\n== e_opencalls\n  OLD: 00:04 +14: All tests passed!\n  NEW: FAIL: the trader market's open-calls chip counts the trader's open calls\n     Actual: _TextWidgetFinder:<Found 0 widgets with text \"2 open calls\": []>\n== a_hardcoded\n  OLD: FAIL Arena card trader link opens the record panel (already caught via F2)\n  NEW: FAIL Arena card trader link; a mounted panel follows the demo clock; each panel shows its own trader's record\n     Actual: _DescendantWidgetFinder:<Found 0 widgets with text containing based on 1 settled call"
+        },
+        {
+          "findingId": "F7",
+          "file": "app/test/trader_record_test.dart",
+          "summary": "Retitled the test to say 'below the index chart' and added the check panel.top >= chart.bottom. Mutation-proven: with _record's children swapped (panel above _market()), the pre-F7 file passed (00:04 +17: All tests passed!). The new check failed on that mutation. The mutation was reverted and the file passed (+17).",
+          "red": "[mutation: panel above chart, pre-F7 test] 00:04 +17: All tests passed!\n[same mutation, new test]\nExpected: a value greater than or equal to <657.0>\n  Actual: <401.0>\n   Which: is not a value greater than or equal to <657.0>\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/trader_record_test.dart line 247\n00:04 +16 -1: Some tests failed."
+        },
+        {
+          "findingId": "F9",
+          "file": "app/lib/features/profile/profile_screen.dart",
+          "summary": "Corrected the _record and ProfileIndexChart doc comments. The index chart is no longer equated with the market price chart, and the docs say the trader-market route's chart plots the market's price series.",
+          "red": "n/a - doc comments only; flutter analyze clean"
+        },
+        {
+          "findingId": "F12",
+          "file": "app/lib/design_system/components/vista_profile.dart, app/lib/design_system/vista_assets.dart",
+          "summary": "Deleted VistaVersus and VistaReceipt, plus the now-unused vista_icon import. Deleted the railCall*, railArena* and railRecord* constants, and opponentAvatarLong/Short, which were dead with VistaVersus. The svg files stay, and flutter analyze is clean.",
+          "red": "n/a - dead-code deletion; proof is flutter analyze clean"
+        }
+      ],
+      "skipped": [],
+      "verification": "=== gate: flutter-analyze: flutter analyze ===\nPASS flutter-analyze\n=== gate: flutter-test: flutter test ===\nPASS flutter-test\n=== gate: pubspec-frozen: git diff --exit-code c95349cc2a9a40be16d4bddee74c512129ac0114 -- pubspec.yaml pubspec.lock ===\nPASS pubspec-frozen\n----\nGATE: PASS"
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Adjudicate"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Apply"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "adjudicate:record-metrics",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "af5a7c73bee3fb9ac",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791180986561,
+      "queuedAt": 1791180986544,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791181538362,
+      "tokens": 163418,
+      "toolCalls": 24,
+      "durationMs": 551797,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F1\",\"verdict\":\"fix-here\",\"evidence\":\"app/lib/scenario/scenario.dart:16-23 `typedef RecordMetrics = ({ int settled, int right, int wrong, int open, int? hitRatePct, DateTime asOf, });` has no unavailable field. :161-162 `case null:\\n          break;` drops the receipt. market_mock.dart:50 `final CallOutcome? result;` and :66 `null => unavailable,` show a null result is le…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "adjudicate:arena-accuracy",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a7d8920e0545cb2f4",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791180986563,
+      "queuedAt": 1791180986544,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791181297945,
+      "tokens": 137113,
+      "toolCalls": 25,
+      "durationMs": 310521,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F2\",\"verdict\":\"fix-here\",\"evidence\":\"Confirmed against the tree. Every caller figure is a stored string. In app/lib/features/arena/arena_mock.dart the card fields are 107 `accuracy: '82% accuracy',` (maya.eth), 117 `'68% accuracy'` (0xreal), 143 `'71% accuracy'` (kilo.sol), 151 `'77% accuracy'` (lunaq), 200 `'79% accuracy'` (mirin) and 208 `'64% accuracy'` (renatafx). Th…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "adjudicate:profile-record",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "afaf602477ed5400b",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791180986564,
+      "queuedAt": 1791180986544,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791181640237,
+      "tokens": 165022,
+      "toolCalls": 31,
+      "durationMs": 652814,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F3\",\"verdict\":\"fix-here\",\"evidence\":\"Both headers are wired correctly today but nothing reads them. profile_screen.dart:202 `child: VistaCountStat(value: '${m.settled}', label: 'Settled'),` and :205 `child: VistaCountStat(value: '${m.right}', label: 'Right'),`. private_profile_screen.dart:147-167 reads `value: '${m.settled}'`, `value: '${m.right}'` and `value: '${m.open}…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "adjudicate:panel-tests-leftovers",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a716d49b3b7a743e2",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791180986565,
+      "queuedAt": 1791180986544,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791181654153,
+      "tokens": 163630,
+      "toolCalls": 31,
+      "durationMs": 666729,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F4\",\"verdict\":\"fix-here\",\"evidence\":\"app/test/trader_record_test.dart: every panel assertion uses pair.$1/pair.$2 at the seed clock. Lines 38-39 `'Illustrative index · based on 3 settled calls · as of 26 Sep 14:45'`, lines 179-180 `'Hit rate 67%'` / `'3 settled'`, lines 320/330 the same. kilo.sol and lunaq share one record (line 134 `expect(Scenario.record(pair.$1), Scen…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "apply:edits",
+      "phaseIndex": 2,
+      "phaseTitle": "Apply",
+      "agentId": "a68c80df9a9a33ea5",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791181656879,
+      "queuedAt": 1791181656859,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "=== gate: flutter-analyze: flutter analyze === PASS flutter…",
+      "promptPreview": "Apply the adjudicated edits below. You are the ONLY writer in this run, so apply them one at a\ntime and keep every file you touch valid throughout.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, ligh…",
+      "promptFramed": true,
+      "lastProgressAt": 1791182569989,
+      "tokens": 193603,
+      "toolCalls": 45,
+      "durationMs": 913109,
+      "resultPreview": "{\"applied\":[{\"findingId\":\"F1\",\"file\":\"app/lib/scenario/scenario.dart, app/lib/features/market/receipt_screens.dart, app/test/trader_record_test.dart\",\"summary\":\"Added an `unavailable` count to RecordMetrics. Scenario.record counts a null outcome as unavailable instead of dropping it. The panel shows 'N unavailable' in the Wrap when the count is above 0, and '<note> · N unavailable' in the empty br…"
+    }
+  ],
+  "totalTokens": 822786,
+  "totalToolCalls": 156
+}

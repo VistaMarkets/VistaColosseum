@@ -1,0 +1,41 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test/review7_probe_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: P7 pill clearance at 1.3x: trader-market Record, Your market, nara
+PROBE small Android 360x640 trader-market Record last=Rect.fromLTRB(16.0, 468.0, 344.0, 541.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlap=false ex=null
+PROBE small Android 360x640 Your market RECORD last=Rect.fromLTRB(16.0, 465.0, 344.0, 538.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlap=false ex=null
+PROBE small Android 360x640 your-market caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE small Android 360x640 nara caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE small Android 360x640 nara private last=Rect.fromLTRB(16.0, 513.0, 344.0, 586.0) pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) overlap=false ex=null
+PROBE iPhone SE 375x667 trader-market Record last=Rect.fromLTRB(16.0, 495.0, 359.0, 568.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlap=false ex=null
+PROBE iPhone SE 375x667 Your market RECORD last=Rect.fromLTRB(16.0, 492.0, 359.0, 565.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlap=false ex=null
+PROBE iPhone SE 375x667 your-market caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE iPhone SE 375x667 nara caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE iPhone SE 375x667 nara private last=Rect.fromLTRB(16.0, 540.0, 359.0, 613.0) pill=Rect.fromLTRB(101.0, 637.0, 274.0, 667.0) overlap=false ex=null
+PROBE iPhone 15 393x852 trader-market Record last=Rect.fromLTRB(16.0, 646.0, 377.0, 719.0) pill=Rect.fromLTRB(110.0, 788.0, 283.0, 818.0) overlap=false ex=null
+PROBE iPhone 15 393x852 Your market RECORD last=Rect.fromLTRB(16.0, 643.0, 377.0, 716.0) pill=Rect.fromLTRB(110.0, 788.0, 283.0, 818.0) overlap=false ex=null
+PROBE iPhone 15 393x852 your-market caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE iPhone 15 393x852 nara caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE iPhone 15 393x852 nara private last=Rect.fromLTRB(16.0, 691.0, 377.0, 764.0) pill=Rect.fromLTRB(110.0, 788.0, 283.0, 818.0) overlap=false ex=null
+PROBE Pixel 7 412x915 trader-market Record last=Rect.fromLTRB(16.0, 719.0, 396.0, 792.0) pill=Rect.fromLTRB(119.5, 861.0, 292.5, 891.0) overlap=false ex=null
+PROBE Pixel 7 412x915 Your market RECORD last=Rect.fromLTRB(16.0, 716.0, 396.0, 789.0) pill=Rect.fromLTRB(119.5, 861.0, 292.5, 891.0) overlap=false ex=null
+PROBE Pixel 7 412x915 your-market caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE Pixel 7 412x915 nara caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE Pixel 7 412x915 nara private last=Rect.fromLTRB(16.0, 764.0, 396.0, 837.0) pill=Rect.fromLTRB(119.5, 861.0, 292.5, 891.0) overlap=false ex=null
+PROBE iPhone 15 Pro Max 430x932 trader-market Record last=Rect.fromLTRB(16.0, 726.0, 414.0, 799.0) pill=Rect.fromLTRB(128.5, 868.0, 301.5, 898.0) overlap=false ex=null
+PROBE iPhone 15 Pro Max 430x932 Your market RECORD last=Rect.fromLTRB(16.0, 723.0, 414.0, 796.0) pill=Rect.fromLTRB(128.5, 868.0, 301.5, 898.0) overlap=false ex=null
+PROBE iPhone 15 Pro Max 430x932 your-market caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE iPhone 15 Pro Max 430x932 nara caption=[Illustrative index · based on 2 settled calls · as of 26 Sep 14:45]
+PROBE iPhone 15 Pro Max 430x932 nara private last=Rect.fromLTRB(16.0, 771.0, 414.0, 844.0) pill=Rect.fromLTRB(128.5, 868.0, 301.5, 898.0) overlap=false ex=null
+00:01 +1: (tearDownAll)
+00:01 +1: All tests passed!

@@ -104,7 +104,6 @@ abstract final class ArenaMock {
     question: r"Reclaims $72,000 before Friday's expiry",
     bull: VistaBattleSide(
       caller: 'maya.eth',
-      accuracy: '82% accuracy',
       price: r'$0.2610',
       change: '+0.7%',
       thesis:
@@ -114,7 +113,6 @@ abstract final class ArenaMock {
     ),
     bear: VistaBattleSide(
       caller: '0xreal',
-      accuracy: '68% accuracy',
       price: r'$0.2610',
       change: '-0.7%',
       thesis:
@@ -140,7 +138,6 @@ abstract final class ArenaMock {
     question: r"Tags $4,000 before the month's close",
     bull: VistaBattleSide(
       caller: 'kilo.sol',
-      accuracy: '71% accuracy',
       price: r'$0.1840',
       change: '+1.1%',
       thesis: 'Staking outflows have flipped and the ETF bid is back.',
@@ -148,7 +145,6 @@ abstract final class ArenaMock {
     ),
     bear: VistaBattleSide(
       caller: 'lunaq',
-      accuracy: '77% accuracy',
       price: r'$0.3120',
       change: '-0.4%',
       thesis: 'Spot is not following the perps and the ETF bid has stalled.',
@@ -159,7 +155,7 @@ abstract final class ArenaMock {
       Opinion(
         initials: 'KS',
         handle: '@kilo.sol',
-        subtitle: 'Trader · 71% accuracy',
+        subtitle: 'Trader',
         side: OpinionSide.bull,
         label: 'BULL',
         thesis: 'Staking outflows have flipped and the ETF bid is back.',
@@ -171,7 +167,7 @@ abstract final class ArenaMock {
       Opinion(
         initials: 'LQ',
         handle: '@lunaq',
-        subtitle: 'Sniper · 77% accuracy',
+        subtitle: 'Sniper',
         side: OpinionSide.bear,
         label: 'BEAR',
         thesis: 'Spot is not following the perps and the ETF bid has stalled.',
@@ -197,7 +193,6 @@ abstract final class ArenaMock {
     question: r"Holds $200 through Sunday's close",
     bull: VistaBattleSide(
       caller: 'mirin',
-      accuracy: '79% accuracy',
       price: r'$0.4410',
       change: '+2.3%',
       thesis: 'Every dip under 205 was bought inside the hour this week.',
@@ -205,7 +200,6 @@ abstract final class ArenaMock {
     ),
     bear: VistaBattleSide(
       caller: 'renatafx',
-      accuracy: '64% accuracy',
       price: r'$0.2290',
       change: '-1.2%',
       thesis: 'The unlock lands Saturday and the order book is thin.',
@@ -216,7 +210,7 @@ abstract final class ArenaMock {
       Opinion(
         initials: 'MI',
         handle: '@mirin',
-        subtitle: 'Contractor · 79% accuracy',
+        subtitle: 'Contractor',
         side: OpinionSide.bull,
         label: 'BULL',
         thesis: 'Every dip under 205 was bought inside the hour this week.',

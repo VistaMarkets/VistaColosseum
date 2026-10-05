@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../live/market_prices.dart';
 import '../profile/holdings_table.dart';
 import '../settings/settings_state.dart';
@@ -41,6 +42,12 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
   }
 
   int _interval = TraderMarketMock.defaultInterval;
+
+  /// "1 open call", from the trader's call receipts.
+  String get _openCalls {
+    final n = Scenario.record(widget.handle).open;
+    return '$n open call${n == 1 ? '' : 's'}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +140,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                             borderRadius: BorderRadius.circular(VistaRadius.sm),
                           ),
                           child: Text(
-                            TraderMarketMock.openCalls,
+                            _openCalls,
                             style: VistaType.label.copyWith(
                               color: VistaColors.textMuted,
                             ),
@@ -302,24 +309,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
           ),
         ),
         const SizedBox(height: VistaSpace.xl),
-        Wrap(
-          spacing: VistaSpace.xl,
-          children: [
-            for (final (text, color) in TraderMarketMock.recordSummary)
-              Text(text, style: VistaType.body.copyWith(color: color)),
-          ],
-        ),
-        const SizedBox(height: VistaSpace.xl),
-        for (final r in TraderMarketMock.record)
-          VistaReceipt(
-            railAsset: r.rail,
-            railHeight: 54,
-            compact: true,
-            title: r.title,
-            lead: r.lead,
-            leadColor: r.leadColor,
-            detail: r.detail,
-          ),
+        TraderRecordPanel(handle: widget.handle),
+        CallRecordList(author: widget.handle),
       ],
     );
   }

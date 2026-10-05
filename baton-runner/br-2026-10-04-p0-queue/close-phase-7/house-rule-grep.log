@@ -1,0 +1,40 @@
+# house-rule grep over git diff feat/br-2026-10-04-p0-queue/phase-6...HEAD -- app (phase-6=3a29ada, HEAD=229ab63)
+# added lines: 1225 total, 590 under app/lib
+## pubspec diff lines: 0
+## imports (lib added lines; field 3 starts with import)
+app/lib/features/arena/opinions_screen.dart	4	import '../../scenario/scenario.dart';
+app/lib/features/market/trader_market_screen.dart	7	import '../../scenario/scenario.dart';
+app/lib/features/profile/private_profile_screen.dart	5	import '../market/receipt_screens.dart';
+app/lib/features/profile/profile_screen.dart	6	import '../market/market_mock.dart';
+app/lib/scenario/scenario.dart	3	import '../charting/time_marks.dart';
+## double (lib added lines)
+## colour (lib added lines)
+## font (lib added lines)
+## persona-phase (lib added lines)
+## toast (lib added lines)
+## now (lib added lines)
+## record-literal (lib added lines)
+app/lib/features/arena/opinions_screen.dart	15	  return pct == null ? 'no record yet' : '$pct% accuracy';
+## size-literal (lib added lines)
+app/lib/features/profile/profile_screen.dart	52	                dimension: 10,
+app/lib/features/profile/profile_screen.dart	367	              linkSize: 13,
+## test-file imports added
+app/test/trader_record_test.dart	1	import 'dart:io';
+app/test/trader_record_test.dart	3	import 'package:flutter/material.dart';
+app/test/trader_record_test.dart	4	import 'package:flutter/services.dart';
+app/test/trader_record_test.dart	5	import 'package:flutter_test/flutter_test.dart';
+app/test/trader_record_test.dart	6	import 'package:vista_colosseum/design_system/design_system.dart';
+app/test/trader_record_test.dart	7	import 'package:vista_colosseum/features/home/home_screen.dart';
+app/test/trader_record_test.dart	8	import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
+app/test/trader_record_test.dart	9	import 'package:vista_colosseum/features/live/live_feed.dart';
+app/test/trader_record_test.dart	10	import 'package:vista_colosseum/features/market/market_mock.dart';
+app/test/trader_record_test.dart	11	import 'package:vista_colosseum/features/market/receipt_screens.dart';
+app/test/trader_record_test.dart	12	import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+app/test/trader_record_test.dart	13	import 'package:vista_colosseum/features/market/your_market_screen.dart';
+app/test/trader_record_test.dart	14	import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
+app/test/trader_record_test.dart	15	import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
+app/test/trader_record_test.dart	16	import 'package:vista_colosseum/features/profile/profile_screen.dart';
+app/test/trader_record_test.dart	17	import 'package:vista_colosseum/features/settings/settings_state.dart';
+app/test/trader_record_test.dart	18	import 'package:vista_colosseum/main.dart';
+app/test/trader_record_test.dart	19	import 'package:vista_colosseum/scenario/scenario.dart';
+app/test/trader_record_test.dart	21	import 'home_screen_test.dart' show expectPillClear, phones;

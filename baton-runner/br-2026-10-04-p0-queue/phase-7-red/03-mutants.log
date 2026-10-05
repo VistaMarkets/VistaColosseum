@@ -1,0 +1,108 @@
+## mutant record-weights-size (lib/scenario/scenario.dart) -> KILLED (exit 1)
+  'right++;' -> 'right += c.sizeCents ?? 1;'
+  'wrong++;' -> 'wrong += c.sizeCents ?? 1;'
+00:00 +0 -1: two traders, same outcomes, different sizes → equal metrics [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:00 +1 -2: both traders' panels show the same sample size, hit rate and as-of time above the index chart [E]
+00:01 +2 -3: the record panel renders without overflow at 1.3x on every phone, its last call clear of the pill [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:02 +3 -4: the trader-market Record panel lists the trader's call receipts and an item opens its receipt [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:03 +3 -5: feed card trader link opens the record panel [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:04 +3 -6: Arena card trader link opens the record panel [E]
+
+## mutant hit-rate-truncates (lib/scenario/scenario.dart) -> KILLED (exit 1)
+  '(right * 100 + settled ~/ 2) ~/ settled' -> 'right * 100 ~/ settled'
+00:00 +0 -1: two traders, same outcomes, different sizes → equal metrics [E]
+00:00 +0 -2: the hit rate is an integer percent rounded half up, read from the call receipts and the clock at the time of asking [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Hit rate 67%" descending from widgets
+00:00 +0 -3: both traders' panels show the same sample size, hit rate and as-of time above the index chart [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Hit rate 67%" descending from widgets
+00:03 +4 -4: feed card trader link opens the record panel [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Hit rate 67%" descending from widgets
+00:03 +4 -5: Arena card trader link opens the record panel [E]
+00:03 +4 -5: Some tests failed.
+
+## mutant as-of-wall-clock (lib/scenario/scenario.dart) -> KILLED (exit 1)
+  'asOf: clock.value,' -> 'asOf: DateTime.now(),'
+00:00 +0 -1: two traders, same outcomes, different sizes → equal metrics [E]
+00:00 +0 -2: the hit rate is an integer percent rounded half up, read from the call receipts and the clock at the time of asking [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:00 +0 -3: both traders' panels show the same sample size, hit rate and as-of time above the index chart [E]
+00:01 +1 -4: the record panel renders without overflow at 1.3x on every phone, its last call clear of the pill [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:02 +2 -5: the trader-market Record panel lists the trader's call receipts and an item opens its receipt [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:03 +2 -6: feed card trader link opens the record panel [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+
+## mutant zero-history-rate-0 (lib/features/market/receipt_screens.dart) -> KILLED (exit 1)
+  'final pct = m.hitRatePct;' -> 'final int? pct = m.hitRatePct ?? 0;'
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "No settled calls yet — record
+00:00 +3 -1: zero-history trader → unavailable state, no crash [E]
+00:03 +8 -1: Some tests failed.
+
+## mutant zero-history-shows-chart (lib/features/profile/profile_screen.dart) -> KILLED (exit 1)
+  'if (Scenario.record(widget.handle).settled > 0) ...[' -> 'if (true) ...['
+Expected: no matching candidates
+  Actual: _TypeWidgetFinder:<Found 1 widget with type "ProfileIndexChart": [
+00:00 +3 -1: zero-history trader → unavailable state, no crash [E]
+00:02 +8 -1: Some tests failed.
+
+## mutant verdicts-always (lib/features/profile/profile_screen.dart) -> KILLED (exit 1)
+  'if (m.settled > 0) ...[' -> 'if (true) ...['
+Expected: no matching candidates
+  Actual: _ElementPredicateWidgetFinder:<Found 1 widget with a semantics label named "Last 10
+00:00 +3 -1: zero-history trader → unavailable state, no crash [E]
+00:02 +8 -1: Some tests failed.
+
+## mutant list-ignores-author (lib/features/market/receipt_screens.dart) -> KILLED (exit 1)
+  '            if (c.author == author) ...[\n              const SizedBox(height: VistaSpace.xl),\n              CallRecordItem(receipt: c),' -> '            if (true) ...[\n              const SizedBox(height: VistaSpace.xl),\n              CallRecordItem(receipt: c),'
+00:01 +3 -1: zero-history trader → unavailable state, no crash [E]
+Expected: false
+  Actual: <true>
+00:01 +3 -2: the record panel renders without overflow at 1.3x on every phone, its last call clear of the pill [E]
+Expected: exactly 4 matching candidates
+  Actual: _TypeWidgetFinder:<Found 16 widgets with type "CallRecordItem": [
+00:01 +3 -3: Profile CALLS lists the trader's own call receipts and each opens its receipt [E]
+Expected: exactly 4 matching candidates
+  Actual: _TypeWidgetFinder:<Found 16 widgets with type "CallRecordItem": [
+00:02 +3 -4: the trader-market Record panel lists the trader's call receipts and an item opens its receipt [E]
+00:03 +5 -4: Some tests failed.
+
+## mutant profile-panel-wrong-handle (lib/features/profile/profile_screen.dart) -> KILLED (exit 1)
+  'child: TraderRecordPanel(handle: widget.handle),' -> "child: const TraderRecordPanel(handle: 'maya.eth'),"
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:00 +2 -1: both traders' panels show the same sample size, hit rate and as-of time above the index chart [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "No settled calls yet — record
+00:00 +2 -2: zero-history trader → unavailable state, no crash [E]
+00:01 +2 -3: the record panel renders without overflow at 1.3x on every phone, its last call clear of the pill [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:02 +4 -4: feed card trader link opens the record panel [E]
+Expected: exactly one matching candidate
+  Actual: _DescendantWidgetFinder:<Found 0 widgets with text "Illustrative index · based on 3
+00:03 +4 -5: Arena card trader link opens the record panel [E]
+00:03 +4 -5: Some tests failed.
+
+## mutant trader-market-list-wrong-author (lib/features/market/trader_market_screen.dart) -> KILLED (exit 1)
+  'CallRecordList(author: widget.handle),' -> "const CallRecordList(author: 'maya.eth'),"
+Expected: exactly 4 matching candidates
+  Actual: _TypeWidgetFinder:<Found 3 widgets with type "CallRecordItem": [
+00:01 +6 -1: the trader-market Record panel lists the trader's call receipts and an item opens its receipt [E]
+00:03 +8 -1: Some tests failed.
