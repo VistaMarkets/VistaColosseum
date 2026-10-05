@@ -1,0 +1,220 @@
+{
+  "verified": {
+    "verdict": "APPROVE",
+    "summary": "Scope checked and fine. In /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue, phase-5 resolves to 87271f1 (also HEAD) and phase-4 to 96abf7f. The three-dot diff lists 46 files. The app/ part is maker_suggestion.dart (new), home_screen.dart, home_screen_test.dart and order_ticket_test.dart. The only uncommitted change is baton-runner/.../log.md.\n\nAll six findings hold when checked against the tree. Five are gaps in the tests and one is a small contrast miss on the advisory badge. None is a product bug, none is permanent, and none is CRITICAL or HIGH. I merged the reference-line finding with the tautological referencePrice finding, because a single rendered-text check fixes both.\n\nOne reviewer's \"verified as correct\" claim is wrong: tautology-hunt says the app does not clamp text scale. app/lib/main.dart clamps it to 1.3 (MediaQuery.withClampedTextScaling, maxScaleFactor 1.3). Their conclusion that the 1.3x overflow test is real still holds, because 1.3 is the clamp ceiling.\n\nNothing must be fixed before merge. All survivors can be fixed after.",
+    "confirmed": [
+      {
+        "severity": "MEDIUM",
+        "title": "Ticket-prefill test cannot tell 'uses the suggestion's asset/direction' from a hardcoded SOL/long",
+        "location": "app/test/home_screen_test.dart:2885-2896; wiring at app/lib/features/home/home_screen.dart (symbol: item.asset, side: item.direction)",
+        "failurePath": "Only the live suggestion (SOL long) is traded in the suite, and ETH short is expired at the seeded clock. Suppose home_screen.dart passed symbol: 'SOL' and side: TradeSide.long instead of item.asset and item.direction. The (symbol, side) record check and the 'Long $200 \u00b7 2x' text check would both still pass. grep shows makerSuggestions is referenced only in home_screen_test.dart, so no other test catches it. The iter-1 'wrong-asset' mutant was killed only because it changed the value to 'ETH'.",
+        "fix": "Add a case where the traded suggestion is not SOL long. Set Scenario.clock.value = TradeMock.chartEnd.subtract(const Duration(hours: 3)), which makes the ETH short live (its expiry is chartEnd-2h). Turn to it, tap 'Trade this', and expect (ticket.symbol, ticket.side) == (expired.asset, expired.direction). The file-level setUp at line 93 calls Scenario.reset(), which restores the clock. The same test also covers the next finding.",
+        "beforeMerge": false,
+        "why": "Read the maker group (lines 2810-2935) and the home_screen.dart itemBuilder. The only traded input is `live`, and both assertions match a SOL/long constant. Confirmed setUp at line 93-94 resets the Scenario, so the proposed clock write is cleaned up. I did not rerun the mutant; the reasoning settles it.",
+        "id": "F1"
+      },
+      {
+        "severity": "LOW",
+        "title": "No widget test moves Scenario.clock while a card is mounted, so the card's link to the demo clock is unpinned",
+        "location": "app/lib/features/home/maker_suggestion.dart:78-79; app/test/home_screen_test.dart:2810-2935",
+        "failurePath": "Mutant: replace `valueListenable: Scenario.clock` with ValueNotifier(TradeMock.chartEnd). The iter-1 probe recorded this in mutate-run-1.txt line 1 as 'clock-constant: rc=0 SURVIVED', with +14 passing. The only Scenario.clock read in the group is at line 2836, in a pure test that never builds the card. Today this has no visible effect in the product, because nothing in lib writes the clock except Scenario.reset (scenario.dart:266), and that writes the same chartEnd. The gap only matters once a later phase advances the clock.",
+        "fix": "With a card mounted, set Scenario.clock to a different value, pump, and expect the label and enabled state to flip. Either the earlier-clock ETH case from the first finding or a later clock that turns the live card to 'Expired' would do.",
+        "beforeMerge": false,
+        "why": "Read mutate.py (clock-constant mutant) and mutate-run-1.txt (SURVIVED). grep finds no `Scenario.clock.value =` in any maker test. grep of lib finds the only clock write is in Scenario.reset.",
+        "id": "F2"
+      },
+      {
+        "severity": "LOW",
+        "title": "Reference-price/expiry line is never asserted, and the referencePrice unit check just restates the getter",
+        "location": "app/lib/features/home/maker_suggestion.dart:31 and 111-115; app/test/home_screen_test.dart:2841-2842",
+        "failurePath": "Mutant drop-reference-line deletes the 'Reference $214.90 \u00b7 expires in 4h' Text, and all maker tests still pass (mutate-run-2.txt: 'drop-reference-line: rc=0 SURVIVED'). Other mistakes would also pass unseen: a wrong span sign (`_span(left)` on the expired branch, which prints '-2h') or a wrong asset's quote. Separately, `expect(s.referencePrice, TradeMock.quotes[s.asset]!.price)` repeats the getter body word for word. A forked copy holding today's value would pass, so the comment 'not a forked copy' claims more than the check proves.",
+        "fix": "In the layout loop, assert find.text('Reference ${TradeMock.quotes[s.asset]!.price} \u00b7 ${s == live ? 'expires in 4h' : 'expired 2h ago'}').hitTestable() finds one widget. Then drop the tautological unit expect, or reword its comment.",
+        "beforeMerge": false,
+        "why": "grep for 'Reference' and 'expires in' across app/test returns nothing. Read mutate-run-2.txt (SURVIVED) and maker_suggestion.dart:31 (the getter body equals the test expression).",
+        "id": "F3"
+      },
+      {
+        "severity": "LOW",
+        "title": "The expired-button test's 'Confirm' assertion cannot detect that the ticket opened",
+        "location": "app/test/home_screen_test.dart:2917",
+        "failurePath": "If the expired button did open the feed ticket, the sheet would show its first screen (Market/Limit tabs, leverage, side/amount button). 'Confirm' appears only in the review panel's action (order_ticket.dart:956), and that panel renders only after _review is set (feed_order_ticket.dart:214-215). So find.textContaining('Confirm') finds nothing even when the ticket is open. The real guard is the BottomSheet check on line 2916. The test name 'so nothing can be confirmed' rests on that line, not this one.",
+        "fix": "Replace it with expect(find.byType(FeedOrderTicket), findsNothing), or delete it.",
+        "beforeMerge": false,
+        "why": "Read feed_order_ticket.dart:200-260 (the first screen has no Confirm) and grep shows the only 'Confirm' label is at order_ticket.dart:956, which is reachable only through _ReviewPanel.",
+        "id": "F4"
+      },
+      {
+        "severity": "LOW",
+        "title": "Advisory badge text is 4.26:1 contrast, below WCAG AA 4.5:1 for small text",
+        "location": "app/lib/features/home/maker_suggestion.dart:95-99",
+        "failurePath": "The VistaTag label uses VistaType.labelStrong (11pt w700, not large text) in VistaColors.accent #5AA6DE. Its fill is accentTint 0x385AA6DE over the card's surface #1F1F1F, which blends to about rgb(44,61,73). The contrast is 4.26:1 on every device and text scale. This badge is the label that marks the card as advisory. For context, the existing enabled primary button (white on accent) is 2.64:1, so the design system already falls short of AA in places. This is a pairing choice new in this diff, not a regression.",
+        "fix": "Keep accentTint as the fill and use VistaColors.textPrimary for the label (10.28:1). Or keep accent text on a surface fill (6.24:1). Both use tokens only.",
+        "beforeMerge": false,
+        "why": "Read vista_colors.dart (surface, accent, accentTint), VistaTag in components/vista_chips.dart and labelStrong in vista_typography.dart:104. Recomputed the ratios with python3: badge 4.26, accent on surface 6.24, textPrimary on the blended fill 10.28, white on accent 2.64.",
+        "id": "F5"
+      }
+    ],
+    "refuted": [],
+    "checkedClaimsThatAreWrong": [
+      "tautology-hunt: 'The app does not override the platform text scale (no textScaler clamp in lib)' is false. app/lib/main.dart wraps the app in MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3). Their conclusion still holds: 1.3x is the real worst case, so the 1.3x overflow test is meaningful. The layout-semantics lane stated the clamp correctly."
+    ],
+    "residualRisk": [
+      "tautology-hunt: Did not rerun the full suite or the gate; relied on the stated pass at 87271f1 (251 tests both modes).",
+      "tautology-hunt: Semantics of the live 'Trade this' node are not asserted (only the expired node); no mutant breaks only the live node's semantics.",
+      "tautology-hunt: Did not verify that onDetails from the suggestion ticket routes to AssetTradeScreen(item.asset); it is unasserted.",
+      "tautology-hunt: The worktree shows ` M baton-runner/br-2026-10-04-p0-queue/log.md` (uncommitted), run bookkeeping outside scope.",
+      "state-truthfulness: Ran no tests; relied on the gate result given in the brief and on reading the code.",
+      "state-truthfulness: FeedOrderTicket initState and other phase-2 internals were not re-audited for store writes on open; relied on the state() equality test and the iter-1 mutants.",
+      "state-truthfulness: Whether the simulation pill's Reset (simulation_indicator.dart:14) can be tapped while the ticket sheet is open; a reset restores the same clock value, so it cannot change the expiry.",
+      "state-truthfulness: Whether the rationale ('SOL leads the majors') stays true as LiveFeed ticks prices during a session; the text is static and hedged.",
+      "layout-semantics: Did not run flutter test or a fresh probe; overflow and semantics geometry rely on the passing suite plus the iter-1 probe log, cross-checked against the source.",
+      "layout-semantics: Landscape, tablet sizes and text scales between 1.0 and 1.3 are not on the device list and were not checked.",
+      "layout-semantics: Mid-swipe PageView frames (page partly under the nav or pill) were not examined; only settled pages are tested.",
+      "layout-semantics: Real-device screen-reader activation (TalkBack/VoiceOver fallback when a node has no tap action) was not exercised.",
+      "layout-semantics: Contrast of pre-existing tokens used unchanged (VistaType.meta textSecondary on surface, enabled primary button white on accent at 2.64:1) is a design-system matter outside this diff."
+    ]
+  },
+  "ref": "feat/br-2026-10-04-p0-queue/phase-5",
+  "sha": "87271f155e4d93410c7f3d79e226feb29be9622c",
+  "rawCount": 6,
+  "reviews": [
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Ticket-prefill test cannot tell 'uses the suggestion's asset/direction' from a hardcoded SOL/long",
+          "location": "app/test/home_screen_test.dart:2885 (test \"Trade this opens the ticket on the suggestion's asset and side\"); wiring at app/lib/features/home/home_screen.dart:91-92",
+          "failurePath": "Only one suggestion can ever be traded in the suite (live = SOL long; the ETH short is expired at clock start), so the test checks one fixed input. Mutant: in home_screen.dart replace `symbol: item.asset,` with `symbol: 'SOL',` and `side: item.direction,` with `side: TradeSide.long,`. I ran `flutter test test/home_screen_test.dart --plain-name \"maker suggestion\"` on a scratch copy of app/ and got +14, all passed. No other test file references makerSuggestions, so the full suite misses it too. A feed that sent every suggestion to a SOL long ticket would ship green. The worker's M2 (side inverted to short) and the reviewer's wrong-asset ('ETH') were killed only because they changed the value away from SOL/long.",
+          "fix": "Add a second case on a suggestion that is not SOL long. Example: set `Scenario.clock.value = TradeMock.chartEnd.subtract(const Duration(hours: 3))` so the ETH short card is live, turn to it, tap 'Trade this', and expect `(ticket.symbol, ticket.side) == (expired.asset, expired.direction)`. The group's setUp `Scenario.reset()` restores the clock. The same test also kills the surviving clock-constant mutant (next finding).",
+          "evidence": "Applied the two-line mutant on an rsync copy of app/ in the session scratchpad (the worktree was not touched, and the copy was deleted afterwards). Result: all 14 tests in the 'maker suggestion' group passed. `grep -rn makerSuggestions test` matches only home_screen_test.dart. phase-5-red/mutation.log shows M2 was `short`, not a hardcoded constant.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "No test moves Scenario.clock, so the card ignoring the demo clock survives (confirms review L1)",
+          "location": "app/lib/features/home/maker_suggestion.dart:79 / app/test/home_screen_test.dart:2809-2935",
+          "failurePath": "Mutant clock-constant (`valueListenable: ValueNotifier(TradeMock.chartEnd)`) passes all 14 maker tests (mutate-run-1.txt: rc=0 SURVIVED). The same holds for a read-once variant (`Scenario.clock.value` read in build without listening), because no maker test writes Scenario.clock while a card is mounted. The only clock read in the group is `Scenario.clock.value` in the pure seeded test, which calls liveAt directly and never touches the card. The wall-clock mutant is killed, but only because chartEnd (2026-09-26 14:45) is already in the past on the wall clock. The card's link to Scenario.clock itself is unpinned.",
+          "fix": "In one widget test, set `Scenario.clock.value = TradeMock.chartEnd.add(const Duration(hours: 5))` with the live card on screen, pump, and expect 'Expired' with `enabled == false`. Or use the earlier-clock variant from the previous finding, which also covers it.",
+          "evidence": "Read the maker group: grep for Scenario.clock in home_screen_test.dart finds only line 2836. Read review-phase-5-iter-1-probe/mutate.py and mutate-run-1.txt.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Reference-price / expiry line is never asserted (confirms review L2)",
+          "location": "app/lib/features/home/maker_suggestion.dart:111-115",
+          "failurePath": "Mutant drop-reference-line deletes the 'Reference $214.90 \u00b7 expires in 4h' / 'expired 2h ago' Text, and all maker tests still pass (mutate-run-2.txt SURVIVED). A wrong span sign (for example `_span(left)` on the expired branch, which prints '-2h') would also pass, as would a reference price taken from the wrong asset.",
+          "fix": "In the layout loop, add `expect(find.text('Reference ${s.referencePrice} \u00b7 ${s == live ? 'expires in 4h' : 'expired 2h ago'}').hitTestable(), findsOneWidget)`.",
+          "evidence": "grep for 'Reference' and 'expires in' in home_screen_test.dart returns nothing. Read the probe's mutate-run log.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Dead assertion: find.textContaining('Confirm') cannot fail when the ticket opens (confirms review L3)",
+          "location": "app/test/home_screen_test.dart:2917",
+          "failurePath": "If the expired button opened the ticket (mutant vpb-ignores-enabled), the feed ticket would show its pre-review screen. The only 'Confirm' label is built in the review panel, which appears after the ticket's action button is tapped (order_ticket.dart:956, `_ => ('Confirm', ...)`, reached only once `_review` is set). So 'Confirm' stays absent even when the sheet is open. The mutant was killed only by the BottomSheet assertion on the line above. Read on its own, the test name 'so nothing can be confirmed' overstates what this line proves.",
+          "fix": "Replace it with `expect(find.byType(FeedOrderTicket), findsNothing)`, or delete it. The BottomSheet check is the real guard.",
+          "evidence": "Read feed_order_ticket.dart (the first screen's button is the side/amount label, e.g. 'Long $200 \u00b7 2x') and order_ticket.dart:930-965. mut-vpb-ignores-enabled.log fails at 'Found 1 widget with type BottomSheet', before the Confirm line runs.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "referencePrice 'not a forked copy' check is tautological",
+          "location": "app/test/home_screen_test.dart:2840-2841",
+          "failurePath": "`expect(s.referencePrice, TradeMock.quotes[s.asset]!.price)` restates the getter's own body. The comment says it guards against a forked copy, but a forked copy with today's value passes. Example: change the getter to `r'$214.90'` for SOL (and the ETH equivalent), and the test stays green until the quote changes. The test does not prove what its comment claims.",
+          "fix": "Either drop the comment's claim, or render-check the card text against the quote (see the reference-line finding). A rendered check catches both a missing line and a wrong source.",
+          "evidence": "Read maker_suggestion.dart:31 (`String get referencePrice => TradeMock.quotes[asset]!.price;`) and trade_mock.dart:95-99 (SOL price r'$214.90').",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope OK: both refs resolve in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue, the worktree HEAD is 87271f1 (phase-5), and the three-dot diff lists 46 files, including app/lib/features/home/{home_screen,maker_suggestion}.dart, app/test/home_screen_test.dart and app/test/order_ticket_test.dart.",
+        "Expired button enabled: killed. The test reads `VistaPrimaryButton.enabled == false`, the semantics are isEnabled:false, and the BottomSheet check is real (mut-vpb-ignores-enabled shows 'Found 1 widget with type BottomSheet').",
+        "Wrong asset or inverted direction: killed by the (symbol, side) record check. A hardcoded SOL/long survives (MEDIUM finding).",
+        "Expiry judged with DateTime.now(): killed (mut-clock-wallclock). The kill holds from now on because chartEnd 2026-09-26 14:45 is already past on the wall clock.",
+        "Badge and data-path line removed: killed. The layout loop expects each one hit-testable in all 10 phone/scale cases.",
+        "Store mutation on open: killed (M1b cash write, clock-write-on-trade). state() covers all 17 Scenario notifiers, and Scenario writes swap in new unmodifiable collections, so the deep-equals comparison cannot be fooled by in-place aliasing.",
+        "Card exposed as one big button again: killed. With container:false the expired card's merged node label is no longer exactly 'Expired', so find.bySemanticsLabel('Expired') fails (mut-no-semantics-container).",
+        "Overflow at text scale 1.3 is real. The app does not override the platform text scale (no textScaler clamp in lib), and the card-overflow mutant produced RenderFlex errors that takeException caught.",
+        "expectPillClear checks the button's rect against the pill's rect, and the button is hit-testable.",
+        "Review L4 (seeded test has only a compile RED) confirmed: red-2-assert.log line 14 shows it passing at RED-2. It now has a killing mutant (suggestions-adjacent, both-live), so it is not a live defect and I did not file it.",
+        "The order_ticket_test.dart and trader-market test edits only re-index into homeFeed through a TradeIdea filter. They are equivalent to the old mockFeed lookups and add no weaker assertion."
+      ],
+      "notExamined": [
+        "Did not rerun the full suite or the gate; relied on the stated pass at 87271f1 (251 tests both modes).",
+        "Semantics of the live 'Trade this' node are not asserted (only the expired node); I did not build a mutant that breaks only the live node's semantics.",
+        "Did not verify that onDetails from the suggestion ticket routes to AssetTradeScreen(item.asset); it is unasserted but outside the named mutation list.",
+        "The worktree shows ` M baton-runner/br-2026-10-04-p0-queue/log.md` (uncommitted). I did not cause it; it is run bookkeeping outside scope."
+      ]
+    },
+    {
+      "lens": "state-truthfulness",
+      "findings": [],
+      "checked": [
+        "Scope check passed: in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue, phase-5 resolves to 87271f1 (it is also HEAD) and phase-4 resolves to 96abf7f. The three-dot diff lists 46 files. The app/ changes are maker_suggestion.dart (new), home_screen.dart, home_screen_test.dart and order_ticket_test.dart. The product commit is ad2176f.",
+        "Read-only state: MakerSuggestionCard reads only Scenario.clock, through a ValueListenableBuilder (maker_suggestion.dart:78-79). referencePrice reads the const TradeMock.quotes. Nothing in maker_suggestion.dart or the homeFeed itemBuilder writes to Scenario. The only `clock.value =` in lib is Scenario.reset (scenario.dart:266).",
+        "Expiry uses the demo clock: live = s.liveAt(now), where now is Scenario.clock's value and liveAt is now.isBefore(expiresAt). The fixtures are SOL at chartEnd+4h and ETH at chartEnd-2h, so at the seeded clock (TradeMock.chartEnd) SOL is live and ETH is expired. Reset puts the clock back to chartEnd and the card rebuilds through the listenable, so it stays consistent. Nothing in lib advances the clock, so a live card cannot flip while the app runs.",
+        "The expired card cannot reach the ticket. VistaPrimaryButton passes onTap: enabled ? onPressed : null (vista_flow.dart:75) and has no long-press handler. Its Semantics says enabled=false with excludeSemantics and gives no onTap, so no semantics tap action exists. The card has no other gesture detector. The onTrade closure is reachable only through that button.",
+        "Stale-closure path is not reachable: once open, the ticket is independent of the card's expiry. Only Scenario.reset writes the clock, and it writes the same chartEnd value, so the clock cannot move to cross an expiry while a ticket is open. This matches the iter-1 review's 'residual, not reachable today' note.",
+        "Prefill: home_screen.dart:89-93 passes symbol: item.asset and side: item.direction to showFeedOrderTicket. FeedOrderTicket builds OrderIntent from widget.symbol and widget.side (feed_order_ticket.dart:82-94). Scenario.placeOrder copies intent.side and intent.symbol into the receipt and the PortfolioPosition, so a fill from the SOL card opens a SOL long position.",
+        "Card copy is truthful: the badge reads 'Maker suggestion \u00b7 advisory', the source reads 'Maker \u00b7 demo recommendation' and the data-path line reads 'Built from Aggro demo prices'. 'Aggro' appears only in the spec/PRD, which require it as the mock data path. No text on the card claims a live source.",
+        "The reference price is the quote's display String ('$214.90' / '$2,968.40'), the same as MarketPrices._base. No new double money path: the lib diff adds no double, toDouble or division.",
+        "homeFeed reindexing: no lib code indexes mockFeed by page index. asset_alerts.dart filters mockFeed by ticker, which is unaffected. In the itemBuilder, `active` uses page index i only for TradeIdeaCard, so the idea cards after a suggestion still get the right active flag.",
+        "Tests: the 'viewing both suggestions and opening the ticket leave the store untouched' test compares the full state() snapshot from scenario_test before and after viewing both cards, opening the live ticket and tapping Expired.",
+        "Not filed (judgment call, no concrete failure): referencePrice is a getter over the current chart-end quote, not a stored fixture field. So the expired ETH card shows today's close quote as its 'Reference'. The rationale says 'into the close', and the iter-1 review already accepted the getter."
+      ],
+      "notExamined": [
+        "I ran no tests. I relied on the gate result given in the brief (251 tests pass in both modes) and on reading the code.",
+        "FeedOrderTicket initState and other phase-2 internals: I did not re-audit whether opening the ticket writes to the store. I relied on the state() equality test and the iter-1 mutants.",
+        "Whether the simulation pill's Reset (simulation_indicator.dart:14) can be tapped while the ticket sheet is open. That is phase-3/4 context, and a reset restores the same clock value, so it cannot change the suggestion's expiry.",
+        "Layout at 1.3x text scale and design-token compliance belong to other lanes. I only noted that the card uses VistaColors, VistaSpace, VistaType and VistaRadius tokens.",
+        "Whether the rationale ('SOL leads the majors') stays true as LiveFeed ticks prices during a session. The text is static and hedged ('while that lead holds')."
+      ]
+    },
+    {
+      "lens": "layout-semantics",
+      "findings": [
+        {
+          "severity": "LOW",
+          "title": "Advisory badge text falls below 4.5:1 contrast (accent on accentTint)",
+          "location": "app/lib/features/home/maker_suggestion.dart:95-99",
+          "failurePath": "Any device, any text scale (the 360x640 phone at 1.0x is the worst case), Home route, feed page homeFeed[2] or homeFeed[4]. The badge 'Maker suggestion \u00b7 advisory' draws VistaColors.accent (#5AA6DE) text in VistaType.labelStrong (11 pt w700, so not 'large text') on VistaTag's VistaColors.accentTint (0x385AA6DE, 22% alpha) over the card's VistaColors.surface (#1F1F1F). The blended background is about rgb(44,61,73), and the contrast ratio comes out at 4.25:1, below the WCAG AA 4.5:1 for small text. This badge is the element that marks the card as advisory, and it is the hardest text on the card to read. No accent-text-on-accentTint chip exists elsewhere to set a convention: the only other accentTint use is the decorative initial circle in vista_list_row.dart:47. Accent text straight on surface would measure 6.24:1.",
+          "fix": "Keep the tokens but change the pairing. Either use VistaTag's defaults with an accent text colour on VistaColors.surface or surfaceRaised (accent on #1F1F1F is 6.24:1), or keep accentTint as the fill and use VistaColors.textPrimary for the label. Both choices stay token-only.",
+          "evidence": "Read maker_suggestion.dart:95-99, VistaTag in vista_chips.dart:35-72 (labelStrong, maxLines 1), vista_typography.dart:104 (labelStrong 11 w700) and vista_colors.dart:11/38/39. Computed the WCAG relative-luminance ratios with python3: badge 4.25, accent on surface 6.24. Ran grep for accentTint usages: only vista_list_row.dart:47 and this file.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope verified first: both refs resolve in /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue (phase-5 = 87271f1 = HEAD, phase-4 = 96abf7f). The three-dot diff lists 46 files, and the app/ part is home_screen.dart, maker_suggestion.dart (new), home_screen_test.dart and order_ticket_test.dart. Log since phase-4: c5bcdf9, ad2176f (product), 9ebb854, 87271f1. The tree also has one uncommitted change outside app/ (baton-runner log.md), which I did not touch.",
+        "No overflow on all 5 entries of the app's only device list (phones in home_screen_test.dart:69: 360x640, 375x667, 393x852, 412x915, 430x932 with their insets) at 1.0x and 1.3x. The new suite tests 'both cards render without overflow on <phone> at <scale>x text' turn to each card and assert takeException() is null and that the badge, source, data-path line and full two-line rationale are hitTestable. The iter-1 probe log shows the tallest case, 360x640 at 1.3x: the card is 326 px tall inside a 394 px page, about 68 px of headroom. main.dart caps text scale at 1.3, so 1.3x is the worst case. The asset/side Row and the reference/expiry line are short fixed strings, the reference line wraps (no maxLines), and the VistaTag label is maxLines 1 with clip, so it cannot raise a RenderFlex error.",
+        "Pill strip: the suggestion is never the last feed item (homeFeed = idea0, idea1, SOL, idea2, ETH, idea3..). Every page sits inside the PageView, which ends above the nav capsule, which sits above the 30 px slot. Probe at 360x640 1.3x: page 128-522, nav 540-604, pill 610-640. The suite's expectPillClear on the Trade this / Expired button passes in all 10 layout cases.",
+        "Tokens only: maker_suggestion.dart has no Color( literal, no fontSize and no numeric spacing literal. It uses VistaColors.surface/accent/accentTint, VistaRadius.card, VistaSpace.* and VistaType.title/body/meta. Visual distinction comes from the accent Border.all, the accent badge and the compact centred card. Idea cards are full-page Expanded layouts with no accent border.",
+        "Semantics: VistaPrimaryButton's own Semantics(button, enabled, label, excludeSemantics) is not a boundary, so without the new Semantics(container:true) wrapper its button flag merges up with the sibling Texts and the whole card reads as one button. With the wrapper, 'Trade this' and 'Expired' (enabled=false) are separate button nodes. The badge, asset, side, rationale, reference line, source label and 'Built from Aggro demo prices' all reach the screen reader in one non-button text node (probe log). The suite asserts isSemantics(label Expired, isButton, isEnabled false).",
+        "Idea cards unchanged: trade_idea_card.dart and vista_flow.dart are not in the diff. The home_screen.dart refactor passes the same onDetails/onCaller/onTrade closures (traderMarket routing included), and active still compares the page index to _settledPage. The only change is that the index now runs over homeFeed. The two older tests that jumped by mockFeed index were updated to search homeFeed.",
+        "Disabled Expired button: it is the shared VistaPrimaryButton, 54 px tall and full width, so it is above VistaSize.tapTarget (44). It dims with the same 0.4 opacity every disabled primary button in the app uses (vista_flow.dart:78), and the GestureDetector onTap is null when disabled. WCAG exempts disabled controls from contrast, so it matches the codebase convention.",
+        "The iter-1 L6 item (VistaPrimaryButton exposes no SemanticsAction.tap because its Semantics has excludeSemantics:true and no onTap) is confirmed by reading vista_flow.dart:68-75. It is a pre-existing design-system issue, not new in this diff, so I did not re-file it."
+      ],
+      "notExamined": [
+        "I did not run flutter test or a fresh probe myself (read-only run, gate facts given). The overflow and semantics geometry relies on the passing suite plus the iter-1 probe log, cross-checked against the source.",
+        "Landscape orientation, tablet sizes and text scales between 1.0 and 1.3 are not on the app's device list and were not checked.",
+        "Mid-swipe PageView frames, where a page is partly under the nav or pill, were not examined; only settled pages are tested.",
+        "Real-device screen-reader activation (TalkBack/VoiceOver fallback when a node has no tap action) was not exercised.",
+        "Contrast of pre-existing tokens used unchanged (VistaType.meta textSecondary on surface, enabled primary button white on accent at 2.64:1) is a design-system matter outside this diff."
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "tautology-hunt",
+      "n": 5
+    },
+    {
+      "lens": "state-truthfulness",
+      "n": 0
+    },
+    {
+      "lens": "layout-semantics",
+      "n": 1
+    }
+  ]
+}
