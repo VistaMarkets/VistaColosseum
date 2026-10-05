@@ -170,23 +170,6 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: VistaColors.accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '↗',
-                        style: VistaType.headline.copyWith(
-                          color: VistaColors.onAccent,
-                          height: 1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: VistaSpace.xl),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
