@@ -937,17 +937,19 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
 │   │   ├── 2026-10-04-dw-review-phase-8-list-empty-failed-states.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
-│   └── specs/
-│       ├── 00-baton-queue.md
-│       ├── 01-scenario-store.md
-│       ├── 02-truthful-order-confirm.md
-│       ├── 03-simulation-indicator.md
-│       ├── 04-arena-sort-filter-join.md
-│       ├── 05-maker-suggestion-card.md
-│       ├── 06-fee-ledger-and-receipts.md
-│       ├── 07-trader-record-panel.md
-│       ├── 08-list-empty-failed-states.md
-│       └── 09-copy-story.md
+│   ├── specs/
+│   │   ├── 00-baton-queue.md
+│   │   ├── 01-scenario-store.md
+│   │   ├── 02-truthful-order-confirm.md
+│   │   ├── 03-simulation-indicator.md
+│   │   ├── 04-arena-sort-filter-join.md
+│   │   ├── 05-maker-suggestion-card.md
+│   │   ├── 06-fee-ledger-and-receipts.md
+│   │   ├── 07-trader-record-panel.md
+│   │   ├── 08-list-empty-failed-states.md
+│   │   └── 09-copy-story.md
+│   └── verification/
+│       └── 2026-10-05-m1-shell-and-scenario.md
 ├── scripts/
 │   └── gate.sh
 ├── .gitignore
