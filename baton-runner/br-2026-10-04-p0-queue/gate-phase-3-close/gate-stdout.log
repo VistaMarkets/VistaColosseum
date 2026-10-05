@@ -1,0 +1,9 @@
+=== gate: flutter-analyze: flutter analyze ===
+PASS flutter-analyze
+=== gate: flutter-test: flutter test ===
+PASS flutter-test
+=== gate: pubspec-frozen: git diff --exit-code d77fe5916d92125f30c67f36ca4ea013d32bade2 -- pubspec.yaml pubspec.lock ===
+PASS pubspec-frozen
+----
+GATE: PASS
+exit=0

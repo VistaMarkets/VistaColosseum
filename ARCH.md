@@ -408,6 +408,8 @@ VistaColosseum/
 │   │   │   ├── share/  — Share call (Figma 462:474): the Home card's Share opens a sheet previewing exactly what the recipient gets (`ShareCallCard`, the 1.91:1 link-preview image with the Vista mark, drawn with the replay line painter, over its title and link), and Messages, Telegram, X and Copy link targets; sending is simulated (Copy link copies)
 │   │   │   │   ├── share_call_card.dart
 │   │   │   │   └── share_call_sheet.dart
+│   │   │   ├── simulation/
+│   │   │   │   └── simulation_indicator.dart
 │   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers / Alerts panels (`asset_alerts.dart`: the Home feed's alerts on that market — the call, its replay events and live fills — as a newest-first timeline); Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) filtered to Following or Everyone; tapping a post's order opens `CallerPlayScreen`, that call as a Home-style trade card (mock data); `order_ticket.dart` is the pro order sheet (Figma 218:608) that Long/Short opens on the trade pages and Arena (Bull = long, Bear = short): side, Market/Limit/Stop, leverage up to the market's cap, price with Mid, size in units or USD with a 0–100% slider, TP/SL, reduce-only, live margin, liquidation and fee; placing is simulated and limit/stop orders land in Portfolio › Open orders via `OrdersState`; `feed_order_ticket.dart` (a part of it) is the first-time ticket Home feed cards open (Figma 472:1359): the card's side, Market/Limit, 2x/5x/10x/custom leverage, a dollar amount, an entry-anchored TP/SL track and the price where the margin is lost
 │   │   │   │   ├── asset_alerts.dart
 │   │   │   │   ├── asset_trade_screen.dart
@@ -444,6 +446,8 @@ VistaColosseum/
 │   ├── pubspec.yaml
 │   └── README.md
 ├── baton-pass/
+│   ├── baton-queue/
+│   │   └── 2026-10-04T233424-p0-runner-paused-phase3-review.md
 │   └── br-2026-10-04-p0-queue/
 │       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
 │       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
@@ -458,7 +462,14 @@ VistaColosseum/
 │       ├── 2026-10-04T125834-phase2-fix-iter1.md
 │       ├── 2026-10-04T135405-phase2-review-iter2.md
 │       ├── 2026-10-04T140130-phase2-fix-iter2.md
-│       └── 2026-10-04T150315-phase2-review-iter3.md
+│       ├── 2026-10-04T150315-phase2-review-iter3.md
+│       ├── 2026-10-04T151112-phase3-simulation-indicator-checkpoint.md
+│       ├── 2026-10-04T151800-phase3-simulation-indicator.md
+│       ├── 2026-10-04T161405-phase3-review-iter1.md
+│       ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
+│       ├── 2026-10-04T162846-phase3-fix-iter1.md
+│       ├── 2026-10-04T181055-phase3-review-iter2.md
+│       └── 2026-10-04T184857-phase3-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -548,8 +559,59 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-fix-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   ├── gate.out
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-fixer/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-iter-2/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── gate-phase-3-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── review-phase-3-iter-2-probe/
+│       │   ├── cta_probe.log
+│       │   ├── cta_probe_test.dart
+│       │   ├── h1_probe.log
+│       │   ├── h1_probe_test.dart
+│       │   ├── mm_probe_head.log
+│       │   ├── mm_probe_main.log
+│       │   ├── mm_probe_test.dart
+│       │   ├── mut-AC1-AC2-no-padding-reserve-home_screen_test.log
+│       │   ├── mut-AC1-AC2-no-pill-in-builder-home_screen_test.log
+│       │   ├── mut-AC1-AC2-no-pill-in-builder-scenario_test.log
+│       │   ├── mut-AC3-blank-simulated-label-order_ticket_test.log
+│       │   ├── mut-H1-revert-isScrollControlled-home_screen_test.log
+│       │   ├── mut-H1-revert-probe.log
+│       │   ├── mut-M2-no-popUntil-home_screen_test.log
+│       │   ├── mut-M2-no-popUntil-scenario_test.log
+│       │   ├── mutate.py
+│       │   ├── settings_reset_probe.log
+│       │   └── settings_reset_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
+│       ├── digest-phase-3.md
+│       ├── fixer-phase-3.json
+│       ├── house-rules.md
 │       ├── log.md
 │       ├── review-phase-1-iter-1-prelude.md
 │       ├── review-phase-1-iter-1.md
@@ -559,6 +621,9 @@ VistaColosseum/
 │       ├── review-phase-2-iter-2-prelude.md
 │       ├── review-phase-2-iter-2.md
 │       ├── review-phase-2-iter-3.md
+│       ├── review-phase-3-dw.json
+│       ├── review-phase-3-iter-1-prelude.md
+│       ├── review-phase-3-iter-1.md
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
@@ -576,6 +641,7 @@ VistaColosseum/
 │   ├── prompts/
 │   │   └── social-market-demo-brief-prompt.md
 │   ├── reviews/
+│   │   ├── 2026-10-04-dw-review-phase-3-simulation-indicator.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md

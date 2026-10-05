@@ -17,6 +17,7 @@ import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
+import 'package:vista_colosseum/features/simulation/simulation_indicator.dart';
 import 'package:vista_colosseum/features/watchlist/edit_favorites_screen.dart';
 import 'package:vista_colosseum/features/watchlist/watchlist_state.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
@@ -42,6 +43,21 @@ Finder get pagerBalance => find.descendant(
 
 /// The breakout label is the last event the trace reaches.
 Finder get breakoutLabel => find.text(r'Broke $2,950');
+
+/// The simulated pill's label.
+const pill = 'Simulated · fixture-v1';
+
+/// The pill is on screen, on top, and covers none of [targets].
+void expectPillClear(WidgetTester tester, Finder targets) {
+  final badge = find.bySemanticsLabel(pill);
+  expect(badge.hitTestable(), findsOneWidget);
+  expect(targets, findsWidgets);
+  final rect = tester.getRect(badge);
+  for (var i = 0; i < targets.evaluate().length; i++) {
+    final target = tester.getRect(targets.at(i));
+    expect(rect.overlaps(target), isFalse, reason: '$rect covers $target');
+  }
+}
 
 /// Phone sizes (logical px) and safe-area insets the Home screen must fit.
 const phones = <String, (Size, EdgeInsets)>{
@@ -115,7 +131,16 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(pagerBalance, findsOneWidget);
       // Last position is reachable by scrolling on short phones.
-      await tester.ensureVisible(find.text('0xreal'));
+      await tester.scrollUntilVisible(
+        find.text('0xreal'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PortfolioScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.pumpAndSettle();
       expect(find.text('0xreal').hitTestable(), findsOneWidget);
     });
@@ -1252,7 +1277,16 @@ void main() {
         of: find.byType(PortfolioScreen),
         matching: find.text(title),
       );
-      await tester.ensureVisible(row);
+      await tester.scrollUntilVisible(
+        row,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PortfolioScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(row);
       await tester.pumpAndSettle();
@@ -1827,11 +1861,9 @@ void main() {
         ..devicePixelRatio = 3
         ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
       addTearDown(tester.view.reset);
+      // The app's own builder: the simulated pill takes its strip here too.
       await tester.pumpWidget(
-        MaterialApp(
-          theme: VistaTheme.dark(),
-          home: const AssetTradeScreen(ticker: 'BTC'),
-        ),
+        const VistaColosseumApp(home: AssetTradeScreen(ticker: 'BTC')),
       );
       await tester.pumpAndSettle();
     }
@@ -1961,6 +1993,33 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.text('Cross · 10x'));
         await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    // The pill's strip must not push Set out of reach on short phones.
+    for (final name in ['small Android 360x640', 'iPhone SE 375x667']) {
+      testWidgets('Set applies leverage at 1.3x text on $name', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final (size, padding) = phones[name]!;
+        await pumpBtc(tester, size, padding);
+        await tester.tap(find.text('Long').last);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('Cross · 10x'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Cross · 10x'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Raise leverage'));
+        await tester.pumpAndSettle();
+        // Set must clear the pill, not just keep its centre tappable.
+        expectPillClear(
+          tester,
+          find.widgetWithText(VistaPrimaryButton, 'Set 11x'),
+        );
+        await tester.tap(find.text('Set 11x'));
+        await tester.pumpAndSettle();
+        expect(find.text('Cross · 11x'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }
@@ -2231,6 +2290,32 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+
+    for (final name in ['small Android 360x640', 'iPhone SE 375x667']) {
+      testWidgets('custom leverage applies at 1.3x text on $name', (
+        tester,
+      ) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final (size, padding) = phones[name]!;
+        await openFeedTicket(tester, size, padding);
+        await tester.ensureVisible(inTicket(find.text('custom')));
+        await tester.pumpAndSettle();
+        await tester.tap(inTicket(find.text('custom')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Raise leverage'));
+        await tester.pumpAndSettle();
+        // Set must clear the pill, not just keep its centre tappable.
+        expectPillClear(
+          tester,
+          find.widgetWithText(VistaPrimaryButton, 'Set 3x'),
+        );
+        await tester.tap(find.text('Set 3x'));
+        await tester.pumpAndSettle();
+        expect(inTicket(find.text(r'Long $200 · 3x')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 
   testWidgets('trade page Alerts lists the feed alerts on that market', (
@@ -2269,5 +2354,164 @@ void main() {
     );
     expect(joined, lessThan(call.dy));
     expect(tester.takeException(), isNull);
+  });
+
+  group('simulation indicator', () {
+    const tabs = ['Home', 'Explore', 'Arena', 'Wallet'];
+    // The spec's two layout checks: iPhone SE and iPhone 14.
+    const sizes = <String, (Size, EdgeInsets)>{
+      'iPhone SE 375x667': (Size(375, 667), EdgeInsets.only(top: 20)),
+      'iPhone 14 390x844': (
+        Size(390, 844),
+        EdgeInsets.only(top: 47, bottom: 34),
+      ),
+    };
+
+    Future<void> launch(WidgetTester tester, (Size, EdgeInsets) phone) async {
+      final (size, pad) = phone;
+      tester.view
+        ..physicalSize = size * 3
+        ..devicePixelRatio = 3
+        ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3)
+        ..viewPadding = FakeViewPadding(
+          top: pad.top * 3,
+          bottom: pad.bottom * 3,
+        );
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    Finder button(String label) => find
+        .ancestor(of: find.text(label), matching: find.byType(GestureDetector))
+        .first;
+
+    for (final scale in [1.0, 1.3]) {
+      testWidgets('the pill shows on every tab without overflow on the '
+          'smallest phone at ${scale}x text', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await launch(tester, phones['small Android 360x640']!);
+        // The pill fits its strip; too small a strip clips it silently.
+        final face = find.descendant(
+          of: find.bySemanticsLabel(pill),
+          matching: find.byType(Material),
+        );
+        expect(
+          tester
+              .renderObject<RenderBox>(face)
+              .getMaxIntrinsicHeight(double.infinity),
+          lessThanOrEqualTo(SimulationIndicator.slot),
+        );
+        for (final tab in tabs) {
+          await tester.tap(find.bySemanticsLabel(tab));
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: tab);
+          expectPillClear(tester, find.byType(VistaBottomNav));
+        }
+      });
+    }
+
+    for (final MapEntry(key: name, value: phone) in sizes.entries) {
+      testWidgets('the pill shows on every tab and inside both order tickets '
+          'on $name', (tester) async {
+        await launch(tester, phone);
+        for (final tab in tabs.reversed) {
+          await tester.tap(find.bySemanticsLabel(tab));
+          await tester.pumpAndSettle();
+          expectPillClear(tester, find.byType(VistaBottomNav));
+        }
+
+        // Home's feed ticket.
+        await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+        await tester.pumpAndSettle();
+        final cta = button(r'Long $200 · 2x');
+        await tester.ensureVisible(cta);
+        await tester.pumpAndSettle();
+        expectPillClear(tester, cta);
+        expectPillClear(tester, find.byType(TextField).hitTestable());
+        Navigator.of(tester.element(cta)).pop();
+        await tester.pumpAndSettle();
+
+        // A pushed route, then its ticket.
+        await tester.tap(find.text('Details').first);
+        await tester.pumpAndSettle();
+        expectPillClear(tester, find.byType(VistaPillButton).hitTestable());
+        await tester.tap(find.text('Long').last);
+        await tester.pumpAndSettle();
+        final place = button('Place market long');
+        await tester.ensureVisible(place);
+        await tester.pumpAndSettle();
+        expectPillClear(tester, place);
+        expectPillClear(tester, find.byType(TextField).hitTestable());
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('the pill shows in the make-market flow on $name', (
+        tester,
+      ) async {
+        Scenario.reset(withMarket: false);
+        await launch(tester, phone);
+        await tester.tap(find.bySemanticsLabel('Wallet'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Make a market'));
+        await tester.pumpAndSettle();
+        expectPillClear(tester, find.byType(VistaPrimaryButton));
+        expectPillClear(tester, find.byType(TextField).hitTestable());
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('the pill sits above the safe area and the keyboard, opens '
+        'one note, and toasts clear it', (tester) async {
+      await launch(tester, sizes['iPhone 14 390x844']!);
+      Rect badge() => tester.getRect(find.bySemanticsLabel(pill));
+      const safe = 844.0 - 34; // above the home indicator
+      expect(badge().bottom, lessThanOrEqualTo(safe));
+      expect(
+        badge().top,
+        greaterThanOrEqualTo(safe - SimulationIndicator.slot),
+      );
+      // A double tap opens one note.
+      await tester.tap(find.bySemanticsLabel(pill));
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel(pill));
+      await tester.pumpAndSettle();
+      expect(find.text('Reset demo'), findsOneWidget);
+      // Its toast lands above the pill, not under it.
+      await tester.tap(find.text('Reset demo'));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(find.byType(SnackBar)).overlaps(badge()), isFalse);
+      // With the keyboard up, the pill rides above it.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300.0 * 3);
+      await tester.pumpAndSettle();
+      expect(badge().bottom, lessThanOrEqualTo(844.0 - 300));
+    });
+
+    testWidgets('Reset demo from the pill closes the sheets and routes built '
+        'on the old state, and its toast shows', (tester) async {
+      await launch(tester, sizes['iPhone SE 375x667']!);
+      // A pushed route with a ticket sheet over it.
+      await tester.tap(find.text('Details').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Long').last);
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderTicket), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel(pill));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reset demo'));
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderTicket), findsNothing);
+      // Back on the root route: the pushed trade page is gone too.
+      expect(
+        tester.state<NavigatorState>(find.byType(Navigator)).canPop(),
+        isFalse,
+      );
+      expect(
+        find.text('Demo reset to fixture-v1').hitTestable(),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
   });
 }

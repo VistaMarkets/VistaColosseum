@@ -18,6 +18,9 @@ abstract final class VistaRadius {
   static const double sm = 6;
   static const double md = 8;
   static const double card = 20;
+
+  /// Top corners of a bottom sheet.
+  static const double sheet = 24;
   static const double pill = 999;
 }
 

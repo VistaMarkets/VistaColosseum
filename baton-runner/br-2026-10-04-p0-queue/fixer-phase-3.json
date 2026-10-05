@@ -1,0 +1,237 @@
+{
+  "summary": "Adjudicate review findings against the sources that decide them, then apply only the confirmed edits through a single writer",
+  "agentCount": 3,
+  "logs": [
+    "Adjudicating 2 finding group(s) against the sources",
+    "4 verdicts from 2/2 groups: F1=real-but-decided-elsewhere, F4=fix-here, F2=fix-here, F3=fix-here"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "findingId": "F1",
+        "verdict": "real-but-decided-elsewhere",
+        "evidence": "The claim holds. simulation_indicator.dart:86 `height: SimulationIndicator.slot,` with :40 `static const double slot = 30;`. The Semantics/GestureDetector sit in that Positioned, and `Align(widthFactor: 1)` (:97-98) fills the 30 px height, so the hit and semantics rect is pill-width x 30. vista_metrics.dart:27 `static const double tapTarget = 44;`. The chips do pad to 44: order_ticket.dart `SizedBox(height: 44, child: Center(child: Container(height: 30` and `_chip` `SizedBox(height: 44 ... height: 28`, and open_order_card.dart `SizedBox(height: VistaSize.tapTarget, ... height: 30`.\n\nRule 10's re-check FAILS, so the decided pad cannot land as written. Three action buttons end exactly on the strip's top edge, because each pads its bottom by the inset, which already includes the slot:\n- make_market_flow.dart:138 `bottomInset > 0 ? bottomInset : 30,` in `_footer`, which holds `VistaPrimaryButton` (:203, :213).\n- chart_sheet.dart:255 `bottomInset > 0 ? bottomInset : VistaSpace.gutter,` under the `Long`/`Short` VistaPillButtons (:261-270). asset_trade_screen.dart:68 `return ChartSheet(` is the 'Details' route.\n- your_market_screen.dart:137, same expression, under `VistaPillButton(label: 'Make a call'`.\n\nopinions_screen.dart:181 and position_sheet.dart:97 use the same flush pattern. A pad that reaches 14 px above the strip sits on the bottom 14 px of each of these buttons, across the pill's width (93.5-266.5 at 360). The overlay is the later Stack child, so with `HitTestBehavior.opaque` it wins the tap, and those taps open the note instead of the CTA. Spec 03 Behavior is binding: \"Must not cover nav, form fields or action buttons at 375×667 and 390×844\".\n\nThe tests already encode this. home_screen_test.dart `expectPillClear(tester, find.byType(VistaPrimaryButton));` (make-market test) and `expectPillClear(tester, find.byType(VistaPillButton).hitTestable());` (Details route) compare `tester.getRect(find.bySemanticsLabel(pill))` with `rect.overlaps`. The semantics rect has to grow to 44 for iOSTapTargetGuideline to pass, so both assertions would fail.\n\nThe nav also fails the rect check, though not functionally. AppShell pads the dock `VistaSpace.sm + bottomInset` (6), and VistaBottomNav has `padding: const EdgeInsets.all(VistaSpace.md)` (8). A 14 px pad reaches 8 px into the nav container, which is padding with no item in it, so `expectPillClear(tester, find.byType(VistaBottomNav))` would fail on rects only.\n\nRule 10 forbids raising the slot, and spec 03 forbids covering action buttons. Within those two decisions the 30 px hit area is the consequence. Closing F1 needs the manager to pick one of two options: raise the slot (rejected under rule 10), or move the flush footers (make_market_flow, chart_sheet, your_market_screen, opinions_screen, position_sheet) 14 px clear of the strip. The second option is 5 files, above the scope-confirmation threshold and outside the indicator file. The edit below only records the decision and its cost next to `slot`.",
+        "rejectsValidInput": "The proposed edit is a comment and rejects no input. For the record, the decided pad would intercept valid taps on the bottom 14 px of the make-market primary button, the Details-route Long/Short buttons and your-market 'Make a call', inside the pill's width. Spec 03 Behavior is the document that says those buttons must stay uncovered.",
+        "testProof": "n/a - comment-only edit. Anyone who later applies the pad can check the conflict with app/test/home_screen_test.dart 'the pill shows in the make-market flow on iPhone SE 375x667': `expectPillClear(tester, find.byType(VistaPrimaryButton))` fails with '<pill rect> covers <button rect>' once the Semantics rect reaches 44.",
+        "edits": [
+          {
+            "file": "app/lib/features/simulation/simulation_indicator.dart",
+            "anchor": "39-40 SimulationIndicator.slot",
+            "current": "  /// The reserved strip: fits the pill at the app's 1.3x text-scale cap.\n  static const double slot = 30;",
+            "replacement": "  /// The reserved strip: fits the pill at the app's 1.3x text-scale cap.\n  ///\n  /// Known gap (run manager, 2026-10-05): the pill's tap target is this\n  /// 30 px strip, under [VistaSize.tapTarget]. A pad above the strip would\n  /// sit on footers that end flush on it (make-market footer, ChartSheet\n  /// Long/Short, your-market 'Make a call'), which spec 03 forbids, and\n  /// raising the slot costs every screen 14 px. Closing it is the manager's\n  /// call: raise the slot, or give those footers a 14 px gap first.\n  static const double slot = 30;",
+            "rationale": "Records the real defect and why the decided pad cannot land, next to the constant that owns it. No behaviour change until the manager re-decides."
+          }
+        ]
+      },
+      {
+        "findingId": "F4",
+        "verdict": "fix-here",
+        "evidence": "simulation_indicator.dart:57 `barrierColor: const Color(0x73000000), // Figma scrim: black at 45%` and :134 `borderRadius: BorderRadius.vertical(top: Radius.circular(24)),`. vista_colors.dart has no scrim token. The nearest value is :22 `static const Color textFaint = Color(0x73FFFFFF); // white at 45%`, which is white. vista_metrics.dart VistaRadius has only `hairline = 2, sm = 6, md = 8, card = 20, pill = 999`, so there is no 24. Invariant 7 makes design_system the single source of colour tokens, and rule 11 says to add the scrim (and sheet radius) token and use it here, leaving the 6 older call sites alone. Both tokens are exported through design_system.dart `export 'tokens/vista_colors.dart';` / `export 'tokens/vista_metrics.dart';`, which the indicator already imports. The `BoxDecoration` stays `const` because `VistaRadius.sheet` is a compile-time constant.",
+        "rejectsValidInput": "none - checked. The values are byte-identical (0x73000000, radius 24), so the rendered barrier and corner do not change. Nothing reads the old literal, and the new names `VistaColors.scrim` and `VistaRadius.sheet` do not collide with any existing member (grep of app/lib/design_system for scrim/sheet tokens finds none).",
+        "testProof": "n/a - token extraction with identical values (Color(0x73000000), 24.0). No widget test can tell the before and after apart. The gate's flutter-analyze and flutter-test steps (scripts/gate.sh) confirm it compiles and that the existing 'the pill sits above the safe area and the keyboard, opens one note, and toasts clear it' test still opens the note.",
+        "edits": [
+          {
+            "file": "app/lib/design_system/tokens/vista_colors.dart",
+            "anchor": "13 VistaColors.surfaceRaised",
+            "current": "  static const Color surfaceRaised = Color(0xFF333333);",
+            "replacement": "  static const Color surfaceRaised = Color(0xFF333333);\n\n  /// Modal scrim behind bottom sheets (Figma: black at 45%).\n  static const Color scrim = Color(0x73000000);",
+            "rationale": "Adds the missing scrim colour token to the single source of colours (rule 11)."
+          },
+          {
+            "file": "app/lib/design_system/tokens/vista_metrics.dart",
+            "anchor": "20 VistaRadius.card",
+            "current": "  static const double card = 20;",
+            "replacement": "  static const double card = 20;\n\n  /// Top corners of a bottom sheet.\n  static const double sheet = 24;",
+            "rationale": "Adds the sheet radius token that rule 11 pairs with the scrim token."
+          },
+          {
+            "file": "app/lib/features/simulation/simulation_indicator.dart",
+            "anchor": "57 _SimulationIndicatorState._showNote barrierColor",
+            "current": "      barrierColor: const Color(0x73000000), // Figma scrim: black at 45%",
+            "replacement": "      barrierColor: VistaColors.scrim,",
+            "rationale": "Uses the token instead of the hardcoded colour in feature code."
+          },
+          {
+            "file": "app/lib/features/simulation/simulation_indicator.dart",
+            "anchor": "134 _SimulatedNote.build borderRadius",
+            "current": "        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),",
+            "replacement": "        borderRadius: BorderRadius.vertical(\n          top: Radius.circular(VistaRadius.sheet),\n        ),",
+            "rationale": "Uses the sheet radius token. The enclosing `const BoxDecoration` stays valid because VistaRadius.sheet is const. The line is split to stay inside dart format's 80 columns."
+          }
+        ]
+      },
+      {
+        "findingId": "F2",
+        "verdict": "fix-here",
+        "evidence": "Both 1.3x leverage tests check only the outcome and exceptions. home_screen_test.dart:2000-2004: `await tester.tap(find.text('Set 11x'));` then `expect(find.text('Cross · 11x'), findsOneWidget);` and `expect(tester.takeException(), isNull);`. :2288-2291 does the same with 'Set 3x'. Neither test checks overlap. expectPillClear (:2361-2371) sits inside group('simulation indicator') and is called only at :2398-2484, never on the leverage sheet. The sheet pads by `final safe = MediaQuery.paddingOf(context).bottom;` (order_ticket.dart:1122) and `padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),` (:1151). `safe` includes the 30 px strip that SimulationIndicator adds: `bottom: mq.padding.bottom + SimulationIndicator.slot`. The phones map gives 360x640 and 375x667 no bottom inset (:49-50). Measured rects from h1_probe.log:15-16: `pill=Rect.fromLTRB(93.5, 610.0, 266.5, 640.0)` and `Set rect=Rect.fromLTRB(16.0, 532.0, 344.0, 586.0)`, with maxScroll=0.0, so the sheet is sized to its content. If the mutant drops `+ safe`, Set moves down 30 px to 562-616. That overlaps the pill (610-640) by 6 px, but Set's centre (589) is still outside the pill, so tap() lands and all four tests pass. The spec forbids this layout ('Must not cover nav, form fields or action buttons at 375×667 and 390×844'). Both tests mount the real builder, so the pill is present: pumpBtc uses `VistaColosseumApp(home: AssetTradeScreen(ticker: 'BTC'))` and openFeedTicket uses `VistaColosseumApp()`. The fix lifts `pill` and expectPillClear to file scope (`pill` is not otherwise used before :2335; only comments mention the word) and calls it on `find.widgetWithText(VistaPrimaryButton, 'Set 11x'/'Set 3x')`. VistaPrimaryButton is already referenced in the file (:2482), and its 54 px box matches the probe's Set rect. Note on F1: if the F1 fix grows the pill's semantics rect upward to 44 px (596-640 at 360x640, 623-667 at 375x667), Set at 532-586 / 559-613 still clears it by 10 px. The writer must re-run these four tests after F1 lands.",
+        "rejectsValidInput": "none. These are test-only edits. The new assertion fails only when the pill's rect overlaps the Set button, and spec 03 Behavior forbids that ('Must not cover nav, form fields or action buttons'). No layout the spec allows is rejected, and no product input path changes.",
+        "testProof": "Mutation: in app/lib/features/trade/order_ticket.dart:1151, change `padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),` to `padding: EdgeInsets.fromLTRB(16, 10, 16, 24),`. Before these edits, all four tests in app/test/home_screen_test.dart pass under the mutant: 'order ticket Set applies leverage at 1.3x text on small Android 360x640', '... on iPhone SE 375x667', 'feed order ticket custom leverage applies at 1.3x text on small Android 360x640' and '... on iPhone SE 375x667'. After these edits, all four fail at the new `expectPillClear(tester, find.widgetWithText(VistaPrimaryButton, 'Set …'))` line with `expect(rect.overlaps(target), isFalse)`. The reason reads 'Rect.fromLTRB(93.5, 610.0, 266.5, 640.0) covers Rect.fromLTRB(16.0, 562.0, 344.0, 616.0)' at 360x640, and 637-667 vs 589-643 at 375x667. With the mutant reverted, all four pass again under scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-3-fixer/.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "44-45 breakoutLabel (file-scope helpers)",
+            "current": "/// The breakout label is the last event the trace reaches.\nFinder get breakoutLabel => find.text(r'Broke $2,950');",
+            "replacement": "/// The breakout label is the last event the trace reaches.\nFinder get breakoutLabel => find.text(r'Broke $2,950');\n\n/// The simulated pill's label.\nconst pill = 'Simulated · fixture-v1';\n\n/// The pill is on screen, on top, and covers none of [targets].\nvoid expectPillClear(WidgetTester tester, Finder targets) {\n  final badge = find.bySemanticsLabel(pill);\n  expect(badge.hitTestable(), findsOneWidget);\n  expect(targets, findsWidgets);\n  final rect = tester.getRect(badge);\n  for (var i = 0; i < targets.evaluate().length; i++) {\n    final target = tester.getRect(targets.at(i));\n    expect(rect.overlaps(target), isFalse, reason: '$rect covers $target');\n  }\n}",
+            "rationale": "Lift pill and expectPillClear to file scope so the order-ticket and feed-ticket groups can assert the pill clears Set."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2335 group('simulation indicator') const pill",
+            "current": "    const pill = 'Simulated · fixture-v1';\n    const tabs = ['Home', 'Explore', 'Arena', 'Wallet'];",
+            "replacement": "    const tabs = ['Home', 'Explore', 'Arena', 'Wallet'];",
+            "rationale": "The group-local pill const is now the file-scope one; drop the duplicate."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2361-2371 group-local expectPillClear",
+            "current": "    /// The pill is on screen, on top, and covers none of [targets].\n    void expectPillClear(WidgetTester tester, Finder targets) {\n      final badge = find.bySemanticsLabel(pill);\n      expect(badge.hitTestable(), findsOneWidget);\n      expect(targets, findsWidgets);\n      final rect = tester.getRect(badge);\n      for (var i = 0; i < targets.evaluate().length; i++) {\n        final target = tester.getRect(targets.at(i));\n        expect(rect.overlaps(target), isFalse, reason: '$rect covers $target');\n      }\n    }\n\n    Finder button(String label) => find",
+            "replacement": "    Finder button(String label) => find",
+            "rationale": "Remove the group-local copy; the group's existing calls now resolve to the file-scope helper unchanged."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "1999-2000 order ticket 'Set applies leverage at 1.3x text'",
+            "current": "        await tester.pumpAndSettle();\n        await tester.tap(find.text('Set 11x'));",
+            "replacement": "        await tester.pumpAndSettle();\n        // Set must clear the pill, not just keep its centre tappable.\n        expectPillClear(\n          tester,\n          find.widgetWithText(VistaPrimaryButton, 'Set 11x'),\n        );\n        await tester.tap(find.text('Set 11x'));",
+            "rationale": "Assert the pill does not overlap Set's button box (no hitTestable pre-filter), which catches the dropped-inset mutant."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2287-2288 feed order ticket 'custom leverage applies at 1.3x text'",
+            "current": "        await tester.pumpAndSettle();\n        await tester.tap(find.text('Set 3x'));",
+            "replacement": "        await tester.pumpAndSettle();\n        // Set must clear the pill, not just keep its centre tappable.\n        expectPillClear(\n          tester,\n          find.widgetWithText(VistaPrimaryButton, 'Set 3x'),\n        );\n        await tester.tap(find.text('Set 3x'));",
+            "rationale": "Same overlap assertion for the shared _LeverageSheet when opened from the feed ticket."
+          }
+        ]
+      },
+      {
+        "findingId": "F3",
+        "verdict": "fix-here",
+        "evidence": "The only Settings reset test mounts Settings as the root route. scenario_test.dart:123: `await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));`, and it checks only the toast text, state(), and the two Settings prefs (:132-136). In the real app, Settings is pushed: account_top_bar.dart:72 `Navigator.of(context).push(SettingsScreen.route())`. resetDemo does `Navigator.of(context).popUntil((route) => route.isFirst);` (simulation_indicator.dart:14), which is a no-op when Settings is the root. A grep of app/test for 'Reset demo' finds only scenario_test.dart:117-165 and home_screen_test.dart:2468-2490. The scenario_test.dart:139 test and both home_screen_test.dart hits go through the pill. home_screen_test.dart:1043/1497 open Settings but never tap Reset. So the regression the finding names survives the suite: replace settings_screen.dart:123 `onTap: () => resetDemo(context),` with an inline `Scenario.reset(); SettingsState.reset(); _say(...)`. `_say` still exists at :34-38. The out-of-suite probe baton-runner/br-2026-10-04-p0-queue/review-phase-3-iter-2-probe/settings_reset_probe_test.dart already shows the in-app shape passes today (log: '+1: All tests passed!'). The fix rewrites the existing root-mounted test instead of adding one. It now pumps VistaColosseumApp, opens Settings through the real Wallet gear (the same path home_screen_test.dart openSettings uses at :1491-1497) and asserts that Settings closes, canPop() is false, the toast is hit-testable and the store equals the seed. lib/ has a single Navigator (main.dart:26 navigatorKey), so find.byType(Navigator) is unambiguous. In scope per spec 03 Behavior: 'plus the Reset demo button (same action as Settings)'.",
+        "rejectsValidInput": "none. This is a test-only edit. The new assertions (Settings closed, root route, visible toast, store at seed) describe what resetDemo already does on the pill path and what the probe shows on the Settings path today. No product input or layout that is correct today fails it.",
+        "testProof": "Mutation: in app/lib/features/settings/settings_screen.dart:123, replace `onTap: () => resetDemo(context),` with `onTap: () { Scenario.reset(); SettingsState.reset(); _say('Demo reset to ${Scenario.fixtureVersion}'); },` and add `import '../../scenario/scenario.dart';`. Before the edit, the current app/test/scenario_test.dart test 'Reset demo in Settings restores the fixture and says so' passes under this mutant: the toast shows and state() equals seed. After the edit, the rewritten test 'Reset demo in Settings restores the fixture, closes Settings and says so' fails at `expect(find.byType(SettingsScreen), findsNothing);` because Settings stays pushed. If that line is removed, it fails at the canPop() isFalse check. With the mutant reverted, it passes under scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-3-fixer/.",
+        "edits": [
+          {
+            "file": "app/test/scenario_test.dart",
+            "anchor": "117-137 testWidgets 'Reset demo in Settings restores the fixture and says so'",
+            "current": "  testWidgets('Reset demo in Settings restores the fixture and says so', (\n    tester,\n  ) async {\n    mutateEverything();\n    SettingsState.tradingPermission.value = false;\n    DisplayPrefs.longOnRight.value = true;\n    await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));\n    await tester.pumpAndSettle();\n    await tester.scrollUntilVisible(\n      find.text('Reset demo'),\n      200,\n      scrollable: find.byType(Scrollable).last,\n    );\n    await tester.tap(find.text('Reset demo'));\n    await tester.pump();\n    expect(find.text('Demo reset to fixture-v1'), findsOneWidget);\n    expect(state(), equals(seed));\n    // \"Demo reset\" covers the simulated Settings too.\n    expect(SettingsState.tradingPermission.value, isTrue);\n    expect(DisplayPrefs.longOnRight.value, isFalse);\n  });",
+            "replacement": "  testWidgets('Reset demo in Settings restores the fixture, closes Settings '\n      'and says so', (tester) async {\n    tester.view\n      ..physicalSize = const Size(402, 874) * 3\n      ..devicePixelRatio = 3;\n    addTearDown(tester.view.reset);\n    await tester.pumpWidget(const VistaColosseumApp());\n    await tester.pumpAndSettle();\n    mutateEverything();\n    SettingsState.tradingPermission.value = false;\n    DisplayPrefs.longOnRight.value = true;\n    // Settings is pushed over the shell from the Wallet gear, as in the app.\n    await tester.tap(find.bySemanticsLabel('Wallet'));\n    await tester.pumpAndSettle();\n    await tester.tap(find.bySemanticsLabel('Settings'));\n    await tester.pumpAndSettle();\n    await tester.scrollUntilVisible(\n      find.text('Reset demo'),\n      200,\n      scrollable: find.byType(Scrollable).last,\n    );\n    await tester.tap(find.text('Reset demo'));\n    await tester.pumpAndSettle();\n    // Settings was built on the old state: it closes, back to the root.\n    expect(find.byType(SettingsScreen), findsNothing);\n    expect(\n      tester.state<NavigatorState>(find.byType(Navigator)).canPop(),\n      isFalse,\n    );\n    expect(find.text('Demo reset to fixture-v1').hitTestable(), findsOneWidget);\n    expect(state(), equals(seed));\n    // \"Demo reset\" covers the simulated Settings too.\n    expect(SettingsState.tradingPermission.value, isTrue);\n    expect(DisplayPrefs.longOnRight.value, isFalse);\n  });",
+            "rationale": "Mount the real app and push Settings the way the app does, so popUntil(isFirst) is exercised. A Settings-side inline reset that leaves Settings open over old state now fails. This rewrites the existing test rather than adding a second one."
+          }
+        ]
+      }
+    ],
+    "coverage": {
+      "failedGroups": [],
+      "unreported": []
+    },
+    "apply": {
+      "applied": [
+        {
+          "findingId": "F1",
+          "file": "app/lib/features/simulation/simulation_indicator.dart",
+          "summary": "Comment-only (F1.1): records next to SimulationIndicator.slot that the pill's tap target is the 30 px strip, below VistaSize.tapTarget. A pad above the strip would cover footers that end flush on it, and raising the slot is rejected by rule 10, so the manager has to choose. No behaviour change.",
+          "red": "n/a - comment-only edit"
+        },
+        {
+          "findingId": "F4",
+          "file": "app/lib/design_system/tokens/vista_colors.dart, app/lib/design_system/tokens/vista_metrics.dart, app/lib/features/simulation/simulation_indicator.dart",
+          "summary": "Added VistaColors.scrim = Color(0x73000000) and VistaRadius.sheet = 24. simulation_indicator.dart now uses them for barrierColor and the note's top radius (the const BoxDecoration still holds). The six older scrim call sites are unchanged, per rule 11.",
+          "red": "n/a - token extraction with identical values; no widget test can distinguish before/after"
+        },
+        {
+          "findingId": "F2",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "Moved pill and expectPillClear to file scope and dropped the group-local copies. The order-ticket and feed-ticket 1.3x leverage tests now call expectPillClear on find.widgetWithText(VistaPrimaryButton, 'Set 11x'/'Set 3x') before tapping. Mutation proof (order_ticket.dart `24 + safe` -> `24`): the old tests gave '00:02 +4: All tests passed!' under the mutant, the new tests fail all 4 under it, and all 4 pass again once the mutant is reverted.",
+          "red": "Under mutant, before edits: `00:00 +0: order ticket Set applies leverage at 1.3x text on small Android 360x640 / 00:00 +1: order ticket Set applies leverage at 1.3x text on iPhone SE 375x667 / 00:01 +2: feed order ticket custom leverage applies at 1.3x text on small Android 360x640 / 00:01 +3: feed order ticket custom leverage applies at 1.3x text on iPhone SE 375x667 / 00:02 +4: All tests passed!`\nUnder mutant, after edits:\nThe following TestFailure was thrown running a test:\nExpected: false\n  Actual: <true>\nRect.fromLTRB(93.5, 610.0, 266.5, 640.0) covers Rect.fromLTRB(16.0, 562.0, 344.0, 616.0)\n...\nThe following TestFailure was thrown running a test:\nExpected: false\n  Actual: <true>\nRect.fromLTRB(101.0, 637.0, 274.0, 667.0) covers Rect.fromLTRB(16.0, 589.0, 359.0, 643.0)\n...\n00:03 +0 -4: Some tests failed.\n\nFailing tests:\n  .../app/test/home_screen_test.dart: feed order ticket custom leverage applies at 1.3x text on iPhone SE 375x667\n  .../app/test/home_screen_test.dart: feed order ticket custom leverage applies at 1.3x text on small Android 360x640\n  .../app/test/home_screen_test.dart: order ticket Set applies leverage at 1.3x text on iPhone SE 375x667\n  .../app/test/home_screen_test.dart: order ticket Set applies leverage at 1.3x text on small Android 360x640"
+        },
+        {
+          "findingId": "F3",
+          "file": "app/test/scenario_test.dart",
+          "summary": "Rewrote the Settings reset test so it mounts VistaColosseumApp, pushes Settings from the Wallet gear, taps Reset demo, and then checks four things: Settings is gone, canPop() is false, the toast is hit-testable, and the state equals the seed. Mutation proof (inline Scenario.reset(); SettingsState.reset(); _say(...) in place of resetDemo(context)): the old test passed under the mutant and the new one fails at findsNothing. With the mutant reverted, all 18 scenario tests pass.",
+          "red": "Under mutant, before edit: `00:00 +0: Reset demo in Settings restores the fixture and says so / 00:00 +1: (tearDownAll) / 00:00 +1: All tests passed!`\nUnder mutant, after edit:\n══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════\nThe following TestFailure was thrown running a test:\nExpected: no matching candidates\n  Actual: _TypeWidgetFinder:<Found 1 widget with type \"SettingsScreen\": [\n            SettingsScreen(dependencies: [_ScaffoldMessengerScope], state:\n_SettingsScreenState#13577),\n          ]>\n   Which: means one was found but none were expected\n...\nThis was caught by the test expectation on the following line:\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart line 141\n00:02 +0 -1: Reset demo in Settings restores the fixture, closes Settings and says so [E]\n00:02 +0 -1: Some tests failed."
+        }
+      ],
+      "skipped": [],
+      "verification": "=== gate: flutter-analyze: flutter analyze ===\nPASS flutter-analyze\n=== gate: flutter-test: flutter test ===\nPASS flutter-test\n=== gate: pubspec-frozen: git diff --exit-code d77fe5916d92125f30c67f36ca4ea013d32bade2 -- pubspec.yaml pubspec.lock ===\nPASS pubspec-frozen\n----\nGATE: PASS\nexit=0"
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Adjudicate"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Apply"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "adjudicate:simulation-indicator",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a5d7626b0e50553ee",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791164083667,
+      "queuedAt": 1791164083649,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791164254342,
+      "tokens": 124421,
+      "toolCalls": 13,
+      "durationMs": 170673,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F1\",\"verdict\":\"real-but-decided-elsewhere\",\"evidence\":\"The claim holds. simulation_indicator.dart:86 `height: SimulationIndicator.slot,` with :40 `static const double slot = 30;`. The Semantics/GestureDetector sit in that Positioned, and `Align(widthFactor: 1)` (:97-98) fills the 30 px height, so the hit and semantics rect is pill-width x 30. vista_metrics.dart:27 `stati…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "adjudicate:tests",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a06d11e7787af0a97",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791164083669,
+      "queuedAt": 1791164083649,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791164281995,
+      "tokens": 127492,
+      "toolCalls": 19,
+      "durationMs": 197487,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F2\",\"verdict\":\"fix-here\",\"evidence\":\"Both 1.3x leverage tests check only the outcome and exceptions. home_screen_test.dart:2000-2004: `await tester.tap(find.text('Set 11x'));` then `expect(find.text('Cross · 11x'), findsOneWidget);` and `expect(tester.takeException(), isNull);`. :2288-2291 does the same with 'Set 3x'. Neither test checks overlap. expectPillClear (:2361-2…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "apply:edits",
+      "phaseIndex": 2,
+      "phaseTitle": "Apply",
+      "agentId": "a66c8887c963a3040",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791164294716,
+      "queuedAt": 1791164294698,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "=== gate: flutter-analyze: flutter analyze === PASS flutter…",
+      "promptPreview": "Apply the adjudicated edits below. You are the ONLY writer in this run, so apply them one at a\ntime and keep every file you touch valid throughout.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, ligh…",
+      "promptFramed": true,
+      "lastProgressAt": 1791164532083,
+      "tokens": 111286,
+      "toolCalls": 14,
+      "durationMs": 237367,
+      "resultPreview": "{\"applied\":[{\"findingId\":\"F1\",\"file\":\"app/lib/features/simulation/simulation_indicator.dart\",\"summary\":\"Comment-only (F1.1): records next to SimulationIndicator.slot that the pill's tap target is the 30 px strip, below VistaSize.tapTarget. A pad above the strip would cover footers that end flush on it, and raising the slot is rejected by rule 10, so the manager has to choose. No behaviour change.\"…"
+    }
+  ],
+  "totalTokens": 363199,
+  "totalToolCalls": 46
+}
