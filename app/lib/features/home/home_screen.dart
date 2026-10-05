@@ -6,8 +6,19 @@ import '../profile/profile_screen.dart';
 import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import '../trade/order_ticket.dart';
+import 'maker_suggestion.dart';
 import 'mock_trade_idea.dart';
 import 'trade_idea_card.dart';
+
+/// Home's pages: the idea cards, with the two Maker suggestions each
+/// between two of them.
+final homeFeed = <Object>[
+  ...mockFeed.take(2),
+  makerSuggestions[0],
+  mockFeed[2],
+  makerSuggestions[1],
+  ...mockFeed.skip(3),
+];
 
 /// Home feed (Figma 301:102, "Home · header A — caller first, aligned").
 class HomeScreen extends StatefulWidget {
@@ -67,33 +78,53 @@ class _HomeScreenState extends State<HomeScreen> {
               child: PageView.builder(
                 controller: _pages,
                 scrollDirection: Axis.vertical,
-                itemCount: mockFeed.length,
-                itemBuilder: (context, i) => TradeIdeaCard(
-                  idea: mockFeed[i],
-                  active: widget.visible && i == _settledPage,
-                  // An asset opens its trade page; a trader market, the
-                  // trader's market page.
-                  onDetails: () => Navigator.of(context).push(
-                    mockFeed[i].traderMarket
-                        ? TraderMarketScreen.route(mockFeed[i].ticker)
-                        : AssetTradeScreen.route(mockFeed[i].ticker),
-                  ),
-                  onCaller: () =>
-                      Navigator.of(context)
-                          .push(ProfileScreen.route(mockFeed[i].callerHandle)),
-                  // The first-time ticket, on the call's side (simulated);
-                  // its Details is the card's.
-                  onTrade: () => showFeedOrderTicket(
-                    context,
-                    symbol: mockFeed[i].ticker,
-                    side: mockFeed[i].side,
+                itemCount: homeFeed.length,
+                itemBuilder: (context, i) {
+                  final item = homeFeed[i];
+                  if (item is Suggestion) {
+                    return Center(
+                      child: MakerSuggestionCard(
+                        suggestion: item,
+                        // The same first-time ticket an idea card opens.
+                        onTrade: () => showFeedOrderTicket(
+                          context,
+                          symbol: item.asset,
+                          side: item.direction,
+                          onDetails: () =>
+                              Navigator.of(context)
+                                  .push(AssetTradeScreen.route(item.asset)),
+                        ),
+                      ),
+                    );
+                  }
+                  final idea = item as TradeIdea;
+                  return TradeIdeaCard(
+                    idea: idea,
+                    active: widget.visible && i == _settledPage,
+                    // An asset opens its trade page; a trader market, the
+                    // trader's market page.
                     onDetails: () => Navigator.of(context).push(
-                      mockFeed[i].traderMarket
-                          ? TraderMarketScreen.route(mockFeed[i].ticker)
-                          : AssetTradeScreen.route(mockFeed[i].ticker),
+                      idea.traderMarket
+                          ? TraderMarketScreen.route(idea.ticker)
+                          : AssetTradeScreen.route(idea.ticker),
                     ),
-                  ),
-                ),
+                    onCaller: () =>
+                        Navigator.of(context)
+                            .push(ProfileScreen.route(idea.callerHandle)),
+                    // The first-time ticket, on the call's side (simulated);
+                    // its Details is the card's.
+                    onTrade: () => showFeedOrderTicket(
+                      context,
+                      symbol: idea.ticker,
+                      side: idea.side,
+                      onDetails: () => Navigator.of(context).push(
+                        idea.traderMarket
+                            ? TraderMarketScreen.route(idea.ticker)
+                            : AssetTradeScreen.route(idea.ticker),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

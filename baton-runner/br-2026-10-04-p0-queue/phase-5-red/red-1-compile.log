@@ -1,0 +1,67 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart
+test/home_screen_test.dart:14:8: Error: Error when reading 'lib/features/home/maker_suggestion.dart': No such file or directory
+import 'package:vista_colosseum/features/home/maker_suggestion.dart';
+       ^
+test/home_screen_test.dart:2809:29: Error: Undefined name 'makerSuggestions'.
+    final [live, expired] = makerSuggestions;
+                            ^^^^^^^^^^^^^^^^
+test/home_screen_test.dart:2826:46: Error: 'Suggestion' isn't a type.
+    Future<void> turnTo(WidgetTester tester, Suggestion s) async {
+                                             ^^^^^^^^^^
+test/home_screen_test.dart:2828:35: Error: Undefined name 'homeFeed'.
+      feed.controller!.jumpToPage(homeFeed.indexOf(s));
+                                  ^^^^^^^^
+test/home_screen_test.dart:2836:23: Error: Undefined name 'makerSuggestions'.
+      for (final s in makerSuggestions) {
+                      ^^^^^^^^^^^^^^^^
+test/home_screen_test.dart:2841:19: Error: Undefined name 'homeFeed'.
+        final i = homeFeed.indexOf(s);
+                  ^^^^^^^^
+test/home_screen_test.dart:2844:11: Error: Undefined name 'homeFeed'.
+          homeFeed[i - 1],
+          ^^^^^^^^
+test/home_screen_test.dart:2845:11: Error: Undefined name 'homeFeed'.
+          homeFeed[i + 1],
+          ^^^^^^^^
+00:00 +0 -1: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart [E]
+  Failed to load "/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart":
+  Compilation failed for testPath=/home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: test/home_screen_test.dart:14:8: Error: Error when reading 'lib/features/home/maker_suggestion.dart': No such file or directory
+  import 'package:vista_colosseum/features/home/maker_suggestion.dart';
+         ^
+  test/home_screen_test.dart:2809:29: Error: Undefined name 'makerSuggestions'.
+      final [live, expired] = makerSuggestions;
+                              ^^^^^^^^^^^^^^^^
+  test/home_screen_test.dart:2826:46: Error: 'Suggestion' isn't a type.
+      Future<void> turnTo(WidgetTester tester, Suggestion s) async {
+                                               ^^^^^^^^^^
+  test/home_screen_test.dart:2828:35: Error: Undefined name 'homeFeed'.
+        feed.controller!.jumpToPage(homeFeed.indexOf(s));
+                                    ^^^^^^^^
+  test/home_screen_test.dart:2836:23: Error: Undefined name 'makerSuggestions'.
+        for (final s in makerSuggestions) {
+                        ^^^^^^^^^^^^^^^^
+  test/home_screen_test.dart:2841:19: Error: Undefined name 'homeFeed'.
+          final i = homeFeed.indexOf(s);
+                    ^^^^^^^^
+  test/home_screen_test.dart:2844:11: Error: Undefined name 'homeFeed'.
+            homeFeed[i - 1],
+            ^^^^^^^^
+  test/home_screen_test.dart:2845:11: Error: Undefined name 'homeFeed'.
+            homeFeed[i + 1],
+            ^^^^^^^^
+  .
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart

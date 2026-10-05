@@ -1,0 +1,19 @@
+=== M1 (invalid: mutant did not compile, see M1b)
+00:00 +0 -1: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart [E]
+00:00 +0 -1: Some tests failed.
+=== M2 wrong side
+Expected: (String, TradeSide):<(SOL, TradeSide.long)>
+  Actual: (String, TradeSide):<(SOL, TradeSide.short)>
+00:01 +0 -1: maker suggestion Trade this opens the ticket on the suggestion's asset and side [E]
+00:02 +2 -1: Some tests failed.
+=== M3 expired enabled
+Expected: false
+  Actual: <true>
+00:01 +1 -1: maker suggestion an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed [E]
+00:02 +2 -1: Some tests failed.
+=== M1b store write when Trade this opens the ticket
+Expected: [
+  Actual: [
+   Which: at location [0] is <1247999> instead of <1248000>
+00:02 +2 -1: maker suggestion viewing both suggestions and opening the ticket leave the store untouched [E]
+00:02 +2 -1: Some tests failed.

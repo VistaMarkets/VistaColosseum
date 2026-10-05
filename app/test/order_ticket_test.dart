@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
+import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
@@ -58,7 +59,9 @@ Future<void> homeCard(WidgetTester tester, String ticker) async {
   await tester.pumpWidget(const VistaColosseumApp());
   await tester.pumpAndSettle();
   final feed = tester.widget<PageView>(find.byType(PageView).first);
-  feed.controller!.jumpToPage(mockFeed.indexWhere((i) => i.ticker == ticker));
+  feed.controller!.jumpToPage(
+    homeFeed.indexWhere((i) => i is TradeIdea && i.ticker == ticker),
+  );
   await tester.pumpAndSettle();
 }
 
