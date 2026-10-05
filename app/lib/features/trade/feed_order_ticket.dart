@@ -315,10 +315,22 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                       'of available',
                 ),
                 gap,
+                // What you pay versus what you control, spelled out.
                 Text(
-                  '\$${_fmtUsd(_notional)} of ${widget.symbol} at '
-                  '${_leverage}x · $_units',
+                  'You pay \$${_fmtUsd(_margin)} → '
+                  '\$${_fmtUsd(_notional)} position (${_leverage}x) · '
+                  '$_units',
                   style: muted12,
+                ),
+                gap,
+                _WorstCase(
+                  symbol: widget.symbol,
+                  long: _long,
+                  entry: _entry,
+                  liquidation: _liquidation,
+                  margin: _margin,
+                  notional: _notional,
+                  stop: _exits ? _exitPrice(_slPct, gain: false) : null,
                 ),
                 _exitsCheck(muted12),
                 if (_exits) ...[
@@ -340,23 +352,6 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                   gap,
                   _exitsSummary(),
                 ],
-                gap,
-                Row(
-                  children: [
-                    Text(
-                      'If ${widget.symbol} ${_long ? 'falls' : 'rises'} to '
-                      '${MarketPrices.format(_liquidation, compact: true)}',
-                      style: VistaType.row.copyWith(
-                        color: VistaColors.textMuted,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'you lose the \$${_fmtUsd(_margin)}',
-                      style: VistaType.row,
-                    ),
-                  ],
-                ),
                 gap,
                 _buttons(),
               ],

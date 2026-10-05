@@ -52,6 +52,20 @@ class _PositionSheetState extends State<PositionSheet> {
   PositionDetail get _d => widget.position.detail;
   bool get _long => widget.position.side == TradeSide.long;
 
+  /// The margin behind the position: its size over its leverage.
+  double get _margin {
+    final size =
+        double.tryParse(_d.size.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    return size / widget.position.leverage;
+  }
+
+  /// Rough liquidation price: entry less the margin, plus a half-percent
+  /// maintenance buffer (as the order tickets estimate it).
+  double get _liquidation {
+    final cushion = 1 / widget.position.leverage - 0.005;
+    return _d.entry * (_long ? 1 - cushion : 1 + cushion);
+  }
+
   /// One stepper press: 0.5% of entry.
   double get _step => _d.entry * 0.005;
 
@@ -157,6 +171,16 @@ class _PositionSheetState extends State<PositionSheet> {
                 const SizedBox(width: VistaSpace.sm),
                 Text('· entry ${_usd(_d.entry)}', style: VistaType.bodyRegular),
               ],
+            ),
+            const SizedBox(height: VistaSpace.xs),
+            // Where it would be liquidated, and what that costs: shown at
+            // entry on the tickets, so shown here too.
+            Text(
+              'Liquidation ${_usd(_liquidation)} · you\'d lose the '
+              '${formatUsd(_margin)} margin',
+              style: VistaType.bodyRegular.copyWith(
+                color: VistaColors.textMuted,
+              ),
             ),
             gap,
             SizedBox(

@@ -2729,11 +2729,24 @@ void main() {
         expect(inTicket(find.text(l)), findsOneWidget);
       }
       expect(
-        inTicket(find.text(r'$400 of ETH at 2x · 0.1348 ETH')),
+        inTicket(find.text(r'You pay $200 → $400 position (2x) · 0.1348 ETH')),
         findsOneWidget,
       );
-      expect(inTicket(find.text(r'If ETH falls to $1,499')), findsOneWidget);
-      expect(inTicket(find.text(r'you lose the $200')), findsOneWidget);
+      // The worst case, in words: liquidation, what's lost, and the stop.
+      expect(
+        inTicket(
+          find.textContaining(
+            r'If ETH falls to $1,499, the position is closed and you lose '
+            r'the $200 you put in.',
+            findRichText: true,
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        inTicket(find.textContaining(r'Your stop-loss at $2,906')),
+        findsOneWidget,
+      );
       // TP/SL opens on, with the track at the design's defaults.
       expect(inTicket(find.text('STOP LOSS')), findsOneWidget);
       expect(inTicket(find.text('ENTRY')), findsOneWidget);
@@ -2755,7 +2768,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(inTicket(find.text(r'Long $200 · 5x')), findsOneWidget);
       expect(
-        inTicket(find.text(r'$1,000 of ETH at 5x · 0.3369 ETH')),
+        inTicket(
+          find.text(r'You pay $200 → $1,000 position (5x) · 0.3369 ETH'),
+        ),
         findsOneWidget,
       );
 

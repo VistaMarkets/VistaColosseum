@@ -476,6 +476,16 @@ class _OrderTicketState extends State<OrderTicket> {
           formatUsd(fee, decimals: 2),
         ),
         gap,
+        _WorstCase(
+          symbol: widget.symbol,
+          long: _long,
+          entry: entry,
+          liquidation: liquidation,
+          margin: _margin,
+          notional: _notional,
+          stop: _exits && _parse(_sl.text) > 0 ? _parse(_sl.text) : null,
+        ),
+        gap,
         Semantics(
           button: true,
           enabled: problem.isEmpty,
@@ -1135,6 +1145,94 @@ class _LeverageSheetState extends State<_LeverageSheet> {
             onPressed: () => Navigator.of(context).pop(_l),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The worst case on an order, in plain words: the price where the
+/// position is liquidated and that the money put in is lost; with a
+/// stop-loss, that the stop should close it first and about what that costs.
+/// Shared by both tickets.
+class _WorstCase extends StatelessWidget {
+  const _WorstCase({
+    required this.symbol,
+    required this.long,
+    required this.entry,
+    required this.liquidation,
+    required this.margin,
+    required this.notional,
+    this.stop,
+  });
+
+  final String symbol;
+  final bool long;
+  final double entry;
+  final double liquidation;
+
+  /// What the user puts in.
+  final double margin;
+  final double notional;
+  final double? stop;
+
+  @override
+  Widget build(BuildContext context) {
+    final strong = VistaType.row.copyWith(color: VistaColors.textPrimary);
+    final muted = VistaType.rowRegular.copyWith(color: VistaColors.textMuted);
+    final s = stop;
+    final stopLoss = s == null || entry == 0
+        ? null
+        : notional * (s - entry).abs() / entry;
+    return Semantics(
+      container: true,
+      label: 'Worst case',
+      child: Container(
+        padding: const EdgeInsets.all(VistaSpace.xl),
+        decoration: BoxDecoration(
+          color: VistaColors.surface,
+          borderRadius: BorderRadius.circular(VistaSpace.xl),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'WORST CASE',
+              style: VistaType.label.copyWith(
+                color: VistaColors.textMuted,
+                letterSpacing: 0.6,
+              ),
+            ),
+            const SizedBox(height: VistaSpace.xs),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: 'If $symbol ${long ? 'falls' : 'rises'} to '),
+                  TextSpan(
+                    text: MarketPrices.format(
+                      math.max(0, liquidation),
+                      compact: true,
+                    ),
+                    style: strong,
+                  ),
+                  const TextSpan(
+                    text: ', the position is closed and you lose ',
+                  ),
+                  TextSpan(text: 'the ${formatUsd(margin)}', style: strong),
+                  const TextSpan(text: ' you put in.'),
+                ],
+              ),
+              style: muted,
+            ),
+            if (s != null && stopLoss != null) ...[
+              const SizedBox(height: VistaSpace.xs),
+              Text(
+                'Your stop-loss at ${MarketPrices.format(s, compact: true)} '
+                'should close it first, for about −${formatUsd(stopLoss)}.',
+                style: muted,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
