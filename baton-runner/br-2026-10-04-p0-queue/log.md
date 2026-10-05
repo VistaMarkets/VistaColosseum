@@ -103,3 +103,5 @@
 2026-10-05T03:55:00Z pr: phase 5 draft https://github.com/VistaMarkets/VistaColosseum/pull/16 (base feat/br-2026-10-04-p0-queue/phase-4) at 9bf4364
 2026-10-05T03:55:00Z branch: feat/br-2026-10-04-p0-queue/phase-6 cut from phase-5 tip
 2026-10-05T03:55:00Z spawn: phase 6 WORK unit (opus, general-purpose) spec docs/specs/06-fee-ledger-and-receipts.md; continuity digests 1-5
+2026-10-05T04:15:14Z return: phase 6 WORK unit COMPLETE; progress=criteria 3/3; files 12 (over the ~10 guideline, stopped at a stable green point); gate PASS 261 (HAS_MARKET 261); All-receipts grep empty; baton baton-pass/br-2026-10-04-p0-queue/2026-10-05T041423-phase6-fee-ledger-and-receipts.md; open reading: "every record item" taken as Your market's seeded record only; Profile CALLS and trader-market Record items still not tappable; units 29/75
+2026-10-05T04:15:14Z spawn: phase 6 REVIEW unit (managed: gate + criteria), asked to judge the record-item reading against the spec text
