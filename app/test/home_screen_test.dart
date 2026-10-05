@@ -8,6 +8,7 @@ import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/account/account_top_bar.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
 import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
@@ -954,11 +955,61 @@ void main() {
       expect(tickers(tester), ['SOL', 'BTC', 'ETH']);
       await tester.tap(find.text('Funding'));
       await tester.pumpAndSettle();
-      // ETH and SOL pay the same funding: the tie goes by id.
-      expect(tickers(tester), ['ETH', 'SOL', 'BTC']);
+      // Markets' funding: SOL +0.012%, BTC +0.009%, ETH −0.004%.
+      expect(tickers(tester), ['SOL', 'BTC', 'ETH']);
       await tester.tap(find.text('Volume'));
       await tester.pumpAndSettle();
       expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
+    });
+
+    test('each battle quotes its asset as the Markets tab does', () {
+      for (final b in ArenaMock.battles) {
+        final m = MarketsMock.assets.firstWhere((m) => m.id == b.asset);
+        expect(
+          (b.changePct, b.fundingPct),
+          (m.changePct, m.sortValues['Funding']),
+          reason: b.asset,
+        );
+      }
+    });
+
+    test('sorts by the chip field, highest first, ties by id', () {
+      Battle battle(String id, int volume, double change, double funding) =>
+          Battle(
+            id: id,
+            asset: 'BTC',
+            price: '',
+            volume: volume,
+            changePct: change,
+            fundingPct: funding,
+            bullPct: 60,
+            bullCount: 0,
+            bearCount: 0,
+            timeLeft: '',
+            question: '',
+            bull: ArenaMock.battles.first.bull,
+            bear: ArenaMock.battles.first.bear,
+            opinionCount: 2,
+            opinions: const [],
+          );
+      // Fed out of id order, so a sort without the tiebreak fails.
+      final pool = [
+        battle('c', 3, -1, 2),
+        battle('b', 1, 2, 1),
+        battle('a', 1, 1, 2),
+      ];
+      List<String> ids(int sort) => [
+        for (final b in ArenaMock.visible((
+          sort: sort,
+          from: 0,
+          to: ArenaMock.bucketCount,
+          query: '',
+        ), pool))
+          b.id,
+      ];
+      expect(ids(0), ['c', 'a', 'b']); // volume; a and b tie on 1
+      expect(ids(1), ['b', 'a', 'c']); // change
+      expect(ids(2), ['a', 'c', 'b']); // funding; a and c tie on 2
     });
 
     testWidgets('the crowd range filters the cards and the panel counts them', (
@@ -1001,6 +1052,14 @@ void main() {
       expect(find.text('Crowd split 50/50 +'), findsOneWidget);
       expect(find.text('3 battles'), findsOneWidget);
       expect(find.byType(VistaBattleCard), findsWidgets);
+
+      // Emptied from the lower thumb, Show all brings the floor back too.
+      await dragThumb(tester, 0, 0.9); // 95/5 and up: no battle there
+      expect(find.text('0 battles'), findsOneWidget);
+      await tester.tap(find.text('Show all'));
+      await tester.pumpAndSettle();
+      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
+      expect(find.text('3 battles'), findsOneWidget);
     });
 
     testWidgets('Ask filters by asset; no match names the assets there are', (
@@ -1015,6 +1074,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(tickers(tester), ['ETH']);
       expect(find.text('1 battle'), findsOneWidget);
+      // A substring, not a prefix or the whole ticker.
+      await tester.enterText(ask, 'th');
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['ETH']);
 
       await tester.enterText(ask, 'doge');
       await tester.pumpAndSettle();
@@ -1027,6 +1090,27 @@ void main() {
       await tester.pumpAndSettle();
       expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
       expect(tester.widget<TextField>(ask).controller!.text, isEmpty);
+    });
+
+    testWidgets('with the keyboard up the panel folds and Ask results show', (
+      tester,
+    ) async {
+      await openArena(tester, const Size(360, 640));
+      final ask = find.descendant(
+        of: find.byType(ArenaScreen),
+        matching: find.byType(TextField),
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 280.0 * 3);
+      await tester.enterText(ask, 'doge');
+      await tester.pumpAndSettle();
+      expect(find.byType(RangeSlider).hitTestable(), findsNothing);
+      expect(find.text('Try BTC, ETH, SOL').hitTestable(), findsOneWidget);
+
+      // Keyboard down: the panel unfolds with its state intact.
+      tester.view.resetViewInsets();
+      await tester.pumpAndSettle();
+      expect(find.byType(RangeSlider).hitTestable(), findsOneWidget);
+      expect(find.text('0 battles'), findsOneWidget);
     });
 
     testWidgets('joining: Cancel counts nothing; a fill counts once, shows', (
@@ -1055,6 +1139,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('and 15'), findsOneWidget);
       expect(find.text('Joined Bull'), findsOneWidget);
+      // Only the joined side says so, and only its crowd moved.
+      expect(find.text('Joined Bear'), findsNothing);
+      expect(find.text('and 6'), findsOneWidget);
       // The fill's Wallet position references the clash.
       expect(Scenario.positions.value.first.clashId, 'btc-72k');
       expect(Scenario.positions.value.first.title, 'Bitcoin');
@@ -1066,6 +1153,10 @@ void main() {
       await openArena(tester, const Size(402, 2400));
       await tester.tap(find.text('+7 more opinions'));
       await tester.pumpAndSettle();
+      // ETH's own split, count and callers, not BTC's.
+      expect(find.text('Crowd split 28% bull'), findsOneWidget);
+      expect(find.text('Crowd split · 9 opinions'), findsOneWidget);
+      expect(find.text('@lunaq'), findsOneWidget);
       await tester.tap(find.text('Follow Bear'));
       await tester.pumpAndSettle();
       final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
@@ -1077,6 +1168,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(Scenario.positions.value.first.clashId, 'eth-4k');
       expect(Scenario.positions.value.first.side, TradeSide.short);
+      expect(Scenario.participation.value, {'eth-4k': TradeSide.short});
+
+      // Back on the Arena, ETH's card shows the Bear join and its crowd.
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Joined Bear'), findsOneWidget);
+      expect(find.text('Joined Bull'), findsNothing);
+      expect(find.text('and 13'), findsOneWidget);
     });
 
     testWidgets('sort chips stay fixed while battles scroll', (tester) async {
@@ -1095,6 +1196,34 @@ void main() {
         tester.getTopLeft(find.byType(VistaBattleCard).first).dy,
         lessThan(card.dy),
       );
+    });
+
+    testWidgets('a narrower range starts the list at the top', (tester) async {
+      await openArena(
+        tester,
+        const Size(360, 640),
+        const EdgeInsets.only(top: 24),
+      );
+      final list = find
+          .descendant(
+            of: find.byType(ArenaScreen),
+            matching: find.byType(ListView),
+          )
+          .first;
+      double offset() => tester
+          .state<ScrollableState>(
+            find.descendant(of: list, matching: find.byType(Scrollable)).first,
+          )
+          .position
+          .pixels;
+      await tester.drag(list, const Offset(0, -4000));
+      await tester.pumpAndSettle();
+      expect(offset(), greaterThan(0));
+
+      Scenario.setArena(from: 7, to: 8); // SOL's 88/12 bucket only
+      await tester.pumpAndSettle();
+      expect(tickers(tester), ['SOL']);
+      expect(offset(), 0);
     });
 
     testWidgets('tapping a caller opens their profile', (tester) async {

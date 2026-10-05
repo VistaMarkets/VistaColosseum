@@ -23,22 +23,30 @@ class ArenaScreen extends StatefulWidget {
 
 class _ArenaScreenState extends State<ArenaScreen> {
   late final _ask = TextEditingController(text: Scenario.arena.value.query);
+  final _list = ScrollController();
+  var _shown = ArenaMock.visible(Scenario.arena.value).length;
 
   @override
   void initState() {
     super.initState();
-    Scenario.arena.addListener(_followQuery);
+    Scenario.arena.addListener(_followView);
   }
 
-  /// Reset clears the query; the field follows it.
-  void _followQuery() {
-    final q = Scenario.arena.value.query;
-    if (_ask.text != q) _ask.text = q;
+  /// Reset clears the query; the field follows it. A narrower range or Ask
+  /// starts the shorter list at its top: a kept offset would be clamped and
+  /// open the remaining card partway down.
+  void _followView() {
+    final view = Scenario.arena.value;
+    if (_ask.text != view.query) _ask.text = view.query;
+    final shown = ArenaMock.visible(view).length;
+    if (shown < _shown && _list.hasClients) _list.jumpTo(0);
+    _shown = shown;
   }
 
   @override
   void dispose() {
-    Scenario.arena.removeListener(_followQuery);
+    Scenario.arena.removeListener(_followView);
+    _list.dispose();
     _ask.dispose();
     super.dispose();
   }
@@ -103,6 +111,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
         ),
         Expanded(
           child: ListView(
+            controller: _list,
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.only(bottom: VistaSpace.gutter),
             children: [

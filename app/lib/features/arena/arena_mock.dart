@@ -35,7 +35,8 @@ class Battle {
   /// 24h volume in int US cents (a sort key).
   final int volume;
 
-  /// 24h price change and funding rate, in percent (sort keys).
+  /// 24h price change and funding rate, in percent (sort keys); the
+  /// Markets tab's values for [asset].
   final double changePct;
   final double fundingPct;
 
@@ -95,7 +96,7 @@ abstract final class ArenaMock {
     price: r'$67,412',
     volume: 184000000000,
     changePct: 1.2,
-    fundingPct: 0.010,
+    fundingPct: 0.009,
     bullPct: 63,
     bullCount: 14,
     bearCount: 6,
@@ -130,8 +131,8 @@ abstract final class ArenaMock {
     asset: 'ETH',
     price: r'$2,968',
     volume: 92000000000,
-    changePct: -0.8,
-    fundingPct: 0.031,
+    changePct: -0.4,
+    fundingPct: -0.004,
     bullPct: 28,
     bullCount: 5,
     bearCount: 12,
@@ -150,7 +151,7 @@ abstract final class ArenaMock {
       accuracy: '77% accuracy',
       price: r'$0.3120',
       change: '-0.4%',
-      thesis: 'Funding is hot at 0.03% and spot is not following the perps.',
+      thesis: 'Spot is not following the perps and the ETF bid has stalled.',
       result: '+3.1%',
     ),
     opinionCount: 9,
@@ -173,7 +174,7 @@ abstract final class ArenaMock {
         subtitle: 'Sniper · 77% accuracy',
         side: OpinionSide.bear,
         label: 'BEAR',
-        thesis: 'Funding is hot at 0.03% and spot is not following the perps.',
+        thesis: 'Spot is not following the perps and the ETF bid has stalled.',
         stats: [
           VistaSideStat(r'$3,060', 'Entry'),
           VistaSideStat('+3.1%', 'Live', color: VistaColors.long),
@@ -187,8 +188,8 @@ abstract final class ArenaMock {
     asset: 'SOL',
     price: r'$214.90',
     volume: 41000000000,
-    changePct: 3.4,
-    fundingPct: 0.031,
+    changePct: 3.8,
+    fundingPct: 0.012,
     bullPct: 88,
     bullCount: 21,
     bearCount: 3,
@@ -246,11 +247,11 @@ abstract final class ArenaMock {
   static final askHint =
       'Try ${({for (final b in battles) b.asset}.toList()..sort()).join(', ')}';
 
-  /// Battles whose asset contains [query], any case.
-  static List<Battle> asked(String query) {
+  /// Battles in [pool] whose asset contains [query], any case.
+  static List<Battle> asked(String query, [List<Battle> pool = battles]) {
     final q = query.trim().toUpperCase();
     return [
-      for (final b in battles)
+      for (final b in pool)
         if (b.asset.contains(q)) b,
     ];
   }
@@ -266,14 +267,14 @@ abstract final class ArenaMock {
 
   /// What the list shows: Ask's matches in the range, highest first by the
   /// sort chip's field, ties by id.
-  static List<Battle> visible(ArenaView v) {
+  static List<Battle> visible(ArenaView v, [List<Battle> pool = battles]) {
     num key(Battle b) => switch (v.sort) {
       1 => b.changePct,
       2 => b.fundingPct,
       _ => b.volume,
     };
     return [
-      for (final b in asked(v.query))
+      for (final b in asked(v.query, pool))
         if (b.bucket >= v.from && b.bucket < v.to) b,
     ]..sort((a, b) {
       final c = key(b).compareTo(key(a));
