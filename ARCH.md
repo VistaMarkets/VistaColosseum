@@ -484,9 +484,13 @@ VistaColosseum/
 │       ├── 2026-10-04T205139-phase5-close.md
 │       ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
 │       ├── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
-│       └── 2026-10-05T041752-phase6-review-iter1.md
+│       ├── 2026-10-05T041752-phase6-review-iter1.md
+│       └── 2026-10-05T050809-phase6-close.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
+│       ├── close-phase-6/
+│       │   ├── house-rule-grep.log
+│       │   └── receipts-test-expanded.log
 │       ├── fix-phase-2-iter-2/
 │       │   ├── gate/
 │       │   │   ├── flutter-analyze.log
@@ -640,6 +644,12 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-6-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   ├── has-market-tail.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-6-fixer/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
@@ -772,6 +782,7 @@ VistaColosseum/
 │       ├── digest-phase-3.md
 │       ├── digest-phase-4.md
 │       ├── digest-phase-5.md
+│       ├── digest-phase-6.md
 │       ├── fixer-phase-3.json
 │       ├── fixer-phase-4.json
 │       ├── fixer-phase-5.json
@@ -812,6 +823,7 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-3-simulation-indicator.md
 │   │   ├── 2026-10-04-dw-review-phase-4-arena-sort-filter-join.md
 │   │   ├── 2026-10-04-dw-review-phase-5-maker-suggestion-card.md
+│   │   ├── 2026-10-04-dw-review-phase-6-fee-ledger-and-receipts.md
 │   │   └── 2026-10-04-spec-00-baton-queue-review.md
 │   └── specs/
 │       ├── 00-baton-queue.md

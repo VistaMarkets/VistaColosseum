@@ -1,0 +1,40 @@
+# house-rule grep over git diff feat/br-2026-10-04-p0-queue/phase-5...HEAD -- app (HEAD 30e54c0)
+## 1 pub deps: pubspec diff
+(end; empty = unchanged)
+## 1b new package imports (added lines)
+(end)
+## 2 double (added lines)
+(end)
+## 3 hardcoded colour / font size in lib (added lines)
+28:+                        style: VistaType.bodyStrong.copyWith(fontSize: 14),
+35:+                          color: VistaColors.textMuted,
+112:+    null => VistaColors.textMuted,
+301:+    final muted = VistaType.caption.copyWith(color: VistaColors.textMuted);
+351:+              border: Border(top: BorderSide(color: VistaColors.hairline)),
+416:+    final muted = VistaType.caption.copyWith(color: VistaColors.textMuted);
+553:+                      color: VistaColors.textMuted,
+564:+                        ? VistaType.body.copyWith(color: VistaColors.textMuted)
+(end)
+## 4 persona / scenario-phase control (added lines, lib)
+(end)
+## 5 stored fee total (added lines)
+(end)
+## 6 40% mentions (added lines, lib)
+25:+                        'You earn ${YourMarketMock.creatorSharePct}% of the '
+32:+                        YourMarketMock.shareLabel,
+150:+  /// The creator's share of trading fees: the video's 40% (O-05). A demo
+152:+  static const creatorSharePct = 40;
+153:+  static const shareLabel = '$creatorSharePct% share is a demo assumption';
+163:+      (1, 'Saturday', 3, 1240),
+166:+      (4, 'Wednesday', 72, 640),
+200:+      id: 'maya-eth-4000-oct2',
+213:+      id: 'maya-eth-4000-oct10',
+281:+/// 40% creator share is a demo assumption.
+288:+  /// Works [e] back from the fee traders paid: fee × 40% = the credit.
+289:+  /// The fee is the credit ÷ 40% in int cents, rounded half up; the result
+292:+    const pct = YourMarketMock.creatorSharePct;
+295:+        '${formatCents(fee)} in fees. $pct% of ${formatCents(fee)} = '
+311:+              'Illustrative demo ledger · ${YourMarketMock.shareLabel}',
+(end)
+## 7 success messages / toasts (added lines, lib)
+(end)
