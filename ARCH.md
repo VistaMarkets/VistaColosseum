@@ -652,7 +652,8 @@ VistaColosseum/
 │       ├── 05-maker-suggestion-card.md
 │       ├── 06-fee-ledger-and-receipts.md
 │       ├── 07-trader-record-panel.md
-│       └── 08-list-empty-failed-states.md
+│       ├── 08-list-empty-failed-states.md
+│       └── 09-copy-story.md
 ├── scripts/
 │   └── gate.sh
 ├── .gitignore
