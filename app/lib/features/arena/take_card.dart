@@ -361,8 +361,8 @@ final _actionCount = VistaType.bodyMedium.copyWith(
   color: VistaColors.textMuted,
 );
 
-/// The position behind a backed take, live: side and leverage, "✓ Backed",
-/// P/L since entry, then entry, size and exits.
+/// The position behind a backed take, live: side and leverage, P/L since
+/// entry, then entry, size and exits.
 class BackedPositionCard extends StatelessWidget {
   const BackedPositionCard({
     super.key,
@@ -407,13 +407,6 @@ class BackedPositionCard extends StatelessWidget {
                   Text(
                     '${p.side.label.toUpperCase()} ${p.leverage}x',
                     style: VistaType.bodyStrong.copyWith(color: p.side.color),
-                  ),
-                  const SizedBox(width: VistaSpace.sm),
-                  _Tag(
-                    '✓ Backed',
-                    color: VistaColors.textPrimary,
-                    fill: VistaColors.surfaceRaised,
-                    style: VistaType.label,
                   ),
                   const Spacer(),
                   ValueListenableBuilder(
@@ -464,36 +457,6 @@ String _short(double v) {
   if (v < 1000) return '\$${v.round()}';
   final k = (v / 1000).toStringAsFixed(1);
   return '\$${k.endsWith('.0') ? k.substring(0, k.length - 2) : k}k';
-}
-
-/// A small rounded label: "✓ Backed".
-class _Tag extends StatelessWidget {
-  const _Tag(
-    this.text, {
-    required this.color,
-    required this.fill,
-    required this.style,
-  });
-
-  final String text;
-  final Color color;
-  final Color fill;
-  final TextStyle style;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: VistaSpace.sm,
-        vertical: VistaSpace.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(VistaRadius.sm),
-      ),
-      child: Text(text, style: style.copyWith(color: color)),
-    );
-  }
 }
 
 /// The battle a take is on: "Reclaims $72,000 by Fri ›".

@@ -953,7 +953,8 @@ void main() {
       expect(find.text(r'Reclaims $72,000 by Fri'), findsWidgets);
       expect(find.text('LONG BTC'), findsWidgets);
       expect(find.text('SHORT BTC'), findsWidgets);
-      expect(find.text('✓ Backed'), findsWidgets);
+      expect(find.text('✓ Backed'), findsNothing);
+      expect(find.byType(BackedPositionCard), findsWidgets);
       // The battle chip opens the battle.
       await tester.tap(find.text(r'Reclaims $72,000 by Fri').first);
       await tester.pumpAndSettle();
