@@ -1,0 +1,34 @@
+Resolving dependencies...
+Downloading packages...
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/scenario_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: seed → mutate everything → reset equals the fresh seed
+00:00 +1: reset twice yields equal state
+00:00 +2: Reset demo in Settings restores the fixture, closes Settings and says so
+00:01 +3: the simulated pill explains itself; its Reset demo is the Settings reset
+00:02 +4: Wallet lists the positions held in Scenario
+00:02 +5: Home, detail, Arena and Wallet read one position from Scenario
+00:02 +6: placeOrder rounds once and review, receipt and Wallet totals reconcile
+00:03 +7: a clash fill joins its side once per action; a failure joins none
+00:03 +8: placeOrder with a repeated actionId returns the first result
+00:03 +9: a stale price fails with no change; refreshed, the action fills once
+00:03 +10: more than cash covers fails and changes nothing
+00:03 +11: a size the cent math cannot hold fails and changes nothing
+00:03 +12: the fee rounds down, once (VC-ORD-003)
+00:03 +13: a reduce-only market order is refused; a reduce-only limit rests
+00:03 +14: an unset or non-finite take profit or stop loss is refused
+00:03 +15: a trader-index intent is refused on every order kind and changes nothing
+00:03 +16: a dust, non-finite or unlevered order fails and changes nothing
+00:03 +17: a limit intent rests in Open orders and moves no cash
+00:03 +18: Follow buttons read and write the follows in Scenario
+00:03 +19: (tearDownAll)
+00:03 +19: All tests passed!

@@ -469,7 +469,9 @@ VistaColosseum/
 │       ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
 │       ├── 2026-10-04T162846-phase3-fix-iter1.md
 │       ├── 2026-10-04T181055-phase3-review-iter2.md
-│       └── 2026-10-04T184857-phase3-close.md
+│       ├── 2026-10-04T184857-phase3-close.md
+│       ├── 2026-10-04T190310-phase4-arena-checkpoint.md
+│       └── 2026-10-04T190946-phase4-arena-sort-filter-join.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── fix-phase-2-iter-2/
@@ -588,6 +590,16 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-4-work/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test-has-market.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
+│       ├── phase-4-red/
+│       │   ├── home-green-1.log
+│       │   ├── home-red-1.log
+│       │   ├── scenario-green-1.log
+│       │   └── scenario-red-1.log
 │       ├── review-phase-3-iter-2-probe/
 │       │   ├── cta_probe.log
 │       │   ├── cta_probe_test.dart

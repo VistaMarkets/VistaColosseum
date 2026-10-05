@@ -32,13 +32,9 @@ class Opinion {
       side == OpinionSide.bull ? VistaColors.long : VistaColors.short;
 }
 
-/// Mock content from Figma 48:430 ("13 · Clash detail — scrolled").
-/// Simulated.
+/// Mock content from Figma 48:430 ("13 · Clash detail — scrolled"): the
+/// BTC battle's seeded opinions. Simulated.
 abstract final class OpinionsMock {
-  static const title = r'Reclaims $72,000 by Friday';
-  static const asset = r'BTC $71,840';
-  static const bullShare = 0.63;
-  static const opinionCount = '23 opinions';
   static const filters = ['All', 'Bull thesis', 'Bear thesis'];
 
   static const opinions = [

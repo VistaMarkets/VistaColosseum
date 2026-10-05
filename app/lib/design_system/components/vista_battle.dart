@@ -5,6 +5,7 @@ import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
 import 'vista_buttons.dart';
+import 'vista_chips.dart';
 import 'vista_icon.dart';
 
 /// One side of a battle: its lead caller, their thesis and the side's crowd.
@@ -16,7 +17,7 @@ class VistaBattleSide {
     required this.change,
     required this.thesis,
     required this.result,
-    required this.crowd,
+    this.crowd = '',
   });
 
   final String caller;
@@ -30,6 +31,17 @@ class VistaBattleSide {
 
   /// Others on this side, e.g. "and 14".
   final String crowd;
+
+  /// This side with [crowd] as its crowd line.
+  VistaBattleSide withCrowd(String crowd) => VistaBattleSide(
+    caller: caller,
+    accuracy: accuracy,
+    price: price,
+    change: change,
+    thesis: thesis,
+    result: result,
+    crowd: crowd,
+  );
 }
 
 /// Arena battle card ("BattleCard · V2 — consensus first"): an event header,
@@ -51,6 +63,7 @@ class VistaBattleCard extends StatelessWidget {
     this.onOpinions,
     this.onCaller,
     this.longOnRight = false,
+    this.joined,
   });
 
   final String ticker;
@@ -70,6 +83,9 @@ class VistaBattleCard extends StatelessWidget {
 
   /// Tapping a caller (opens their profile).
   final ValueChanged<String>? onCaller;
+
+  /// The side the user joined (long = Bull), if any; its button says so.
+  final TradeSide? joined;
 
   @override
   Widget build(BuildContext context) {
@@ -190,12 +206,16 @@ class VistaBattleCard extends StatelessWidget {
             child: VistaSidePair(
               longOnRight: longOnRight,
               long: VistaPillButton(
-                label: "I'm with Bull",
+                label: joined == TradeSide.long
+                    ? 'Joined Bull'
+                    : "I'm with Bull",
                 variant: VistaPillVariant.long,
                 onPressed: onBull,
               ),
               short: VistaPillButton(
-                label: "I'm with Bear",
+                label: joined == TradeSide.short
+                    ? 'Joined Bear'
+                    : "I'm with Bear",
                 variant: VistaPillVariant.short,
                 onPressed: onBear,
               ),
