@@ -500,7 +500,8 @@ VistaColosseum/
 │   │   ├── 2026-10-05T071609-phase8-review-iter1.md
 │   │   └── 2026-10-05T085628-phase8-close.md
 │   └── br-2026-10-05-copy-story/
-│       └── 2026-10-05T095536-phase1-work.md
+│       ├── 2026-10-05T095536-phase1-work.md
+│       └── 2026-10-05T101958-phase1-review.md
 ├── baton-runner/
 │   ├── br-2026-10-04-p0-queue/
 │   │   ├── close-phase-6/
@@ -919,6 +920,10 @@ VistaColosseum/
 │   │   ├── review-phase-8-dw.json
 │   │   └── STATE.md
 │   └── br-2026-10-05-copy-story/
+│       ├── gate-phase-1-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-1-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
