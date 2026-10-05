@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-05-copy-story
 status: RUNNING
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story
-phase: 1 of 1  unit: WORK
-current_baton: -
-units_used: 0
+phase: 1 of 1  unit: REVIEW
+current_baton: baton-pass/br-2026-10-05-copy-story/2026-10-05T095536-phase1-work.md
+units_used: 1
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -20,4 +20,4 @@ phases:
     phase_branch: feat/br-2026-10-05-copy-story/phase-1  base: main
     pr: -  digest: baton-runner/br-2026-10-05-copy-story/digest-phase-1.md
     review_record: -  fixer_report: -
-    units: 0  state: WORK
+    units: 1  state: REVIEW  head: f9368e6
