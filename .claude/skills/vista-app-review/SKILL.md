@@ -44,7 +44,7 @@ Run the bundled renderer into a fresh folder in the scratchpad:
 .claude/skills/vista-app-review/scripts/render_screens.sh <scratchpad>/review-<date>
 ```
 
-It copies a temporary widget test into `app/test/`, renders 22 screens at
+It copies a temporary widget test into `app/test/`, renders the main screens (about 32, including the Arena call and battle flows) at
 iPhone size (plus one 375×667 small phone) with the app's real fonts, and
 deletes the test afterwards. Each screen is its own test, so one broken path
 doesn't stop the rest; file names say how each screen was reached (e.g.

@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
 import 'package:vista_colosseum/main.dart';
 
@@ -122,7 +123,52 @@ void main() {
     await t.pumpAndSettle();
     await shot(t, '13_trade_page_long_pro_order_ticket');
   });
-  testWidgets('arena', (t) async { await boot(t); await tab(t, 'Arena'); await shot(t, '14_arena'); });
+  testWidgets('home for you', (t) async { await boot(t); await t.tap(find.text('For You')); await t.pumpAndSettle(); await shot(t, '01b_home_for_you'); });
+  testWidgets('arena', (t) async {
+    await boot(t);
+    await tab(t, 'Arena');
+    await shot(t, '14_arena');
+    await t.drag(find.byType(ListView).last, const Offset(0, -700));
+    await t.pumpAndSettle();
+    await shot(t, '14b_arena_calls_scrolled');
+  });
+  testWidgets('live battles', (t) async {
+    await boot(t);
+    await tab(t, 'Arena');
+    await t.tap(find.text('See all'));
+    await t.pumpAndSettle();
+    await shot(t, '14c_live_battles');
+    await t.tap(find.text('41 calls').last);
+    await t.pumpAndSettle();
+    await shot(t, '14d_battle_page');
+  });
+  testWidgets('make a call', (t) async {
+    await boot(t);
+    await tab(t, 'Arena');
+    await t.tap(find.bySemanticsLabel('Make a call'));
+    await t.pumpAndSettle();
+    await shot(t, '14e_plus_pick_position');
+    await t.tap(find.text('Ethereum'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(TextField), 'Staking flows turned positive. 3.2k by Friday.');
+    await t.pumpAndSettle();
+    await shot(t, '14f_compose_call');
+    await t.tap(find.bySemanticsLabel('Make it a battle'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(TextField), '3200');
+    await t.pumpAndSettle();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await t.pumpAndSettle();
+    await shot(t, '14g_make_it_a_battle');
+    await t.tap(find.text('Add battle'));
+    await t.pumpAndSettle();
+    await shot(t, '14h_compose_with_battle');
+    await t.tap(find.bySemanticsLabel('Start battle'));
+    await t.pumpAndSettle();
+    await shot(t, '14i_arena_after_start_battle');
+    await tab(t, 'Home');
+    await shot(t, '14j_home_after_posting');
+  });
   testWidgets('portfolio', (t) async {
     await boot(t);
     await tab(t, 'Wallet');
@@ -137,9 +183,8 @@ void main() {
   testWidgets('open orders', (t) async { await boot(t); await tab(t, 'Wallet'); await t.tap(find.text('Open orders')); await t.pumpAndSettle(); await shot(t, '17_portfolio_open_orders'); });
   testWidgets('settings', (t) async { await boot(t); await t.tap(find.bySemanticsLabel('Settings').first); await t.pumpAndSettle(); await shot(t, '18_settings'); });
   testWidgets('profile', (t) async {
-    await boot(t);
-    await t.tap(find.text('kaito.eth').first);
-    await t.pumpAndSettle();
+    // Opened directly: Home's ranked feed decides which caller is on top.
+    await page(t, const ProfileScreen(handle: 'kaito.eth'));
     await shot(t, '19_profile_kaito');
     await t.drag(find.byType(ListView).last, const Offset(0, -500));
     await t.pumpAndSettle();
