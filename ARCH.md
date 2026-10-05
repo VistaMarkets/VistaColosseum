@@ -668,6 +668,7 @@ VistaColosseum/
 │       ├── review-phase-3-dw.json
 │       ├── review-phase-3-iter-1-prelude.md
 │       ├── review-phase-3-iter-1.md
+│       ├── review-phase-4-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
