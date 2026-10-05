@@ -501,7 +501,8 @@ VistaColosseum/
 │   │   └── 2026-10-05T085628-phase8-close.md
 │   └── br-2026-10-05-copy-story/
 │       ├── 2026-10-05T095536-phase1-work.md
-│       └── 2026-10-05T101958-phase1-review.md
+│       ├── 2026-10-05T101958-phase1-review.md
+│       └── 2026-10-05T111407-phase1-close.md
 ├── baton-runner/
 │   ├── br-2026-10-04-p0-queue/
 │   │   ├── close-phase-6/
@@ -920,6 +921,11 @@ VistaColosseum/
 │   │   ├── review-phase-8-dw.json
 │   │   └── STATE.md
 │   └── br-2026-10-05-copy-story/
+│       ├── gate-phase-1-close/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── gate-stdout.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-1-fixer/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
@@ -932,6 +938,7 @@ VistaColosseum/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
 │       │   └── pubspec-frozen.log
+│       ├── digest-phase-1.md
 │       ├── fixer-phase-1.json
 │       ├── house-rules.md
 │       ├── log.md
@@ -959,7 +966,8 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-6-fee-ledger-and-receipts.md
 │   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
 │   │   ├── 2026-10-04-dw-review-phase-8-list-empty-failed-states.md
-│   │   └── 2026-10-04-spec-00-baton-queue-review.md
+│   │   ├── 2026-10-04-spec-00-baton-queue-review.md
+│   │   └── 2026-10-05-dw-review-copy-story.md
 │   ├── specs/
 │   │   ├── 00-baton-queue.md
 │   │   ├── 01-scenario-store.md
