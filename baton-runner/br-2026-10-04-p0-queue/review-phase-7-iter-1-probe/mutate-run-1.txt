@@ -1,0 +1,10 @@
+panel-ignores-clock: SURVIVED (exit 0) fails=0 :: 
+profile-header-settled-const: SURVIVED (exit 0) fails=0 :: 
+profile-header-right-const: SURVIVED (exit 0) fails=0 :: 
+private-header-const: SURVIVED (exit 0) fails=0 :: 
+trader-open-calls-const: SURVIVED (exit 0) fails=0 :: 
+your-market-panel-wrong-handle: SURVIVED (exit 0) fails=0 :: 
+private-panel-wrong-handle: SURVIVED (exit 0) fails=0 :: 
+profile-chart-gate-on-any-call: KILLED (exit 1) fails=1 :: 00:02 +23 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test
+trader-market-panel-dropped: KILLED (exit 1) fails=3 :: 00:02 +29 -1: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/baton-runner/br-2026-10-04-p0-queue/review-phase-7-iter-1-probe/mut-app/test
+restore byte-check OK

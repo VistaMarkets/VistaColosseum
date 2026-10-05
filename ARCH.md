@@ -488,7 +488,8 @@ VistaColosseum/
 │       ├── 2026-10-05T041752-phase6-review-iter1.md
 │       ├── 2026-10-05T050809-phase6-close.md
 │       ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
-│       └── 2026-10-05T054156-phase7-trader-record-panel.md
+│       ├── 2026-10-05T054156-phase7-trader-record-panel.md
+│       └── 2026-10-05T054607-phase7-review-iter1.md
 ├── baton-runner/
 │   └── br-2026-10-04-p0-queue/
 │       ├── close-phase-6/
@@ -669,6 +670,11 @@ VistaColosseum/
 │       │   ├── flutter-test.log
 │       │   ├── grep-all-receipts.log
 │       │   └── pubspec-frozen.log
+│       ├── gate-phase-7-iter-1/
+│       │   ├── flutter-analyze.log
+│       │   ├── flutter-test.log
+│       │   ├── has-market.log
+│       │   └── pubspec-frozen.log
 │       ├── gate-phase-7-work/
 │       │   ├── flutter-analyze.log
 │       │   ├── flutter-test.log
@@ -789,6 +795,26 @@ VistaColosseum/
 │       │   ├── mutate.py
 │       │   ├── probe-run.log
 │       │   └── review6_probe_test.dart
+│       ├── review-phase-7-iter-1-probe/
+│       │   ├── mut-panel-ignores-clock.log
+│       │   ├── mut-panel-stats-row-overflows.log
+│       │   ├── mut-private-header-const.log
+│       │   ├── mut-private-panel-wrong-handle.log
+│       │   ├── mut-profile-chart-gate-on-any-call.log
+│       │   ├── mut-profile-header-right-const.log
+│       │   ├── mut-profile-header-settled-const.log
+│       │   ├── mut-trader-market-panel-dropped.log
+│       │   ├── mut-trader-open-calls-const.log
+│       │   ├── mut-your-market-panel-wrong-handle.log
+│       │   ├── mutate-run-1.txt
+│       │   ├── mutate-run-2.txt
+│       │   ├── mutate.py
+│       │   ├── probe-run-fold.log
+│       │   ├── probe-run-full.log
+│       │   ├── probe-run-p7.log
+│       │   ├── probe-run.log
+│       │   ├── review7_fold_test.dart
+│       │   └── review7_probe_test.dart
 │       ├── digest-phase-1.md
 │       ├── digest-phase-2.md
 │       ├── digest-phase-3.md
