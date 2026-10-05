@@ -936,7 +936,8 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-6-fee-ledger-and-receipts.md
 │   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
 │   │   ├── 2026-10-04-dw-review-phase-8-list-empty-failed-states.md
-│   │   └── 2026-10-04-spec-00-baton-queue-review.md
+│   │   ├── 2026-10-04-spec-00-baton-queue-review.md
+│   │   └── 2026-10-05-spec-09-adversarial-read.md
 │   ├── specs/
 │   │   ├── 00-baton-queue.md
 │   │   ├── 01-scenario-store.md
