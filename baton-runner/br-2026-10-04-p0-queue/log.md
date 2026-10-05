@@ -86,3 +86,6 @@
 2026-10-05T03:00:00Z pr: phase 4 draft https://github.com/VistaMarkets/VistaColosseum/pull/15 (base main) at 96abf7f
 2026-10-05T03:00:00Z branch: feat/br-2026-10-04-p0-queue/phase-5 cut from phase-4 tip
 2026-10-05T03:00:00Z spawn: phase 5 WORK unit (opus, general-purpose) spec docs/specs/05-maker-suggestion-card.md; continuity digests 1-4
+2026-10-05T03:15:57Z return: phase 5 WORK unit COMPLETE; progress=criteria 2/2; files 4; gate PASS 251 (HAS_MARKET 251); baton baton-pass/br-2026-10-04-p0-queue/2026-10-04T201519-phase5-maker-suggestion-card.md; remaining per unit: ticket shows live price not the suggestion's reference price (author call); units 24/75
+2026-10-05T03:15:57Z decision (manager): spec 05 says "Trade this" opens the unit-02 ticket prefilled with asset/direction; the ticket pricing at the live mark is the phase-2 ticket's existing behavior and spec 05 does not require the reference price to be the ticket price. Not a gap for this phase; carried as a note for the user (PRD VC-ORD-001 "reference price").
+2026-10-05T03:15:57Z spawn: phase 5 REVIEW unit (managed: gate + criteria)
