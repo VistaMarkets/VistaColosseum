@@ -896,6 +896,7 @@ VistaColosseum/
 │       ├── review-phase-5-dw.json
 │       ├── review-phase-6-dw.json
 │       ├── review-phase-7-dw.json
+│       ├── review-phase-8-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
