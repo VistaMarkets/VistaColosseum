@@ -148,8 +148,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         onTap: () => Navigator.of(context).push(MakeMarketFlow.route()),
         child: Container(
           clipBehavior: Clip.antiAlias,
+          // The blue is strongest behind the title and fades to the right.
           decoration: BoxDecoration(
-            color: VistaColors.accent.withValues(alpha: 0.16),
+            gradient: LinearGradient(
+              colors: [
+                VistaColors.accent.withValues(alpha: 0.36),
+                VistaColors.accent.withValues(alpha: 0.04),
+              ],
+            ),
             borderRadius: BorderRadius.circular(VistaRadius.card),
           ),
           child: Stack(
