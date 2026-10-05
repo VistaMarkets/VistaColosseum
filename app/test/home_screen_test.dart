@@ -2838,7 +2838,8 @@ void main() {
       for (final s in makerSuggestions) {
         expect(s.source, 'Maker · demo recommendation');
         expect(s.rationale.split('\n'), hasLength(2));
-        // The demo quote itself, not a forked copy of it.
+        // Read from its own asset's demo quote; the card's reference line
+        // is pinned in the layout test below.
         expect(s.referencePrice, TradeMock.quotes[s.asset]!.price);
         final i = homeFeed.indexOf(s);
         expect(i, greaterThan(0));
@@ -2870,6 +2871,8 @@ void main() {
               'Maker · demo recommendation',
               'Built from Aggro demo prices',
               s.rationale,
+              'Reference ${TradeMock.quotes[s.asset]!.price} · '
+                  '${s == live ? 'expires in 4h' : 'expired 2h ago'}',
             ]) {
               expect(find.text(text).hitTestable(), findsOneWidget);
             }
@@ -2886,6 +2889,14 @@ void main() {
         'side', (tester) async {
       await launch(tester);
       await turnTo(tester, live);
+      // Small text on the accent tint: textPrimary clears 4.5:1, accent does not.
+      expect(
+        tester
+            .widget<Text>(find.text('Maker suggestion · advisory'))
+            .style!
+            .color,
+        VistaColors.textPrimary,
+      );
       await tester.tap(find.text('Trade this'));
       await tester.pumpAndSettle();
       final ticket = tester.widget<FeedOrderTicket>(
@@ -2893,6 +2904,37 @@ void main() {
       );
       expect((ticket.symbol, ticket.side), (live.asset, live.direction));
       expect(find.text('${live.direction.label} \$200 · 2x'), findsOneWidget);
+    });
+
+    testWidgets('a card follows the demo clock, and Trade this opens the '
+        "ticket on that suggestion's asset and side", (tester) async {
+      // Three hours before the seeded clock the ETH short is still live. The
+      // file-level setUp resets the clock.
+      Scenario.clock.value = TradeMock.chartEnd.subtract(
+        const Duration(hours: 3),
+      );
+      await launch(tester);
+      await turnTo(tester, expired);
+      final card = find.byWidgetPredicate(
+        (w) => w is MakerSuggestionCard && w.suggestion == expired,
+      );
+      VistaPrimaryButton button() => tester.widget(
+        find.descendant(of: card, matching: find.byType(VistaPrimaryButton)),
+      );
+      expect((button().label, button().enabled), ('Trade this', true));
+      await tester.tap(
+        find.descendant(of: card, matching: find.text('Trade this')),
+      );
+      await tester.pumpAndSettle();
+      final ticket = tester.widget<FeedOrderTicket>(
+        find.byType(FeedOrderTicket),
+      );
+      expect((ticket.symbol, ticket.side), (expired.asset, expired.direction));
+      expect(find.text('Short \$200 · 2x'), findsOneWidget);
+      // The clock moves on with the card mounted: it expires in place.
+      Scenario.clock.value = TradeMock.chartEnd;
+      await tester.pump();
+      expect((button().label, button().enabled), ('Expired', false));
     });
 
     testWidgets('an expired suggestion says Expired, is disabled and opens '
@@ -2914,7 +2956,7 @@ void main() {
       await tester.tap(button, warnIfMissed: false);
       await tester.pumpAndSettle();
       expect(find.byType(BottomSheet), findsNothing);
-      expect(find.textContaining('Confirm'), findsNothing);
+      expect(find.byType(FeedOrderTicket), findsNothing);
     });
 
     testWidgets('viewing both suggestions and opening the ticket leave the '

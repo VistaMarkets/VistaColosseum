@@ -1,0 +1,203 @@
+{
+  "summary": "Adjudicate review findings against the sources that decide them, then apply only the confirmed edits through a single writer",
+  "agentCount": 3,
+  "logs": [
+    "Adjudicating 2 finding group(s) against the sources",
+    "5 verdicts from 2/2 groups: F1=fix-here, F2=fix-here, F3=fix-here, F4=fix-here, F5=fix-here"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "findingId": "F1",
+        "verdict": "fix-here",
+        "evidence": "app/test/home_screen_test.dart:2885-2896 is the only test that taps Trade this, and it trades only `live`: `await turnTo(tester, live);` ... `expect((ticket.symbol, ticket.side), (live.asset, live.direction));` with live = SOL/TradeSide.long (maker_suggestion.dart:40-41). Wiring is home_screen.dart:91-92 `symbol: item.asset,` / `side: item.direction,`. ETH short has `expiresAt: TradeMock.chartEnd.subtract(const Duration(hours: 2))` (maker_suggestion.dart:53), so it is never tradable at the seeded clock (`static final clock = ValueNotifier<DateTime>(TradeMock.chartEnd);`, scenario.dart:61). The file-level setUp (home_screen_test.dart:93-94) calls `Scenario.reset();`, which runs `clock.value = TradeMock.chartEnd;` (scenario.dart:266), so a test that writes the clock is cleaned up. Only the card and placeOrder read Scenario.clock in lib (grep), so moving it earlier changes nothing else. I dry-ran the proposed edits on a scratch copy of app/: the maker group passes (+15) and `flutter analyze` reports no issues. Mutant hardcode-sol-long (home_screen.dart `symbol: item.asset,` -> `symbol: 'SOL',` and `side: item.direction,` -> `side: TradeSide.long,`) SURVIVED the current maker group and is KILLED by the new test. The edit below also carries F2 (house rule 11: one test covers both).",
+        "rejectsValidInput": "none. It is a new test and changes no production code. It sets Scenario.clock.value only inside the test, and the file-level setUp restores it. No gate or validator is tightened, so no documented procedure produces input it would now refuse.",
+        "testProof": "app/test/home_screen_test.dart, new test 'a card follows the demo clock, and Trade this opens the ticket on that suggestion's asset and side': `expect((ticket.symbol, ticket.side), (expired.asset, expired.direction));` and `expect(find.text('Short \\$200 · 2x'), findsOneWidget);`. Mutation: in app/lib/features/home/home_screen.dart replace `symbol: item.asset,` with `symbol: 'SOL',` and `side: item.direction,` with `side: TradeSide.long,`. The old maker group passes with this mutant (both SOL-test assertions still match), and the new test fails on the record check. Both results were verified on a scratch copy with `flutter test test/home_screen_test.dart --plain-name 'maker suggestion'`. The gate reaches it via scripts/gate.sh baton-runner/br-2026-10-04-p0-queue/gate-phase-5-fixer/ (flutter test).",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2898 group('maker suggestion') / testWidgets('an expired suggestion says Expired...') - insert the new test before it",
+            "current": "    testWidgets('an expired suggestion says Expired, is disabled and opens '",
+            "replacement": "    testWidgets('a card follows the demo clock, and Trade this opens the '\n        \"ticket on that suggestion's asset and side\", (tester) async {\n      // Three hours before the seeded clock the ETH short is still live. The\n      // file-level setUp resets the clock.\n      Scenario.clock.value = TradeMock.chartEnd.subtract(\n        const Duration(hours: 3),\n      );\n      await launch(tester);\n      await turnTo(tester, expired);\n      final card = find.byWidgetPredicate(\n        (w) => w is MakerSuggestionCard && w.suggestion == expired,\n      );\n      VistaPrimaryButton button() => tester.widget(\n        find.descendant(of: card, matching: find.byType(VistaPrimaryButton)),\n      );\n      expect((button().label, button().enabled), ('Trade this', true));\n      await tester.tap(\n        find.descendant(of: card, matching: find.text('Trade this')),\n      );\n      await tester.pumpAndSettle();\n      final ticket = tester.widget<FeedOrderTicket>(\n        find.byType(FeedOrderTicket),\n      );\n      expect((ticket.symbol, ticket.side), (expired.asset, expired.direction));\n      expect(find.text('Short \\$200 · 2x'), findsOneWidget);\n      // The clock moves on with the card mounted: it expires in place.\n      Scenario.clock.value = TradeMock.chartEnd;\n      await tester.pump();\n      expect((button().label, button().enabled), ('Expired', false));\n    });\n\n    testWidgets('an expired suggestion says Expired, is disabled and opens '",
+            "rationale": "Trades a suggestion that is not SOL long (ETH short, made live by an earlier clock), so the ticket assertions tell the suggestion's asset and direction apart from a hardcoded SOL long. The 'Short' label is a literal, so a hardcoded side also fails. The last three lines are F2's clock flip with the card mounted (house rule 11)."
+          }
+        ]
+      },
+      {
+        "findingId": "F2",
+        "verdict": "fix-here",
+        "evidence": "maker_suggestion.dart:78-79 `return ValueListenableBuilder<DateTime>(` / `valueListenable: Scenario.clock,`. The only clock read in the maker group is in a pure test that builds no card (home_screen_test.dart:2836 `final now = Scenario.clock.value;`), and no maker test writes `Scenario.clock.value`. review-phase-5-iter-1-probe/mutate-run-1.txt line 1: `=== clock-constant: rc=0 SURVIVED`. On a scratch copy I confirmed that clock-constant and a stricter clock-snapshot mutant (`valueListenable: ValueNotifier(Scenario.clock.value),`: right at build, never follows the clock) both SURVIVE the current maker group. Both are KILLED by the F1 test: clock-constant at the first `('Trade this', true)` check, and clock-snapshot at the final `('Expired', false)` check after `Scenario.clock.value = TradeMock.chartEnd; await tester.pump();`. The fix is the single test inserted by F1's edit (house rule 11). It is not repeated here, so the writer does not apply it twice.",
+        "rejectsValidInput": "none. The change is a test that moves the clock, which setUp restores via Scenario.reset (scenario.dart:266). No production gate changes.",
+        "testProof": "app/test/home_screen_test.dart, the test F1 inserts: its final line is `expect((button().label, button().enabled), ('Expired', false));`, after `Scenario.clock.value = TradeMock.chartEnd; await tester.pump();` with the ETH card mounted. Mutation: in app/lib/features/home/maker_suggestion.dart replace `valueListenable: Scenario.clock,` with `valueListenable: ValueNotifier(Scenario.clock.value),`. The old maker group passes, and the new test fails on the flip assertion. clock-constant (`valueListenable: ValueNotifier(TradeMock.chartEnd),`) also survives the old group and is killed by the new test. Both verified on a scratch copy with flutter test --plain-name 'maker suggestion'.",
+        "edits": []
+      },
+      {
+        "findingId": "F3",
+        "verdict": "fix-here",
+        "evidence": "The card renders `'Reference ${s.referencePrice} · '` / `'${live ? 'expires in ${_span(left)}' : 'expired ${_span(-left)} ago'}'` (maker_suggestion.dart:111-115). The layout loop's text list (home_screen_test.dart:2868-2873) checks the badge, source, data path and rationale, but not this line. mutate-run-2.txt: `=== drop-reference-line: rc=0 SURVIVED`. The unit check at 2841-2842 is `// The demo quote itself, not a forked copy of it.` / `expect(s.referencePrice, TradeMock.quotes[s.asset]!.price);`, which is the getter body word for word (maker_suggestion.dart:31 `String get referencePrice => TradeMock.quotes[asset]!.price;`). TradeMock.quotes is `static const quotes = {` (trade_mock.dart:78), so no test can tell a forked copy holding today's value from the real thing, and the comment claims more than the check proves. At the seeded clock the expected strings are 'Reference $214.90 · expires in 4h' and 'Reference $2,968.40 · expired 2h ago'. On a scratch copy, three mutants SURVIVE the current group and are KILLED after the edit: drop-reference-line, span-sign (`'expired ${_span(-left)} ago'` -> `'expired ${_span(left)} ago'`, which renders 'expired -120m ago'), and ref-wrong-quote (`'Reference ${s.referencePrice} · '` -> `'Reference ${TradeMock.quotes['SOL']!.price} · '`). The patched group passes all 10 layout cases at 1.0x and 1.3x, and flutter analyze is clean.",
+        "rejectsValidInput": "none. The layout test now requires the reference/expiry line to be hit-testable on every phone at 1.0x and 1.3x, and the dry run passed on all of them. The comment edit changes no behaviour.",
+        "testProof": "app/test/home_screen_test.dart, 'both cards render without overflow on <phone> at <scale>x text': the new list entry `'Reference ${TradeMock.quotes[s.asset]!.price} · ${s == live ? 'expires in 4h' : 'expired 2h ago'}'`, checked by `expect(find.text(text).hitTestable(), findsOneWidget);`. Mutation: in app/lib/features/home/maker_suggestion.dart change `'expired ${_span(-left)} ago'` to `'expired ${_span(left)} ago'`, or delete the whole Reference Text (the probe's drop-reference-line). The old group passes, and the new entry fails with 'Found 0 widgets with text \"Reference $2,968.40 · expired 2h ago\"'. The comment reword is prose only.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2868-2873 maker suggestion layout loop text list",
+            "current": "              'Built from Aggro demo prices',\n              s.rationale,\n            ]) {",
+            "replacement": "              'Built from Aggro demo prices',\n              s.rationale,\n              'Reference ${TradeMock.quotes[s.asset]!.price} · '\n                  '${s == live ? 'expires in 4h' : 'expired 2h ago'}',\n            ]) {",
+            "rationale": "Pins the reference price and the expiry span on both cards at the seeded clock. This kills drop-reference-line, span-sign and a wrong-asset quote."
+          },
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2841 maker suggestion seeded test, referencePrice comment",
+            "current": "        // The demo quote itself, not a forked copy of it.",
+            "replacement": "        // Read from its own asset's demo quote; the card's reference line\n        // is pinned in the layout test below.",
+            "rationale": "Quotes are const, so a forked copy holding today's value cannot be told apart. The comment now claims only what the check proves."
+          }
+        ]
+      },
+      {
+        "findingId": "F4",
+        "verdict": "fix-here",
+        "evidence": "home_screen_test.dart:2917 `expect(find.textContaining('Confirm'), findsNothing);`. The only 'Confirm' label in the trade feature is order_ticket.dart:956 `_ => ('Confirm', _busy ? null : _confirm),`, inside _ReviewPanel. feed_order_ticket.dart only shows that panel after review: `child: _review != null` / `? _ReviewPanel(intent: _review!, requote: () => _intent)`, while the first screen holds Market/Limit tabs, leverage, amount and the side button (`'${widget.side.label} \\$${_fmtUsd(_margin)} · ${_leverage}x'`, line 622). So an opened ticket never matches 'Confirm', and line 2916 `expect(find.byType(BottomSheet), findsNothing);` is the real guard. On a scratch copy, with line 2916 removed so 2917 stands alone, the production mutant vpb-ignores-enabled (vista_flow.dart `onTap: enabled ? onPressed : null,` -> `onTap: onPressed,`, which makes the disabled Expired button open the ETH ticket) SURVIVED with the old 2917. The replacement assertion KILLED it.",
+        "rejectsValidInput": "none. FeedOrderTicket is the only thing the card's onTrade opens (home_screen.dart:89 `onTrade: () => showFeedOrderTicket(`), and an expired card must open nothing (spec 05 Acceptance: \"expired → confirm unavailable\"). No correct state shows a FeedOrderTicket after tapping Expired.",
+        "testProof": "app/test/home_screen_test.dart, 'an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed': the new line `expect(find.byType(FeedOrderTicket), findsNothing);`. Mutation: in app/lib/design_system/components/vista_flow.dart replace `onTap: enabled ? onPressed : null,` with `onTap: onPressed,`. To isolate the assertion, also delete the test's `expect(find.byType(BottomSheet), findsNothing);` line. The old 'Confirm' assertion passes under this mutant, and the new assertion fails with one FeedOrderTicket found. Verified on a scratch copy with flutter test --plain-name 'maker suggestion'.",
+        "edits": [
+          {
+            "file": "app/test/home_screen_test.dart",
+            "anchor": "2917 maker suggestion expired test, dead 'Confirm' assertion",
+            "current": "      expect(find.textContaining('Confirm'), findsNothing);",
+            "replacement": "      expect(find.byType(FeedOrderTicket), findsNothing);",
+            "rationale": "Asserts on what the expired button must not open: the ticket. This replaces a label that only the post-review panel shows, which the test can never reach."
+          }
+        ]
+      },
+      {
+        "findingId": "F5",
+        "verdict": "fix-here",
+        "evidence": "app/lib/features/home/maker_suggestion.dart:95-99 renders `const VistaTag(label: 'Maker suggestion · advisory', color: VistaColors.accentTint, textColor: VistaColors.accent,)` inside a Container with `color: VistaColors.surface` (line 87). vista_colors.dart:11 `surface = Color(0xFF1F1F1F)`, :38 `accent = Color(0xFF5AA6DE)`, :39 `accentTint = Color(0x385AA6DE); // accent at 22%`, :20 `textPrimary = Color(0xFFF5F3FF)`. vista_chips.dart:66 VistaTag non-dense text style is `VistaType.labelStrong.copyWith(color: textColor)`; vista_typography.dart:104-107 labelStrong is `fontSize: 11, fontWeight: FontWeight.w700` (small text, needs 4.5:1). Recomputed with WCAG relative luminance in python3: accentTint (alpha 0x38/255 = 0.2196) over #1F1F1F blends to rgb(43.96, 60.65, 72.95); accent on that = 4.264:1 (below 4.5), textPrimary on that = 10.278:1. Claim confirmed. Decision 10 fixes the shape: textPrimary on the existing accentTint fill, tokens only. No test pins the badge colour: the only test reference is home_screen_test.dart:2869, which checks `find.text('Maker suggestion · advisory').hitTestable()` findsOneWidget, not its style.",
+        "rejectsValidInput": "none - this is a colour token swap on one static label; it accepts and rejects no input. Checked: VistaTag's own default textColor is already VistaColors.textPrimary (vista_chips.dart:40), so the edit uses an existing token and an existing pairing; no document describes producing an accent-coloured badge label.",
+        "testProof": "Optional pin, runnable under scripts/gate.sh: in app/test/home_screen_test.dart, inside the maker-suggestion group after mounting a card, assert `expect(tester.widget<Text>(find.text('Maker suggestion · advisory')).style!.color, VistaColors.textPrimary);`. It fails against the current code (color is VistaColors.accent 0xFF5AA6DE) and passes after the edit. Without it nothing in the suite reaches the colour; the existing test at line 2869 only checks hit-testability.",
+        "edits": [
+          {
+            "file": "app/lib/features/home/maker_suggestion.dart",
+            "anchor": "98 MakerSuggestionCard VistaTag.textColor",
+            "current": "                textColor: VistaColors.accent,",
+            "replacement": "                textColor: VistaColors.textPrimary,",
+            "rationale": "Decision 10: textPrimary on the existing accentTint fill measures 10.28:1, clearing the 4.5:1 small-text bar; tokens only, no new colour token. Kept explicit rather than deleting the line to fall back on VistaTag's default, so a future default change cannot silently regress it."
+          }
+        ]
+      }
+    ],
+    "coverage": {
+      "failedGroups": [],
+      "unreported": []
+    },
+    "apply": {
+      "applied": [
+        {
+          "findingId": "F1",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "Added the test 'a card follows the demo clock, and Trade this opens the ticket on that suggestion's asset and side' just before the expired-suggestion test. It moves Scenario.clock 3h earlier so the ETH short is live, taps its Trade this, asserts the ticket's (symbol, side) is (ETH, short) and that 'Short $200 · 2x' shows, then sets the clock back to chartEnd with the card still mounted and asserts it flips to ('Expired', false). Mutation proof: with home_screen.dart hardcoded to symbol 'SOL' / side TradeSide.long, the old maker group passed ('00:03 +14: All tests passed!') and the new test failed (red below). This test also covers F2: the clock-snapshot mutant (valueListenable: ValueNotifier(Scenario.clock.value)) fails it at line 2926 with 'Expected: (String, bool):<(Expired, false)> Actual: (String, bool):<(Trade this, true)>'. Both mutants were reverted and the group passed (+15).",
+          "red": "00:00 +0: maker suggestion a card follows the demo clock, and Trade this opens the ticket on that suggestion's asset and side\n══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════\nThe following TestFailure was thrown running a test:\nExpected: (String, TradeSide):<(ETH, TradeSide.short)>\n  Actual: (String, TradeSide):<(SOL, TradeSide.long)>\n\nThis was caught by the test expectation on the following line:\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 2921\nThe test description was:\n  a card follows the demo clock, and Trade this opens the ticket on that suggestion's asset and side\n00:01 +0 -1: maker suggestion a card follows the demo clock, and Trade this opens the ticket on that suggestion's asset and side [E]\n00:01 +0 -1: Some tests failed.\n(old maker group under the same mutant: 00:03 +14: All tests passed!)"
+        },
+        {
+          "findingId": "F3",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "Added the line 'Reference ${TradeMock.quotes[s.asset]!.price} · ${s == live ? 'expires in 4h' : 'expired 2h ago'}' to the text list in the maker layout loop (F3.1). Reworded the referencePrice comment in the seeded unit test so it claims only what the check proves (F3.2). Mutation proof: with the span-sign mutant ('expired ${_span(left)} ago') in maker_suggestion.dart, the old group passed ('00:04 +15: All tests passed!') and the new entry failed (red below). Mutant reverted; group passed (+15).",
+          "red": "00:00 +0: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text\n══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════\nThe following TestFailure was thrown running a test:\nExpected: exactly one matching candidate\n  Actual: _HitTestableWidgetFinder:<Found 0 widgets with text \"Reference $2,968.40 · expired 2h ago\"\n(considering only hit-testable widgets with a RenderBox): []>\n   Which: means none were found but one was expected\n\nThis was caught by the test expectation on the following line:\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 2877\nThe test description was:\n  both cards render without overflow on small Android 360x640 at 1.0x text\n00:01 +0 -1: maker suggestion both cards render without overflow on small Android 360x640 at 1.0x text [E]\n  Test failed. See exception logs above.\n  ... and 6 more"
+        },
+        {
+          "findingId": "F4",
+          "file": "app/test/home_screen_test.dart",
+          "summary": "Replaced the dead expect(find.textContaining('Confirm'), findsNothing) in the expired-suggestion test with expect(find.byType(FeedOrderTicket), findsNothing). The BottomSheet assertion stays as it was. Mutation proof: with vista_flow.dart onTap: onPressed (ignores enabled) and the BottomSheet line removed to isolate it, the old 'Confirm' assertion passed ('00:01 +1: All tests passed!') and the new one failed (red below). Mutant reverted and the BottomSheet line restored.",
+          "red": "Expected: no matching candidates\n  Actual: _TypeWidgetFinder:<Found 1 widget with type \"FeedOrderTicket\": [\n            FeedOrderTicket(dependencies: [MediaQuery], state: _FeedOrderTicketState#bcff5),\n          ]>\n   Which: means one was found but none were expected\n\nThis was caught by the test expectation on the following line:\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 2950\nThe test description was:\n  an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed\n00:01 +0 -1: maker suggestion an expired suggestion says Expired, is disabled and opens no ticket, so nothing can be confirmed [E]\n00:01 +0 -1: Some tests failed.\n(old 'Confirm' assertion alone under the same mutant: 00:01 +1: All tests passed!)"
+        },
+        {
+          "findingId": "F5",
+          "file": "app/lib/features/home/maker_suggestion.dart",
+          "summary": "Changed the advisory badge's VistaTag textColor from VistaColors.accent to VistaColors.textPrimary, keeping the existing accentTint fill. No new token (decision 10). Wrote the optional colour pin first, in the 'Trade this opens the ticket on the suggestion's asset and side' test after turnTo(live): it asserts the badge Text style colour equals VistaColors.textPrimary. It failed against the old code (red below) and passes after the edit.",
+          "red": "The following TestFailure was thrown running a test:\nExpected: Color:<Color(alpha: 1.0000, red: 0.9608, green: 0.9529, blue: 1.0000, colorSpace:\nColorSpace.sRGB)>\n  Actual: Color:<Color(alpha: 1.0000, red: 0.3529, green: 0.6510, blue: 0.8706, colorSpace:\nColorSpace.sRGB)>\n\nThis was caught by the test expectation on the following line:\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue/app/test/home_screen_test.dart line 2893\nThe test description was:\n  Trade this opens the ticket on the suggestion's asset and side\n00:01 +0 -1: maker suggestion Trade this opens the ticket on the suggestion's asset and side [E]\n00:01 +0 -1: Some tests failed."
+        }
+      ],
+      "skipped": [],
+      "verification": "=== gate: flutter-analyze: flutter analyze ===\nPASS flutter-analyze\n=== gate: flutter-test: flutter test ===\nPASS flutter-test\n=== gate: pubspec-frozen: git diff --exit-code c95349cc2a9a40be16d4bddee74c512129ac0114 -- pubspec.yaml pubspec.lock ===\nPASS pubspec-frozen\n----\nGATE: PASS\nexit=0"
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Adjudicate"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Apply"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "adjudicate:maker-tests",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "aa481e1f7713fd528",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791171343498,
+      "queuedAt": 1791171343478,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791171683177,
+      "tokens": 123044,
+      "toolCalls": 18,
+      "durationMs": 339677,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F1\",\"verdict\":\"fix-here\",\"evidence\":\"app/test/home_screen_test.dart:2885-2896 is the only test that taps Trade this, and it trades only `live`: `await turnTo(tester, live);` ... `expect((ticket.symbol, ticket.side), (live.asset, live.direction));` with live = SOL/TradeSide.long (maker_suggestion.dart:40-41). Wiring is home_screen.dart:91-92 `symbol: item.asset,` / `side:…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "adjudicate:badge-contrast",
+      "phaseIndex": 1,
+      "phaseTitle": "Adjudicate",
+      "agentId": "a087c314f93ea3659",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791171343500,
+      "queuedAt": 1791171343479,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transplant…",
+      "promptFramed": true,
+      "lastProgressAt": 1791171383588,
+      "tokens": 90944,
+      "toolCalls": 4,
+      "durationMs": 39269,
+      "resultPreview": "{\"verdicts\":[{\"findingId\":\"F5\",\"verdict\":\"fix-here\",\"evidence\":\"app/lib/features/home/maker_suggestion.dart:95-99 renders `const VistaTag(label: 'Maker suggestion · advisory', color: VistaColors.accentTint, textColor: VistaColors.accent,)` inside a Container with `color: VistaColors.surface` (line 87). vista_colors.dart:11 `surface = Color(0xFF1F1F1F)`, :38 `accent = Color(0xFF5AA6DE)`, :39 `accen…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "apply:edits",
+      "phaseIndex": 2,
+      "phaseTitle": "Apply",
+      "agentId": "a81e83619c195173f",
+      "model": "claude-opus-5-5[1m]",
+      "state": "done",
+      "startedAt": 1791171685080,
+      "queuedAt": 1791171685061,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "=== gate: flutter-analyze: flutter analyze === PASS flutter…",
+      "promptPreview": "Apply the adjudicated edits below. You are the ONLY writer in this run, so apply them one at a\ntime and keep every file you touch valid throughout.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-04-p0-queue. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, ligh…",
+      "promptFramed": true,
+      "lastProgressAt": 1791171909179,
+      "tokens": 108332,
+      "toolCalls": 15,
+      "durationMs": 224099,
+      "resultPreview": "{\"applied\":[{\"findingId\":\"F1\",\"file\":\"app/test/home_screen_test.dart\",\"summary\":\"Added the test 'a card follows the demo clock, and Trade this opens the ticket on that suggestion's asset and side' just before the expired-suggestion test. It moves Scenario.clock 3h earlier so the ETH short is live, taps its Trade this, asserts the ticket's (symbol, side) is (ETH, short) and that 'Short $200 · 2x' s…"
+    }
+  ],
+  "totalTokens": 322320,
+  "totalToolCalls": 37
+}

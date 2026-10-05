@@ -95,7 +95,7 @@ class MakerSuggestionCard extends StatelessWidget {
               const VistaTag(
                 label: 'Maker suggestion · advisory',
                 color: VistaColors.accentTint,
-                textColor: VistaColors.accent,
+                textColor: VistaColors.textPrimary,
               ),
               const SizedBox(height: VistaSpace.xl),
               Row(
