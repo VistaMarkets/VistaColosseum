@@ -2,6 +2,8 @@
 
 Ordered. Each unit is one implement→review→fix pass in one worktree. Units 1–8 were chosen as decision-free; the user resolved PRD §8 O-01 to O-10 on October 4 ([decision record](../prd/2026-10-04-open-decisions-recommendations.md)), which promoted the copy story to P0 (O-06) and added unit 9, and changed unit 6's labels (O-05: economic copy follows the video, no demo-assumption label). Precondition for unit 02, the user's call (drift report item 6): merge or park `origin/feat/premium-feel` first. Measured on Oct 4 it is 26 commits and 129 files ahead of `main`, rewrites `order_ticket.dart`, `feed_order_ticket.dart`, `arena_screen.dart` and `app_shell.dart`, and deletes `crowd_filter_panel.dart` and `ArenaMock.crowdBuckets`; if it merges first, re-cite the file and line references in units 02, 03 and 04 before they run. Gate per unit: `scripts/gate.sh <log-dir>`, which runs `flutter analyze` and `flutter test` in `app/`, prints `GATE: PASS` or `GATE: FAIL` and exits non-zero on failure; the review unit runs it exactly as the baton-runner skill prescribes.
 
+**Status, October 5:** units 1–8 are built and merged to `main` (PRs #10, #12, #13, #15, #16, #17, #19, #20; `main` @ 7a153be), each with a `scripts/gate.sh` pass and a review record under `docs/reviews/`; 289 tests, analyze clean, no pub dependency changed. `origin/feat/premium-feel` was parked, which settles the unit 02 precondition. Unit 9 is not started and is the only unit the Run line below still invokes. Design calls carried from the run: `baton-runner/br-2026-10-04-p0-queue/digest-phase-8.md`.
+
 | # | Spec | Closes (PRD) | Depends on |
 |---|---|---|---|
 | 1 | `01-scenario-store.md` | VC-DEM-002 (financial state; identities, prices and calls stay const fixtures), VC-DEM-004 (reset only; persona and phase excluded, see below) | — |
@@ -20,4 +22,4 @@ Common rules for every unit: original lightweight code (CONTEXT.md), no new pub 
 
 Precondition: merge this branch (these specs and `scripts/gate.sh`) to `main` and push before invoking. The runner branches its worktree from `origin/main`, and its pre-flight halts if `scripts/gate.sh` is absent there.
 
-Run: `/ClaudesMods:baton-runner docs/specs/01-scenario-store.md docs/specs/02-truthful-order-confirm.md docs/specs/03-simulation-indicator.md docs/specs/04-arena-sort-filter-join.md docs/specs/05-maker-suggestion-card.md docs/specs/06-fee-ledger-and-receipts.md docs/specs/07-trader-record-panel.md docs/specs/08-list-empty-failed-states.md docs/specs/09-copy-story.md`
+Run (unit 9 only; units 1–8 are merged): `/ClaudesMods:baton-runner docs/specs/09-copy-story.md`
