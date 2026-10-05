@@ -205,9 +205,10 @@ class CallOrderCard extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(VistaSpace.lg),
+          // The same grey backing as the position on an Arena call.
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: VistaColors.surfaceRaised),
+            color: VistaColors.surface,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
