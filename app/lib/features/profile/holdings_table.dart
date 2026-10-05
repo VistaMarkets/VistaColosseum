@@ -9,8 +9,8 @@ import 'profile_mock.dart';
 class HoldingsTable extends StatelessWidget {
   const HoldingsTable({super.key, this.onRowTap});
 
-  /// Tapping a position row (opens the call it backs, once built).
-  final VoidCallback? onRowTap;
+  /// Tapping a position row: opens the call it backs.
+  final ValueChanged<Holding>? onRowTap;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class HoldingsTable extends StatelessWidget {
           hairline,
           const SizedBox(height: VistaSpace.md),
           _HoldingRow(
-            onPressed: onRowTap,
+            onPressed: onRowTap == null ? null : () => onRowTap!(h),
             asset: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

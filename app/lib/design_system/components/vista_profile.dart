@@ -179,7 +179,11 @@ class VistaReceipt extends StatelessWidget {
     this.versus,
     this.railHeight,
     this.compact = false,
+    this.onTap,
   });
+
+  /// Opens the receipt's detail.
+  final VoidCallback? onTap;
 
   /// Rail vector (10 wide; 56 tall for calls, 76 for arena receipts).
   final String railAsset;
@@ -198,6 +202,17 @@ class VistaReceipt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final meta = VistaType.chip.copyWith(fontWeight: FontWeight.w500);
+    final row = _row(meta);
+    if (onTap == null) return row;
+    return Semantics(
+      button: true,
+      label: '$title, $lead',
+      excludeSemantics: true,
+      child: VistaPressable(scale: 0.98, onTap: onTap, child: row),
+    );
+  }
+
+  Widget _row(TextStyle meta) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

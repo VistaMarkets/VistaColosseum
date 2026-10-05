@@ -25,6 +25,8 @@ import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
+import 'package:vista_colosseum/features/profile/receipts_screen.dart';
+import 'package:vista_colosseum/features/profile/holdings_table.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/portfolio/positions_state.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
@@ -2326,6 +2328,77 @@ void main() {
       find.text('Place market ${side.label.toLowerCase()}'),
       findsOneWidget,
     );
+  });
+
+  group('receipts', () {
+    Future<void> openProfile(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VistaTheme.dark(),
+          home: const ProfileScreen(handle: 'kaito.eth'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('All receipts opens the record; a receipt opens its detail', (
+      tester,
+    ) async {
+      await openProfile(tester);
+      await tester.scrollUntilVisible(
+        find.text('All receipts ›'),
+        300,
+        scrollable: find
+            .byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
+      await tester.tap(find.text('All receipts ›'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReceiptsScreen), findsOneWidget);
+      expect(find.text("kaito.eth's record"), findsOneWidget);
+      expect(find.text('58% right'), findsOneWidget);
+      // Open filters to the live ones.
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Right at'), findsNothing);
+      await tester.tap(find.text('All'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(r'BTC reclaims $66,000 by Tue'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReceiptSheet), findsOneWidget);
+      expect(find.text('Settled at'), findsOneWidget);
+      expect(find.text(r'$66,340'), findsOneWidget);
+      expect(find.text(r'$64,920'), findsOneWidget);
+    });
+
+    testWidgets('a holding row opens the call behind it', (tester) async {
+      await openProfile(tester);
+      final sol = find.descendant(
+        of: find.byType(HoldingsTable),
+        matching: find.text('SOL'),
+      );
+      await tester.scrollUntilVisible(
+        sol,
+        300,
+        scrollable: find
+            .byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
+      await tester.tap(sol);
+      await tester.pumpAndSettle();
+      expect(find.byType(ReceiptSheet), findsOneWidget);
+      expect(find.text('sol long 5x'), findsNothing);
+      expect(find.text('SOL long 5x'), findsOneWidget);
+      expect(find.text('Now'), findsOneWidget);
+    });
   });
 
   group('positions', () {

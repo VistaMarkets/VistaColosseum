@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../profile/receipts_screen.dart';
 import 'market_mock.dart';
 
 /// The user's own market, opened from Portfolio's "Your market" button
@@ -105,7 +106,9 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
                   VistaSectionHead(
                     title: 'RECORD',
                     linkLabel: 'All receipts',
-                    onLink: () => _notBuilt('All receipts'),
+                    onLink: () =>
+                        Navigator.of(context)
+                            .push(ReceiptsScreen.route(PortfolioMock.handle)),
                   ),
                   Text(
                     YourMarketMock.recordSummary,

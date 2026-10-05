@@ -12,6 +12,7 @@ import '../trade/order_ticket.dart';
 import '../watchlist/watchlist_state.dart';
 import 'chart_sheet.dart';
 import 'trader_market_chart.dart';
+import '../profile/receipts_screen.dart';
 import 'trader_market_mock.dart';
 
 /// A trader's market (Figma "Trader market — maya.eth": 236:102 chart open,
@@ -260,7 +261,9 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
           ),
         ),
         const SizedBox(height: VistaSpace.md),
-        HoldingsTable(onRowTap: () => _notBuilt('Call details')),
+        HoldingsTable(
+          onRowTap: (h) => showReceiptSheet(context, holdingReceipt(h)),
+        ),
       ],
     );
   }
@@ -273,7 +276,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
           'Record',
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _notBuilt('All receipts'),
+            onTap: () =>
+                Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
             child: Text(
               'All receipts ›',
               style: VistaType.row.copyWith(color: VistaColors.accent),

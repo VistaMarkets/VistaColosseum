@@ -8,6 +8,7 @@ import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
 import 'profile_mock.dart';
+import 'receipts_screen.dart';
 
 /// Someone else's profile (Figma 303:102, "Profile — maya.eth · Arena
 /// receipts"). Shows [handle]; the body is the sample profile content.
@@ -140,7 +141,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Padding(
                         padding: gutter,
                         child: HoldingsTable(
-                          onRowTap: () => _notBuilt('Call details'),
+                          onRowTap: (h) =>
+                              showReceiptSheet(context, holdingReceipt(h)),
                         ),
                       ),
                       const SizedBox(height: VistaSpace.sectionLg),
@@ -388,7 +390,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: 'CALLS',
           linkLabel: 'All receipts',
           linkSize: 13,
-          onLink: () => _notBuilt('All receipts'),
+          onLink: () =>
+              Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
         ),
         Wrap(
           spacing: VistaSpace.xl,
@@ -419,6 +422,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             lead: r.lead,
             leadColor: r.leadColor,
             detail: r.detail,
+            onTap: () => showReceiptSheet(context, r),
           ),
       ],
     );

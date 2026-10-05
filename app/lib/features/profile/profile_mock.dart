@@ -35,10 +35,21 @@ class ProfileReceipt {
     required this.lead,
     required this.leadColor,
     required this.detail,
+    required this.side,
+    required this.entry,
+    required this.close,
     this.versus,
   });
 
   final ReceiptKind kind;
+
+  /// The side taken, the price when it was called, and how it ended (the
+  /// settle price) or where it stands now if still open.
+  final TradeSide side;
+  final String entry;
+  final String close;
+
+  bool get open => !lead.startsWith('Right') && !lead.startsWith('Wrong');
   final String rail;
   final String title;
   final String lead;
@@ -104,6 +115,9 @@ abstract final class ProfileMock {
       kind: ReceiptKind.call,
       rail: VistaAssets.railCallOpen,
       title: r'SOL reaches $300 by Fri',
+      side: TradeSide.long,
+      entry: r'$214.60',
+      close: r'Now $214.90',
       lead: '2d left',
       leadColor: VistaColors.textMuted,
       detail: 'Market said 22% · 39.6% away',
@@ -112,6 +126,9 @@ abstract final class ProfileMock {
       kind: ReceiptKind.arena,
       rail: VistaAssets.railArenaOpen,
       title: r'BTC stays under $72,000 to Oct 5',
+      side: TradeSide.short,
+      entry: r'$67,880',
+      close: r'Now $67,412',
       versus: VistaVersus(
         name: 'lunaq',
         avatarAsset: VistaAssets.opponentAvatarLong,
@@ -124,6 +141,9 @@ abstract final class ProfileMock {
       kind: ReceiptKind.call,
       rail: VistaAssets.railCallOpen,
       title: r'ETH holds $3,000 to Oct 1',
+      side: TradeSide.long,
+      entry: r'$3,052',
+      close: r'Now $2,968',
       lead: '6d left',
       leadColor: VistaColors.textMuted,
       detail: 'Market said 64% · 5.7% cushion',
@@ -132,6 +152,9 @@ abstract final class ProfileMock {
       kind: ReceiptKind.arena,
       rail: VistaAssets.railArenaRight,
       title: r'ARB stays under $1.20 to Sep 18',
+      side: TradeSide.short,
+      entry: r'$1.14',
+      close: r'Settled $1.09',
       versus: VistaVersus(
         name: '0xreal',
         avatarAsset: VistaAssets.opponentAvatarShort,
@@ -144,6 +167,9 @@ abstract final class ProfileMock {
       kind: ReceiptKind.call,
       rail: VistaAssets.railCallRight,
       title: r'BTC reclaims $66,000 by Tue',
+      side: TradeSide.long,
+      entry: r'$64,920',
+      close: r'Settled $66,340',
       lead: 'Right at 31%',
       leadColor: VistaColors.long,
       detail: 'settled Tue 16:00',
@@ -152,6 +178,9 @@ abstract final class ProfileMock {
       kind: ReceiptKind.arena,
       rail: VistaAssets.railArenaWrong,
       title: r'SOL loses $190 by Sep 15',
+      side: TradeSide.short,
+      entry: r'$201.30',
+      close: r'Settled $196.80',
       versus: VistaVersus(
         name: 'kilo.sol',
         avatarAsset: VistaAssets.opponentAvatarLong,
