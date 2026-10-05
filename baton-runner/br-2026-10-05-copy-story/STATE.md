@@ -1,9 +1,9 @@
 # baton-runner-managed run br-2026-10-05-copy-story
-status: RUNNING
+status: DONE
 worktree: /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story
-phase: 1 of 1  unit: REVIEW
-current_baton: baton-pass/br-2026-10-05-copy-story/2026-10-05T095536-phase1-work.md
-units_used: 1
+phase: 1 of 1  unit: CLOSE (CLEAN)
+current_baton: baton-pass/br-2026-10-05-copy-story/2026-10-05T111407-phase1-close.md
+units_used: 6
 pause_reason: -
 budgets: { global_ceiling: 75, phase_thrash: 20, bail_calls: 50, bail_files: 10 }
 model: opus
@@ -18,6 +18,7 @@ notes:
 phases:
   - id: phase-1  spec: docs/specs/09-copy-story.md  readiness: READY  work_agent: general-purpose
     phase_branch: feat/br-2026-10-05-copy-story/phase-1  base: main
-    pr: -  digest: baton-runner/br-2026-10-05-copy-story/digest-phase-1.md
-    review_record: -  fixer_report: -
-    units: 1  state: REVIEW  head: f9368e6
+    pr: https://github.com/VistaMarkets/VistaColosseum/pull/27 (draft)  digest: baton-runner/br-2026-10-05-copy-story/digest-phase-1.md
+    review_record: docs/reviews/2026-10-05-dw-review-copy-story.md  fixer_report: baton-runner/br-2026-10-05-copy-story/fixer-phase-1.json
+    units: 6  state: DONE  head: 1c3767d  gate: PASS @ 4807f69 (305 tests)  skeptic: MERGE-WITH-FIXES @ cc02d6c
+    fixer: 10 confirmed, 10 applied, 0 overturned
