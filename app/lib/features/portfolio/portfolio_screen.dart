@@ -136,57 +136,84 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   /// Shown in place of the fees row until the user lists a market (Figma
-  /// 175:218).
+  /// 175:218): the page's one call to action, so it stands out as a tinted
+  /// card (like "Make it a battle"), with the brand's dot pattern behind it.
   Widget _makeMarketButton() {
     return Semantics(
       button: true,
       label: 'Make a market',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.98,
         onTap: () => Navigator.of(context).push(MakeMarketFlow.route()),
-        child: SizedBox(
-          height: VistaSize.tapTarget,
-          child: Center(
-            child: Container(
-              height: 37,
-              width: double.infinity,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: VistaColors.surface,
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-                border: Border.all(color: VistaColors.accent, width: 0.5),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned.fill(
-                    child: SvgPicture.asset(
-                      VistaAssets.makeMarketButtonDots,
-                      fit: BoxFit.cover,
-                    ),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: VistaColors.accent.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(VistaRadius.card),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.6,
+                  child: SvgPicture.asset(
+                    VistaAssets.makeMarketButtonDots,
+                    fit: BoxFit.cover,
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Make a market',
-                        style: VistaType.headline.copyWith(
-                          color: VistaColors.accent,
-                        ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: VistaSpace.gutter,
+                  vertical: VistaSpace.xxl,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: VistaColors.accent,
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: VistaSpace.md),
-                      Text(
+                      child: Text(
                         '↗',
                         style: VistaType.headline.copyWith(
-                          color: VistaColors.accent,
+                          color: VistaColors.onAccent,
+                          height: 1,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: VistaSpace.xl),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Make a market', style: VistaType.headline),
+                          const SizedBox(height: VistaSpace.xxs),
+                          Text(
+                            'Let people trade your track record. You earn '
+                            'the fees.',
+                            style: VistaType.bodyMedium.copyWith(
+                              color: VistaColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.md),
+                    Text(
+                      '›',
+                      style: VistaType.displaySmall.copyWith(
+                        color: VistaColors.accent,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
