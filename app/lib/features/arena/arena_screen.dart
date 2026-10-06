@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
 import '../calls/calls_store.dart';
+import '../market/trader_market_screen.dart';
 import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
@@ -166,6 +167,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         TakeItem(
                           take: t,
                           onCaller: () => _push(ProfileScreen.route(t.handle)),
+                          onMarket: () =>
+                              _push(TraderMarketScreen.route(t.handle)),
                           onBattle: () => _push(OpinionsScreen.route()),
                           onCall: t.call == null
                               ? null

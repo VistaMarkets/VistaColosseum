@@ -944,7 +944,7 @@ void main() {
       );
       expect(
         find.descendant(of: call, matching: find.textContaining(' · ')),
-        findsNWidgets(2), // "69% right · 25m" and the position's levels
+        findsNWidgets(2), // "· 25m" and the position's levels
       );
       expect(find.descendant(of: call, matching: find.text('›')), findsNothing);
       expect(
@@ -976,6 +976,29 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Join long').first);
       await tester.pumpAndSettle();
       expect(find.text('Place market long'), findsOneWidget);
+    });
+
+    testWidgets('call headers show the caller\'s market, not accuracy', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await scrollTo(tester, find.text('kilo.sol'));
+      final call = find.ancestor(
+        of: find.text('kilo.sol'),
+        matching: find.byType(TakeItem),
+      );
+      // kilo.sol has a market: its live price and day change.
+      expect(
+        find.descendant(of: call, matching: find.textContaining(r'$0.172')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('% right'), findsNothing);
+      // Tapping it opens their market.
+      await tester.tap(
+        find.descendant(of: call, matching: find.textContaining(r'$0.172')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(TraderMarketScreen), findsOneWidget);
     });
 
     testWidgets('See all opens Live battles; sorts; a row opens it', (

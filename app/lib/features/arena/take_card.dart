@@ -5,6 +5,7 @@ import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../trade/trade_mock.dart';
+import '../markets/markets_mock.dart';
 import 'arena_mock.dart';
 
 /// Arena pieces from Figma 505:204 ("Arena — takes feed"): the live battle
@@ -206,6 +207,7 @@ class TakeItem extends StatelessWidget {
     super.key,
     required this.take,
     this.onCaller,
+    this.onMarket,
     this.onBattle,
     this.onCall,
     this.onJoin,
@@ -213,6 +215,9 @@ class TakeItem extends StatelessWidget {
 
   final Take take;
   final VoidCallback? onCaller;
+
+  /// Opens the caller's market (when they have one).
+  final VoidCallback? onMarket;
 
   /// Opens the battle the take is on.
   final VoidCallback? onBattle;
@@ -295,7 +300,7 @@ class TakeItem extends StatelessWidget {
                     const SizedBox(width: VistaSpace.sm),
                     Expanded(
                       child: Text(
-                        '${t.accuracy} · ${t.age}',
+                        '· ${t.age}',
                         style: VistaType.bodyMedium.copyWith(
                           color: VistaColors.textMuted,
                         ),
@@ -305,6 +310,8 @@ class TakeItem extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Their market, live, on its own line under the name.
+                _CallerMarket(handle: t.handle, onTap: onMarket),
                 // A take on a battle links it; a plain call shows nothing
                 // here. The chip sits in a 44pt tap row; its own gaps are
                 // folded into the row's height.
@@ -573,6 +580,62 @@ class _AgreeButton extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// The caller's market under their name: "Market \$0.172 ▲2.4% ›", live,
+/// tapping through to it. Callers with no market show nothing.
+class _CallerMarket extends StatelessWidget {
+  const _CallerMarket({required this.handle, this.onTap});
+
+  final String handle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final market = MarketsMock.traders.where((m) => m.id == handle);
+    if (market.isEmpty) return const SizedBox.shrink();
+    final change = market.first.changePct;
+    final up = change >= 0;
+    final muted = VistaType.bodyMedium.copyWith(color: VistaColors.textMuted);
+    return Semantics(
+      button: onTap != null,
+      label: "$handle's market",
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.only(top: VistaSpace.xxs),
+          child: ValueListenableBuilder(
+            valueListenable: MarketPrices.of(handle),
+            builder: (context, price, _) => Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: 'Market ', style: muted),
+                  TextSpan(
+                    // Short: "\$0.172" (a trader market trades in cents).
+                    text: price < 1
+                        ? '\$${price.toStringAsFixed(3)}'
+                        : MarketPrices.format(price, compact: true),
+                    style: VistaType.figures(VistaType.body)
+                        .copyWith(color: VistaColors.textPrimary),
+                  ),
+                  TextSpan(
+                    text:
+                        ' ${up ? '▲' : '▼'}${change.abs().toStringAsFixed(1)}%',
+                    style: VistaType.figures(VistaType.body).copyWith(
+                      color: up ? VistaColors.long : VistaColors.short,
+                    ),
+                  ),
+                  TextSpan(text: ' ›', style: muted),
+                ],
+              ),
+              maxLines: 1,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
