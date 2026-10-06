@@ -922,22 +922,7 @@ VistaColosseum/
 │   │   └── STATE.md
 │   └── br-2026-10-05-copy-story/
 │       ├── gate-phase-1-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-1-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-1-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-1-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
+│       │   └── gate-stdout.log
 │       ├── digest-phase-1.md
 │       ├── fixer-phase-1.json
 │       ├── house-rules.md
