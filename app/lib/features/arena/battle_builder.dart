@@ -318,7 +318,7 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
                   const SizedBox(width: VistaSpace.xs),
-                  Text('Make it a battle', style: VistaType.title),
+                  Text('Make it a debate', style: VistaType.title),
                 ],
               ),
             ),
@@ -540,7 +540,7 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
               child: Semantics(
                 button: true,
                 enabled: spec.valid,
-                label: widget.initial == null ? 'Add battle' : 'Save battle',
+                label: widget.initial == null ? 'Add debate' : 'Save debate',
                 excludeSemantics: true,
                 child: VistaPressable(
                   onTap: spec.valid ? () => _add(spec) : null,
@@ -555,7 +555,7 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
                         borderRadius: BorderRadius.circular(VistaRadius.pill),
                       ),
                       child: Text(
-                        widget.initial == null ? 'Add battle' : 'Save battle',
+                        widget.initial == null ? 'Add debate' : 'Save debate',
                         style: VistaType.tab.copyWith(
                           color: VistaColors.onAccent,
                         ),
@@ -604,7 +604,7 @@ class _LiveBattlesSheet extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('$ticker battles already live', style: VistaType.title),
+                Text('$ticker debates already live', style: VistaType.title),
                 const SizedBox(height: VistaSpace.xs),
                 Text(
                   'Put your call on one of these, or start yours anyway.',
@@ -636,7 +636,7 @@ class _LiveBattlesSheet extends StatelessWidget {
               0,
             ),
             child: VistaPillButton(
-              label: 'Start my battle anyway',
+              label: 'Start my debate anyway',
               onPressed: () =>
                   Navigator.of(context).pop(BattleChoice.start(spec)),
             ),
@@ -793,7 +793,7 @@ class MakeBattleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Make it a battle',
+      label: 'Make it a debate',
       excludeSemantics: true,
       child: VistaPressable(
         scale: 0.98,
@@ -829,7 +829,7 @@ class MakeBattleButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Make it a battle', style: VistaType.subhead),
+                    Text('Make it a debate', style: VistaType.subhead),
                     const SizedBox(height: VistaSpace.xxs),
                     Text(
                       'Ask a yes/no question others can call on',

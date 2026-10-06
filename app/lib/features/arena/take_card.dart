@@ -88,7 +88,7 @@ class BattleTile extends StatelessWidget {
     final long = (b.longShare * 100).round();
     return Semantics(
       button: true,
-      label: '${b.ticker} battle: ${b.question}, $long% long, ${b.timeLeft}',
+      label: '${b.ticker} debate: ${b.question}, $long% long, ${b.timeLeft}',
       excludeSemantics: true,
       child: VistaPressable(
         scale: 0.98,
@@ -311,7 +311,7 @@ class TakeItem extends StatelessWidget {
                 if (t.battle != null)
                   _BattleChip(
                     label: t.battle!,
-                    semantics: 'Open the battle: ${t.battle}',
+                    semantics: 'Open the debate: ${t.battle}',
                     onTap: onBattle,
                   )
                 else

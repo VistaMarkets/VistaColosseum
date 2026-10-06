@@ -192,7 +192,7 @@ abstract final class ProfileMock {
   ];
 
   /// Filter counts as designed ("All 65 · Calls 51 · Arena 14").
-  static const filters = [('All', 65), ('Calls', 51), ('Arena', 14)];
+  static const filters = [('All', 65), ('Calls', 51), ('Debates', 14)];
 }
 
 /// A private account with no market: stats and public calls only (Figma

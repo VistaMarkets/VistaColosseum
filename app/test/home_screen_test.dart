@@ -532,7 +532,7 @@ void main() {
       expect(find.text('Follow'), findsOneWidget);
 
       // Filters: Arena shows only arena receipts.
-      final arenaChip = find.text('Arena 14');
+      final arenaChip = find.text('Debates 14');
       await tester.scrollUntilVisible(
         arenaChip,
         200,
@@ -904,7 +904,7 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
-      expect(find.text('Live battles'), findsOneWidget);
+      expect(find.text('Live debates'), findsOneWidget);
       expect(find.byType(BattleTile), findsWidgets);
       expect(find.text('Calls'), findsOneWidget);
       expect(find.byType(TakeItem), findsWidgets);
@@ -1100,7 +1100,7 @@ void main() {
       // A call by default.
       expect(find.text('Post'), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Magnet at 3.2k.');
-      await tester.tap(find.bySemanticsLabel('Make it a battle'));
+      await tester.tap(find.bySemanticsLabel('Make it a debate'));
       await tester.pumpAndSettle();
 
       // Its own page; a long gets the upside statements, the first picked.
@@ -1115,7 +1115,7 @@ void main() {
       expect(find.text(r'$…'), findsOneWidget);
       expect(find.text('Fri 16:00'), findsOneWidget);
       // The level is typed (grouped as you type); Add waits for it.
-      await tester.tap(find.text('Add battle'));
+      await tester.tap(find.text('Add debate'));
       await tester.pumpAndSettle();
       expect(find.byType(BattleSetupScreen), findsOneWidget);
       await tester.enterText(find.byType(TextField), '3200');
@@ -1138,20 +1138,20 @@ void main() {
       await tester.pump();
       expect(find.text('touches'), findsOneWidget);
       expect(find.text('before'), findsOneWidget);
-      await tester.ensureVisible(find.text('Add battle'));
-      await tester.tap(find.text('Add battle'));
+      await tester.ensureVisible(find.text('Add debate'));
+      await tester.tap(find.text('Add debate'));
       await tester.pumpAndSettle();
       // ETH already has a live battle: it's offered first.
-      expect(find.text('ETH battles already live'), findsOneWidget);
-      await tester.tap(find.text('Start my battle anyway'));
+      expect(find.text('ETH debates already live'), findsOneWidget);
+      await tester.tap(find.text('Start my debate anyway'));
       await tester.pumpAndSettle();
 
       // Back in the composer: a summary, and Post becomes Start battle.
       expect(find.byType(BattleSetupScreen), findsNothing);
       expect(find.byType(BattleSummaryCard), findsOneWidget);
-      expect(find.text('Start battle'), findsOneWidget);
+      expect(find.text('Start debate'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 300));
-      await tester.tap(find.bySemanticsLabel('Start battle'));
+      await tester.tap(find.bySemanticsLabel('Start debate'));
       await tester.pumpAndSettle();
       expect(
         BattlesStore.all.value.first.question,
@@ -1180,17 +1180,17 @@ void main() {
       await tester.tap(find.text('Ethereum')); // LONG
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Joining the longs.');
-      await tester.tap(find.bySemanticsLabel('Make it a battle'));
+      await tester.tap(find.bySemanticsLabel('Make it a debate'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '3200');
       await tester.pump();
-      await tester.tap(find.text('Add battle'));
+      await tester.tap(find.text('Add debate'));
       await tester.pumpAndSettle();
       final live = BattlesStore.all.value.firstWhere((b) => b.ticker == 'ETH');
       await tester.tap(find.text(live.question).last);
       await tester.pumpAndSettle();
       // Joining keeps Post; nothing new starts.
-      expect(find.text('LIVE BATTLE'), findsOneWidget);
+      expect(find.text('LIVE DEBATE'), findsOneWidget);
       expect(find.text('Post'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 300));
       final count = BattlesStore.all.value.length;
@@ -1213,7 +1213,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Solana')); // SHORT 10x
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Make it a battle'));
+      await tester.tap(find.bySemanticsLabel('Make it a debate'));
       await tester.pumpAndSettle();
       expect(find.text('Closes below'), findsOneWidget);
       expect(find.text('Stays below'), findsOneWidget);
@@ -1236,9 +1236,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Ends lower')); // no level needed
       await tester.pump();
-      await tester.tap(find.text('Add battle'));
+      await tester.tap(find.text('Add debate'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Start my battle anyway'));
+      await tester.tap(find.text('Start my debate anyway'));
       await tester.pumpAndSettle();
       expect(find.text('SOL ends lower than now by Friday'), findsOneWidget);
       await tester.tap(find.text('Remove'));
@@ -1256,8 +1256,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('0xreal'));
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.bySemanticsLabel('Make it a battle'));
-        await tester.tap(find.bySemanticsLabel('Make it a battle'));
+        await tester.ensureVisible(find.bySemanticsLabel('Make it a debate'));
+        await tester.tap(find.bySemanticsLabel('Make it a debate'));
         await tester.pumpAndSettle();
         expect(find.byType(BattleSetupScreen), findsOneWidget);
         expect(tester.takeException(), isNull);

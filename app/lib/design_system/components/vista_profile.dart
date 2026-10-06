@@ -242,7 +242,7 @@ class VistaReceipt extends StatelessWidget {
                           color: VistaColors.surfaceRaised,
                           borderRadius: BorderRadius.circular(VistaRadius.sm),
                         ),
-                        child: Text('ARENA', style: VistaType.micro),
+                        child: Text('DEBATE', style: VistaType.micro),
                       ),
                       const SizedBox(width: VistaSpace.sm),
                       Text(

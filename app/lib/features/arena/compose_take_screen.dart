@@ -171,7 +171,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                     Semantics(
                       button: true,
                       enabled: _canPost,
-                      label: _battle == null ? 'Post' : 'Start battle',
+                      label: _battle == null ? 'Post' : 'Start debate',
                       excludeSemantics: true,
                       child: VistaPressable(
                         onTap: _canPost ? _post : null,
@@ -193,7 +193,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  _battle == null ? 'Post' : 'Start battle',
+                                  _battle == null ? 'Post' : 'Start debate',
                                   style: VistaType.subhead.copyWith(
                                     color: VistaColors.onAccent,
                                   ),
@@ -287,7 +287,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                           // A call by default; this turns it into a battle.
                           if (_battle case final b?)
                             BattleSummaryCard(
-                              label: 'BATTLE',
+                              label: 'DEBATE',
                               question: b.question,
                               detail: b.settles,
                               onEdit: _editBattle,
@@ -295,7 +295,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                             )
                           else if (_joined case final j?)
                             BattleSummaryCard(
-                              label: 'LIVE BATTLE',
+                              label: 'LIVE DEBATE',
                               question: j.question,
                               detail:
                                   'Your call joins it · ${j.takes} calls · '

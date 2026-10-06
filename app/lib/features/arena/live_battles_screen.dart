@@ -53,7 +53,7 @@ class _LiveBattlesScreenState extends State<LiveBattlesScreen> {
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
                   const SizedBox(width: VistaSpace.xs),
-                  Expanded(child: Text('Live battles', style: VistaType.title)),
+                  Expanded(child: Text('Live debates', style: VistaType.title)),
                   Text(
                     '${battles.length} live',
                     style: VistaType.bodyMedium.copyWith(

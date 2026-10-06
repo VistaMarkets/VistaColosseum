@@ -103,14 +103,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
                     ),
                     children: [
                       ArenaSectionHead(
-                        title: 'Live battles',
+                        title: 'Live debates',
                         // "See all" sits in a 44pt tap row; the head's
                         // padding gives back the extra height.
                         top: VistaSpace.md,
                         bottom: 0,
                         trailing: Semantics(
                           button: true,
-                          label: 'See all live battles',
+                          label: 'See all live debates',
                           excludeSemantics: true,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,

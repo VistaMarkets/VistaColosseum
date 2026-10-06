@@ -23,7 +23,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
   /// 0 All, 1 Calls, 2 Arena, 3 Open.
   int _filter = 0;
 
-  static const _filters = ['All', 'Calls', 'Arena', 'Open'];
+  static const _filters = ['All', 'Calls', 'Debates', 'Open'];
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +88,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
                   ),
                   const SizedBox(height: VistaSpace.xs),
                   Text(
-                    '$right of $settled settled calls and battles · '
+                    '$right of $settled settled calls and debates · '
                     '${ProfileMock.recordSince}',
                     style: VistaType.bodyMedium.copyWith(
                       color: VistaColors.textMuted,
@@ -206,7 +206,7 @@ class ReceiptSheet extends StatelessWidget {
         children: [
           Text(
             r.kind == ReceiptKind.arena
-                ? 'BATTLE${r.versus == null ? '' : ' · vs ${r.versus!.name}'}'
+                ? 'DEBATE${r.versus == null ? '' : ' · vs ${r.versus!.name}'}'
                 : 'CALL',
             style: VistaType.label.copyWith(
               color: VistaColors.textMuted,
