@@ -44,6 +44,8 @@ class CallerPlayScreen extends StatelessWidget {
                   context,
                   symbol: idea.ticker,
                   side: idea.side,
+                  sourceCallId: '${idea.callerHandle}/${idea.ticker}',
+                  sourceAuthorHandle: idea.callerHandle,
                   onDetails: () => Navigator.of(context).maybePop(),
                 ),
               ),

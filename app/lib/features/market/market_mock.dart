@@ -95,6 +95,10 @@ class FeeEntry {
     required this.eventTitle,
     required this.amountCents,
     required this.at,
+    this.kind = FeeKind.credit,
+    this.sourceCallId,
+    this.counterparty,
+    this.asset,
   });
 
   final String id;
@@ -106,7 +110,16 @@ class FeeEntry {
   /// The credit, in int cents.
   final int amountCents;
   final DateTime at;
+  final FeeKind kind;
+
+  /// A copy fee's call, who copied it, and on which asset.
+  final String? sourceCallId;
+  final String? counterparty;
+  final String? asset;
 }
+
+/// A market's fee share, or a flat fee a copier paid to copy a call.
+enum FeeKind { credit, copyFee }
 
 /// Mock content from the Figma frame (168:110). Simulated; not market data.
 abstract final class YourMarketMock {

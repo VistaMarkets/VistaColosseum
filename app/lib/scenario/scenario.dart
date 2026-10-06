@@ -87,8 +87,9 @@ abstract final class Scenario {
   /// until [refreshPrice] (the ticket's Retry).
   static final stalePrices = ValueNotifier<Set<String>>(TradeMock.stalePrices);
 
-  /// The side the user's latest fill in each Arena battle took, by clash
-  /// id. Only [placeOrder] writes it, on a fill.
+  /// The side the active persona's latest fill in each Arena battle took,
+  /// by clash id: part of its books, so it changes hands with [receipts] on
+  /// [switchPersona]. Only [placeOrder] adds to it, on a fill.
   static final participation = ValueNotifier<Map<String, TradeSide>>(const {});
 
   /// The Arena's sort, crowd-split range and Ask query, shared by the list
@@ -107,6 +108,64 @@ abstract final class Scenario {
   /// shows its failed state until Retry turns this off. Nothing else
   /// reads it.
   static final marketsLoadFails = ValueNotifier<bool>(false);
+
+  /// Who the demo acts as (VC-DEM-004). [cashCents], [positions],
+  /// [openOrders], [receipts] and [participation] hold this persona's
+  /// books; the other's wait in [_parked]. Everything else is shared, and
+  /// the fee ledger is the creator's.
+  static final activePersona = ValueNotifier<Persona>(Persona.creator);
+  static Books _parked = _copierSeed;
+
+  static const Books _copierSeed = (
+    cashCents: PortfolioMock.copierCashCents,
+    positions: [],
+    openOrders: [],
+    receipts: [],
+    participation: {},
+  );
+
+  static Books get _active => (
+    cashCents: cashCents.value,
+    positions: positions.value,
+    openOrders: openOrders.value,
+    receipts: receipts.value,
+    participation: participation.value,
+  );
+
+  /// [p]'s books, active or parked.
+  static Books booksOf(Persona p) =>
+      p == activePersona.value ? _active : _parked;
+
+  /// Acts as the other persona. Each keeps its own books; nothing
+  /// financial changes, it only changes hands.
+  static void switchPersona() {
+    final next = _parked;
+    _parked = _active;
+    cashCents.value = next.cashCents;
+    positions.value = next.positions;
+    openOrders.value = next.openOrders;
+    receipts.value = next.receipts;
+    participation.value = next.participation;
+    activePersona.value = activePersona.value == Persona.creator
+        ? Persona.copier
+        : Persona.creator;
+  }
+
+  /// The copy fee [intent] pays on a fill: [kCopyFeeCents] when it comes
+  /// from a call someone other than the active persona made, else 0.
+  static int copyFeeCents(OrderIntent intent) {
+    final author = intent.sourceAuthorHandle;
+    return author == null || author == activePersona.value.handle
+        ? 0
+        : kCopyFeeCents;
+  }
+
+  /// Copy fees the creator earned, newest first (the ledger's copy
+  /// section). Fee totals elsewhere count market credits only.
+  static List<FeeEntry> get copyFees => [
+    for (final e in feeEntries.value)
+      if (e.kind == FeeKind.copyFee) e,
+  ];
 
   static String? get _seedMarketId =>
       _startWithMarket ? PortfolioMock.marketSymbol : null;
@@ -139,7 +198,10 @@ abstract final class Scenario {
     if (since == null) return const [];
     return [
       for (final e in feeEntries.value)
-        if (e.marketId == marketId.value && !e.at.isBefore(since)) e,
+        if (e.kind == FeeKind.credit &&
+            e.marketId == marketId.value &&
+            !e.at.isBefore(since))
+          e,
     ];
   }
 
@@ -252,7 +314,9 @@ abstract final class Scenario {
       return 'Size too large';
     }
     if (intent.marginCents <= 0) return 'Size too small';
-    if (intent.totalCents > cashCents.value) return notEnoughFunds;
+    // A copy that would fill pays its copy fee from the same cash.
+    final copyFee = intent.kind == OrderKind.market ? copyFeeCents(intent) : 0;
+    if (intent.totalCents + copyFee > cashCents.value) return notEnoughFunds;
     return null;
   }
 
@@ -260,9 +324,10 @@ abstract final class Scenario {
   static bool _level(double? price) =>
       price == null || (price > 0 && price.isFinite);
 
-  /// The most margin cash covers at [leverage], leaving room for the fee.
-  static int maxMarginCents(int leverage, int feeBps) =>
-      cashCents.value * 10000 ~/ (10000 + leverage * feeBps);
+  /// The most margin cash covers at [leverage], leaving room for the fee
+  /// and any [copyFeeCents] on top.
+  static int maxMarginCents(int leverage, int feeBps, {int copyFeeCents = 0}) =>
+      (cashCents.value - copyFeeCents) * 10000 ~/ (10000 + leverage * feeBps);
 
   /// The one write path for orders. A market order debits margin + fee,
   /// adds one position and one receipt; a limit or stop rests in Open
@@ -305,6 +370,7 @@ abstract final class Scenario {
       return const OrderFailed(priceExpired);
     }
     final long = intent.side == TradeSide.long;
+    final copyFee = copyFeeCents(intent);
     final receipt = OrderReceipt(
       id: id,
       symbol: intent.symbol,
@@ -318,6 +384,9 @@ abstract final class Scenario {
       feeCents: intent.feeCents,
       at: clock.value,
       clashId: intent.clashId,
+      copyFeeCents: copyFee,
+      sourceCallId: intent.sourceCallId,
+      sourceAuthorHandle: intent.sourceAuthorHandle,
     );
     final position = PortfolioPosition(
       id: id,
@@ -348,6 +417,25 @@ abstract final class Scenario {
     cashCents.value -= receipt.totalCents;
     positions.value = List.unmodifiable([position, ...positions.value]);
     receipts.value = List.unmodifiable([receipt, ...receipts.value]);
+    // The ledger is the creator's: it earns a copier's copy fee. A copy
+    // the creator makes of someone else's call pays that author, who has
+    // no ledger in the demo.
+    if (copyFee > 0 && activePersona.value != Persona.creator) {
+      feeEntries.value = List.unmodifiable([
+        FeeEntry(
+          id: 'copy-$id',
+          marketId: ticker.value,
+          eventTitle: 'Copy fee',
+          amountCents: copyFee,
+          at: clock.value,
+          kind: FeeKind.copyFee,
+          sourceCallId: intent.sourceCallId,
+          counterparty: activePersona.value.handle,
+          asset: intent.symbol,
+        ),
+        ...feeEntries.value,
+      ]);
+    }
     if (intent.clashId case final clash?) {
       participation.value = Map.unmodifiable({
         ...participation.value,
@@ -381,8 +469,38 @@ abstract final class Scenario {
     feeEntries.value = YourMarketMock.fees;
     callReceipts.value = seedCalls;
     marketsLoadFails.value = false;
+    activePersona.value = Persona.creator;
+    _parked = _copierSeed;
   }
 }
+
+/// The demo's two identities: the creator (today's seed) and a copier
+/// with its own paper cash.
+enum Persona {
+  creator(PortfolioMock.handle, 'Creator'),
+  copier(PortfolioMock.copierHandle, 'Copier');
+
+  const Persona(this.handle, this.label);
+  final String handle;
+  final String label;
+}
+
+/// One persona's books: its financial state and the Arena sides its fills
+/// took.
+typedef Books = ({
+  int cashCents,
+  List<PortfolioPosition> positions,
+  List<OpenOrder> openOrders,
+  List<OrderReceipt> receipts,
+  Map<String, TradeSide> participation,
+});
+
+/// What a copier pays per confirmed copy, flat (fixture constant).
+const kCopyFeeCents = 500;
+
+/// The copy line a review and a receipt show.
+String copyLine(String author, int cents) =>
+    'Copying @$author · ${formatCents(cents)} copy fee';
 
 /// What a ticket can place: market fills at once, limit and stop rest.
 enum OrderKind { market, limit, stop }
@@ -416,9 +534,16 @@ class OrderIntent {
     this.stopLoss,
     this.reduceOnly = false,
     this.clashId,
+    this.sourceCallId,
+    this.sourceAuthorHandle,
   });
 
   final String actionId;
+
+  /// The call this order was opened from, and its author: a copy when
+  /// the author is not the active persona.
+  final String? sourceCallId;
+  final String? sourceAuthorHandle;
   final String symbol;
   final String name;
   final TradeSide side;
@@ -483,7 +608,15 @@ class OrderReceipt {
     required this.feeCents,
     required this.at,
     this.clashId,
+    this.copyFeeCents = 0,
+    this.sourceCallId,
+    this.sourceAuthorHandle,
   });
+
+  /// The copy fee paid (0 unless a copy), and the call it copied.
+  final int copyFeeCents;
+  final String? sourceCallId;
+  final String? sourceAuthorHandle;
 
   /// The order's action id.
   final String id;
@@ -499,7 +632,8 @@ class OrderReceipt {
   final DateTime at;
   final String? clashId;
 
-  int get totalCents => marginCents + feeCents;
+  /// What the fill took from cash.
+  int get totalCents => marginCents + feeCents + copyFeeCents;
 }
 
 /// What [Scenario.placeOrder] did.

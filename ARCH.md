@@ -431,7 +431,9 @@ VistaColosseum/
 │   │   └── main.dart
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
+│   │   ├── copy_story_test.dart
 │   │   ├── empty_states_test.dart
+│   │   ├── feed_order_ticket_test.dart
 │   │   ├── home_screen_test.dart
 │   │   ├── order_ticket_test.dart
 │   │   ├── receipts_test.dart
@@ -455,464 +457,477 @@ VistaColosseum/
 │   ├── baton-queue/
 │   │   ├── 2026-10-04T233424-p0-runner-paused-phase3-review.md
 │   │   └── 2026-10-05T085823-p0-runner-complete.md
-│   └── br-2026-10-04-p0-queue/
-│       ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
-│       ├── 2026-10-04T095757-phase1-scenario-store-half1.md
-│       ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
-│       ├── 2026-10-04T101019-phase1-scenario-store-half2.md
-│       ├── 2026-10-04T105011-phase1-review-iter1.md
-│       ├── 2026-10-04T105911-phase1-fix-iter1.md
-│       ├── 2026-10-04T114637-phase1-review-iter2.md
-│       ├── 2026-10-04T115639-phase2-order-store-checkpoint.md
-│       ├── 2026-10-04T120621-phase2-truthful-order-confirm.md
-│       ├── 2026-10-04T124925-phase2-review-iter1.md
-│       ├── 2026-10-04T125834-phase2-fix-iter1.md
-│       ├── 2026-10-04T135405-phase2-review-iter2.md
-│       ├── 2026-10-04T140130-phase2-fix-iter2.md
-│       ├── 2026-10-04T150315-phase2-review-iter3.md
-│       ├── 2026-10-04T151112-phase3-simulation-indicator-checkpoint.md
-│       ├── 2026-10-04T151800-phase3-simulation-indicator.md
-│       ├── 2026-10-04T161405-phase3-review-iter1.md
-│       ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
-│       ├── 2026-10-04T162846-phase3-fix-iter1.md
-│       ├── 2026-10-04T181055-phase3-review-iter2.md
-│       ├── 2026-10-04T184857-phase3-close.md
-│       ├── 2026-10-04T190310-phase4-arena-checkpoint.md
-│       ├── 2026-10-04T190946-phase4-arena-sort-filter-join.md
-│       ├── 2026-10-04T191813-phase4-review-iter1.md
-│       ├── 2026-10-04T195458-phase4-close.md
-│       ├── 2026-10-04T200724-phase5-maker-suggestion-checkpoint.md
-│       ├── 2026-10-04T201217-phase5-maker-suggestion-green.md
-│       ├── 2026-10-04T201519-phase5-maker-suggestion-card.md
-│       ├── 2026-10-04T202626-phase5-review-iter1.md
-│       ├── 2026-10-04T205139-phase5-close.md
-│       ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
-│       ├── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
-│       ├── 2026-10-05T041752-phase6-review-iter1.md
-│       ├── 2026-10-05T050809-phase6-close.md
-│       ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
-│       ├── 2026-10-05T054156-phase7-trader-record-panel.md
-│       ├── 2026-10-05T054607-phase7-review-iter1.md
-│       ├── 2026-10-05T065006-phase7-close.md
-│       ├── 2026-10-05T071134-phase8-empty-failed-states.md
-│       ├── 2026-10-05T071609-phase8-review-iter1.md
-│       └── 2026-10-05T085628-phase8-close.md
+│   ├── br-2026-10-04-p0-queue/
+│   │   ├── 2026-10-04T095606-phase1-scenario-store-checkpoint.md
+│   │   ├── 2026-10-04T095757-phase1-scenario-store-half1.md
+│   │   ├── 2026-10-04T100456-phase1-scenario-store-half2-red.md
+│   │   ├── 2026-10-04T101019-phase1-scenario-store-half2.md
+│   │   ├── 2026-10-04T105011-phase1-review-iter1.md
+│   │   ├── 2026-10-04T105911-phase1-fix-iter1.md
+│   │   ├── 2026-10-04T114637-phase1-review-iter2.md
+│   │   ├── 2026-10-04T115639-phase2-order-store-checkpoint.md
+│   │   ├── 2026-10-04T120621-phase2-truthful-order-confirm.md
+│   │   ├── 2026-10-04T124925-phase2-review-iter1.md
+│   │   ├── 2026-10-04T125834-phase2-fix-iter1.md
+│   │   ├── 2026-10-04T135405-phase2-review-iter2.md
+│   │   ├── 2026-10-04T140130-phase2-fix-iter2.md
+│   │   ├── 2026-10-04T150315-phase2-review-iter3.md
+│   │   ├── 2026-10-04T151112-phase3-simulation-indicator-checkpoint.md
+│   │   ├── 2026-10-04T151800-phase3-simulation-indicator.md
+│   │   ├── 2026-10-04T161405-phase3-review-iter1.md
+│   │   ├── 2026-10-04T162325-phase3-fix-iter1-checkpoint.md
+│   │   ├── 2026-10-04T162846-phase3-fix-iter1.md
+│   │   ├── 2026-10-04T181055-phase3-review-iter2.md
+│   │   ├── 2026-10-04T184857-phase3-close.md
+│   │   ├── 2026-10-04T190310-phase4-arena-checkpoint.md
+│   │   ├── 2026-10-04T190946-phase4-arena-sort-filter-join.md
+│   │   ├── 2026-10-04T191813-phase4-review-iter1.md
+│   │   ├── 2026-10-04T195458-phase4-close.md
+│   │   ├── 2026-10-04T200724-phase5-maker-suggestion-checkpoint.md
+│   │   ├── 2026-10-04T201217-phase5-maker-suggestion-green.md
+│   │   ├── 2026-10-04T201519-phase5-maker-suggestion-card.md
+│   │   ├── 2026-10-04T202626-phase5-review-iter1.md
+│   │   ├── 2026-10-04T205139-phase5-close.md
+│   │   ├── 2026-10-05T040742-phase6-fee-ledger-checkpoint.md
+│   │   ├── 2026-10-05T041423-phase6-fee-ledger-and-receipts.md
+│   │   ├── 2026-10-05T041752-phase6-review-iter1.md
+│   │   ├── 2026-10-05T050809-phase6-close.md
+│   │   ├── 2026-10-05T053614-phase7-trader-record-checkpoint.md
+│   │   ├── 2026-10-05T054156-phase7-trader-record-panel.md
+│   │   ├── 2026-10-05T054607-phase7-review-iter1.md
+│   │   ├── 2026-10-05T065006-phase7-close.md
+│   │   ├── 2026-10-05T071134-phase8-empty-failed-states.md
+│   │   ├── 2026-10-05T071609-phase8-review-iter1.md
+│   │   └── 2026-10-05T085628-phase8-close.md
+│   └── br-2026-10-05-copy-story/
+│       ├── 2026-10-05T095536-phase1-work.md
+│       ├── 2026-10-05T101958-phase1-review.md
+│       └── 2026-10-05T111407-phase1-close.md
 ├── baton-runner/
-│   └── br-2026-10-04-p0-queue/
-│       ├── close-phase-6/
-│       │   ├── house-rule-grep.log
-│       │   └── receipts-test-expanded.log
-│       ├── close-phase-7/
-│       │   ├── house-rule-grep.log
-│       │   └── trader-record-test-expanded.log
-│       ├── close-phase-8/
-│       │   └── empty-states-test-expanded.log
-│       ├── fix-phase-2-iter-2/
-│       │   ├── gate/
-│       │   │   ├── flutter-analyze.log
-│       │   │   ├── flutter-test.log
-│       │   │   └── pubspec-frozen.log
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   ├── green-targeted.log
-│       │   ├── mutant-A-confirm-guard.log
-│       │   ├── mutant-B-retry-guard.log
-│       │   ├── mutant-C-market-only-notBuilt.log
-│       │   ├── mutant-D-fee-round.log
-│       │   ├── mutant-E-units-isFinite.log
-│       │   ├── mutant-F-retry-any-failure.log
-│       │   └── red.log
-│       ├── gate-phase-1-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-1-iter-2/
-│       │   ├── extra-flutter-test-has-market-true.log
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-2-fix-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-2-iter-1/
-│       │   ├── console.txt
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-2-iter-2/
-│       │   ├── h1-probe/
-│       │   │   ├── h1-probe.log
-│       │   │   ├── h1_probe_test.dart
-│       │   │   └── overflow_probe_test.dart
-│       │   ├── console.txt
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-2-iter-3/
-│       │   ├── has-market/
-│       │   │   └── flutter-test-has-market.log
-│       │   ├── probe/
-│       │   │   ├── iter3-probe.log
-│       │   │   └── iter3_probe_test.dart
-│       │   ├── review-probes/
-│       │   │   ├── architect-reviewer/
-│       │   │   │   ├── arch-probe.log
-│       │   │   │   ├── arch-probe2.log
-│       │   │   │   ├── arch_probe2_test.dart
-│       │   │   │   └── arch_probe_test.dart
-│       │   │   ├── code-reviewer/
-│       │   │   │   ├── cr_changeline_probe.log
-│       │   │   │   ├── cr_changeline_probe_test.dart
-│       │   │   │   ├── cr_iter3_probe.log
-│       │   │   │   ├── cr_iter3_probe_test.dart
-│       │   │   │   ├── cr_nofont_probe.log
-│       │   │   │   ├── cr_nofont_probe_test.dart
-│       │   │   │   └── parse_cents_probe.dart
-│       │   │   ├── critical-thinking/
-│       │   │   │   ├── ct-probe.log
-│       │   │   │   ├── ct_probe2_test.dart
-│       │   │   │   └── ct_probe_test.dart
-│       │   │   ├── fintech-engineer/
-│       │   │   │   ├── fintech-probe.log
-│       │   │   │   ├── fintech-probe2.log
-│       │   │   │   ├── fintech_probe2_test.dart
-│       │   │   │   ├── fintech_probe_test.dart
-│       │   │   │   └── parse_cents.dart
-│       │   │   ├── silent-failure-hunter/
-│       │   │   │   ├── sfh-overflow-probe.log
-│       │   │   │   ├── sfh-probe.log
-│       │   │   │   ├── sfh_overflow_probe_test.dart
-│       │   │   │   ├── sfh_probe_test.dart
-│       │   │   │   └── wrap.dart
-│       │   │   └── tdd-guide/
-│       │   │       └── tdd_probe_test.dart
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-3-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-3-fix-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   ├── gate.out
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-3-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-3-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-3-iter-2/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-3-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-4-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-4-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-4-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-4-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-5-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-5-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-5-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── pubspec-frozen.log
-│       │   └── test-has-market.log
-│       ├── gate-phase-5-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-6-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   ├── has-market-tail.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-6-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-6-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   ├── grep-all-receipts.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-6-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   ├── grep-all-receipts.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-7-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   ├── has-market-tail.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-7-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-7-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── has-market.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-7-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── has-market.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-8-close/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   ├── gate-stdout.log
-│       │   ├── has-market-tail.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-8-fixer/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-8-iter-1/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── gate-phase-8-work/
-│       │   ├── flutter-analyze.log
-│       │   ├── flutter-test-has-market.log
-│       │   ├── flutter-test.log
-│       │   └── pubspec-frozen.log
-│       ├── phase-4-red/
-│       │   ├── home-green-1.log
-│       │   ├── home-red-1.log
-│       │   ├── scenario-green-1.log
-│       │   └── scenario-red-1.log
-│       ├── phase-5-red/
-│       │   ├── full-1.log
-│       │   ├── green-1.log
-│       │   ├── green-2.log
-│       │   ├── green-3.log
-│       │   ├── mutation.log
-│       │   ├── red-1-compile.log
-│       │   └── red-2-assert.log
-│       ├── phase-5-verify/
-│       │   ├── analyze.log
-│       │   ├── test-has-market.log
-│       │   └── test.log
-│       ├── phase-6-red/
-│       │   ├── green-1.log
-│       │   ├── green-2.log
-│       │   ├── mutant-M1-footer-stored-constant.log
-│       │   ├── mutant-M2-call-details-ignores-author.log
-│       │   ├── mutant-M3-paper-orders-on-every-list.log
-│       │   ├── mutant-M4-fees-not-filtered-by-market.log
-│       │   ├── red-1-compile.log
-│       │   └── red-2-assertions.log
-│       ├── phase-7-red/
-│       │   ├── 01-compile-red.log
-│       │   ├── 02-assertions-red.log
-│       │   └── 03-mutants.log
-│       ├── phase-8-red/
-│       │   ├── mutations.log
-│       │   ├── red-1-compile.log
-│       │   └── red-2-runtime.log
-│       ├── review-phase-3-iter-2-probe/
-│       │   ├── cta_probe.log
-│       │   ├── cta_probe_test.dart
-│       │   ├── h1_probe.log
-│       │   ├── h1_probe_test.dart
-│       │   ├── mm_probe_head.log
-│       │   ├── mm_probe_main.log
-│       │   ├── mm_probe_test.dart
-│       │   ├── mut-AC1-AC2-no-padding-reserve-home_screen_test.log
-│       │   ├── mut-AC1-AC2-no-pill-in-builder-home_screen_test.log
-│       │   ├── mut-AC1-AC2-no-pill-in-builder-scenario_test.log
-│       │   ├── mut-AC3-blank-simulated-label-order_ticket_test.log
-│       │   ├── mut-H1-revert-isScrollControlled-home_screen_test.log
-│       │   ├── mut-H1-revert-probe.log
-│       │   ├── mut-M2-no-popUntil-home_screen_test.log
-│       │   ├── mut-M2-no-popUntil-scenario_test.log
-│       │   ├── mutate.py
-│       │   ├── settings_reset_probe.log
-│       │   └── settings_reset_probe_test.dart
-│       ├── review-phase-4-iter-1-probe/
-│       │   ├── arena_layout_probe.log
-│       │   ├── arena_layout_probe_test.dart
-│       │   ├── mut-arena-no-clashId-home_screen_test.log
-│       │   ├── mut-ask-field-ignores-reset-home_screen_test.log
-│       │   ├── mut-ask-no-filter-home_screen_test.log
-│       │   ├── mut-buckets-constant-home_screen_test.log
-│       │   ├── mut-card-ignores-joins-home_screen_test.log
-│       │   ├── mut-failure-joins-scenario_test.log
-│       │   ├── mut-joins-ignore-side-scenario_test.log
-│       │   ├── mut-label-dock-home_screen_test.log
-│       │   ├── mut-label-header-home_screen_test.log
-│       │   ├── mut-label-panel-home_screen_test.log
-│       │   ├── mut-list-ignores-range-home_screen_test.log
-│       │   ├── mut-no-participation-write-home_screen_test.log
-│       │   ├── mut-no-participation-write-scenario_test.log
-│       │   ├── mut-opinions-hardcode-btc-home_screen_test.log
-│       │   ├── mut-opinions-no-clashId-home_screen_test.log
-│       │   ├── mut-panel-counts-all-home_screen_test.log
-│       │   ├── mut-replay-not-deduped-scenario_test.log
-│       │   ├── mut-reset-keeps-arena-scenario_test.log
-│       │   ├── mut-reset-keeps-participation-scenario_test.log
-│       │   ├── mut-show-all-noop-home_screen_test.log
-│       │   ├── mut-sort-chips-all-volume-home_screen_test.log
-│       │   ├── mut-sort-no-tiebreak-home_screen_test.log
-│       │   └── mutate.py
-│       ├── review-phase-5-iter-1-probe/
-│       │   ├── maker_probe.log
-│       │   ├── maker_probe_test.dart
-│       │   ├── mut-badge-text.log
-│       │   ├── mut-both-live.log
-│       │   ├── mut-card-overflow.log
-│       │   ├── mut-clock-constant.log
-│       │   ├── mut-clock-wallclock.log
-│       │   ├── mut-clock-write-on-trade.log
-│       │   ├── mut-drop-data-path.log
-│       │   ├── mut-drop-reference-line.log
-│       │   ├── mut-expired-says-trade-this.log
-│       │   ├── mut-no-semantics-container.log
-│       │   ├── mut-suggestions-adjacent.log
-│       │   ├── mut-vpb-ignores-enabled.log
-│       │   ├── mut-wrong-asset.log
-│       │   ├── mutate-run-1.txt
-│       │   ├── mutate-run-2.txt
-│       │   └── mutate.py
-│       ├── review-phase-6-iter-1-probe/
-│       │   ├── mut-chip-constant.log
-│       │   ├── mut-example-not-backed-out.log
-│       │   ├── mut-forholding-ignores-open.log
-│       │   ├── mut-ledger-entry-amount-hidden.log
-│       │   ├── mut-ledger-entry-no-market.log
-│       │   ├── mut-ledger-footer-no-safe.log
-│       │   ├── mut-ledger-label-dropped.log
-│       │   ├── mut-listing-label-dropped.log
-│       │   ├── mut-profile-wrong-handle.log
-│       │   ├── mut-receipts-ignore-author.log
-│       │   ├── mut-record-item-opens-first.log
-│       │   ├── mut-reset-no-callreceipts.log
-│       │   ├── mut-reset-no-fees.log
-│       │   ├── mut-trader-wrong-handle.log
-│       │   ├── mut-unavailable-blank.log
-│       │   ├── mut-wallet-row-constant.log
-│       │   ├── mutate-run-1.txt
-│       │   ├── mutate.py
-│       │   ├── probe-run.log
-│       │   └── review6_probe_test.dart
-│       ├── review-phase-7-iter-1-probe/
-│       │   ├── mut-panel-ignores-clock.log
-│       │   ├── mut-panel-stats-row-overflows.log
-│       │   ├── mut-private-header-const.log
-│       │   ├── mut-private-panel-wrong-handle.log
-│       │   ├── mut-profile-chart-gate-on-any-call.log
-│       │   ├── mut-profile-header-right-const.log
-│       │   ├── mut-profile-header-settled-const.log
-│       │   ├── mut-trader-market-panel-dropped.log
-│       │   ├── mut-trader-open-calls-const.log
-│       │   ├── mut-your-market-panel-wrong-handle.log
-│       │   ├── mutate-run-1.txt
-│       │   ├── mutate-run-2.txt
-│       │   ├── mutate.py
-│       │   ├── probe-run-fold.log
-│       │   ├── probe-run-full.log
-│       │   ├── probe-run-p7.log
-│       │   ├── probe-run.log
-│       │   ├── review7_fold_test.dart
-│       │   └── review7_probe_test.dart
-│       ├── review-phase-8-iter-1-probe/
-│       │   ├── mut-arena-clear-search-noop.log
-│       │   ├── mut-empty-line-overflows.log
-│       │   ├── mut-empty-state-overflows.log
-│       │   ├── mut-failure-leaks-to-arena.log
-│       │   ├── mut-profile-list-ignores-strip.log
-│       │   ├── mut-receipts-paper-plain-text-all.log
-│       │   ├── mut-receipts-paper-plain-text.log
-│       │   ├── mut-reset-keeps-toggle.log
-│       │   ├── mut-retry-noop.log
-│       │   ├── mut-switch-not-beside-reset-all.log
-│       │   ├── mut-switch-not-beside-reset.log
-│       │   ├── mutate-run-1.txt
-│       │   ├── mutate-run-2.txt
-│       │   ├── mutate-run-3.txt
-│       │   ├── mutate-run-4.txt
-│       │   ├── mutate-run-5.txt
-│       │   ├── mutate.py
-│       │   ├── probe-run.log
-│       │   └── review8_probe_test.dart
+│   ├── br-2026-10-04-p0-queue/
+│   │   ├── close-phase-6/
+│   │   │   ├── house-rule-grep.log
+│   │   │   └── receipts-test-expanded.log
+│   │   ├── close-phase-7/
+│   │   │   ├── house-rule-grep.log
+│   │   │   └── trader-record-test-expanded.log
+│   │   ├── close-phase-8/
+│   │   │   └── empty-states-test-expanded.log
+│   │   ├── fix-phase-2-iter-2/
+│   │   │   ├── gate/
+│   │   │   │   ├── flutter-analyze.log
+│   │   │   │   ├── flutter-test.log
+│   │   │   │   └── pubspec-frozen.log
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── green-targeted.log
+│   │   │   ├── mutant-A-confirm-guard.log
+│   │   │   ├── mutant-B-retry-guard.log
+│   │   │   ├── mutant-C-market-only-notBuilt.log
+│   │   │   ├── mutant-D-fee-round.log
+│   │   │   ├── mutant-E-units-isFinite.log
+│   │   │   ├── mutant-F-retry-any-failure.log
+│   │   │   └── red.log
+│   │   ├── gate-phase-1-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-1-iter-2/
+│   │   │   ├── extra-flutter-test-has-market-true.log
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-2-fix-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-2-iter-1/
+│   │   │   ├── console.txt
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-2-iter-2/
+│   │   │   ├── h1-probe/
+│   │   │   │   ├── h1-probe.log
+│   │   │   │   ├── h1_probe_test.dart
+│   │   │   │   └── overflow_probe_test.dart
+│   │   │   ├── console.txt
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-2-iter-3/
+│   │   │   ├── has-market/
+│   │   │   │   └── flutter-test-has-market.log
+│   │   │   ├── probe/
+│   │   │   │   ├── iter3-probe.log
+│   │   │   │   └── iter3_probe_test.dart
+│   │   │   ├── review-probes/
+│   │   │   │   ├── architect-reviewer/
+│   │   │   │   │   ├── arch-probe.log
+│   │   │   │   │   ├── arch-probe2.log
+│   │   │   │   │   ├── arch_probe2_test.dart
+│   │   │   │   │   └── arch_probe_test.dart
+│   │   │   │   ├── code-reviewer/
+│   │   │   │   │   ├── cr_changeline_probe.log
+│   │   │   │   │   ├── cr_changeline_probe_test.dart
+│   │   │   │   │   ├── cr_iter3_probe.log
+│   │   │   │   │   ├── cr_iter3_probe_test.dart
+│   │   │   │   │   ├── cr_nofont_probe.log
+│   │   │   │   │   ├── cr_nofont_probe_test.dart
+│   │   │   │   │   └── parse_cents_probe.dart
+│   │   │   │   ├── critical-thinking/
+│   │   │   │   │   ├── ct-probe.log
+│   │   │   │   │   ├── ct_probe2_test.dart
+│   │   │   │   │   └── ct_probe_test.dart
+│   │   │   │   ├── fintech-engineer/
+│   │   │   │   │   ├── fintech-probe.log
+│   │   │   │   │   ├── fintech-probe2.log
+│   │   │   │   │   ├── fintech_probe2_test.dart
+│   │   │   │   │   ├── fintech_probe_test.dart
+│   │   │   │   │   └── parse_cents.dart
+│   │   │   │   ├── silent-failure-hunter/
+│   │   │   │   │   ├── sfh-overflow-probe.log
+│   │   │   │   │   ├── sfh-probe.log
+│   │   │   │   │   ├── sfh_overflow_probe_test.dart
+│   │   │   │   │   ├── sfh_probe_test.dart
+│   │   │   │   │   └── wrap.dart
+│   │   │   │   └── tdd-guide/
+│   │   │   │       └── tdd_probe_test.dart
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-3-close/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate-stdout.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-3-fix-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate.out
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-3-fixer/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-3-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-3-iter-2/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-3-work/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-4-close/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate-stdout.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-4-fixer/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-4-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-4-work/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-5-close/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate-stdout.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-5-fixer/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-5-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── pubspec-frozen.log
+│   │   │   └── test-has-market.log
+│   │   ├── gate-phase-5-work/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-6-close/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate-stdout.log
+│   │   │   ├── has-market-tail.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-6-fixer/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-6-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── grep-all-receipts.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-6-work/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── grep-all-receipts.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-7-close/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate-stdout.log
+│   │   │   ├── has-market-tail.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-7-fixer/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-7-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── has-market.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-7-work/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── has-market.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-8-close/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   ├── gate-stdout.log
+│   │   │   ├── has-market-tail.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-8-fixer/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-8-iter-1/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── gate-phase-8-work/
+│   │   │   ├── flutter-analyze.log
+│   │   │   ├── flutter-test-has-market.log
+│   │   │   ├── flutter-test.log
+│   │   │   └── pubspec-frozen.log
+│   │   ├── phase-4-red/
+│   │   │   ├── home-green-1.log
+│   │   │   ├── home-red-1.log
+│   │   │   ├── scenario-green-1.log
+│   │   │   └── scenario-red-1.log
+│   │   ├── phase-5-red/
+│   │   │   ├── full-1.log
+│   │   │   ├── green-1.log
+│   │   │   ├── green-2.log
+│   │   │   ├── green-3.log
+│   │   │   ├── mutation.log
+│   │   │   ├── red-1-compile.log
+│   │   │   └── red-2-assert.log
+│   │   ├── phase-5-verify/
+│   │   │   ├── analyze.log
+│   │   │   ├── test-has-market.log
+│   │   │   └── test.log
+│   │   ├── phase-6-red/
+│   │   │   ├── green-1.log
+│   │   │   ├── green-2.log
+│   │   │   ├── mutant-M1-footer-stored-constant.log
+│   │   │   ├── mutant-M2-call-details-ignores-author.log
+│   │   │   ├── mutant-M3-paper-orders-on-every-list.log
+│   │   │   ├── mutant-M4-fees-not-filtered-by-market.log
+│   │   │   ├── red-1-compile.log
+│   │   │   └── red-2-assertions.log
+│   │   ├── phase-7-red/
+│   │   │   ├── 01-compile-red.log
+│   │   │   ├── 02-assertions-red.log
+│   │   │   └── 03-mutants.log
+│   │   ├── phase-8-red/
+│   │   │   ├── mutations.log
+│   │   │   ├── red-1-compile.log
+│   │   │   └── red-2-runtime.log
+│   │   ├── review-phase-3-iter-2-probe/
+│   │   │   ├── cta_probe.log
+│   │   │   ├── cta_probe_test.dart
+│   │   │   ├── h1_probe.log
+│   │   │   ├── h1_probe_test.dart
+│   │   │   ├── mm_probe_head.log
+│   │   │   ├── mm_probe_main.log
+│   │   │   ├── mm_probe_test.dart
+│   │   │   ├── mut-AC1-AC2-no-padding-reserve-home_screen_test.log
+│   │   │   ├── mut-AC1-AC2-no-pill-in-builder-home_screen_test.log
+│   │   │   ├── mut-AC1-AC2-no-pill-in-builder-scenario_test.log
+│   │   │   ├── mut-AC3-blank-simulated-label-order_ticket_test.log
+│   │   │   ├── mut-H1-revert-isScrollControlled-home_screen_test.log
+│   │   │   ├── mut-H1-revert-probe.log
+│   │   │   ├── mut-M2-no-popUntil-home_screen_test.log
+│   │   │   ├── mut-M2-no-popUntil-scenario_test.log
+│   │   │   ├── mutate.py
+│   │   │   ├── settings_reset_probe.log
+│   │   │   └── settings_reset_probe_test.dart
+│   │   ├── review-phase-4-iter-1-probe/
+│   │   │   ├── arena_layout_probe.log
+│   │   │   ├── arena_layout_probe_test.dart
+│   │   │   ├── mut-arena-no-clashId-home_screen_test.log
+│   │   │   ├── mut-ask-field-ignores-reset-home_screen_test.log
+│   │   │   ├── mut-ask-no-filter-home_screen_test.log
+│   │   │   ├── mut-buckets-constant-home_screen_test.log
+│   │   │   ├── mut-card-ignores-joins-home_screen_test.log
+│   │   │   ├── mut-failure-joins-scenario_test.log
+│   │   │   ├── mut-joins-ignore-side-scenario_test.log
+│   │   │   ├── mut-label-dock-home_screen_test.log
+│   │   │   ├── mut-label-header-home_screen_test.log
+│   │   │   ├── mut-label-panel-home_screen_test.log
+│   │   │   ├── mut-list-ignores-range-home_screen_test.log
+│   │   │   ├── mut-no-participation-write-home_screen_test.log
+│   │   │   ├── mut-no-participation-write-scenario_test.log
+│   │   │   ├── mut-opinions-hardcode-btc-home_screen_test.log
+│   │   │   ├── mut-opinions-no-clashId-home_screen_test.log
+│   │   │   ├── mut-panel-counts-all-home_screen_test.log
+│   │   │   ├── mut-replay-not-deduped-scenario_test.log
+│   │   │   ├── mut-reset-keeps-arena-scenario_test.log
+│   │   │   ├── mut-reset-keeps-participation-scenario_test.log
+│   │   │   ├── mut-show-all-noop-home_screen_test.log
+│   │   │   ├── mut-sort-chips-all-volume-home_screen_test.log
+│   │   │   ├── mut-sort-no-tiebreak-home_screen_test.log
+│   │   │   └── mutate.py
+│   │   ├── review-phase-5-iter-1-probe/
+│   │   │   ├── maker_probe.log
+│   │   │   ├── maker_probe_test.dart
+│   │   │   ├── mut-badge-text.log
+│   │   │   ├── mut-both-live.log
+│   │   │   ├── mut-card-overflow.log
+│   │   │   ├── mut-clock-constant.log
+│   │   │   ├── mut-clock-wallclock.log
+│   │   │   ├── mut-clock-write-on-trade.log
+│   │   │   ├── mut-drop-data-path.log
+│   │   │   ├── mut-drop-reference-line.log
+│   │   │   ├── mut-expired-says-trade-this.log
+│   │   │   ├── mut-no-semantics-container.log
+│   │   │   ├── mut-suggestions-adjacent.log
+│   │   │   ├── mut-vpb-ignores-enabled.log
+│   │   │   ├── mut-wrong-asset.log
+│   │   │   ├── mutate-run-1.txt
+│   │   │   ├── mutate-run-2.txt
+│   │   │   └── mutate.py
+│   │   ├── review-phase-6-iter-1-probe/
+│   │   │   ├── mut-chip-constant.log
+│   │   │   ├── mut-example-not-backed-out.log
+│   │   │   ├── mut-forholding-ignores-open.log
+│   │   │   ├── mut-ledger-entry-amount-hidden.log
+│   │   │   ├── mut-ledger-entry-no-market.log
+│   │   │   ├── mut-ledger-footer-no-safe.log
+│   │   │   ├── mut-ledger-label-dropped.log
+│   │   │   ├── mut-listing-label-dropped.log
+│   │   │   ├── mut-profile-wrong-handle.log
+│   │   │   ├── mut-receipts-ignore-author.log
+│   │   │   ├── mut-record-item-opens-first.log
+│   │   │   ├── mut-reset-no-callreceipts.log
+│   │   │   ├── mut-reset-no-fees.log
+│   │   │   ├── mut-trader-wrong-handle.log
+│   │   │   ├── mut-unavailable-blank.log
+│   │   │   ├── mut-wallet-row-constant.log
+│   │   │   ├── mutate-run-1.txt
+│   │   │   ├── mutate.py
+│   │   │   ├── probe-run.log
+│   │   │   └── review6_probe_test.dart
+│   │   ├── review-phase-7-iter-1-probe/
+│   │   │   ├── mut-panel-ignores-clock.log
+│   │   │   ├── mut-panel-stats-row-overflows.log
+│   │   │   ├── mut-private-header-const.log
+│   │   │   ├── mut-private-panel-wrong-handle.log
+│   │   │   ├── mut-profile-chart-gate-on-any-call.log
+│   │   │   ├── mut-profile-header-right-const.log
+│   │   │   ├── mut-profile-header-settled-const.log
+│   │   │   ├── mut-trader-market-panel-dropped.log
+│   │   │   ├── mut-trader-open-calls-const.log
+│   │   │   ├── mut-your-market-panel-wrong-handle.log
+│   │   │   ├── mutate-run-1.txt
+│   │   │   ├── mutate-run-2.txt
+│   │   │   ├── mutate.py
+│   │   │   ├── probe-run-fold.log
+│   │   │   ├── probe-run-full.log
+│   │   │   ├── probe-run-p7.log
+│   │   │   ├── probe-run.log
+│   │   │   ├── review7_fold_test.dart
+│   │   │   └── review7_probe_test.dart
+│   │   ├── review-phase-8-iter-1-probe/
+│   │   │   ├── mut-arena-clear-search-noop.log
+│   │   │   ├── mut-empty-line-overflows.log
+│   │   │   ├── mut-empty-state-overflows.log
+│   │   │   ├── mut-failure-leaks-to-arena.log
+│   │   │   ├── mut-profile-list-ignores-strip.log
+│   │   │   ├── mut-receipts-paper-plain-text-all.log
+│   │   │   ├── mut-receipts-paper-plain-text.log
+│   │   │   ├── mut-reset-keeps-toggle.log
+│   │   │   ├── mut-retry-noop.log
+│   │   │   ├── mut-switch-not-beside-reset-all.log
+│   │   │   ├── mut-switch-not-beside-reset.log
+│   │   │   ├── mutate-run-1.txt
+│   │   │   ├── mutate-run-2.txt
+│   │   │   ├── mutate-run-3.txt
+│   │   │   ├── mutate-run-4.txt
+│   │   │   ├── mutate-run-5.txt
+│   │   │   ├── mutate.py
+│   │   │   ├── probe-run.log
+│   │   │   └── review8_probe_test.dart
+│   │   ├── digest-phase-1.md
+│   │   ├── digest-phase-2.md
+│   │   ├── digest-phase-3.md
+│   │   ├── digest-phase-4.md
+│   │   ├── digest-phase-5.md
+│   │   ├── digest-phase-6.md
+│   │   ├── digest-phase-7.md
+│   │   ├── digest-phase-8.md
+│   │   ├── fixer-phase-3.json
+│   │   ├── fixer-phase-4.json
+│   │   ├── fixer-phase-5.json
+│   │   ├── fixer-phase-6.json
+│   │   ├── fixer-phase-7.json
+│   │   ├── fixer-phase-8.json
+│   │   ├── house-rules.md
+│   │   ├── log.md
+│   │   ├── review-phase-1-iter-1-prelude.md
+│   │   ├── review-phase-1-iter-1.md
+│   │   ├── review-phase-1-iter-2-prelude.md
+│   │   ├── review-phase-1-iter-2.md
+│   │   ├── review-phase-2-iter-1.md
+│   │   ├── review-phase-2-iter-2-prelude.md
+│   │   ├── review-phase-2-iter-2.md
+│   │   ├── review-phase-2-iter-3.md
+│   │   ├── review-phase-3-dw.json
+│   │   ├── review-phase-3-iter-1-prelude.md
+│   │   ├── review-phase-3-iter-1.md
+│   │   ├── review-phase-4-dw.json
+│   │   ├── review-phase-5-dw.json
+│   │   ├── review-phase-6-dw.json
+│   │   ├── review-phase-7-dw.json
+│   │   ├── review-phase-8-dw.json
+│   │   └── STATE.md
+│   └── br-2026-10-05-copy-story/
+│       ├── gate-phase-1-close/
+│       │   └── gate-stdout.log
 │       ├── digest-phase-1.md
-│       ├── digest-phase-2.md
-│       ├── digest-phase-3.md
-│       ├── digest-phase-4.md
-│       ├── digest-phase-5.md
-│       ├── digest-phase-6.md
-│       ├── digest-phase-7.md
-│       ├── digest-phase-8.md
-│       ├── fixer-phase-3.json
-│       ├── fixer-phase-4.json
-│       ├── fixer-phase-5.json
-│       ├── fixer-phase-6.json
-│       ├── fixer-phase-7.json
-│       ├── fixer-phase-8.json
+│       ├── fixer-phase-1.json
 │       ├── house-rules.md
 │       ├── log.md
-│       ├── review-phase-1-iter-1-prelude.md
-│       ├── review-phase-1-iter-1.md
-│       ├── review-phase-1-iter-2-prelude.md
-│       ├── review-phase-1-iter-2.md
-│       ├── review-phase-2-iter-1.md
-│       ├── review-phase-2-iter-2-prelude.md
-│       ├── review-phase-2-iter-2.md
-│       ├── review-phase-2-iter-3.md
-│       ├── review-phase-3-dw.json
-│       ├── review-phase-3-iter-1-prelude.md
-│       ├── review-phase-3-iter-1.md
-│       ├── review-phase-4-dw.json
-│       ├── review-phase-5-dw.json
-│       ├── review-phase-6-dw.json
-│       ├── review-phase-7-dw.json
-│       ├── review-phase-8-dw.json
+│       ├── review-phase-1-dw.json
 │       └── STATE.md
 ├── docs/
 │   ├── agents/  — issue tracker, triage labels, and domain-document configuration
@@ -937,6 +952,7 @@ VistaColosseum/
 │   │   ├── 2026-10-04-dw-review-phase-7-trader-record-panel.md
 │   │   ├── 2026-10-04-dw-review-phase-8-list-empty-failed-states.md
 │   │   ├── 2026-10-04-spec-00-baton-queue-review.md
+│   │   ├── 2026-10-05-dw-review-copy-story.md
 │   │   └── 2026-10-05-spec-09-adversarial-read.md
 │   ├── specs/
 │   │   ├── 00-baton-queue.md

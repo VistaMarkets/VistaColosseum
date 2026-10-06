@@ -900,18 +900,18 @@ class _ReviewPanelState extends State<_ReviewPanel> {
     final notional = filled?.notionalCents ?? i.notionalCents;
     final margin = filled?.marginCents ?? i.marginCents;
     final fee = filled?.feeCents ?? i.feeCents;
+    final copyFee = filled?.copyFeeCents ?? Scenario.copyFeeCents(i);
     final close = Navigator.of(context).pop;
-    final muted = VistaType.body.copyWith(
-      fontSize: 14,
-      color: VistaColors.textMuted,
-    );
+    // The review's 14 pt figure style, defined once for every line.
+    final figure = VistaType.body.copyWith(fontSize: 14);
+    final muted = figure.copyWith(color: VistaColors.textMuted);
     Widget row(String label, String value) => Padding(
       key: ValueKey(label),
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: VistaSpace.lg),
       child: Row(
         children: [
           Expanded(child: Text(label, style: muted)),
-          Text(value, style: VistaType.body.copyWith(fontSize: 14)),
+          Text(value, style: figure),
         ],
       ),
     );
@@ -982,7 +982,16 @@ class _ReviewPanelState extends State<_ReviewPanel> {
         row('Reference price', MarketPrices.format(i.price)),
         row('Margin', formatCents(margin)),
         row('Fee', formatCents(fee)),
-        row('Paper funds required', formatCents(margin + fee)),
+        if (copyFee > 0)
+          Padding(
+            key: const ValueKey('Copy fee'),
+            padding: const EdgeInsets.only(top: VistaSpace.lg),
+            child: Text(
+              copyLine(i.sourceAuthorHandle!, copyFee),
+              style: figure,
+            ),
+          ),
+        row('Paper funds required', formatCents(margin + fee + copyFee)),
         const SizedBox(height: 12),
         Text('Simulated — no real order', style: muted),
         const SizedBox(height: 16),
