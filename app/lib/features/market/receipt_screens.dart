@@ -5,7 +5,6 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
-import '../portfolio/portfolio_mock.dart';
 import '../profile/profile_mock.dart';
 import 'market_mock.dart';
 import '../../app_shell.dart';
@@ -79,6 +78,7 @@ class LedgerScreen extends StatelessWidget {
       listenable: Listenable.merge([Scenario.feeEntries, Scenario.marketId]),
       builder: (context, _) {
         final entries = Scenario.marketFees;
+        final copies = Scenario.copyFees;
         return _page(
           context,
           title: 'Fee ledger',
@@ -92,7 +92,7 @@ class LedgerScreen extends StatelessWidget {
               Text(example(entries.first), style: muted),
             ],
             const SizedBox(height: VistaSpace.md),
-            if (entries.isEmpty)
+            if (entries.isEmpty && copies.isEmpty)
               VistaEmptyState(
                 message: 'No fee credits yet',
                 actionLabel: 'Explore markets',
@@ -120,6 +120,37 @@ class LedgerScreen extends StatelessWidget {
                   ],
                 ),
               ),
+            // Flat fees copiers paid to copy the creator's calls.
+            if (copies.isNotEmpty) ...[
+              const SizedBox(height: VistaSpace.xl),
+              const VistaSectionHead(title: 'COPY FEES'),
+              for (final e in copies)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: VistaSpace.md),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${e.eventTitle} · @${e.counterparty} · '
+                              '${e.asset}',
+                              style: VistaType.bodyStrong,
+                            ),
+                            Text(_when(e.at), style: muted),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: VistaSpace.md),
+                      Text(
+                        formatCents(e.amountCents),
+                        style: VistaType.bodyStrong,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ],
           // The sum of exactly the entries listed above, kept clear of the
           // simulation strip.
@@ -138,7 +169,10 @@ class LedgerScreen extends StatelessWidget {
                 children: [
                   Expanded(child: Text('Total', style: VistaType.bodyStrong)),
                   Text(
-                    formatCents(Scenario.marketFeesCents),
+                    formatCents(
+                      Scenario.marketFeesCents +
+                          copies.fold(0, (sum, e) => sum + e.amountCents),
+                    ),
                     style: VistaType.bodyStrong,
                   ),
                 ],
@@ -276,10 +310,15 @@ class ReceiptsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = VistaType.caption.copyWith(color: VistaColors.textMuted);
-    final own = author == PortfolioMock.handle;
     return ListenableBuilder(
-      listenable: Listenable.merge([Scenario.callReceipts, Scenario.receipts]),
+      listenable: Listenable.merge([
+        Scenario.callReceipts,
+        Scenario.receipts,
+        Scenario.activePersona,
+      ]),
       builder: (context, _) {
+        // Paper receipts are the active persona's own.
+        final own = author == Scenario.activePersona.value.handle;
         final calls = [
           for (final c in Scenario.callReceipts.value)
             if (c.author == author) c,
@@ -328,6 +367,11 @@ class ReceiptsScreen extends StatelessWidget {
                               'fee ${formatCents(r.feeCents)} · ${_when(r.at)}',
                               style: muted,
                             ),
+                            if (r.copyFeeCents > 0)
+                              Text(
+                                copyLine(r.sourceAuthorHandle!, r.copyFeeCents),
+                                style: muted,
+                              ),
                           ],
                         ),
                       ),

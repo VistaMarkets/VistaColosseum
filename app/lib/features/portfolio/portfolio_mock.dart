@@ -85,6 +85,11 @@ abstract final class PortfolioMock {
 
   /// The user's cash, the Scenario seed: $12,480 in cents.
   static const cashCents = 1248000;
+
+  /// The demo's second identity (VC-DEM-004): a copier with its own paper
+  /// cash and no positions, orders or receipts.
+  static const copierHandle = 'sam.sol';
+  static const copierCashCents = 100000;
   static const change24h = r'+$91 (0.73%)';
 
   /// The user's own market (their TPX symbol) and its market cap.

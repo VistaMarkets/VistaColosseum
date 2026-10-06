@@ -1,0 +1,530 @@
+{
+ "summary": "Adjudicate review findings against the sources that decide them, then apply only the confirmed edits through a single writer",
+ "agentCount": 4,
+ "logs": [
+  "Adjudicating 3 finding group(s) against the sources",
+  "10 verdicts from 3/3 groups: F1=fix-here, F4=fix-here, F5=fix-here, F8=fix-here, F2=fix-here, F3=fix-here, F9=fix-here, F6=fix-here, F7=fix-here, F10=fix-here"
+ ],
+ "result": {
+  "verdicts": [
+   {
+    "findingId": "F1",
+    "verdict": "fix-here",
+    "evidence": "scenario.dart:138-148 switchPersona swaps only cashCents, positions, openOrders, receipts: `cashCents.value = next.cashCents; positions.value = next.positions; openOrders.value = next.openOrders; receipts.value = next.receipts;` \u2014 no participation line. scenario.dart:92 `static final participation = ValueNotifier<Map<String, TradeSide>>(const {});` is a single shared map, written at :435-440 on every clash fill. arena_screen.dart:135 `'and ${seeded + Scenario.joins(b.id, side)}'` reads the ACTIVE persona's receipts (scenario.dart:279-281 `receipts.value.where((r) => r.clashId == clashId && r.side == side).length`), while arena_screen.dart:157 `joined: Scenario.participation.value[b.id]` reads the shared map. So after creator joins Bull and switches, the copier's card says 'Joined Bull' (vista_battle.dart:216-217) with the crowd count one lower. Spec 04 line 14 defines participation as a fill-derived marker: 'A `filled` result ... records `participation[clashId] = side`' \u2014 it is the user's own fill, and the manager (item 12) ruled it is NOT on the single list and must agree with the active persona's receipts. Callers: only arena_screen.dart:73,157 (participation) and :135 (joins); tests scenario_test.dart:44,378,384,390 and home_screen_test.dart:1052,1201 read Scenario.participation directly, so deleting the map is the larger change; swapping it with the books keeps every caller. scenario_test.dart:137-145 asserts EVERY state() field changes under mutateEverything (`expect(mutated[i], isNot(equals(seed[i])), reason: 'field $i unchanged')`), so adding participation to Books requires the copier's fill at scenario_test.dart:84 to carry a clashId or that test fails.",
+    "rejectsValidInput": "None. No input gate is added or tightened: placeOrder still accepts every intent it accepted; switchPersona still accepts every call. A persona now sees only its own joins on the Arena, which is what spec 04 line 14 ('records participation[clashId] = side' on the user's own fill) and manager item 12 describe. No producing procedure changes.",
+    "testProof": "app/test/copy_story_test.dart, new test 'participation follows the persona, as its receipts do': after `Scenario.placeOrder(ethLong('join', clashId: 'eth-4k'))` then `Scenario.switchPersona()`, the assertion `expect(Scenario.participation.value, isEmpty)` FAILS against the current code (the shared map still holds {'eth-4k': TradeSide.long}) and passes once participation is swapped in switchPersona. The gate (scripts/gate.sh -> flutter test) reaches it. Coverage of the new mutable field: app/test/scenario_test.dart 'seed \u2192 mutate everything \u2192 reset equals the fresh seed' now carries `Scenario.booksOf(p).participation` in state(); without the clashId added at scenario_test.dart:84 that test fails with 'field N unchanged' for the copier's participation, which is why that edit is part of the fix.",
+    "edits": [
+     {
+      "file": "app/lib/scenario/scenario.dart",
+      "anchor": "90 Scenario.participation doc",
+      "current": "  /// The side the user's latest fill in each Arena battle took, by clash\n  /// id. Only [placeOrder] writes it, on a fill.\n  static final participation = ValueNotifier<Map<String, TradeSide>>(const {});",
+      "replacement": "  /// The side the active persona's latest fill in each Arena battle took,\n  /// by clash id: part of its books, so it changes hands with [receipts] on\n  /// [switchPersona]. Only [placeOrder] adds to it, on a fill.\n  static final participation = ValueNotifier<Map<String, TradeSide>>(const {});",
+      "rationale": "The doc said only placeOrder writes it; switchPersona now swaps it too."
+     },
+     {
+      "file": "app/lib/scenario/scenario.dart",
+      "anchor": "111 Scenario.activePersona / _copierSeed / _active",
+      "current": "  /// Who the demo acts as (VC-DEM-004). [cashCents], [positions],\n  /// [openOrders] and [receipts] hold this persona's books; the other's\n  /// wait in [_parked]. Everything else is shared, and the fee ledger is\n  /// the creator's.\n  static final activePersona = ValueNotifier<Persona>(Persona.creator);\n  static Books _parked = _copierSeed;\n\n  static const Books _copierSeed = (\n    cashCents: PortfolioMock.copierCashCents,\n    positions: [],\n    openOrders: [],\n    receipts: [],\n  );\n\n  static Books get _active => (\n    cashCents: cashCents.value,\n    positions: positions.value,\n    openOrders: openOrders.value,\n    receipts: receipts.value,\n  );",
+      "replacement": "  /// Who the demo acts as (VC-DEM-004). [cashCents], [positions],\n  /// [openOrders], [receipts] and [participation] hold this persona's\n  /// books; the other's wait in [_parked]. Everything else is shared, and\n  /// the fee ledger is the creator's.\n  static final activePersona = ValueNotifier<Persona>(Persona.creator);\n  static Books _parked = _copierSeed;\n\n  static const Books _copierSeed = (\n    cashCents: PortfolioMock.copierCashCents,\n    positions: [],\n    openOrders: [],\n    receipts: [],\n    participation: {},\n  );\n\n  static Books get _active => (\n    cashCents: cashCents.value,\n    positions: positions.value,\n    openOrders: openOrders.value,\n    receipts: receipts.value,\n    participation: participation.value,\n  );",
+      "rationale": "Participation becomes a fifth per-persona book, seeded empty for the copier, so it is parked and restored with the rest (reset already sets participation.value = const {} and _parked = _copierSeed)."
+     },
+     {
+      "file": "app/lib/scenario/scenario.dart",
+      "anchor": "138 Scenario.switchPersona",
+      "current": "    openOrders.value = next.openOrders;\n    receipts.value = next.receipts;\n    activePersona.value = activePersona.value == Persona.creator",
+      "replacement": "    openOrders.value = next.openOrders;\n    receipts.value = next.receipts;\n    participation.value = next.participation;\n    activePersona.value = activePersona.value == Persona.creator",
+      "rationale": "The swap itself: the Arena's 'Joined' marker now agrees with the receipts Scenario.joins counts for the same persona."
+     },
+     {
+      "file": "app/lib/scenario/scenario.dart",
+      "anchor": "484 Books typedef",
+      "current": "/// One persona's financial state.\ntypedef Books = ({\n  int cashCents,\n  List<PortfolioPosition> positions,\n  List<OpenOrder> openOrders,\n  List<OrderReceipt> receipts,\n});",
+      "replacement": "/// One persona's books: its financial state and the Arena sides its fills\n/// took.\ntypedef Books = ({\n  int cashCents,\n  List<PortfolioPosition> positions,\n  List<OpenOrder> openOrders,\n  List<OrderReceipt> receipts,\n  Map<String, TradeSide> participation,\n});",
+      "rationale": "Record field for the swapped marker."
+     },
+     {
+      "file": "app/test/scenario_test.dart",
+      "anchor": "50 state() per-persona books",
+      "current": "  for (final p in Persona.values) ...[\n    Scenario.booksOf(p).cashCents,\n    Scenario.booksOf(p).positions,\n    Scenario.booksOf(p).openOrders,\n    Scenario.booksOf(p).receipts,\n  ],",
+      "replacement": "  for (final p in Persona.values) ...[\n    Scenario.booksOf(p).cashCents,\n    Scenario.booksOf(p).positions,\n    Scenario.booksOf(p).openOrders,\n    Scenario.booksOf(p).receipts,\n    Scenario.booksOf(p).participation,\n  ],",
+      "rationale": "Invariant 8: the deep-equality reset test must cover every mutable field, including the parked persona's participation."
+     },
+     {
+      "file": "app/test/scenario_test.dart",
+      "anchor": "84 mutateEverything copier fill",
+      "current": "  Scenario.placeOrder(ethLong('copier', units: 0.01));",
+      "replacement": "  Scenario.placeOrder(ethLong('copier', units: 0.01, clashId: 'sol-200'));",
+      "rationale": "'seed \u2192 mutate everything \u2192 reset' asserts every state() field changes; the copier's participation now appears there, so its fill must join a clash or that test fails with 'field unchanged'."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "14 scenario_test import",
+      "current": "import 'scenario_test.dart' show state;",
+      "replacement": "import 'scenario_test.dart' show ethLong, state;",
+      "rationale": "The new test joins a clash with the existing ethLong helper."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "216 end of file after 'switch then reset' test",
+      "current": "    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n}",
+      "replacement": "    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n\n  test('participation follows the persona, as its receipts do', () {\n    // The creator joins Bull on eth-4k; the copier never did.\n    Scenario.placeOrder(ethLong('join', clashId: 'eth-4k'));\n    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});\n    expect(Scenario.joins('eth-4k', TradeSide.long), 1);\n\n    Scenario.switchPersona();\n    expect(Scenario.participation.value, isEmpty);\n    expect(Scenario.joins('eth-4k', TradeSide.long), 0);\n\n    // The copier joins Bear on sol-200; back as the creator, her side stands.\n    Scenario.placeOrder(\n      OrderIntent(\n        actionId: 'copier-join',\n        symbol: 'SOL',\n        name: 'Solana',\n        side: TradeSide.short,\n        units: 1,\n        price: 150,\n        leverage: 2,\n        clashId: 'sol-200',\n      ),\n    );\n    expect(Scenario.participation.value, {'sol-200': TradeSide.short});\n    Scenario.switchPersona();\n    expect(Scenario.participation.value, {'eth-4k': TradeSide.long});\n    expect(Scenario.joins('eth-4k', TradeSide.long), 1);\n    expect(Scenario.joins('sol-200', TradeSide.short), 0);\n  });\n}",
+      "rationale": "Pins the failure path: `expect(Scenario.participation.value, isEmpty)` after the first switch fails on the current shared map."
+     }
+    ]
+   },
+   {
+    "findingId": "F4",
+    "verdict": "fix-here",
+    "evidence": "Spec 09 Behavior: '`resting` and `failed` results write no fee and no credit.' No Acceptance line names a test for it. app/test/copy_story_test.dart (read in full, 218 lines) has no OrderKind.limit and no stalePrices; copyOf (lines 17-32) has no kind parameter. Grep of app/test for OrderKind.limit: only scenario_test.dart:93 (`kind: OrderKind.limit`, an intent with no sourceAuthorHandle, so copyFeeCents == 0) and order_ticket_test.dart:420 (asset ticket, no source author). stalePrices as a copy: only order_ticket_test.dart:343-370 'feed ticket Retry...' which runs as the creator (setUp Scenario.reset() leaves activePersona creator), so scenario.dart:419 `copyFee > 0 && activePersona.value != Persona.creator` is false and no row is ever written; it asserts `Scenario.receipts.value, isEmpty` after 'Price expired' but never cash or feeEntries. In placeOrder, the resting return is at :345-364, the stale return at :365-367, and the copyFee computation and ledger write are at :369 and :416-434: a mutant that hoists those above :345 writes a copyFee row for a copier's limit or stale-price copy and no existing test reads copyRows/feeEntries/state() in either path. TradeMock.stalePrices is {'AVAX'} (trade_mock.dart:76), so no copy test hits a stale symbol by default.",
+    "rejectsValidInput": "None. The edits are tests plus a defaulted `kind` parameter on the test helper copyOf; no production code changes, so no input is newly refused. n/a for a producing document.",
+    "testProof": "Mutation the current suite survives: in app/lib/scenario/scenario.dart move `final copyFee = copyFeeCents(intent);` (line 369) and the `if (copyFee > 0 && activePersona.value != Persona.creator) { feeEntries.value = ... }` block (lines 416-434) to just after `if (problem != null) return OrderFailed(problem);` (line 342), before the `if (intent.kind != OrderKind.market)` and stalePrices returns. Every existing test stays green (copier copies are all market ETH fills, which write the row anyway; the creator's stale/limit paths never write a row). New tests in app/test/copy_story_test.dart: 'a resting copy writes no fee and no ledger row' fails the mutant at `expect(copyRows, isEmpty)`; 'a stale-price copy fails and writes nothing' fails it at `expect(state(), equals(before))` (feeEntries gained a row). Both pass on the current code and are reached by scripts/gate.sh.",
+    "edits": [
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "16 copyOf helper",
+      "current": "/// A market long on ETH copied from [author]'s call, 10x by default.\nOrderIntent copyOf(\n  String actionId, {\n  String author = PortfolioMock.handle,\n  double units = 0.12345,\n  int lev = 10,\n}) => OrderIntent(\n  actionId: actionId,\n  symbol: 'ETH',\n  name: 'Ethereum',\n  side: TradeSide.long,\n  units: units,\n  price: 2968.40,\n  leverage: lev,\n  sourceCallId: '$author/ETH',\n  sourceAuthorHandle: author,\n);",
+      "replacement": "/// A long on ETH copied from [author]'s call: a market order at 10x unless\n/// told otherwise.\nOrderIntent copyOf(\n  String actionId, {\n  String author = PortfolioMock.handle,\n  double units = 0.12345,\n  int lev = 10,\n  OrderKind kind = OrderKind.market,\n}) => OrderIntent(\n  actionId: actionId,\n  symbol: 'ETH',\n  name: 'Ethereum',\n  side: TradeSide.long,\n  units: units,\n  price: 2968.40,\n  leverage: lev,\n  kind: kind,\n  sourceCallId: '$author/ETH',\n  sourceAuthorHandle: author,\n);",
+      "rationale": "Lets a copy rest as a limit order without a second helper."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "168 after 'own call places an ordinary order', before 'switch then reset'",
+      "current": "    expect(copyRows, isEmpty);\n    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n\n  test('switch then reset restores creator and both seeds', () {",
+      "replacement": "    expect(copyRows, isEmpty);\n    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n\n  test('a resting copy writes no fee and no ledger row', () {\n    Scenario.switchPersona();\n    final result = Scenario.placeOrder(copyOf('c5', kind: OrderKind.limit));\n\n    expect(result, isA<OrderResting>());\n    expect(Scenario.openOrders.value, hasLength(1));\n    expect(Scenario.cashCents.value, PortfolioMock.copierCashCents);\n    expect(Scenario.receipts.value, isEmpty);\n    expect(copyRows, isEmpty);\n    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n\n  test('a stale-price copy fails and writes nothing', () {\n    Scenario.switchPersona();\n    Scenario.stalePrices.value = const {'ETH'};\n    final before = state();\n    final result = Scenario.placeOrder(copyOf('c6'));\n\n    expect(result, isA<OrderFailed>());\n    expect((result as OrderFailed).reason, priceExpired);\n    expect(copyRows, isEmpty);\n    expect(state(), equals(before));\n  });\n\n  test('switch then reset restores creator and both seeds', () {",
+      "rationale": "Pins spec 09's 'resting and failed results write no fee and no credit' for the copier, the only persona whose copies write rows."
+     }
+    ]
+   },
+   {
+    "findingId": "F5",
+    "verdict": "fix-here",
+    "evidence": "scenario.dart:192-202 marketFees filters `e.kind == FeeKind.credit && e.marketId == marketId.value && !e.at.isBefore(since)`. The copy row written at :420-431 has `marketId: ticker.value` and `at: clock.value`; copy_story_test setUp runs `AccountState.listMarket('MAYA')` which sets `Scenario.listedAt.value = Scenario.clock.value; Scenario.marketId.value = symbol` (account_state.dart:18-21), so without the kind check the copy row passes both remaining filters. receipt_screens.dart:171-175 Total = `Scenario.marketFeesCents + copies.fold(0, (sum, e) => sum + e.amountCents)`. Grep of app/test for marketFees/marketFeesCents: only receipts_test.dart:189-214, all with credit entries and no copy row. Grep for 'COPY FEES', 'Copy fee', copyFees in app/test: no hits at all (the finding's claim of a hit in copy_story_test is slightly off; copy_story_test uses a local copyRows filter, lines 34-37, which re-implements Scenario.copyFees and never calls it). LedgerScreen is pumped only in receipts_test and empty_states_test, never with a copyFee row. So both mutants survive today.",
+    "rejectsValidInput": "None. Only tests change (and the test-local copyRows helper now delegates to Scenario.copyFees). No production gate is touched. n/a for a producing document.",
+    "testProof": "Mutant A: delete `e.kind == FeeKind.credit &&` at app/lib/scenario/scenario.dart:197. Current suite green (receipts_test reads marketFees only with credit entries). New assertion in app/test/copy_story_test.dart 'confirming a copied order debits the copy fee once and credits the creator once': `expect(Scenario.marketFeesCents, 0)` fails under the mutant (500). Mutant B: delete `+ copies.fold(0, (sum, e) => sum + e.amountCents)` at app/lib/features/market/receipt_screens.dart:173-174. Current suite green (no ledger pump with a copy row). New widget test 'the ledger lists a copy fee in its copy section and counts it once in the total': `expect(find.text(formatCents(500)), findsNWidgets(2))` fails under the mutant (Total renders $0.00, only the row reads $5.00). Mutant C (bonus): drop the kind filter in Scenario.copyFees at scenario.dart:163; with copyRows now delegating to it, `copyRows.single` in the same test fails. All reached by scripts/gate.sh.",
+    "edits": [
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "7 market_mock import",
+      "current": "import 'package:vista_colosseum/features/market/market_mock.dart';",
+      "replacement": "import 'package:vista_colosseum/features/market/market_mock.dart';\nimport 'package:vista_colosseum/features/market/receipt_screens.dart';",
+      "rationale": "LedgerScreen for the widget test."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "13 order_ticket_test import",
+      "current": "import 'order_ticket_test.dart' show homeCard, inSheet;",
+      "replacement": "import 'order_ticket_test.dart' show homeCard, inSheet;\nimport 'receipts_test.dart' show pumpApp;",
+      "rationale": "Reuses receipts_test's tall-phone pumpApp so the ledger's ListView builds every row."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "34 copyRows helper",
+      "current": "List<FeeEntry> get copyRows => [\n  for (final e in Scenario.feeEntries.value)\n    if (e.kind == FeeKind.copyFee) e,\n];",
+      "replacement": "List<FeeEntry> get copyRows => Scenario.copyFees;",
+      "rationale": "The helper duplicated Scenario.copyFees; delegating makes every copyRows assertion exercise the production getter the ledger reads."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "84 test 1 feeEntries length assertion",
+      "current": "    expect(\n      Scenario.feeEntries.value,\n      hasLength(YourMarketMock.fees.length + 1),\n    );\n    // The creator's own books are untouched by the copier's order.",
+      "replacement": "    expect(\n      Scenario.feeEntries.value,\n      hasLength(YourMarketMock.fees.length + 1),\n    );\n    // A copy fee is not a market credit: the fresh MAYA listing still has\n    // none, even though the row carries its ticker and the clock.\n    expect(Scenario.marketFeesCents, 0);\n    // The creator's own books are untouched by the copier's order.",
+      "rationale": "Catches Mutant A: without the kind filter the copy row is absorbed into marketFees."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "89 end of test 1, before 'cancelling a copied order writes nothing'",
+      "current": "    final creator = Scenario.booksOf(Persona.creator);\n    expect(creator.cashCents, PortfolioMock.cashCents);\n    expect(creator.receipts, isEmpty);\n  });\n\n  testWidgets('cancelling a copied order writes nothing', (tester) async {",
+      "replacement": "    final creator = Scenario.booksOf(Persona.creator);\n    expect(creator.cashCents, PortfolioMock.cashCents);\n    expect(creator.receipts, isEmpty);\n  });\n\n  testWidgets('the ledger lists a copy fee in its copy section and counts it '\n      'once in the total', (tester) async {\n    Scenario.switchPersona();\n    Scenario.placeOrder(copyOf('c7'));\n    await pumpApp(tester, home: const LedgerScreen());\n    expect(find.text('Copy fee \u00b7 @sam.sol \u00b7 ETH'), findsOneWidget);\n    // The fresh MAYA listing has no market credit, so the Total is the copy\n    // fee alone: the row and the Total both read $5.00.\n    expect(Scenario.marketFeesCents, 0);\n    expect(find.text(formatCents(500)), findsNWidgets(2));\n  });\n\n  testWidgets('cancelling a copied order writes nothing', (tester) async {",
+      "rationale": "Catches Mutant B: dropping the copies sum from the Total leaves only one $5.00 on screen. Also pins spec 09's 'Copy fee \u00b7 @copier \u00b7 <asset>' row text."
+     }
+    ]
+   },
+   {
+    "findingId": "F8",
+    "verdict": "fix-here",
+    "evidence": "scenario.dart:416-419: `// The ledger is the creator's: it earns a copier's copy fee. A copy the creator makes of someone else's call pays that author, who has no ledger in the demo.` / `if (copyFee > 0 && activePersona.value != Persona.creator) {`. Manager item 11: 'The creator copying someone else's call pays the fee but writes no row ... Pinning this rule with a test is welcome.' Tests where the creator copies another author (copyFee > 0, activePersona creator): order_ticket_test.dart:188-213 'feed ticket confirm adds a position and View in Wallet shows it' asserts `Scenario.cashCents.value, PortfolioMock.cashCents - 20520` and `positions.value.first.marginCents, 20000` but never feeEntries; order_ticket_test.dart:343-370 'feed ticket Retry...' asserts `[r.price, r.marginCents, r.totalCents], [3000, 20000, 20520]`, never feeEntries. copy_story_test.dart:155-170 'own call places an ordinary order' has `receipt.copyFeeCents, 0`, so its `same(YourMarketMock.fees)` never reaches the persona half of the condition. grep feeEntries app/test: hits only in scenario_test, receipts_test, empty_states_test, copy_story_test; none in order_ticket_test, feed_order_ticket_test or home_screen_test. So the mutant `copyFee > 0` alone survives.",
+    "rejectsValidInput": "None. One test assertion and one test import; no production code changes. n/a for a producing document.",
+    "testProof": "Mutation the current suite survives: at app/lib/scenario/scenario.dart:419 change `if (copyFee > 0 && activePersona.value != Persona.creator) {` to `if (copyFee > 0) {`. Every existing test stays green (the creator-copies-kaito.eth tests never read feeEntries; the copier tests expect a row anyway; the own-call test has copyFee 0). New assertion in app/test/order_ticket_test.dart 'feed ticket confirm adds a position and View in Wallet shows it': `expect(Scenario.feeEntries.value, same(YourMarketMock.fees))` after Confirm fails under the mutant (a new list with a self-credited copyFee row) and passes on the current code. Reached by scripts/gate.sh.",
+    "edits": [
+     {
+      "file": "app/test/order_ticket_test.dart",
+      "anchor": "11 imports",
+      "current": "import 'package:vista_colosseum/features/live/market_prices.dart';\nimport 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';",
+      "replacement": "import 'package:vista_colosseum/features/live/market_prices.dart';\nimport 'package:vista_colosseum/features/market/market_mock.dart';\nimport 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';",
+      "rationale": "YourMarketMock.fees for the identity check; alphabetical position keeps directives_ordering clean."
+     },
+     {
+      "file": "app/test/order_ticket_test.dart",
+      "anchor": "205 feed ticket confirm assertions",
+      "current": "    expect(Scenario.positions.value, hasLength(seedPositions + 1));\n    expect(Scenario.cashCents.value, PortfolioMock.cashCents - 20520);\n    expect(Scenario.positions.value.first.marginCents, 20000);",
+      "replacement": "    expect(Scenario.positions.value, hasLength(seedPositions + 1));\n    expect(Scenario.cashCents.value, PortfolioMock.cashCents - 20520);\n    expect(Scenario.positions.value.first.marginCents, 20000);\n    // The creator copied kaito.eth: she pays the $5.00, and the ledger is\n    // hers, so it gains no row (she would credit herself).\n    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));",
+      "rationale": "Pins manager item 11 on the one existing path where the creator pays a copy fee."
+     }
+    ]
+   },
+   {
+    "findingId": "F2",
+    "verdict": "fix-here",
+    "evidence": "receipt_screens.dart:95-100: `if (entries.isEmpty)\\n VistaEmptyState(\\n message: 'No fee credits yet', ...` \u2014 the condition reads only `entries` (= Scenario.marketFees, line 80), never `copies` (line 81). Lines 124-126 render `COPY FEES` whenever `copies.isNotEmpty`, and lines 171-175 total `Scenario.marketFeesCents + copies.fold(...)`. So with no market credit and one copy row the screen shows the empty state, a copy row and a non-zero Total at once. The precondition is real: account_state.dart:17-21 `listMarket` sets `Scenario.listedAt.value = Scenario.clock.value`; market_mock.dart:146-162 dates every seed credit `chartEnd.subtract(Duration(hours: 3..96))`; scenario.dart:192-202 `marketFees` keeps only `!e.at.isBefore(since)`, so after an in-app listing marketFees is empty (receipts_test.dart:193-196 already asserts exactly this). copyFees (scenario.dart:161-164) is not filtered by listing. The chip/row sub-claim is settled by spec, not a bug: docs/specs/06-fee-ledger-and-receipts.md line 10 `The Wallet \"Fees from your market\" row and Your-market \"earned in fees this week\" show sum(marketFee entries)` and the acceptance `the Wallet row equals the market-fee sum`; scenario.dart:159-160 doc says `Fee totals elsewhere count market credits only`. What is wrong there is only the comment `// The ledger's sum, never a stored figure; opens the ledger.` at your_market_screen.dart:168 and portfolio_screen.dart:201, which stopped being true when the Total gained copy fees in this diff. No test covers the ledger with copy rows: receipts_test.dart tests all run with the HAS_MARKET seed (credits present) and empty_states_test.dart:168-173 empties feeEntries entirely.",
+    "rejectsValidInput": "none \u2014 the only behaviour change hides the 'No fee credits yet' placeholder when a copy row is listed; no input, order or entry is refused, and no procedure document produces a state that the new condition treats differently except the one the finding describes (ledger with copy rows and no market credit), which now renders the rows without the placeholder.",
+    "testProof": "app/test/receipts_test.dart, new testWidgets 'a copy fee with no market credits shows no empty state and is the total': after `Scenario.reset(withMarket: false); AccountState.listMarket(PortfolioMock.marketSymbol);` and prepending one FeeKind.copyFee FeeEntry of kCopyFeeCents, pump `LedgerScreen()`; the assertion `expect(find.text('No fee credits yet'), findsNothing)` FAILS on the current code (the empty state renders because marketFees is empty) and passes once line 95 reads `entries.isEmpty && copies.isEmpty`. The same test also pins `find.text('Copy fee \u00b7 @sam.sol \u00b7 ETH')` findsOneWidget and `find.text(formatCents(kCopyFeeCents))` findsNWidgets(2) (row + Total). Reached by scripts/gate.sh via flutter test.",
+    "edits": [
+     {
+      "file": "app/lib/features/market/receipt_screens.dart",
+      "anchor": "95 LedgerScreen.build empty-state condition",
+      "current": "            if (entries.isEmpty)\n              VistaEmptyState(",
+      "replacement": "            if (entries.isEmpty && copies.isEmpty)\n              VistaEmptyState(",
+      "rationale": "The placeholder must not sit above a listed copy row and a non-zero Total; the ledger is empty only when both sections are."
+     },
+     {
+      "file": "app/lib/features/market/your_market_screen.dart",
+      "anchor": "168 fee chip comment",
+      "current": "        // The ledger's sum, never a stored figure; opens the ledger.",
+      "replacement": "        // Market credits only (spec 06): the ledger Total adds copy fees.\n        // Never a stored figure; opens the ledger.",
+      "rationale": "The ledger Total now includes copy fees; the chip shows market credits by spec 06, so the comment must say so."
+     },
+     {
+      "file": "app/lib/features/portfolio/portfolio_screen.dart",
+      "anchor": "201 _fees row comment",
+      "current": "          // The ledger's sum, never a stored figure; opens the ledger.",
+      "replacement": "          // Market credits only (spec 06): the ledger Total adds copy fees.\n          // Never a stored figure; opens the ledger.",
+      "rationale": "Same stale comment as the chip; spec 06 fixes the Wallet row to the market-fee sum."
+     },
+     {
+      "file": "app/test/receipts_test.dart",
+      "anchor": "184 after 'a market with no credits shows an empty ledger and zero'",
+      "current": "    expect(find.text(formatCents(0)), findsOneWidget);\n  });\n\n  test('a fresh listing earns nothing until a credit lands after it; the '",
+      "replacement": "    expect(find.text(formatCents(0)), findsOneWidget);\n  });\n\n  testWidgets('a copy fee with no market credits shows no empty state and '\n      'is the total', (tester) async {\n    // Listed fresh at the demo's now: every seeded credit predates it, so\n    // the copy row below is the only entry listed.\n    Scenario.reset(withMarket: false);\n    AccountState.listMarket(PortfolioMock.marketSymbol);\n    expect(Scenario.marketFees, isEmpty);\n    final copy = FeeEntry(\n      id: 'copy-test',\n      marketId: PortfolioMock.marketSymbol,\n      eventTitle: 'Copy fee',\n      amountCents: kCopyFeeCents,\n      at: Scenario.clock.value,\n      kind: FeeKind.copyFee,\n      counterparty: PortfolioMock.copierHandle,\n      asset: 'ETH',\n    );\n    Scenario.feeEntries.value = [copy, ...Scenario.feeEntries.value];\n    await pumpApp(tester, home: const LedgerScreen());\n    expect(find.text('No fee credits yet'), findsNothing);\n    expect(find.text('COPY FEES'), findsOneWidget);\n    expect(\n      find.text('Copy fee \u00b7 @${PortfolioMock.copierHandle} \u00b7 ETH'),\n      findsOneWidget,\n    );\n    // The row and the Total agree; the Wallet row and chip stay at the\n    // market credits (spec 06), here none.\n    expect(find.text(formatCents(kCopyFeeCents)), findsNWidgets(2));\n    expect(Scenario.marketFeesCents, 0);\n  });\n\n  test('a fresh listing earns nothing until a credit lands after it; the '",
+      "rationale": "Pins the fixed empty-state condition, the copy row text and the Total; fails before the receipt_screens edit because the empty state renders."
+     }
+    ]
+   },
+   {
+    "findingId": "F3",
+    "verdict": "fix-here",
+    "evidence": "account_top_bar.dart:38-43 `Text(\\n PortfolioMock.handle,` sits directly above a `ValueListenableBuilder(valueListenable: Scenario.cashCents, ...)` labelled 'Portfolio balance' (lines 44-55); scenario.dart:138-148 `switchPersona` swaps `cashCents.value = next.cashCents`, so as the copier the bar reads maya.eth over $1,000.00 (PortfolioMock.copierCashCents = 100000, portfolio_mock.dart:92). settings_screen.dart:181 `Text(SettingsMock.handle, style: VistaType.subhead)` with settings_mock.dart:3 `static const handle = 'maya.eth'`, while the row at 125-137 in the same screen toasts `'Now acting as ${Scenario.activePersona.value.handle}'`. Nothing decides this: docs/specs/09-copy-story.md line 11 keys cash/positions/orders/receipts by persona and leaves likes, favourites, follows, listing and the ledger single; it says nothing about identity text, and the manager's list (items 10-14) does not name it either. The review baton recorded it as 'Observation, not scored... The spec does not require persona-aware identity display', so nobody has ruled. The only in-tree tests on these strings run with the creator active (home_screen_test.dart:1358 `inBar('maya.eth')`, :1846 `find.text('maya.eth')` on Settings) and keep passing because Persona.creator.handle == PortfolioMock.handle (scenario.dart:476). The fix is three small reads of `Scenario.activePersona`; PortfolioMock import in account_top_bar.dart becomes unused and must go (flutter analyze fails on infos/warnings; the gate runs it).",
+    "rejectsValidInput": "none \u2014 display-only: the handle text follows Scenario.activePersona, nothing is validated or refused. With the creator active every existing surface renders exactly as before (Persona.creator.handle == PortfolioMock.handle), so no documented procedure changes outcome.",
+    "testProof": "app/test/scenario_test.dart, new testWidgets 'the top bar and Settings name the active persona': `Scenario.switchPersona()` then pump `VistaColosseumApp()`; the assertion `expect(find.descendant(of: find.byType(AccountTopBar), matching: find.text(PortfolioMock.copierHandle)), findsOneWidget)` FAILS on the current code (the bar hardcodes PortfolioMock.handle) and passes after the account_top_bar edit; then pump `VistaColosseumApp(home: SettingsScreen())` and `expect(find.text(PortfolioMock.handle), findsNothing)` FAILS now (header shows maya.eth) and passes after the settings_screen edit. Reached by scripts/gate.sh via flutter test.",
+    "edits": [
+     {
+      "file": "app/lib/features/account/account_top_bar.dart",
+      "anchor": "6 unused portfolio_mock import",
+      "current": "import '../portfolio/portfolio_mock.dart';\nimport '../settings/settings_screen.dart';",
+      "replacement": "import '../settings/settings_screen.dart';",
+      "rationale": "PortfolioMock is no longer referenced once the handle reads the active persona; an unused import fails flutter analyze in the gate."
+     },
+     {
+      "file": "app/lib/features/account/account_top_bar.dart",
+      "anchor": "38 AccountTopBar handle Text",
+      "current": "                Text(\n                  PortfolioMock.handle,\n                  style: VistaType.subhead,\n                  maxLines: 1,\n                  overflow: TextOverflow.ellipsis,\n                ),",
+      "replacement": "                // The owner of the balance below: the active persona.\n                ValueListenableBuilder(\n                  valueListenable: Scenario.activePersona,\n                  builder: (context, persona, _) => Text(\n                    persona.handle,\n                    style: VistaType.subhead,\n                    maxLines: 1,\n                    overflow: TextOverflow.ellipsis,\n                  ),\n                ),",
+      "rationale": "The bar pairs a name with the persona-keyed cash; the name must be the persona whose cash it is, and follow the switch like the balance already does."
+     },
+     {
+      "file": "app/lib/features/settings/settings_screen.dart",
+      "anchor": "181 _account header handle",
+      "current": "              Text(SettingsMock.handle, style: VistaType.subhead),",
+      "replacement": "              Text(\n                Scenario.activePersona.value.handle,\n                style: VistaType.subhead,\n              ),",
+      "rationale": "The Demo persona row on this screen toasts the new handle and calls setState, so the header rebuilds with it."
+     },
+     {
+      "file": "app/lib/features/settings/settings_mock.dart",
+      "anchor": "3 SettingsMock.handle",
+      "current": "abstract final class SettingsMock {\n  static const handle = 'maya.eth';\n\n",
+      "replacement": "abstract final class SettingsMock {\n",
+      "rationale": "Its only reader (settings_screen.dart:181) now reads Scenario; a dead duplicate of PortfolioMock.handle invites the same drift again."
+     },
+     {
+      "file": "app/test/scenario_test.dart",
+      "anchor": "235 before 'Home, detail, Arena and Wallet read one position from Scenario'",
+      "current": "\n  testWidgets(\n    'Home, detail, Arena and Wallet read one position from Scenario',\n    (tester) async {",
+      "replacement": "\n  testWidgets('the top bar and Settings name the active persona', (\n    tester,\n  ) async {\n    tester.view\n      ..physicalSize = const Size(402, 874) * 3\n      ..devicePixelRatio = 3;\n    addTearDown(tester.view.reset);\n    Scenario.switchPersona();\n    await tester.pumpWidget(const VistaColosseumApp());\n    await tester.pumpAndSettle();\n    final topBar = find.byType(AccountTopBar);\n    Finder inBar(String text) =>\n        find.descendant(of: topBar, matching: find.text(text));\n    // The handle names the owner of the cash shown under it.\n    expect(inBar(PortfolioMock.copierHandle), findsOneWidget);\n    expect(inBar(PortfolioMock.handle), findsNothing);\n    expect(inBar(formatCents(PortfolioMock.copierCashCents)), findsOneWidget);\n\n    await tester.pumpWidget(const VistaColosseumApp(home: SettingsScreen()));\n    await tester.pumpAndSettle();\n    expect(find.text(PortfolioMock.copierHandle), findsOneWidget);\n    expect(find.text(PortfolioMock.handle), findsNothing);\n  });\n\n  testWidgets(\n    'Home, detail, Arena and Wallet read one position from Scenario',\n    (tester) async {",
+      "rationale": "Fails on the current code at the first inBar assertion (bar hardcodes maya.eth) and at the Settings findsNothing; passes after the two screen edits. scenario_test already imports AccountTopBar, SettingsScreen, VistaColosseumApp, PortfolioMock and design_system."
+     }
+    ]
+   },
+   {
+    "findingId": "F9",
+    "verdict": "fix-here",
+    "evidence": "receipt_screens.dart:321 `final own = author == Scenario.activePersona.value.handle;` and 370-374 `if (r.copyFeeCents > 0) Text(copyLine(r.sourceAuthorHandle!, r.copyFeeCents), ...)` are both new in this diff (git diff main...HEAD shows the old line `final own = author == PortfolioMock.handle;` removed). Every ReceiptsScreen test runs with the creator active: receipts_test.dart:389-417 uses `ethLong('r-1')` (no sourceAuthorHandle, so copyFeeCents == 0) and author PortfolioMock.handle; :436-476 uses authors maya.eth, 'kestrel', 'kaito.eth' with the creator active; empty_states_test.dart:152, 272, 410 all pump `ReceiptsScreen(author: PortfolioMock.handle)`. For every one of those, `author == PortfolioMock.handle` and `author == Scenario.activePersona.value.handle` give the same answer, and no listed receipt carries a copy fee, so mutant 1 (delete the copyLine Text) and mutant 2 (revert `own` to PortfolioMock.handle) both survive. feed_order_ticket_test.dart:32-67 checks `inSheet(find.text(line))` \u2014 the ticket's review/filled sheet \u2014 never ReceiptsScreen. Spec 09 'Surfaces': `Receipt shows the same.` names this surface, and the review baton's mutation table already recorded 'Receipts screen copy line never shown \u2014 SURVIVES (296 green)'.",
+    "rejectsValidInput": "n/a - test-only edit; no product code changes, no input is rejected.",
+    "testProof": "app/test/copy_story_test.dart, new testWidgets 'the receipts list shows the copy line on the copier's own paper receipt and no paper section under the creator': `Scenario.switchPersona(); Scenario.placeOrder(copyOf('r1'));` then pump `ReceiptsScreen(author: PortfolioMock.copierHandle)` and assert `find.text('PAPER ORDER RECEIPTS')` findsOneWidget and `find.text(copyLine(PortfolioMock.handle, kCopyFeeCents))` findsOneWidget; then pump `ReceiptsScreen(author: PortfolioMock.handle)` and assert both findsNothing. Mutation 1 (delete the `if (r.copyFeeCents > 0) Text(copyLine(...))` block at receipt_screens.dart:370-374): the first copyLine assertion fails. Mutation 2 (`final own = author == PortfolioMock.handle;`): the copier screen loses its paper section (first PAPER ORDER RECEIPTS assertion fails) and the creator screen gains one (findsNothing fails). The current suite is green under both mutations; this test is red under each. Reached by scripts/gate.sh via flutter test.",
+    "edits": [
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "7 imports: receipt_screens",
+      "current": "import 'package:vista_colosseum/features/market/market_mock.dart';\nimport 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';",
+      "replacement": "import 'package:vista_colosseum/features/market/market_mock.dart';\nimport 'package:vista_colosseum/features/market/receipt_screens.dart';\nimport 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';",
+      "rationale": "ReceiptsScreen for the new widget test."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "14 imports: pumpApp helper",
+      "current": "import 'order_ticket_test.dart' show homeCard, inSheet;\nimport 'scenario_test.dart' show state;",
+      "replacement": "import 'order_ticket_test.dart' show homeCard, inSheet;\nimport 'scenario_test.dart' show state;\nimport 'trader_record_test.dart' show pumpApp;",
+      "rationale": "Same helper empty_states_test.dart borrows; pumps a screen inside the real app builder."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "216 end of main(), after 'switch then reset restores creator and both seeds'",
+      "current": "    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n}",
+      "replacement": "    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n\n  testWidgets('the receipts list shows the copy line on the copier\\'s own '\n      'paper receipt and no paper section under the creator', (tester) async {\n    Scenario.switchPersona();\n    expect(Scenario.placeOrder(copyOf('r1')), isA<OrderFilled>());\n    final line = copyLine(PortfolioMock.handle, kCopyFeeCents);\n\n    // The copier's own list: the paper section, with the copy line.\n    await pumpApp(\n      tester,\n      home: const ReceiptsScreen(author: PortfolioMock.copierHandle),\n    );\n    expect(find.text('PAPER ORDER RECEIPTS'), findsOneWidget);\n    expect(find.text(line), findsOneWidget);\n\n    // The creator's list while the copier is active: her calls only, so\n    // the copier's paper receipt never shows under maya.eth.\n    await pumpApp(\n      tester,\n      home: const ReceiptsScreen(author: PortfolioMock.handle),\n    );\n    expect(find.text('PAPER ORDER RECEIPTS'), findsNothing);\n    expect(find.text(line), findsNothing);\n  });\n}",
+      "rationale": "Red under both named mutations (copy line deleted; own reverted to PortfolioMock.handle), green on the current code."
+     }
+    ]
+   },
+   {
+    "findingId": "F6",
+    "verdict": "fix-here",
+    "evidence": "Claim holds. `command grep -rn 'Demo persona\\|Now acting' app/test` returns nothing; the only Settings widget tests are scenario_test.dart:156-191 ('Reset demo in Settings ...') and home_screen_test.dart:1374/1828 (open Settings only). The row under test, settings_screen.dart:124-137: `onTap: () { setState(Scenario.switchPersona); _say('Now acting as ' '${Scenario.activePersona.value.handle}'); }` \u2014 correct today (switch first, read handle after), but every persona test calls `Scenario.switchPersona()` directly (copy_story_test.dart:59,95,117,139,180...), so deleting the setState line or moving `_say` above it leaves the suite green. Spec 09 Behavior names the control: 'Switch control: a \"Demo persona\" row in Settings ... that toggles and toasts \"Now acting as <name>\"', and invariant 4 makes a toast that claims a switch that did not happen a defect. Fixture facts for the assertions: Persona.creator('maya.eth','Creator'), Persona.copier('sam.sol','Copier') (scenario.dart:475-477, portfolio_mock.dart:84,91); 'Creator'/'Copier' appear nowhere else in app/lib. The Settings-open path (Wallet tab \u2192 'Settings' gear \u2192 scrollUntilVisible on the last Scrollable) is copied from the existing reset test so it needs no new helper. `Size` requires flutter/material: flutter_test.dart exports only dart:async's Future (SDK flutter_test.dart:62) and copy_story_test.dart imports neither material nor dart:ui.",
+    "rejectsValidInput": "none \u2014 the edit adds a test only; no production path gains a gate, so no input a user or presenter can produce is newly refused. n/a for a producing document.",
+    "testProof": "app/test/copy_story_test.dart, new testWidgets 'the Settings Demo persona row switches hands and says who is acting', reached by scripts/gate.sh's `flutter test`. Mutation 1 (the finding's): delete `setState(Scenario.switchPersona);` at settings_screen.dart:131 \u2192 `expect(Scenario.activePersona.value, Persona.copier)` fails (stays creator) and `expect(find.text('Copier'), findsOneWidget)` fails. Mutation 2: move the `_say(...)` call above the setState line \u2192 `expect(find.text('Now acting as sam.sol').hitTestable(), findsOneWidget)` fails (toast reads 'Now acting as maya.eth'). Both pass against the code as it stands.",
+    "edits": [
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "3 import flutter/services.dart",
+      "current": "import 'package:flutter/services.dart';",
+      "replacement": "import 'package:flutter/material.dart';\nimport 'package:flutter/services.dart';",
+      "rationale": "The new test sets tester.view.physicalSize with Size, which flutter_test does not export; order_ticket_test.dart and scenario_test.dart import material for the same reason."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "10 import order_ticket.dart / scenario.dart",
+      "current": "import 'package:vista_colosseum/features/trade/order_ticket.dart';\nimport 'package:vista_colosseum/scenario/scenario.dart';",
+      "replacement": "import 'package:vista_colosseum/features/trade/order_ticket.dart';\nimport 'package:vista_colosseum/main.dart';\nimport 'package:vista_colosseum/scenario/scenario.dart';",
+      "rationale": "VistaColosseumApp lives in main.dart; the test pumps the real shell so Settings is reached the way the app reaches it."
+     },
+     {
+      "file": "app/test/copy_story_test.dart",
+      "anchor": "214 end of 'switch then reset restores creator and both seeds'",
+      "current": "    expect(copier.receipts, isEmpty);\n    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n}",
+      "replacement": "    expect(copier.receipts, isEmpty);\n    expect(Scenario.feeEntries.value, same(YourMarketMock.fees));\n  });\n\n  testWidgets('the Settings Demo persona row switches hands and says who is '\n      'acting', (tester) async {\n    tester.view\n      ..physicalSize = const Size(402, 874) * 3\n      ..devicePixelRatio = 3;\n    addTearDown(tester.view.reset);\n    await tester.pumpWidget(const VistaColosseumApp());\n    await tester.pumpAndSettle();\n    // Settings is pushed over the shell from the Wallet gear, as in the app.\n    await tester.tap(find.bySemanticsLabel('Wallet'));\n    await tester.pumpAndSettle();\n    await tester.tap(find.bySemanticsLabel('Settings'));\n    await tester.pumpAndSettle();\n    await tester.scrollUntilVisible(\n      find.text('Demo persona'),\n      200,\n      scrollable: find.byType(Scrollable).last,\n    );\n    expect(find.text('Creator'), findsOneWidget);\n    final before = state();\n\n    await tester.tap(find.text('Demo persona'));\n    await tester.pumpAndSettle();\n    // The toast names the persona the store now acts as, not the old one.\n    expect(find.text('Now acting as sam.sol').hitTestable(), findsOneWidget);\n    expect(Scenario.activePersona.value, Persona.copier);\n    expect(find.text('Copier'), findsOneWidget);\n    expect(Scenario.cashCents.value, PortfolioMock.copierCashCents);\n\n    await tester.tap(find.text('Demo persona'));\n    await tester.pumpAndSettle();\n    expect(find.text('Now acting as maya.eth').hitTestable(), findsOneWidget);\n    expect(Scenario.activePersona.value, Persona.creator);\n    expect(find.text('Creator'), findsOneWidget);\n    // A round trip through Settings changes nothing financial.\n    expect(state(), equals(before));\n  });\n}",
+      "rationale": "Drives the row through the UI so the switch-then-toast order and the setState are under test; the final deep-equality check pins invariant 9 at the control, not just at Scenario.switchPersona()."
+     }
+    ]
+   },
+   {
+    "findingId": "F7",
+    "verdict": "fix-here",
+    "evidence": "Claim holds. `command grep -rn CallerPlayScreen app/test` finds only home_screen_test.dart:1463 `expect(find.byType(CallerPlayScreen), findsOneWidget);` and :1469 `findsNothing` \u2014 a navigation round trip, no trade. The branch's only new lines in caller_play_screen.dart are 47-48: `sourceCallId: '${idea.callerHandle}/${idea.ticker}', sourceAuthorHandle: idea.callerHandle,`. Scenario.copyFeeCents (scenario.dart:152-156) returns 0 when `intent.sourceAuthorHandle == null`, so deleting those two lines makes every copy from Asset trade \u203a Callers \u203a play a plain order with no copy line, no fee and no ledger row. The existing copy widget tests (feed_order_ticket_test.dart:32-67, copy_story_test.dart:94-114) go through `homeCard`, i.e. the Home feed call site at home_screen.dart:136-141, which has its own copy of the two lines, so they stay green. Fixture facts: TradeMock.callers (trade_mock.dart:292+) holds 'lunaq' (long, 10x); `callerPlayIdea` is a public top-level function (caller_play_screen.dart:63); `VistaColosseumApp({this.home = const AppShell()})` (main.dart:12) accepts a home; TradeIdeaCard's trade pill is `VistaPillButton(label: idea.side.label, onPressed: onTrade)` (trade_idea_card.dart:84-92); `Scenario.copyFees` (scenario.dart:161) filters copyFee rows. Spec 09 Behavior: 'The feed ticket sets both from the call it opened from' \u2014 the caller play is such an opening and has no test of its own.",
+    "rejectsValidInput": "none \u2014 a test only; no production gate changes. n/a for a producing document.",
+    "testProof": "app/test/feed_order_ticket_test.dart, new testWidgets \"a caller's play copies their call with the fee\", reached by scripts/gate.sh's `flutter test`. Mutation (the finding's): delete caller_play_screen.dart:47-48 \u2192 `expect(inSheet(find.text(r'Copying @lunaq \u00b7 $5.00 copy fee')), findsOneWidget)` fails (no copy line in the review), and after Confirm `expect(receipt.sourceCallId, 'lunaq/ETH')` fails (null) and `expect(Scenario.copyFees.single.sourceCallId, 'lunaq/ETH')` throws on an empty list. Passes against the code as it stands.",
+    "edits": [
+     {
+      "file": "app/test/feed_order_ticket_test.dart",
+      "anchor": "3 import flutter/services.dart",
+      "current": "import 'package:flutter/services.dart';",
+      "replacement": "import 'package:flutter/material.dart';\nimport 'package:flutter/services.dart';",
+      "rationale": "The new test sets tester.view.physicalSize with Size, which flutter_test does not export."
+     },
+     {
+      "file": "app/test/feed_order_ticket_test.dart",
+      "anchor": "9 import settings_state.dart / scenario.dart",
+      "current": "import 'package:vista_colosseum/features/settings/settings_state.dart';\nimport 'package:vista_colosseum/scenario/scenario.dart';",
+      "replacement": "import 'package:vista_colosseum/features/settings/settings_state.dart';\nimport 'package:vista_colosseum/features/trade/caller_play_screen.dart';\nimport 'package:vista_colosseum/features/trade/trade_mock.dart';\nimport 'package:vista_colosseum/main.dart';\nimport 'package:vista_colosseum/scenario/scenario.dart';",
+      "rationale": "CallerPlayScreen/callerPlayIdea, TradeMock.callers and VistaColosseumApp are what the test pumps."
+     },
+     {
+      "file": "app/test/feed_order_ticket_test.dart",
+      "anchor": "66 end of 'copy review shows the $5.00 copy fee in the total'",
+      "current": "    expect(paperFunds(tester), formatCents(receipt.totalCents));\n  });\n}",
+      "replacement": "    expect(paperFunds(tester), formatCents(receipt.totalCents));\n  });\n\n  testWidgets(\"a caller's play copies their call with the fee\", (tester) async {\n    Scenario.switchPersona(); // the copier opens lunaq's ETH call\n    final post = TradeMock.callers.singleWhere((p) => p.handle == 'lunaq');\n    tester.view\n      ..physicalSize = const Size(402, 874) * 3\n      ..devicePixelRatio = 3;\n    addTearDown(tester.view.reset);\n    await tester.pumpWidget(\n      VistaColosseumApp(\n        home: CallerPlayScreen(idea: callerPlayIdea(post, 'ETH')),\n      ),\n    );\n    await tester.pumpAndSettle();\n    await tester.tap(\n      find.widgetWithText(VistaPillButton, 'Long').hitTestable().first,\n    );\n    await tester.pumpAndSettle();\n    await tester.tap(inSheet(find.text(r'Long $200 \u00b7 2x')));\n    await tester.pumpAndSettle();\n\n    const line = r'Copying @lunaq \u00b7 $5.00 copy fee';\n    expect(inSheet(find.text('Review order')), findsOneWidget);\n    expect(inSheet(find.text(line)), findsOneWidget);\n    await tester.tap(find.text('Confirm'));\n    await tester.pumpAndSettle();\n    final receipt = Scenario.receipts.value.single;\n    expect(receipt.sourceCallId, 'lunaq/ETH');\n    expect(receipt.copyFeeCents, 500);\n    expect(Scenario.copyFees.single.sourceCallId, 'lunaq/ETH');\n    expect(inSheet(find.text(line)), findsOneWidget);\n  });\n}",
+      "rationale": "Covers the second showFeedOrderTicket call site (caller_play_screen.dart:43-50) end to end: copy line in review, sourceCallId and copyFeeCents on the receipt, one creator-ledger row."
+     }
+    ]
+   },
+   {
+    "findingId": "F10",
+    "verdict": "fix-here",
+    "evidence": "Claim holds against the invariant as written. ARCH.md:15-19: '`app/lib/design_system/` is the single source of colour, type, spacing, radius and size tokens ... Screens import `design_system.dart` and must not hardcode colours or font sizes.' The new block, order_ticket.dart:986-994 (added by this branch per `git diff main...HEAD`), reads `padding: const EdgeInsets.only(top: 10)` and `style: VistaType.body.copyWith(fontSize: 14)`. Context the reviewer did not weigh: `fontSize: 14` already occurs 9 times in this file on main (10 now) and `row()` at :909-918 uses the identical pair of literals, so the new line duplicates a literal rather than inventing one; VistaType has no 14 pt token (scale is 36/20/17/15/13/12/11/10, vista_typography.dart) and adding one is a design-system change beyond this unit; VistaSpace.lg == 10 exists (vista_metrics.dart:7) and design_system.dart exports vista_metrics.dart (:20), with order_ticket.dart already importing design_system.dart (:8). The smallest edit that fits the finding's own first option: hoist the 14 pt style once and share it with row() and the copy line, and spell the 10 px gap as VistaSpace.lg in both places. The remaining single `fontSize: 14` literal is the carried-forward pattern of this file, not new to this run.",
+    "rejectsValidInput": "none \u2014 style-only refactor; rendered text, size and spacing are byte-identical (same 14 pt, same 10 px), no input path changes. n/a for a producing document.",
+    "testProof": "n/a - no behaviour changes: the copy line still renders at 14 pt with a 10 px top gap, so no assertion can fail before and pass after. The existing guards keep covering the line's presence: feed_order_ticket_test.dart:46 `expect(inSheet(find.text(line)), findsOneWidget)` and copy_story_test.dart:105-108; both reach scripts/gate.sh's `flutter test` and must stay green after the edit.",
+    "edits": [
+     {
+      "file": "app/lib/features/trade/order_ticket.dart",
+      "anchor": "905 _ReviewPanelState.build muted + row()",
+      "current": "    final muted = VistaType.body.copyWith(\n      fontSize: 14,\n      color: VistaColors.textMuted,\n    );\n    Widget row(String label, String value) => Padding(\n      key: ValueKey(label),\n      padding: const EdgeInsets.only(top: 10),\n      child: Row(\n        children: [\n          Expanded(child: Text(label, style: muted)),\n          Text(value, style: VistaType.body.copyWith(fontSize: 14)),\n        ],\n      ),\n    );",
+      "replacement": "    // The review's 14 pt figure style, defined once for every line.\n    final figure = VistaType.body.copyWith(fontSize: 14);\n    final muted = figure.copyWith(color: VistaColors.textMuted);\n    Widget row(String label, String value) => Padding(\n      key: ValueKey(label),\n      padding: const EdgeInsets.only(top: VistaSpace.lg),\n      child: Row(\n        children: [\n          Expanded(child: Text(label, style: muted)),\n          Text(value, style: figure),\n        ],\n      ),\n    );",
+      "rationale": "Hoists the 14 pt style so the copy line reuses it instead of repeating the literal, and names the 10 px row gap with the existing VistaSpace.lg token."
+     },
+     {
+      "file": "app/lib/features/trade/order_ticket.dart",
+      "anchor": "986 copy-fee line in the review column",
+      "current": "        if (copyFee > 0)\n          Padding(\n            key: const ValueKey('Copy fee'),\n            padding: const EdgeInsets.only(top: 10),\n            child: Text(\n              copyLine(i.sourceAuthorHandle!, copyFee),\n              style: VistaType.body.copyWith(fontSize: 14),\n            ),\n          ),",
+      "replacement": "        if (copyFee > 0)\n          Padding(\n            key: const ValueKey('Copy fee'),\n            padding: const EdgeInsets.only(top: VistaSpace.lg),\n            child: Text(\n              copyLine(i.sourceAuthorHandle!, copyFee),\n              style: figure,\n            ),\n          ),",
+      "rationale": "The new line uses the shared style and the spacing token; no new literal enters feature code."
+     }
+    ]
+   }
+  ],
+  "coverage": {
+   "failedGroups": [],
+   "unreported": []
+  },
+  "apply": {
+   "applied": [
+    {
+     "findingId": "F1",
+     "file": "app/lib/scenario/scenario.dart, app/test/scenario_test.dart, app/test/copy_story_test.dart",
+     "summary": "participation became a fifth per-persona Books field (seeded {} for the copier, included in _active, swapped in switchPersona); state() in scenario_test now carries booksOf(p).participation and the copier's mutateEverything fill joins 'sol-200'; new test 'participation follows the persona, as its receipts do'. F1.5's CURRENT anchor was two spaces off from the file (list closes with `];`), applied with the real indentation.",
+     "red": "00:00 +0: participation follows the persona, as its receipts do\n00:00 +0 -1: participation follows the persona, as its receipts do [E]\n  Expected: empty\n    Actual: {'eth-4k': TradeSide:TradeSide.long}\n  \n  package:matcher                                     expect\n  package:flutter_test/src/widget_tester.dart 473:18  expect\n  test/copy_story_test.dart 226:5                     main.<fn>\n  \n00:00 +0 -1: Some tests failed."
+    },
+    {
+     "findingId": "F4",
+     "file": "app/test/copy_story_test.dart",
+     "summary": "copyOf gained an OrderKind kind parameter; new tests 'a resting copy writes no fee and no ledger row' and 'a stale-price copy fails and writes nothing'. Mutation-proven: with the copyFee computation and ledger write hoisted above the limit/stale returns, copy_story+order_ticket+scenario tests stayed green (47 passed); the two new tests then failed on that mutant; mutant reverted.",
+     "red": "Under the mutant, before the new tests: `00:10 +47: All tests passed!`\nUnder the mutant, with the new tests:\n00:00 +3: a resting copy writes no fee and no ledger row\n00:00 +3 -1: a resting copy writes no fee and no ledger row [E]\n  Expected: empty\n    Actual: [Instance of 'FeeEntry']\n  test/copy_story_test.dart 183:5                     main.<fn>\n00:00 +3 -1: a stale-price copy fails and writes nothing\n00:00 +3 -2: a stale-price copy fails and writes nothing [E]\n  Expected: empty\n    Actual: [Instance of 'FeeEntry']\n  test/copy_story_test.dart 195:5                     main.<fn>\n00:00 +3 -2: Some tests failed."
+    },
+    {
+     "findingId": "F5",
+     "file": "app/test/copy_story_test.dart",
+     "summary": "copyRows now delegates to Scenario.copyFees; test 1 asserts marketFeesCents == 0; new widget test 'the ledger lists a copy fee in its copy section and counts it once in the total' pumping LedgerScreen via receipts_test's pumpApp. Added `import 'package:vista_colosseum/features/live/live_feed.dart';` which the edit block omitted (formatCents did not compile without it). Mutant A (kind filter dropped from marketFees) and Mutant B (copies sum dropped from the ledger Total) each survived the existing copy_story+receipts tests (22 passed) and each is caught by the new assertions; both reverted. Bonus Mutant C not run.",
+     "red": "Mutant A, existing suite: `00:04 +22: All tests passed!`\nMutant A, new assertion:\n00:00 +0 -1: confirming a copied order debits the copy fee once and credits the creator once [E]\n  Expected: <0>\n    Actual: <500>\n  test/copy_story_test.dart 93:5                      main.<fn>\nMutant B, new widget test:\nExpected: exactly 2 matching candidates\n  Actual: _TextWidgetFinder:<Found 1 widget with text \"$5.00\": [\n   Which: is not enough\n00:00 +1 -1: the ledger lists a copy fee in its copy section and counts it once in the total [E]\n00:02 +9 -1: Some tests failed."
+    },
+    {
+     "findingId": "F8",
+     "file": "app/test/order_ticket_test.dart",
+     "summary": "Added market_mock import and `expect(Scenario.feeEntries.value, same(YourMarketMock.fees))` after Confirm in 'feed ticket confirm adds a position and View in Wallet shows it'. Mutation-proven: with the persona half of the condition deleted (`if (copyFee > 0) {`), order_ticket+copy_story+feed_order_ticket tests stayed green (32 passed); the new assertion fails on the mutant; mutant reverted.",
+     "red": "Under the mutant, before: `00:09 +32: All tests passed!`\nUnder the mutant, with the new assertion:\nExpected: same instance as [\n  Actual: [\n00:02 +0 -1: feed ticket confirm adds a position and View in Wallet shows it [E]\n00:03 +0 -1: Some tests failed.\nFailing tests:\n  /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/order_ticket_test.dart: feed ticket confirm adds a position and View in Wallet shows it"
+    },
+    {
+     "findingId": "F2",
+     "file": "app/lib/features/market/receipt_screens.dart, app/lib/features/market/your_market_screen.dart, app/lib/features/portfolio/portfolio_screen.dart, app/test/receipts_test.dart",
+     "summary": "Ledger empty state now requires `entries.isEmpty && copies.isEmpty`; the two stale 'ledger's sum' comments reworded per spec 06; new widget test 'a copy fee with no market credits shows no empty state and is the total' in receipts_test (fails before the receipt_screens edit, passes after; receipts_test 14 green).",
+     "red": "Expected: no matching candidates\n  Actual: _TextWidgetFinder:<Found 1 widget with text \"No fee credits yet\": [\n   Which: means one was found but none were expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/receipts_test.dart line 205\n00:00 +0 -1: a copy fee with no market credits shows no empty state and is the total [E]\n00:00 +0 -1: Some tests failed."
+    },
+    {
+     "findingId": "F3",
+     "file": "app/lib/features/account/account_top_bar.dart, app/lib/features/settings/settings_screen.dart, app/lib/features/settings/settings_mock.dart, app/test/scenario_test.dart",
+     "summary": "Top bar handle reads Scenario.activePersona through a ValueListenableBuilder (PortfolioMock import removed); Settings header reads Scenario.activePersona.value.handle; dead SettingsMock.handle deleted (grep confirmed no other reader); new widget test 'the top bar and Settings name the active persona'. Red captured twice: first at the top bar on unmodified code, then at the Settings header with only the top-bar edit applied.",
+     "red": "Before any code edit:\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"sam.sol\" descending from widgets with\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/scenario_test.dart line 250\n00:02 +0 -1: the top bar and Settings name the active persona [E]\nAfter the top-bar edit only:\nExpected: exactly one matching candidate\n  Actual: _TextWidgetFinder:<Found 0 widgets with text \"sam.sol\": []>\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/scenario_test.dart line 256\n00:02 +0 -1: the top bar and Settings name the active persona [E]"
+    },
+    {
+     "findingId": "F9",
+     "file": "app/test/copy_story_test.dart",
+     "summary": "New widget test 'the receipts list shows the copy line on the copier's own paper receipt and no paper section under the creator'. F9.1's receipt_screens import was already added by F5.1; F9.2's trader_record_test pumpApp import was NOT added because F5.2 already imports a pumpApp from receipts_test and a second one would be an ambiguous name; the receipts_test helper (tall phone) serves both tests. Mutation-proven: with the copy line deleted and `own` reverted to PortfolioMock.handle (temporary import added for the mutant), receipts/empty_states/copy_story/feed tests stayed green (32 passed); the new test fails under mutation 2 (no paper section) and, with mutation 2 reverted, under mutation 1 (no copy line); file restored.",
+     "red": "Both mutations, existing suites: `00:13 +32: All tests passed!`\nMutation 2 (own = PortfolioMock.handle):\nExpected: exactly one matching candidate\n  Actual: _TextWidgetFinder:<Found 0 widgets with text \"PAPER ORDER RECEIPTS\": []>\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/copy_story_test.dart line 302\n00:00 +0 -1: the receipts list shows the copy line on the copier's own paper receipt and no paper section under the creator [E]\nMutation 1 only (copy line deleted):\nExpected: exactly one matching candidate\n  Actual: _TextWidgetFinder:<Found 0 widgets with text \"Copying @maya.eth \u00b7 $5.00 copy fee\": []>\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/copy_story_test.dart line 303\n00:00 +0 -1: the receipts list shows the copy line on the copier's own paper receipt and no paper section under the creator [E]"
+    },
+    {
+     "findingId": "F6",
+     "file": "app/test/copy_story_test.dart",
+     "summary": "Added material and main.dart imports and the widget test 'the Settings Demo persona row switches hands and says who is acting', inserted directly after 'switch then reset' (the edit block's end-of-main anchor no longer applied since F1/F9 tests follow it). Mutation-proven: with `setState(Scenario.switchPersona);` deleted, scenario+copy_story tests stayed green (31 passed); the new test fails under that mutant and under mutation 2 (_say moved above setState); settings_screen restored.",
+     "red": "Mutant 1, existing suites: `00:10 +31: All tests passed!`\nMutant 1 (no switch), new test:\nExpected: exactly one matching candidate\n  Actual: _HitTestableWidgetFinder:<Found 0 widgets with text \"Now acting as sam.sol\" (considering\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/copy_story_test.dart line 287\n00:04 +0 -1: the Settings Demo persona row switches hands and says who is acting [E]\nMutant 2 (toast before switch), new test:\nExpected: exactly one matching candidate\n  Actual: _HitTestableWidgetFinder:<Found 0 widgets with text \"Now acting as sam.sol\" (considering\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/copy_story_test.dart line 287\n00:04 +0 -1: the Settings Demo persona row switches hands and says who is acting [E]"
+    },
+    {
+     "findingId": "F7",
+     "file": "app/test/feed_order_ticket_test.dart",
+     "summary": "Added caller_play_screen, trade_mock and main.dart imports and the widget test \"a caller's play copies their call with the fee\". F7.1's material import was applied then removed: flutter analyze flagged it as unnecessary_import (Size already comes via services.dart and nothing else from material is used in that file), which would fail the gate. Mutation-proven: with caller_play_screen.dart's sourceCallId/sourceAuthorHandle lines deleted, feed_order_ticket+copy_story stayed green (13 passed); the new test fails on the mutant; file restored.",
+     "red": "Under the mutant, existing suites: `00:04 +13: All tests passed!`\nUnder the mutant, new test:\nExpected: exactly one matching candidate\n  Actual: _DescendantWidgetFinder:<Found 0 widgets with text \"Copying @lunaq \u00b7 $5.00 copy fee\"\n   Which: means none were found but one was expected\n  file:///home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story/app/test/feed_order_ticket_test.dart line 95\n00:02 +0 -1: a caller's play copies their call with the fee [E]\n00:02 +0 -1: Some tests failed."
+    },
+    {
+     "findingId": "F10",
+     "file": "app/lib/features/trade/order_ticket.dart",
+     "summary": "Hoisted the 14 pt review style into `figure` (muted derives from it), and replaced both `top: 10` literals with VistaSpace.lg in row() and the copy-fee line. Guards feed_order_ticket_test and copy_story_test stayed green (14 passed).",
+     "red": "n/a - no behaviour changes: the copy line still renders at 14 pt with a 10 px top gap, so no assertion can fail before and pass after; the existing copy-line guards in feed_order_ticket_test and copy_story_test were run after the edit and passed."
+    }
+   ],
+   "skipped": [],
+   "verification": "=== gate: flutter-analyze: flutter analyze ===\nPASS flutter-analyze\n=== gate: flutter-test: flutter test ===\nPASS flutter-test\n=== gate: pubspec-frozen: git diff --exit-code 7d39bffaa1e1e594dfccb6f39359b9d9038df4e7 -- pubspec.yaml pubspec.lock ===\nPASS pubspec-frozen\n----\nGATE: PASS\nexit=0\n\n(flutter-test.log tail: 01:29 +305: All tests passed!)\n\nNote: the first gate run FAILED on flutter-analyze with one info: \"The import of 'package:flutter/material.dart' is unnecessary ... test/feed_order_ticket_test.dart:3:8 \u2022 unnecessary_import\" (from edit F7.1). That import was removed and the gate rerun; the output above is the final run."
+  }
+ },
+ "workflowProgress": [
+  {
+   "type": "workflow_phase",
+   "index": 1,
+   "title": "Adjudicate"
+  },
+  {
+   "type": "workflow_phase",
+   "index": 2,
+   "title": "Apply"
+  },
+  {
+   "type": "workflow_agent",
+   "index": 1,
+   "label": "adjudicate:scenario-and-tests",
+   "phaseIndex": 1,
+   "phaseTitle": "Adjudicate",
+   "agentId": "a86322e608d92860f",
+   "model": "claude-fable-5-1",
+   "state": "done",
+   "startedAt": 1791221658997,
+   "queuedAt": 1791221658960,
+   "attempt": 1,
+   "lastToolName": "StructuredOutput",
+   "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transpla\u2026",
+   "promptFramed": true,
+   "lastProgressAt": 1791222313546,
+   "tokens": 164916,
+   "toolCalls": 25,
+   "durationMs": 654541,
+   "resultPreview": "{\"verdicts\":[{\"findingId\":\"F1\",\"verdict\":\"fix-here\",\"evidence\":\"scenario.dart:138-148 switchPersona swaps only cashCents, positions, openOrders, receipts: `cashCents.value = next.cashCents; positions.value = next.positions; openOrders.value = next.openOrders; receipts.value = next.receipts;` \u2014 no participation line. scenario.dart:92 `static final participation = ValueNotifier<Map<String, TradeSide\u2026"
+  },
+  {
+   "type": "workflow_agent",
+   "index": 2,
+   "label": "adjudicate:market-and-account",
+   "phaseIndex": 1,
+   "phaseTitle": "Adjudicate",
+   "agentId": "aa95140dd587553c8",
+   "model": "claude-fable-5-1",
+   "state": "done",
+   "startedAt": 1791221659000,
+   "queuedAt": 1791221658961,
+   "attempt": 1,
+   "lastToolName": "StructuredOutput",
+   "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transpla\u2026",
+   "promptFramed": true,
+   "lastProgressAt": 1791222103825,
+   "tokens": 177966,
+   "toolCalls": 28,
+   "durationMs": 441828,
+   "resultPreview": "{\"verdicts\":[{\"findingId\":\"F2\",\"verdict\":\"fix-here\",\"evidence\":\"receipt_screens.dart:95-100: `if (entries.isEmpty)\\\\n VistaEmptyState(\\\\n message: 'No fee credits yet', ...` \u2014 the condition reads only `entries` (= Scenario.marketFees, line 80), never `copies` (line 81). Lines 124-126 render `COPY FEES` whenever `copies.isNotEmpty`, and lines 171-175 total `Scenario.marketFeesCents + copies.fold(..\u2026"
+  },
+  {
+   "type": "workflow_agent",
+   "index": 3,
+   "label": "adjudicate:trade-and-settings",
+   "phaseIndex": 1,
+   "phaseTitle": "Adjudicate",
+   "agentId": "a1165160fa166fa8b",
+   "model": "claude-fable-5-1",
+   "state": "done",
+   "startedAt": 1791221659004,
+   "queuedAt": 1791221658961,
+   "attempt": 1,
+   "lastToolName": "StructuredOutput",
+   "promptPreview": "You are adjudicating review findings. Your job is VERIFICATION, not fixing. Do NOT edit any file.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, lightweight implementations. Do not copy or transpla\u2026",
+   "promptFramed": true,
+   "lastProgressAt": 1791222247596,
+   "tokens": 153741,
+   "toolCalls": 17,
+   "durationMs": 585597,
+   "resultPreview": "{\"verdicts\":[{\"findingId\":\"F6\",\"verdict\":\"fix-here\",\"evidence\":\"Claim holds. `command grep -rn 'Demo persona\\\\|Now acting' app/test` returns nothing; the only Settings widget tests are scenario_test.dart:156-191 ('Reset demo in Settings ...') and home_screen_test.dart:1374/1828 (open Settings only). The row under test, settings_screen.dart:124-137: `onTap: () { setState(Scenario.switchPersona); _s\u2026"
+  },
+  {
+   "type": "workflow_agent",
+   "index": 4,
+   "label": "apply:edits",
+   "phaseIndex": 2,
+   "phaseTitle": "Apply",
+   "agentId": "a0846db5217344856",
+   "model": "claude-fable-5-1",
+   "state": "done",
+   "startedAt": 1791222314903,
+   "queuedAt": 1791222314874,
+   "attempt": 1,
+   "lastToolName": "StructuredOutput",
+   "lastToolSummary": "=== gate: flutter-analyze: flutter analyze === PASS flutter\u2026",
+   "promptPreview": "Apply the adjudicated edits below. You are the ONLY writer in this run, so apply them one at a\ntime and keep every file you touch valid throughout.\n\n\nWorking directory: /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story. Stay inside it. Use absolute or repo-relative paths, never cd out.\n\nProject invariants (CONTEXT.md, docs/specs/00-baton-queue.md Common rules, ARCH.md):\n1. Original, li\u2026",
+   "promptFramed": true,
+   "lastProgressAt": 1791223469096,
+   "tokens": 182101,
+   "toolCalls": 42,
+   "durationMs": 1154192,
+   "resultPreview": "{\"applied\":[{\"findingId\":\"F1\",\"file\":\"app/lib/scenario/scenario.dart, app/test/scenario_test.dart, app/test/copy_story_test.dart\",\"summary\":\"participation became a fifth per-persona Books field (seeded {} for the copier, included in _active, swapped in switchPersona); state() in scenario_test now carries booksOf(p).participation and the copier's mutateEverything fill joins 'sol-200'; new test 'par\u2026"
+  }
+ ],
+ "totalTokens": 678724,
+ "totalToolCalls": 112
+}

@@ -2587,11 +2587,12 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(inTicket(find.text(r'Long $4,992 · 2x')), findsOneWidget);
-      // Dragging to the far right snaps to Max: the cash less room for the
-      // fee at 2x and 5 bps (1,248,000 × 10,000 ~/ 10,010 cents).
+      // Dragging to the far right snaps to Max: the cash less the $5.00
+      // copy fee (the call is not the creator's), less room for the fee at
+      // 2x and 5 bps ((1,248,000 − 500) × 10,000 ~/ 10,010 cents).
       await tester.drag(slider, const Offset(600, 0));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $12,467.53 · 2x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $12,462.53 · 2x')), findsOneWidget);
     });
 
     testWidgets('an amount over the balance blocks the order', (tester) async {

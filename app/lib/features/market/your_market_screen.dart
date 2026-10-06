@@ -165,7 +165,8 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         const SizedBox(height: 3),
         Text(YourMarketMock.unitLine, style: VistaType.caption),
         const SizedBox(height: 3),
-        // The ledger's sum, never a stored figure; opens the ledger.
+        // Market credits only (spec 06): the ledger Total adds copy fees.
+        // Never a stored figure; opens the ledger.
         ListenableBuilder(
           listenable: Listenable.merge([
             Scenario.feeEntries,
