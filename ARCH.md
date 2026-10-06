@@ -967,7 +967,10 @@ VistaColosseum/
 │   │   ├── 09-copy-story.md
 │   │   └── 11-verification-and-packaging.md
 │   └── verification/
-│       └── 2026-10-05-m1-shell-and-scenario.md
+│       ├── 2026-10-05-m1-shell-and-scenario.md
+│       ├── 2026-10-05-m2-home-and-listing.md
+│       ├── 2026-10-05-m3-market-and-wallet.md
+│       └── 2026-10-05-m4-arena-discovery.md
 ├── scripts/
 │   └── gate.sh
 ├── .gitignore
