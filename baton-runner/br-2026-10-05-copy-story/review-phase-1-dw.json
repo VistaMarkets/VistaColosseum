@@ -1,0 +1,349 @@
+{
+  "verified": {
+    "verdict": "MERGE-WITH-FIXES",
+    "summary": "The scope check passed. feat/br-2026-10-05-copy-story/phase-1 resolves to cc02d6c, which is also the worktree HEAD. origin/main resolves to 7d39bff. The three-dot diff lists 20 files, 14 of them under app/. The newest two commits are run bookkeeping only.\n\nI found no money or recording defect. The copy fee, the cash debit and the ledger row come from one `copyFee` local value in a single write path. All three sit after the actionId guard, problem(), the resting return and the stale-price return (scenario.dart:333-436), so a resting or failed copy writes nothing.\n\nSurvivors after merging duplicates:\n- **HIGH:** Arena participation is shared between personas while receipts are per persona. \"Joined Bull/Bear\" can be shown to a persona who never joined, and it can contradict the active persona's own position. Reproduced in source.\n- **MEDIUM:** The ledger can show \"No fee credits yet\" above a $5.00 copy row and a $5.00 Total, while the chip and Portfolio row that open it still show market credits only, under a stale \"ledger's sum\" comment.\n- **MEDIUM:** The top bar and the Settings header still name maya.eth while the copier's cash is shown.\n- **MEDIUM:** No test proves that a resting or stale copy writes nothing.\n- **LOW:** Five test gaps and one token nit.\n\nNothing freezes at merge, so no survivor is must-fix-before-merge. The participation bug should still be fixed before the demo is shown with persona switching. I refuted no finding outright. Each was reproduced against the tree, and duplicates were merged: 1 with 10, 7 with 12, 8 with 11, 9 with 13.",
+    "confirmed": [
+      {
+        "severity": "HIGH",
+        "title": "Arena participation is not keyed by persona, so 'Joined Bull/Bear' and the crowd count disagree across a persona switch",
+        "location": "app/lib/scenario/scenario.dart:136-146 (switchPersona swaps only cash/positions/openOrders/receipts) and :435-440 (participation write); app/lib/features/arena/arena_screen.dart:133-157; vista_battle.dart 'Joined Bull'/'Joined Bear' labels",
+        "failurePath": "Step 1: as the creator, join Bull on a battle. The fill writes a receipt with clashId and sets participation[b]=long. Step 2: Settings > Demo persona switches to the copier. receipts swaps to the copier's empty list, but participation stays as it was. Arena now shows 'Joined Bull' to the copier, who never joined. Scenario.joins counts only the active persona's receipts, so the crowd 'and N' drops by one on the same card. Step 3: the copier joins Bear, which sets participation[b]=short. Step 4: switch back. The creator's card now says 'Joined Bear' while her receipt and position are long. This contradiction only arises because this diff keys receipts by persona and leaves participation shared.",
+        "fix": "Derive 'joined' from the active persona's receipts: the side of the latest receipt with that clashId. Then delete the participation map, which removes the state rather than adding a fifth swapped field. The alternative is to add participation to Books, swap it in switchPersona, seed the copier with const {}, restore it in reset, and include it in scenario_test state().",
+        "beforeMerge": false,
+        "why": "I read switchPersona, the participation field doc ('only placeOrder writes it'), the placeOrder participation write, and reset. I read arena_screen.dart, which listens to receipts and participation, passes joined: Scenario.participation.value[b.id], and builds the crowd from Scenario.joins over receipts.value. I read the VistaBattleCard labels. The spec keys cash, positions, open orders and receipts; participation is a fill-derived per-user marker and is not on the 'stay as they are' list. Findings 7 and 12 were merged here; 12 has the sharper failure path.",
+        "id": "F1"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Ledger shows 'No fee credits yet' above a copy-fee row and a non-zero Total, and its entry points under-report against it",
+        "location": "app/lib/features/market/receipt_screens.dart:96-101 (empty state ignores copies), 123-153 (COPY FEES), 171-175 (Total); app/lib/features/market/your_market_screen.dart:168-177; app/lib/features/portfolio/portfolio_screen.dart:201,239-247",
+        "failurePath": "Step 1: in a default build, list a market in-app. AccountState.listMarket sets listedAt = clock = chartEnd, and every seed credit is dated chartEnd minus 3 to 96 hours, so marketFees is empty. Step 2: switch to the copier and confirm a copy, which appends a copyFee row. Step 3: switch back and open the ledger. It shows the 'No fee credits yet' empty state with 'Explore markets', then COPY FEES 'Copy fee \u00b7 @sam.sol \u00b7 ETH $5.00', then 'Total $5.00'. The Portfolio 'Fees from your market' row and the Your-market chip that open the ledger both show formatCents(marketFeesCents), which is $5 less than the ledger Total. Both carry the comment 'The ledger's sum', which is no longer true.",
+        "fix": "Show the empty state only when entries and copies are both empty. Then either add one Scenario getter (market credits plus copy fees) and use it for the chip, the Portfolio row and the ledger Total, or keep the chip as credits only and fix the 'ledger's sum' comments.",
+        "beforeMerge": false,
+        "why": "I read LedgerScreen.build: `if (entries.isEmpty) VistaEmptyState('No fee credits yet')` never looks at `copies`. Scenario.marketFees requires kind==credit and at >= listedAt. AccountState.listMarket sets listedAt = clock.value. The seed fee dates are in market_mock.dart:146-162. your_market_screen.dart:168 and portfolio_screen.dart:201 carry 'The ledger's sum' and render marketFeesCents. Findings 8 and 11 were merged here.",
+        "id": "F2"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "Identity surfaces still say maya.eth while the copier's cash is shown",
+        "location": "app/lib/features/account/account_top_bar.dart:39; app/lib/features/settings/settings_screen.dart:181",
+        "failurePath": "Step 1: tap Settings > Demo persona. The toast says 'Now acting as sam.sol' and the row says 'Copier'. Step 2: the Settings header right above still shows SettingsMock.handle 'maya.eth'. Step 3: on Home or Portfolio, AccountTopBar shows the hard-coded PortfolioMock.handle 'maya.eth' above a ValueListenableBuilder on Scenario.cashCents, which is now the copier's $1,000.00. The one surface that pairs a name with a balance names the wrong owner.",
+        "fix": "In AccountTopBar and the Settings header, read Scenario.activePersona.value.handle through a ValueListenableBuilder on activePersona, as ReceiptsScreen now does.",
+        "beforeMerge": false,
+        "why": "I read account_top_bar.dart:25-60, which has Text(PortfolioMock.handle) next to a cashCents listener, and settings_screen.dart:181, which has Text(SettingsMock.handle). A grep shows only receipt_screens.dart and the new Settings row read activePersona. Findings 9 and 13 were merged here. I dropped finding 9's Portfolio 'Fees from your market' sub-claim as a design question, since the ledger is the creator's by ruling.",
+        "id": "F3"
+      },
+      {
+        "severity": "MEDIUM",
+        "title": "No test proves that a resting or stale-price copy writes no fee and no ledger row",
+        "location": "app/test/copy_story_test.dart (whole file); app/lib/scenario/scenario.dart:345-366",
+        "failurePath": "The code is correct today. Now take a mutant that computes copyFee and appends the ledger row (or debits it) before the `kind != market` resting return or before the stale-price return. A limit copy from the feed ticket, or a market copy on a stale symbol, then writes a copyFee row with no debit, which is the fail-safe class. The suite stays green. copy_story_test has no OrderKind.limit and no stalePrices. scenario_test's limit intents carry no sourceAuthorHandle. The feed Retry test (order_ticket_test:343-370) runs as the creator, whose copies never write a row, and checks only receipts after 'Price expired'.",
+        "fix": "Add two copier tests to copy_story_test. (1) copyOf(..) with kind: OrderKind.limit returns OrderResting, cash is unchanged, and copyRows is empty. (2) With Scenario.stalePrices.value = {'ETH'}, a market copyOf returns OrderFailed(priceExpired) and state() equals the state before the call.",
+        "beforeMerge": false,
+        "why": "I read all of copy_story_test.dart. Grepping test/ shows OrderKind.limit and stalePrices only in scenario_test and order_ticket_test, and none of those intents carries a source author placed by the copier. TradeMock.stalePrices is {'AVAX'}, so no copy test hits a stale symbol by default. Findings 1 and 10 were merged here.",
+        "id": "F4"
+      },
+      {
+        "severity": "LOW",
+        "title": "Copy fees leaking into marketFees, or dropping out of the ledger Total, would go unnoticed",
+        "location": "app/lib/scenario/scenario.dart:197; app/lib/features/market/receipt_screens.dart:172-175",
+        "failurePath": "Mutant A drops `e.kind == FeeKind.credit &&`. The copy row has marketId = ticker.value ('MAYA' after the setUp listMarket) and at = clock, which passes the listedAt filter, so marketFeesCents absorbs the copy fee and the ledger Total counts it twice. Mutant B drops the copies.fold from the Total. Both survive, because no test reads marketFees, marketFeesCents or LedgerScreen while a copyFee row exists.",
+        "fix": "After the copier's copy in copy_story test 1, assert that marketFeesCents is unchanged and that copyFees.single.amountCents == 500. Then pump LedgerScreen and expect 'Copy fee \u00b7 @sam.sol \u00b7 ETH' and Total formatCents(marketFeesCents + 500).",
+        "beforeMerge": false,
+        "why": "A grep of test/ for copyFees, 'COPY FEES', 'Copy fee' and FeeKind finds hits only in copy_story_test, which never reads marketFees or pumps LedgerScreen. The receipts_test fee tests use only credit entries.",
+        "id": "F5"
+      },
+      {
+        "severity": "LOW",
+        "title": "The Settings 'Demo persona' row and its 'Now acting as' toast have no test",
+        "location": "app/lib/features/settings/settings_screen.dart:122-137",
+        "failurePath": "Mutant 1 removes setState(Scenario.switchPersona) and keeps the toast, so the app reports a persona change that did not happen. Mutant 2 reads the handle before switching, so the toast names the wrong persona. Both survive, because every persona test calls Scenario.switchPersona() directly.",
+        "fix": "Add a widget test. Open Settings, tap 'Demo persona', and expect the toast 'Now acting as sam.sol', activePersona == copier and the row value 'Copier'. Tap again and expect 'Now acting as maya.eth'.",
+        "beforeMerge": false,
+        "why": "`command grep -rn 'Demo persona\\|Now acting' app/test` returns nothing. The current code is correct: it switches first and reads the handle afterwards.",
+        "id": "F6"
+      },
+      {
+        "severity": "LOW",
+        "title": "The CallerPlayScreen copy entry is untested",
+        "location": "app/lib/features/trade/caller_play_screen.dart:47-48",
+        "failurePath": "Deleting the two new sourceCallId and sourceAuthorHandle lines turns copies made from Asset trade > Callers > a play into plain orders: no $5.00 line, no fee, no ledger row. No test fails. The only CallerPlayScreen test (home_screen_test.dart:1460-1469) opens a play and goes back without trading.",
+        "fix": "Add a widget test that pushes CallerPlayScreen.route(post, 'ETH') as the copier, opens the ticket, and expects the 'Copying @<author> \u00b7 $5.00 copy fee' line and one copyFee row after Confirm.",
+        "beforeMerge": false,
+        "why": "I grepped test/ for CallerPlayScreen and found only the two navigation asserts. The call sites of showFeedOrderTicket are home_screen.dart (suggestions with no source, and calls) and caller_play_screen.dart.",
+        "id": "F7"
+      },
+      {
+        "severity": "LOW",
+        "title": "The rule that a creator copying another author's call writes no ledger row is unpinned",
+        "location": "app/lib/scenario/scenario.dart:419",
+        "failurePath": "Mutant: `copyFee > 0 && activePersona.value != Persona.creator` becomes `copyFee > 0`. The creator then credits herself a copyFee row naming herself as counterparty. The creator-copies-kaito.eth tests (order_ticket_test 'feed ticket confirm\u2026' and 'feed ticket Retry\u2026') assert the 20520 debit but never read feeEntries. 'own call places an ordinary order' has copyFee == 0, so it never reaches this branch.",
+        "fix": "In the order_ticket_test feed-confirm test, add expect(Scenario.feeEntries.value, same(YourMarketMock.fees)) after Confirm.",
+        "beforeMerge": false,
+        "why": "A grep for feeEntries in test/ finds no hit in order_ticket_test or home_screen_test.",
+        "id": "F8"
+      },
+      {
+        "severity": "LOW",
+        "title": "The ReceiptsScreen copy line and the persona-keyed `own` check are unpinned",
+        "location": "app/lib/features/market/receipt_screens.dart:320-321, 370-374",
+        "failurePath": "Mutant 1 deletes the `if (r.copyFeeCents > 0)` copyLine Text, which removes the spec's 'Receipt shows the same' from the Receipts screen. Mutant 2 reverts `own` to `author == PortfolioMock.handle`, so the copier's receipts would show under maya.eth. Both survive, because every ReceiptsScreen test uses author PortfolioMock.handle with the creator active, where the old and new checks agree.",
+        "fix": "Add a widget test. As the copier, place a copy and pump ReceiptsScreen(author: 'sam.sol'), expecting the copy line. Then pump ReceiptsScreen(author: PortfolioMock.handle) and expect no paper receipts.",
+        "beforeMerge": false,
+        "why": "A grep for ReceiptsScreen( in test/ finds only empty_states_test with PortfolioMock.handle. feed_order_ticket_test checks the copy line on the review sheet only.",
+        "id": "F9"
+      },
+      {
+        "severity": "LOW",
+        "title": "The new review copy line hardcodes fontSize 14 and top padding 10",
+        "location": "app/lib/features/trade/order_ticket.dart:986-993",
+        "failurePath": "`VistaType.body.copyWith(fontSize: 14)` and `EdgeInsets.only(top: 10)` in feature code go against the rule that design_system owns type and spacing. This repeats the existing row() helper (order_ticket.dart:909-915) rather than starting a new pattern.",
+        "fix": "Reuse row()'s value TextStyle (hoist it once), or add a 14 pt token to VistaTypography and a VistaSpace token for the 10 px gap.",
+        "beforeMerge": false,
+        "why": "I read the diff hunk and the existing row() helper at order_ticket.dart:909-915, which uses the same literals.",
+        "id": "F10"
+      }
+    ],
+    "refuted": [
+      {
+        "title": "(none refuted outright) Finding 9 sub-claim: Portfolio 'Fees from your market' showing the creator's earnings to the copier is a defect",
+        "reason": "The ledger is the creator's by the manager's ruling, and the spec says the listing stays shared. Which persona sees the creator's market earnings is a design choice, not a failure path. The rest of finding 9 (the top bar handle) is confirmed and merged into the identity finding."
+      }
+    ],
+    "checkedClaimsThatAreWrong": [],
+    "residualRisk": [
+      "tautology-hunt: I did not run any test or apply any mutation, because I am read-only and the gate already passed at f9368e6. Mutant survival is argued from reading the code and grepping test/, not from execution.",
+      "tautology-hunt: The actionId guard scans only the active persona's receipts and openOrders. I found no UI path that re-confirms the same actionId after a persona switch, so I did not file it.",
+      "tautology-hunt: I did not check correctness outside test strength: sourceCallId uniqueness ('handle/ticker'), the copy row's marketId when the creator is unlisted, and identity surfaces that still show maya.eth while acting as the copier.",
+      "tautology-hunt: I did not scan baton-runner/ or baton-pass/ files, which are out of scope for findings, beyond reading the review baton to avoid re-filing its items verbatim.",
+      "money-state-invariants: Did not run any flutter test. The facts give a gate PASS at f9368e6 with identical app code; findings come from reading the source.",
+      "money-state-invariants: UI copy and layout in receipt_screens.dart, settings_screen.dart and the review sheet (design tokens, the exact toast text) belong to another lane; I checked only that the review and receipt totals match the stored cents.",
+      "money-state-invariants: Did not check whether the ledger is reachable before the creator lists a market. Copy fees are not filtered by listing, so a pre-listing ledger could show 'No fee credits yet' with a non-zero Total.",
+      "money-state-invariants: Did not cover the existing double-to-cent rounding at Max (marginCents is rounded from units*price), which can push a 100% stake 1 cent over cash. That predates this diff and is not specific to the copy fee.",
+      "ui-truthfulness: Did not run any flutter test or the gate (trusted the stated PASS at f9368e6 with 296 tests); all findings are from reading the source",
+      "ui-truthfulness: Did not measure 1.3x text-scale rendering of the Settings row or the ledger copy row; I relied on them sitting in scroll views or using Expanded and wrapping Text",
+      "ui-truthfulness: Scenario.placeOrder write atomicity and the creator-ledger credit rule (R1) are in another lane or already decided by the manager; I did not re-review them",
+      "ui-truthfulness: Other persona-unaware shared state beyond participation and identity (e.g. trader-record panels, Your market screen header 'maya.eth \u00b7 your market') is treated as part of the single listing per spec and was not filed"
+    ]
+  },
+  "ref": "feat/br-2026-10-05-copy-story/phase-1",
+  "sha": "cc02d6cb8dc22d7e071685290ec4a8ac8f61f6eb",
+  "rawCount": 14,
+  "reviews": [
+    {
+      "lens": "tautology-hunt",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "A copy that rests or fails on a stale price has no test proving it writes nothing; only the not-enough-funds failure is pinned",
+          "location": "app/lib/scenario/scenario.dart:362-436 (tests: app/test/copy_story_test.dart, app/test/order_ticket_test.dart:343-370)",
+          "failurePath": "Mutant: move the copy-fee ledger append (or the copyFee debit) above the `stalePrices` check or above the `kind != market` resting branch in placeOrder. A copier who places a limit copy from the feed ticket (the Limit tab is reachable), or a market copy at a stale price, then gets a copyFee ledger row with no matching debit. That is the fail-safe class (a ledger row without its debit). The whole suite stays green: test 3 fails inside problem(), before either of those branches. No test places a copy with kind limit, and none places one with sourceAuthorHandle while ETH is stale. The feed Retry test runs as creator and only asserts `receipts isEmpty` after 'Price expired', with no check on cash or feeEntries.",
+          "fix": "In copy_story_test add two asserts, both acting as the copier: (1) a limit copyOf(...) returns OrderResting and leaves copyRows empty and cash unchanged; (2) with `Scenario.stalePrices.value = {'ETH'}`, a market copyOf returns OrderFailed(priceExpired) and `state()` equals the state before the call.",
+          "evidence": "Read placeOrder (scenario.dart:333-436): the guard, then problem(), then the resting return, then the stale return, then copyFee, the debit and the ledger write. Grepped the diff and the tests: copy_story_test has no OrderKind.limit and no stalePrices. scenario_test's copier-limit intent has no sourceAuthorHandle. order_ticket_test:355 asserts only receipts after Price expired.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "The CallerPlayScreen copy entry is untested, and it is the only path where the copier can copy the creator's call",
+          "location": "app/lib/features/trade/caller_play_screen.dart:47-48",
+          "failurePath": "Mutant: delete the two added lines `sourceCallId: ...` and `sourceAuthorHandle: idea.callerHandle` from caller_play_screen.dart. The copier then copies maya.eth's call through Asset trade > Callers > Everyone > maya.eth's play, which is the demo story's core path (review-baton R2). That order fills as a plain order: no $5.00 line, no copy fee, no creator ledger row. All tests stay green. The only test that touches CallerPlayScreen (home_screen_test.dart:1460-1469) opens lunaq's play and goes back without opening the ticket. Every copy test goes through the Home card (kaito.eth) or calls Scenario directly.",
+          "fix": "Add a widget test that runs as the copier, pushes CallerPlayScreen.route(maya's post, 'ETH'), taps Long and then 'Long $200 \u00b7 2x', and expects 'Copying @maya.eth \u00b7 $5.00 copy fee'. After Confirm, assert one copyFee row with sourceCallId 'maya.eth/ETH'.",
+          "evidence": "Grepped lib for showFeedOrderTicket: there are call sites in home_screen.dart:110 (suggestions, no source, correct), home_screen.dart:136 and caller_play_screen.dart:43. Grepped test/ for CallerPlayScreen: only home_screen_test.dart:1463/1469, neither of which trades.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "The kind filter that keeps copy fees out of market-fee totals is unpinned, and so is the ledger Total that adds them",
+          "location": "app/lib/scenario/scenario.dart:197 and app/lib/features/market/receipt_screens.dart:172-175",
+          "failurePath": "Mutant A: drop `e.kind == FeeKind.credit &&` from marketFees. A copy row has marketId = ticker.value (the creator's symbol) and at = clock.value, so once listed it passes the marketId and since filters. marketFeesCents (the Wallet and Your-market figures) then includes copy fees, and the ledger Total (marketFeesCents + copies) counts each copy twice. Mutant B: drop the `copies.fold` from the Total. Both survive. No test ever has a copyFee row in feeEntries while it reads marketFees, marketFeesCents or LedgerScreen. The receipts_test fee tests (lines 186-215, 219-264) use only seeded or hand-made credit entries.",
+          "fix": "In copy_story_test test 1 (or a receipts_test case), after the copier's copy, assert `Scenario.marketFeesCents` is unchanged from before the copy and `Scenario.copyFees.single.amountCents == 500`. Pump LedgerScreen and expect the text 'Copy fee \u00b7 @sam.sol \u00b7 ETH' and a Total of formatCents(marketFeesCents + 500).",
+          "evidence": "Grepped test/ for FeeKind, copyFees, 'COPY FEES' and 'Copy fee': the only hits are in copy_story_test, which never reads marketFees or pumps LedgerScreen. Read scenario.dart:419-433 for the row's marketId and at, and receipt_screens.dart:120-176.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "The Settings 'Demo persona' row and its 'Now acting as' toast have no test, so the success-message invariant is unguarded",
+          "location": "app/lib/features/settings/settings_screen.dart:122-137",
+          "failurePath": "Mutant: remove `setState(Scenario.switchPersona)` and keep `_say('Now acting as ...')`. The app then toasts a persona change that never happened, which breaks the project invariant that a success message must follow a real state change. A second mutant reads the handle before switching, so the toast names the wrong persona. Both survive: grepping test/ for 'Demo persona' or 'Now acting' finds nothing. Every persona test calls Scenario.switchPersona() directly.",
+          "fix": "Add a widget test: open Settings, tap 'Demo persona', and expect the toast 'Now acting as sam.sol'. Also expect `Scenario.activePersona.value == Persona.copier`, the row value 'Copier', and cash equal to PortfolioMock.copierCashCents. Tap again and expect 'Now acting as maya.eth' with the creator's cash.",
+          "evidence": "command grep -rn 'Demo persona|Now acting' app/test returned nothing. Read the onTap at settings_screen.dart:130-136.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "Design call (a), that the creator copying someone else's call writes no ledger row, is unpinned",
+          "location": "app/lib/scenario/scenario.dart:419",
+          "failurePath": "Mutant: change `copyFee > 0 && activePersona.value != Persona.creator` to `copyFee > 0`. The creator then credits her own ledger with a copyFee row that names herself as counterparty when she copies kaito.eth. Two tests confirm exactly this as the creator: 'feed ticket confirm adds a position\u2026' at order_ticket_test:187-211 and the feed Retry test at order_ticket_test:343-370. Both assert the $205.20 / 20520 debit and never read feeEntries. 'own call places an ordinary order' has copyFee == 0, so it cannot see this branch.",
+          "fix": "In the order_ticket_test feed-confirm test (creator, kaito.eth), add `expect(Scenario.feeEntries.value, same(YourMarketMock.fees))` after Confirm, or add the same assert to a copy_story case where the creator copies kaito.eth.",
+          "evidence": "Grepped test/ for feeEntries: there is no hit in order_ticket_test or home_screen_test. This confirms review-baton R3 independently.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "The ReceiptsScreen copy line and the persona-keyed `own` check are unpinned",
+          "location": "app/lib/features/market/receipt_screens.dart:321 and 370-374",
+          "failurePath": "Mutant 1: delete `if (r.copyFeeCents > 0) Text(copyLine(...))`. The spec's 'Receipt shows the same' then fails on the Receipts screen. Mutant 2: revert `own` to `author == PortfolioMock.handle`. The copier's paper receipts then appear under maya.eth's profile and not under sam.sol's. Both survive. Test 7 checks the copy line only on the 'Order filled' state of the review sheet. Every ReceiptsScreen test (receipts_test, empty_states_test:152/272/410) runs as the creator with author PortfolioMock.handle, where the old and new `own` agree.",
+          "fix": "Add a widget test: as the copier, place a copy, pump ReceiptsScreen(author: Persona.copier.handle), and expect 'Copying @maya.eth \u00b7 $5.00 copy fee'. Then pump ReceiptsScreen(author: PortfolioMock.handle) and expect no paper receipts.",
+          "evidence": "Read the receipt_screens.dart diff. Grepped tests for ReceiptsScreen: every instance uses author PortfolioMock.handle with the creator active. This partly confirms review-baton R4 independently.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope is sound. feat/br-2026-10-05-copy-story/phase-1 resolves to cc02d6c and origin/main to 7d39bff. The three-dot diff lists 20 files (14 under app/), and the worktree HEAD equals the branch.",
+        "All seven spec test names exist verbatim. The six in copy_story_test.dart include test 1's name, which is split across two adjacent string literals that concatenate exactly. The seventh, r'copy review shows the $5.00 copy fee in the total', is in feed_order_ticket_test.dart.",
+        "Test 1 kills these mutants: copy fee debited twice or not at all (cash is asserted as copier seed - margin - fee - 500, independent of totalCents); totalCents dropping the copy fee; sourceCallId missing on the receipt (`receipts.single.sourceCallId`); more than one ledger row, or a wrong amount, counterparty or asset (`copyRows.single`, plus length seed+1); creator books touched.",
+        "Test 2 (cancel) uses deep state() equality both after review and after Cancel. state() now carries activePersona and both personas' books, so any write at review or cancel is caught.",
+        "Test 3 kills an insufficient-funds check that omits the copy fee. The fixture proves margin+fee <= 100000 < margin+fee+500, the test asserts problem()==notEnoughFunds, and it compares the full state().",
+        "Test 4 kills a bypassed actionId guard: same() receipt, cash unchanged, one position, one receipt, one copy row. The guard runs before every write (scenario.dart:334-340).",
+        "Own-author detection mutants are killed both ways. Comparing against PortfolioMock.handle fails test 1, since the copier copying maya would pay 0. Dropping the equality, or comparing against the copier handle, fails test 5, which also asserts feeEntries is same() as the seed.",
+        "Test 6 kills these mutants: reset forgetting `_parked = _copierSeed` (the copier's cash would read creatorCash), reset forgetting activePersona, switchPersona sharing openOrders or receipts (the copier would see seed orders or the creator's receipt), and a switch that mutates state (the round-trip state() equality). scenario_test's mutateEverything plus the reset tests independently cover both books.",
+        "Test 7 kills a review total computed from a different number than the stored cents. The reviewed paperFunds must equal formatCents(receipt.totalCents) and cash must equal the seed minus totalCents. receipt.totalCents is checked against margin+fee+copyFee. The filled sheet repeats both the line and the total.",
+        "home_screen_test's Max expectation ($12,462.53) kills a maxMarginCents that ignores the copy fee. order_ticket_test's 20520/$205.20 expectations pin the creator paying the $5 fee on kaito.eth's call.",
+        "The limit path never reaches _ReviewPanel (feed_order_ticket.dart:190 `_rest`), so the review copy line cannot show for a resting order."
+      ],
+      "notExamined": [
+        "I did not run any test or apply any mutation, because I am read-only and the gate already passed at f9368e6. Mutant survival is argued from reading the code and grepping test/, not from execution.",
+        "The actionId guard scans only the active persona's receipts and openOrders. I found no UI path that re-confirms the same actionId after a persona switch, so I did not file it.",
+        "I did not check correctness outside test strength: sourceCallId uniqueness ('handle/ticker'), the copy row's marketId when the creator is unlisted, and identity surfaces that still show maya.eth while acting as the copier.",
+        "I did not scan baton-runner/ or baton-pass/ files, which are out of scope for findings, beyond reading the review baton to avoid re-filing its items verbatim."
+      ]
+    },
+    {
+      "lens": "money-state-invariants",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Arena participation is not keyed by persona, so one persona's join shows as the other's",
+          "location": "app/lib/scenario/scenario.dart:436 (write in placeOrder); switchPersona at :138 does not swap it",
+          "failurePath": "Act as the copier. Open Arena and join Bull on eth-4k (a market fill with clashId). placeOrder writes participation[eth-4k]=long into the shared map. Switch back to the creator in Settings. The creator's battle card reads Scenario.participation.value[b.id] (arena_screen.dart:157) and shows 'Joined Bull' (vista_battle.dart:216), but the creator has no receipt for that clash. Scenario.joins() reads only the active persona's receipts, so the crowd count beside it ('and N', arena_screen.dart:135) leaves the join out. One card states a join the active persona never made and gives a count that disagrees with it. The same happens the other way round.",
+          "fix": "Add participation to Books and swap it in switchPersona; seed the copier with const {}; restore it in reset; include it in scenario_test state(). Or derive 'joined' from the active persona's receipts (latest receipt with that clashId) and drop the separate map.",
+          "evidence": "Read scenario.dart placeOrder (participation write after the fill), switchPersona (swaps only cash, positions, openOrders and receipts), arena_screen.dart:69-79, 133-157 and vista_battle.dart:214-226. Spec 09 lists only cash, positions, open orders and receipts as per-persona. participation is a per-user fill marker, not one of the 'stay as they are' items (likes, favourites, follows, listing, ledger).",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Your-market fees chip says it is 'the ledger's sum' but excludes copy fees, so it disagrees with the ledger Total it opens",
+          "location": "app/lib/scenario/scenario.dart:192 (marketFees now filters kind==credit) with app/lib/features/market/your_market_screen.dart:168-177 and receipt_screens.dart:172-175",
+          "failurePath": "List the market. Switch to the copier and confirm one copy of a call. Switch back to the creator. The Your market chip shows formatCents(marketFeesCents) = $X, with the comment 'The ledger's sum, never a stored figure; opens the ledger'. Tapping it opens LedgerScreen, whose Total is marketFeesCents + the copyFees sum = $X + $5.00. Every confirmed copy widens the gap by $5. Portfolio's 'Fees from your market' (portfolio_screen.dart:239-247) also leaves out the $5 the creator was credited.",
+          "fix": "Add one Scenario getter, for example ledgerTotalCents = marketFeesCents + the copyFees sum. Use it for the ledger Total and for the chip the ledger opens from. Or keep the chip at credits only and relabel it, and drop the 'ledger's sum' claim.",
+          "evidence": "Read the marketFees/copyFees getters in scenario.dart, LedgerScreen's Total in the receipt_screens.dart diff, and the your_market_screen.dart and portfolio_screen.dart fee widgets. Both still call Scenario.marketFeesCents, and that now skips FeeKind.copyFee rows.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "The top bar names the creator beside the copier's cash",
+          "location": "app/lib/features/account/account_top_bar.dart:39 (with portfolio_screen.dart:225-247)",
+          "failurePath": "Switch to the copier. Home and Portfolio show AccountTopBar with the hard-coded PortfolioMock.handle 'maya.eth' above Scenario.cashCents, which is now the copier's $1,000.00. The balance is labelled as the creator's. Portfolio, which shows the copier's positions, also shows 'Fees from your market' with the creator's earnings. The diff moved ReceiptsScreen's 'own' check to activePersona but left these surfaces on the mock identity.",
+          "fix": "Read the handle from Scenario.activePersona (ValueListenableBuilder) in AccountTopBar. Show the 'Fees from your market' line only when activePersona is creator.",
+          "evidence": "grep for PortfolioMock.handle in lib/ outside scenario.dart; read account_top_bar.dart:25-60 and portfolio_screen.dart:225-250.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "No test pins the spec rule that resting and failed copies write no fee and no ledger row",
+          "location": "app/test/copy_story_test.dart (whole file)",
+          "failurePath": "The spec says 'resting and failed results write no fee and no credit'. The code is correct today: problem() adds copyFee only for OrderKind.market, the limit path returns before copyFee is computed, and the stale-price failure returns before any write. But there is no test with a limit-kind copy intent, or a copy on a stale symbol, that asserts cash is unchanged and copyRows is empty. If the ledger write moved above the kind check, or the guard were changed, no test would fail.",
+          "fix": "Add two tests in copy_story_test.dart. (1) Copier places copyOf(...) with kind: OrderKind.limit; expect OrderResting, unchanged cash, empty copyRows, and receipt-free books. (2) Copier copies a symbol in TradeMock.stalePrices; expect OrderFailed(priceExpired) and state() equal to before.",
+          "evidence": "Read all of copy_story_test.dart: its 7 tests cover a market fill, cancel, insufficient funds, a repeated actionId, own call and switch/reset. None uses OrderKind.limit/stop or a stale price with a source author.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope: the worktree HEAD is cc02d6c, the same as feat/br-2026-10-05-copy-story/phase-1. origin/main resolves to 7d39bff. The three-dot diff lists 20 files, 14 of them under app/ (as stated).",
+        "problem() checks margin + fee + copy fee against cash (copy fee only for market orders) before any write. Insufficient funds returns OrderFailed and writes nothing. Margin alone is checked against cash first, so totalCents + 500 cannot overflow (notional is capped at maxNotionalCents).",
+        "placeOrder takes the copy fee in the same single debit as margin and fee: cashCents -= receipt.totalCents, and totalCents = margin + fee + copyFeeCents. The FeeEntry amount is the same copyFee local value. Receipt.copyFeeCents, the debit and the ledger row cannot disagree.",
+        "A ledger row is written only after a successful fill. Resting (limit/stop) returns before copyFee is computed. Stale-price and problem() failures return before any write. The creator copying another author pays 500 with no row; the manager ruled this out of scope for findings.",
+        "The actionId guard runs first and returns the first OrderFilled or OrderResting with no write at all, ledger included. Action ids come from a global counter that never resets ('act-N'), so they cannot collide across personas or resets.",
+        "A persona switch mid-ticket cannot happen in the UI: there is one root Navigator and no nested tab navigators, so the modal ticket blocks Settings. The simulation pill above the modal offers only Reset demo, which pops every route first. The review sheet's copy-fee preview and placeOrder's charge both read activePersona at the same moment.",
+        "The Portfolio open-order Undo cannot carry an order across personas: Settings' _say calls hideCurrentSnackBar, so the persona toast dismisses the Undo snackbar.",
+        "switchPersona only swaps values between the active notifiers and _parked; it never changes an amount. Switching there and back is identity (tested).",
+        "reset() restores both personas' books and sets activePersona=creator. scenario_test state() now includes activePersona and booksOf(p) for both personas, and mutateEverything leaves the copier active with changed books, so the deep-equality reset test covers the new state.",
+        "No new double money in the lane files: copyFee, kCopyFeeCents and FeeEntry.amountCents are int, and maxMarginCents uses int ~/. Feed ticket max with copy fee: a negative result when cash < 500 is clamped by _setMargin's max(0, ...).",
+        "No screen reads PortfolioMock.cashCents/positions or OpenOrdersMock.orders directly. OrdersState.open aliases Scenario.openOrders. Every cash, positions and receipts reader goes through Scenario.",
+        "Review baton R1 (any author's copy credits the creator ledger) matches the code at scenario.dart:419 and is the manager's ruling. R2 (the copier can copy maya.eth's call) is the intended copy-the-creator path, not a defect."
+      ],
+      "notExamined": [
+        "Did not run any flutter test. The facts give a gate PASS at f9368e6 with identical app code; findings come from reading the source.",
+        "UI copy and layout in receipt_screens.dart, settings_screen.dart and the review sheet (design tokens, the exact toast text) belong to another lane; I checked only that the review and receipt totals match the stored cents.",
+        "Did not check whether the ledger is reachable before the creator lists a market. Copy fees are not filtered by listing, so a pre-listing ledger could show 'No fee credits yet' with a non-zero Total.",
+        "Did not cover the existing double-to-cent rounding at Max (marginCents is rounded from units*price), which can push a 100% stake 1 cent over cash. That predates this diff and is not specific to the copy fee."
+      ]
+    },
+    {
+      "lens": "ui-truthfulness",
+      "findings": [
+        {
+          "severity": "MEDIUM",
+          "title": "Ledger shows 'No fee credits yet' above a credited copy-fee row and a non-zero Total",
+          "location": "app/lib/features/market/receipt_screens.dart:96-101 (empty state), 123-153 (COPY FEES), 171-175 (Total)",
+          "failurePath": "Default build (no HAS_MARKET). The creator lists a market in-app: AccountState.listMarket sets listedAt = clock.value = TradeMock.chartEnd, and every seed credit is dated before chartEnd, so Scenario.marketFees is empty. The presenter switches to the copier and confirms a copy of kaito.eth's ETH call, which appends a copyFee FeeEntry. They switch back and open the ledger from Portfolio. The ledger renders the 'No fee credits yet' empty state with an 'Explore markets' button, then a COPY FEES section with 'Copy fee \u00b7 @sam.sol \u00b7 ETH  $5.00', then 'Total $5.00'. The Portfolio row 'Fees from your market' that opened the ledger still says $0.00, because it reads marketFeesCents. Copy rows also skip the listedAt filter, so a copy confirmed before the market existed still appears in that market's ledger.",
+          "fix": "Use the empty state only when entries and copies are both empty, or reword it to 'No market fee credits yet' when copies exist. Make the Portfolio row and the Your-market chip use the same sum as the ledger footer (market credits plus copy fees). Their comments say 'The ledger's sum', and that is no longer true.",
+          "evidence": "Read LedgerScreen.build (receipt_screens.dart:76-185): the `if (entries.isEmpty) VistaEmptyState('No fee credits yet')` branch ignores `copies`. Read Scenario.marketFees (scenario.dart:192-202): it requires kind==credit and !at.isBefore(listedAt). Read AccountState.listMarket (account_state.dart:17-22): listedAt = clock.value. Read the seed fees (market_mock.dart:146-162): all dated chartEnd minus 3 to 96 h. The clock is never advanced (only reset writes it). portfolio_screen.dart:246 and your_market_screen.dart:175 show formatCents(Scenario.marketFeesCents). This overlaps review-baton R7 (tile vs Total); the empty-state contradiction is new.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Arena 'Joined Bull/Bear' and the crowd count leak between personas",
+          "location": "app/lib/scenario/scenario.dart:138-148 (switchPersona) and 436-439 (participation write); app/lib/features/arena/arena_screen.dart:157",
+          "failurePath": "As the creator, join Bull on a battle: the fill writes a receipt with clashId and participation[b]=long. Switch to the copier in Settings. receipts swap to the copier's (empty list), but participation is not keyed by persona. Arena now shows 'Joined Bull' to the copier, who never joined, and the crowd line 'and N' drops by one, because Scenario.joins counts only the active persona's receipts. If the copier then joins Bear, participation[b] becomes short. Back as the creator, the card says 'Joined Bear' while her receipt and position are long. A state label claims something that did not happen for the active persona.",
+          "fix": "Key participation by persona together with the other books: add it to Books and swap it in switchPersona, and reset the parked copy in reset(). Alternatively, derive 'joined' from the active persona's receipts (latest receipt with that clashId) instead of a shared map.",
+          "evidence": "In the diff, switchPersona swaps only cashCents, positions, openOrders and receipts. participation (scenario.dart:92) is documented as 'The side the user's latest fill in each Arena battle took' and is written only in placeOrder on a fill. ArenaScreen listens to receipts and participation and passes joined: Scenario.participation.value[b.id]. VistaBattleCard (vista_battle.dart:216-226) labels the button 'Joined Bull'/'Joined Bear' from it. Scenario.joins (scenario.dart:279-281) counts receipts.value only.",
+          "permanent": false
+        },
+        {
+          "severity": "MEDIUM",
+          "title": "Identity surfaces still say maya.eth while acting as the copier",
+          "location": "app/lib/features/account/account_top_bar.dart:39; app/lib/features/settings/settings_screen.dart:181",
+          "failurePath": "Tap 'Demo persona' in Settings. The toast says 'Now acting as sam.sol' and the row shows 'Copier', but the Settings account header right above still says 'maya.eth' (SettingsMock.handle). Back on Home or Portfolio, AccountTopBar shows 'maya.eth' over the copier's $1,000.00 balance. Scenario.cashCents is the copier's, but the handle is hardcoded to PortfolioMock.handle. The one surface that pairs a name with cash pairs the creator's name with the copier's money, which contradicts the toast the user just saw.",
+          "fix": "Have AccountTopBar and the Settings header read Scenario.activePersona.value.handle through a ValueListenableBuilder on activePersona. The diff already does this in ReceiptsScreen.",
+          "evidence": "grep of PortfolioMock.handle/activePersona in lib: only receipt_screens.dart and settings_screen.dart's new row read activePersona. account_top_bar.dart:39 renders the const PortfolioMock.handle ('maya.eth') next to a ValueListenableBuilder on Scenario.cashCents. settings_screen.dart:181 renders SettingsMock.handle ('maya.eth'). The review baton recorded this as an unscored observation; I confirmed it in source.",
+          "permanent": false
+        },
+        {
+          "severity": "LOW",
+          "title": "New review copy line hardcodes fontSize 14 and top padding 10",
+          "location": "app/lib/features/trade/order_ticket.dart:986-993",
+          "failurePath": "Feature code adds `VistaType.body.copyWith(fontSize: 14)` and `EdgeInsets.only(top: 10)` for the 'Copying @x \u00b7 $5.00 copy fee' line, which goes against the house rule that design_system owns type and spacing. VistaTypography has no 14 pt token. This copies the existing row() helper at order_ticket.dart:909-915, so it carries an existing pattern rather than starting a new one.",
+          "fix": "Reuse the same TextStyle variable that row() uses (hoist it once), or add a 14 pt token to VistaTypography and use it in both places. Ideally use a VistaSpace token for the 10 px gap.",
+          "evidence": "Read the diff hunk and lib/design_system/tokens/vista_typography.dart (sizes 36/20/17/15/13/12/11/10, no 14). Matches review-baton R6, which I confirmed.",
+          "permanent": false
+        }
+      ],
+      "checked": [
+        "Scope verified: in /home/alex/VistaColosseum/.worktrees/br-2026-10-05-copy-story, feat/br-2026-10-05-copy-story/phase-1 = cc02d6cb (equals HEAD), origin/main = 7d39bff, and the three-dot diff lists 14 app files plus run bookkeeping",
+        "Review sheet shows the copy line only when Scenario.copyFeeCents(i) > 0: null author (maker suggestions) and author == active persona handle both give 0, so there is no line for an own-author order",
+        "The review panel serves market orders only (limit orders go through _rest), so the copy line never appears for a resting order",
+        "Review 'Paper funds required' = margin + fee + copyFee via formatCents. After a fill it uses filled.copyFeeCents, the stored cents, so it equals receipt.totalCents (which now includes copyFeeCents). The fill toast formats r.totalCents, which is truthful",
+        "ReceiptsScreen paper row shows the same copyLine(sourceAuthorHandle, copyFeeCents) and formatCents(r.totalCents). The bang on sourceAuthorHandle is safe because copyFeeCents > 0 implies a non-null author",
+        "The copier's ReceiptsScreen is reachable (Profile sam.sol, then market, then Record, then All receipts). own = author == activePersona.handle, so creator receipts are hidden while the copier is active and are never shown under the other name",
+        "Ledger copy row renders 'Copy fee \u00b7 @<counterparty> \u00b7 <asset>' with counterparty = active persona handle and asset = intent.symbol; the footer Total equals the rows shown",
+        "Settings 'Demo persona' row sits directly above 'Reset demo'. The toast fires after setState(Scenario.switchPersona), which always toggles, so the toast follows a real change. resetDemo pops to root, so a stale row label cannot show",
+        "copyLine is the only new formatting path and uses formatCents (the unit-02 helper); no new double money in the UI files",
+        "Review sheet sits in a SingleChildScrollView (feed ticket, max 92% height), so the extra line cannot overflow. The existing phone-size overflow test now runs through a copy review (the first Home card is kaito.eth's)",
+        "Home and CallerPlay pass sourceCallId '<handle>/<ticker>' and sourceAuthorHandle; no handle in the mocks already carries '@'",
+        "Max slider subtracts the copy fee for market copies only; _setMargin clamps negatives to 0",
+        "Cash, positions and open orders screens read the swapped ValueNotifiers, so they follow the active persona"
+      ],
+      "notExamined": [
+        "Did not run any flutter test or the gate (trusted the stated PASS at f9368e6 with 296 tests); all findings are from reading the source",
+        "Did not measure 1.3x text-scale rendering of the Settings row or the ledger copy row; I relied on them sitting in scroll views or using Expanded and wrapping Text",
+        "Scenario.placeOrder write atomicity and the creator-ledger credit rule (R1) are in another lane or already decided by the manager; I did not re-review them",
+        "Other persona-unaware shared state beyond participation and identity (e.g. trader-record panels, Your market screen header 'maya.eth \u00b7 your market') is treated as part of the single listing per spec and was not filed"
+      ]
+    }
+  ],
+  "byLens": [
+    {
+      "lens": "tautology-hunt",
+      "n": 6
+    },
+    {
+      "lens": "money-state-invariants",
+      "n": 4
+    },
+    {
+      "lens": "ui-truthfulness",
+      "n": 4
+    }
+  ]
+}

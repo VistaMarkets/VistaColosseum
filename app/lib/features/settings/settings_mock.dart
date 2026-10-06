@@ -1,7 +1,5 @@
 /// Sample account shown on the Settings screen (Figma 442:102). Simulated.
 abstract final class SettingsMock {
-  static const handle = 'maya.eth';
-
   /// Bio as designed; the backend caps bios at 60 characters.
   static const bio = 'Macro-first. Mostly BTC and SOL, rarely past 5x.';
 

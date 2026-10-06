@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../../scenario/scenario.dart';
-import '../portfolio/portfolio_mock.dart';
 import '../settings/settings_screen.dart';
 
 /// The signed-in user's top bar: avatar, handle over portfolio balance, and
@@ -35,11 +34,15 @@ class AccountTopBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  PortfolioMock.handle,
-                  style: VistaType.subhead,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                // The owner of the balance below: the active persona.
+                ValueListenableBuilder(
+                  valueListenable: Scenario.activePersona,
+                  builder: (context, persona, _) => Text(
+                    persona.handle,
+                    style: VistaType.subhead,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Semantics(
                   label: 'Portfolio balance',
