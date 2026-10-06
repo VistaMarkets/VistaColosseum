@@ -1,15 +1,16 @@
 # M3 verification record: market and Wallet consistency
 
-Milestone M3 from `docs/prd/2026-10-01-vc-hackathon-roadmap.md` (S04 and VC-REC-001). VC-MKT-002, -003, -004 and VC-REC-001 are built by units 02, 06 and 07. VC-MKT-001 has no spec yet; its rows record what the pre-existing screens do. Evidence is the widget and unit tests plus code reading at the revision below. No device run was made for this record.
+Milestone M3 from `docs/prd/2026-10-01-vc-hackathon-roadmap.md` (S04 and VC-REC-001). VC-MKT-003 is a P0 row of S04, so it is recorded here too, though the roadmap places its exit in M5 (`roadmap.md:32`, beside VC-ARN-004); M5's own record re-runs those rows at M5's revision. VC-MKT-002, -003, -004 and VC-REC-001 are built by units 02, 06 and 07. VC-MKT-001 has no spec yet; its rows record what the pre-existing screens do. Evidence is the widget and unit tests plus code reading at the revision below. No device run was made for this record.
 
 Code paths are under `app/lib/`. Test names are as `flutter test` prints them (group, then test), in `app/test/<file>`. Each PRD ID is split into the checks its acceptance text names; one row per check.
 
 | Field | Value |
 |---|---|
-| Build / revision | `chore/m2-m4-verification-records` @ 7d39bff; `app/` is identical to `main` 7a153be (`git diff 7a153be HEAD -- app` is empty) |
+| Build / revision | 7d39bffaa1e1e594dfccb6f39359b9d9038df4e7 (`main` 7d39bff; `app/` is identical to `main` 7a153be, `git diff 7a153be 7d39bff -- app` is empty) |
 | Fixture version | `fixture-v1` (`scenario/scenario.dart:37`) |
 | Target | `flutter test` headless widget tests, Flutter 3.47.5, Linux (WSL2) host. Not the iOS Simulator |
-| Run date | 2026-10-05 |
+| Run date and start time | 2026-10-05, before 11:12-07:00 (PDT). The start time of the `flutter test` run (289 passed) was not recorded; 11:12 is the commit time of 137dae3, an upper bound |
+| Flags | none |
 | Test run | `cd app && flutter test`: **289 passed, 0 failed, 0 skipped** |
 | Evidence | The tests named below; code citations as `file:line` |
 
@@ -17,7 +18,8 @@ Code paths are under `app/lib/`. Test names are as `flutter test` prints them (g
 
 | ID | Check | Outcome | Evidence |
 |---|---|---|---|
-| VC-MKT-001 | Own-market access shows creator identity, a market series and settled-call examples | passed | `features/market/your_market_screen.dart:46,62-64,118-120`. `home_screen_test.dart` "your market opens from Portfolio and goes back"; "your market renders without overflow on $name" (last record entry reachable); `receipts_test.dart` "each record item opens its call receipt" |
+| VC-MKT-001 | Own-market access shows a market series and settled-call examples | passed | `features/market/your_market_screen.dart:62-64,118-120`. `home_screen_test.dart` "your market opens from Portfolio and goes back" ("Market cap"); "your market renders without overflow on $name" (last record entry reachable); `receipts_test.dart` "each record item opens its call receipt" |
+| VC-MKT-001 | Own-market access shows creator identity | not run | Code: header subtitle `'${PortfolioMock.handle} · your market'` (`your_market_screen.dart:46`). No test asserts it. To prove: open Your market and assert `find.text('maya.eth · your market')` |
 | VC-MKT-001 | Wallet switches between the portfolio series and the market series; switching back restores the right one | passed | `features/portfolio/portfolio_pager.dart:135-344`. `home_screen_test.dart` "portfolio pager swiping the chart moves to the market cap and back"; "portfolio pager a short drag snaps back to where it started" |
 | VC-MKT-001 | Each series has a distinct title, unit and legend | not run | Code: captions "My portfolio" and "$TICKER market cap" (`portfolio_pager.dart:167,181`); the muted line behind each chart has no legend. No test asserts title, unit and legend per page. To prove: on each pager page assert the caption, the value's unit and a legend naming the muted series |
 | VC-MKT-001 | Values stay arithmetically consistent across every screen that shows them | failed | Code inspection: the cap is a constant $44.0M (`portfolio_pager.dart:63,183`, `your_market_screen.dart:152`) whatever is listed, while the listing success screen says $10,000 (`features/make_market/make_market_mock.dart:27`). The M1 recording shows the same mismatch at ~0:40. See Defects |
@@ -43,20 +45,23 @@ Code paths are under `app/lib/`. Test names are as `flutter test` prints them (g
 
 | Criterion | Outcome | Evidence |
 |---|---|---|
-| J2 ends in the listed creator's market | passed | `home_screen_test.dart` "make a market create → consent → live lists the market"; `scenario_test.dart` "Home, detail, Arena and Wallet read one position from Scenario" opens Your market for the listed ticker. The cap shown there is wrong for a fresh listing (VC-MKT-001) |
+| J2 ends in the listed creator's market | passed | `home_screen_test.dart` "make a market create → consent → live lists the market"; `scenario_test.dart` "Home, detail, Arena and Wallet read one position from Scenario" opens Your market for the listed ticker. The route is what this criterion names and the tests prove it; the cap figure on that page is the VC-MKT-001 consistency failure recorded above, not a J2 routing failure |
 | Chart and portfolio switching works | passed | "portfolio pager swiping the chart moves to the market cap and back" |
-| Sample-count and receipt explanation supports J5 | passed | VC-MKT-002 and VC-REC-001 rows. The user's own panel contradicts its list (see Defects) |
+| Sample-count and receipt explanation supports J5 on the fixture traders | passed | VC-MKT-002 and VC-REC-001 rows |
+| Sample-count and receipt explanation supports J5 on the user's own market | failed | Code inspection: maya.eth's panel says "No settled calls yet — record unavailable · 2 unavailable" above Right and Wrong items for the same calls (`receipt_screens.dart:221-228`, `market_mock.dart:154-174`, `scenario/scenario.dart:193-205`). No test renders it. See Defects |
 | Fee total equals the demo ledger | passed | VC-MKT-004 total row |
 | Index, P&L and cash have distinct labels and units | not run | No test asserts the three side by side. To prove: on Wallet assert the cash headline, the market-cap caption and a position's P&L each carry their own label and unit |
 | Insufficient-history example is honest | passed | "zero-history trader → unavailable state, no crash" |
 
 ## Defects observed
 
-- **The market cap is one constant.** Wallet and Your market show $44.0M for any listed ticker (`features/portfolio/portfolio_pager.dart:63,183`, `features/market/your_market_screen.dart:152`); the success screen of a fresh listing says $10,000 (`features/make_market/make_market_mock.dart:27`). This is the M1 recording defect. VC-MKT-001 requires consistent values.
-- **The user's own record contradicts itself.** Your market shows "No settled calls yet — record unavailable · 2 unavailable" (`receipt_screens.dart:221-228`) above "Right" and "Wrong" items for the same calls. The seed gives maya.eth's settled calls no settlement date (`market_mock.dart:154-174`), so `Scenario.outcomeAt` counts them unavailable (`scenario/scenario.dart:193-205`). Code inspection; no test renders maya.eth's panel.
-- **No typed copy row in the ledger.** `FeeEntry` lacks the `kind` that spec 06 (as amended Oct 4 for O-06) requires, and the two tests spec 06 names are missing. Phase 6 was built before that amendment (`baton-runner/br-2026-10-04-p0-queue/digest-phase-6.md:23`). Spec 09 depends on it.
-- **The 40% share is labelled "a demo assumption"** (`market_mock.dart:123-126`, shown at `receipt_screens.dart:87` and `make_market_flow.dart:637`). Spec 06 says to show it with no demo-assumption label (O-05). The test pins the old wording.
-- **Deposit is a not-built toast and there is no Withdraw entry.** Truthful, but untested.
+| row or step | class | fix commit or open | follow-up |
+|---|---|---|---|
+| VC-MKT-001 (consistent values): the market cap is one constant; Wallet and Your market show $44.0M for any listed ticker (`features/portfolio/portfolio_pager.dart:63,183`, `features/market/your_market_screen.dart:152`) while the success screen of a fresh listing says $10,000 (`features/make_market/make_market_mock.dart:27`); this is the M1 recording defect, and VC-MKT-001 requires consistent values | misrepresents a financial action | open | none |
+| VC-MKT-002 (J5 exit criterion): the user's own record contradicts itself; Your market shows "No settled calls yet — record unavailable · 2 unavailable" (`receipt_screens.dart:221-228`) above "Right" and "Wrong" items for the same calls, because the seed gives maya.eth's settled calls no settlement date (`market_mock.dart:154-174`) and `Scenario.outcomeAt` counts them unavailable (`scenario/scenario.dart:193-205`); code inspection, no test renders maya.eth's panel | cosmetic | open | none |
+| VC-MKT-004 (copy credits): no typed copy row in the ledger; `FeeEntry` lacks the `kind` that spec 06 (as amended Oct 4 for O-06) requires, and the two tests spec 06 names are missing; phase 6 was built before that amendment (`baton-runner/br-2026-10-04-p0-queue/digest-phase-6.md:23`) and spec 09 depends on it. After this build, a5eb544bbdc1542a69562719499bba52621ba9e3 on `main` added `FeeKind` and a copy section, but the two named tests still do not exist | cosmetic | open | none |
+| VC-MKT-004 (40% share): the share is labelled "a demo assumption" (`market_mock.dart:123-126`, shown at `receipt_screens.dart:87` and `make_market_flow.dart:637`); spec 06 says to show it with no demo-assumption label (O-05), and the test pins the old wording | cosmetic | open | none |
+| VC-MKT-003 (deposit and withdraw): Deposit is a not-built toast and there is no Withdraw entry; truthful, but untested | cosmetic | open | none |
 
 ## Verdict
 
