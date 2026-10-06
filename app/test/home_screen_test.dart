@@ -944,7 +944,7 @@ void main() {
       );
       expect(
         find.descendant(of: call, matching: find.textContaining(' · ')),
-        findsNWidgets(2), // "· 25m" and the position's levels
+        findsOneWidget, // the position's levels (the age is "· 25m")
       );
       expect(find.descendant(of: call, matching: find.text('›')), findsNothing);
       expect(
