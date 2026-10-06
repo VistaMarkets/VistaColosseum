@@ -29,6 +29,7 @@ import 'package:vista_colosseum/features/profile/receipts_screen.dart';
 import 'package:vista_colosseum/features/profile/holdings_table.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/portfolio/positions_state.dart';
+import 'package:vista_colosseum/features/people/follow_state.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
@@ -104,6 +105,7 @@ void main() {
     TakeLikes.reset();
     CallsStore.reset();
     PositionsState.reset();
+    FollowState.reset();
     BattlesStore.reset();
     SettingsState.reset();
     WatchlistState.reset();
@@ -529,7 +531,8 @@ void main() {
       await openFromFollowers(tester, 'lunaq');
       expect(find.text('HOLDING NOW'), findsOneWidget);
       expect(find.text('L'), findsOneWidget); // avatar initial
-      expect(find.text('Follow'), findsOneWidget);
+      // lunaq is on your Following list, so their profile says so.
+      expect(find.text('Following'), findsOneWidget);
 
       // Filters: Arena shows only arena receipts.
       final arenaChip = find.text('Debates 14');
@@ -976,6 +979,38 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Join long').first);
       await tester.pumpAndSettle();
       expect(find.text('Place market long'), findsOneWidget);
+    });
+
+    testWidgets('Follow on a call card follows the caller everywhere', (
+      tester,
+    ) async {
+      await openArena(tester);
+      expect(FollowState.isFollowing('voskov'), isFalse);
+      await scrollTo(tester, find.text('voskov'));
+      final card = find.ancestor(
+        of: find.text('voskov'),
+        matching: find.byType(TakeItem),
+      );
+      // Followed callers (kilo.sol) get no button.
+      expect(find.bySemanticsLabel('Follow kilo.sol'), findsNothing);
+      await tester.tap(
+        find.descendant(of: card, matching: find.text('Follow')),
+      );
+      await tester.pumpAndSettle();
+      expect(FollowState.isFollowing('voskov'), isTrue);
+      expect(
+        find.descendant(of: card, matching: find.text('Following')),
+        findsOneWidget,
+      );
+      // The profile agrees.
+      await tester.tap(find.text('voskov').first);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<VistaFollowButton>(find.byType(VistaFollowButton).first)
+            .following,
+        isTrue,
+      );
     });
 
     testWidgets('call headers show the caller\'s market, not accuracy', (

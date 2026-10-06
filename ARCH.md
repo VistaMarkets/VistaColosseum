@@ -412,7 +412,8 @@ VistaColosseum/
 │   │   │   │   └── markets_screen.dart
 │   │   │   ├── people/  — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 │   │   │   │   ├── follow_list_screen.dart
-│   │   │   │   └── follow_mock.dart
+│   │   │   │   ├── follow_mock.dart
+│   │   │   │   └── follow_state.dart
 │   │   │   ├── portfolio/  — Portfolio screen: swipeable portfolio / market-cap pager and chart (`series_chart.dart`: drawn from simulated history over the chosen span, the balance ending at its live value, in the Home line style), spans, fees, positions; tapping a position slides up its P/L sheet, whose chart is that market's price over the span ending at the live price, with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data); `positions_state.dart` (`PositionsState`) is the one list of open positions: a market fill from either ticket adds one, Portfolio and Arena's + picker read it, Close on the position sheet removes it (Undo puts it back)
 │   │   │   │   ├── open_order_card.dart
 │   │   │   │   ├── orders_state.dart

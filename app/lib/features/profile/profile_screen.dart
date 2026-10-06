@@ -7,6 +7,7 @@ import '../people/follow_list_screen.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
+import '../people/follow_state.dart';
 import 'profile_mock.dart';
 import 'receipts_screen.dart';
 
@@ -33,7 +34,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _following = false;
   int _span = PortfolioMock.defaultSpan;
   int _filter = 0; // 0 All, 1 Calls, 2 Arena
 
@@ -312,11 +312,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Row(
           children: [
             Expanded(
-              child: VistaFollowButton(
-                following: _following,
-                // Local only: nothing is sent anywhere.
-                onPressed: () => setState(() => _following = !_following),
-                expand: true,
+              // Shared with call cards and the Home feed; nothing is sent.
+              child: ValueListenableBuilder(
+                valueListenable: FollowState.following,
+                builder: (context, following, _) => VistaFollowButton(
+                  following: following.contains(widget.handle),
+                  onPressed: () => FollowState.toggle(widget.handle),
+                  expand: true,
+                ),
               ),
             ),
             const SizedBox(width: VistaSpace.lg),

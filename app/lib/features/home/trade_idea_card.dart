@@ -8,6 +8,7 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../share/share_call_sheet.dart';
 import 'mock_trade_idea.dart';
+import '../people/follow_state.dart';
 import 'likes_state.dart';
 import 'people_in_sheet.dart';
 import 'replay_timeline.dart';
@@ -145,6 +146,8 @@ class _CallHeader extends StatelessWidget {
                         ),
                         const SizedBox(width: VistaSpace.md),
                         Text('· ${idea.age}', style: VistaType.meta),
+                        const SizedBox(width: VistaSpace.md),
+                        FollowChip(handle: idea.callerHandle),
                       ],
                     ),
                   ),

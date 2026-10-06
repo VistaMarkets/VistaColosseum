@@ -5,7 +5,7 @@ import '../arena/arena_mock.dart';
 import '../calls/calls_store.dart';
 import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
-import '../people/follow_mock.dart';
+import '../people/follow_state.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/trade_mock.dart';
@@ -27,10 +27,8 @@ import 'mock_trade_idea.dart';
 /// - score = popularity × freshness × boosts. A call you have just posted
 ///   shows first, as on X.
 abstract final class HomeFeed {
-  /// Who the viewer follows (mock: the Following list).
-  static final Set<String> followed = {
-    for (final p in FollowMock.following) p.handle,
-  };
+  /// Who the viewer follows (shared with call cards and profiles).
+  static Set<String> get followed => FollowState.following.value;
 
   static bool _mine(Take t) => t.handle == PortfolioMock.handle;
   static bool _justPosted(Take t) => _mine(t) && t.age == 'now';

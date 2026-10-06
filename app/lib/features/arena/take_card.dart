@@ -6,6 +6,7 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../trade/trade_mock.dart';
 import '../markets/markets_mock.dart';
+import '../people/follow_state.dart';
 import 'arena_mock.dart';
 
 /// Arena pieces from Figma 505:204 ("Arena — takes feed"): the live battle
@@ -308,6 +309,7 @@ class TakeItem extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    FollowChip(handle: t.handle),
                   ],
                 ),
                 // Their market, live, on its own line under the name.
