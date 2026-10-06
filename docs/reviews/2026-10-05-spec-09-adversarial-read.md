@@ -1,5 +1,13 @@
 # Spec 09 adversarial read (2026-10-05)
 
+- **Target:** `docs/specs/09-copy-story.md`, read against `app/lib` and `app/test` on `main` before the spec was built. Read-only: this record changed no spec or app file.
+- **Commit reviewed:** `7d39bff` (`main`, 2026-10-05).
+- **Date:** 2026-10-05. Method: a mechanical grep (Step 1a), semantic placeholders (1b), a name check against `app/lib` (1c), one read-only critical-thinking subagent whose report is pasted verbatim (Step 2), then a classification table (Step 3).
+- **Lanes:** one subagent lane plus the author's own Steps 1a-1c; 36 classified rows, A1-A36, each tagged `[M]` or `[D]`.
+- **Disposition:** spec 09 was built after this read as PR 27 (`a5eb544`), reviewed in `docs/reviews/2026-10-05-dw-review-copy-story.md`; per-row status against that build is the Step 3 Status column.
+
+**Status (2026-10-05, after the build):** historical record. Written against `main` @ 7d39bff before spec 09 was built; lines 3, 7 and 312 are left as written. Spec 09 phase 1 merged as PR 27 (a5eb544); its review record is `docs/reviews/2026-10-05-dw-review-copy-story.md` (10 findings, all applied at 4807f69, gate PASS 305). The creator-ledger question (S1.1, S3 "Ledger stays the creator's", S6) was settled by house rule R1 in `baton-runner/br-2026-10-05-copy-story/house-rules.md`: one fee ledger, the creator persona's; a confirmed copy of any other author's call credits it with one `copyFee` row; per-author ledgers are out of scope; the creator copying someone else's call pays the fee but no row is written. Still open after the build (none edited here): S1.3 the copier's Wallet still shows "Fees from your market"; S1.4 the copy credit is unreachable until a market is listed; S5 the ledger row omits the source call; S4 unit 02 the `actionId` guard scans only the active persona's books; S1.2 the creator copying a third party pays $5.00 with no row (R1, not yet in the spec text); S2 the Maker Suggestion card is not a copy (undocumented); spec 09 text still says `Receipt` and "type from unit 06". S2/S3 "Settings vs pill sheet" is drift against VC-DEM-004, not a decision (Step 3).
+
 Target: `docs/specs/09-copy-story.md` on `main` @ 7d39bff. Read-only; the spec is unchanged. The spec 09 build (`.worktrees/br-2026-10-05-copy-story`) should wait until this record has been read.
 
 **Tags:** `[M]` mechanical, fixable in the spec by editing words. `[D]` decision-shaped, the user picks.
@@ -47,11 +55,11 @@ No `TBD`, `TODO`, `FIXME`, `XXX` or `...` hits.
 
 ## Step 2. Subagent report (verbatim)
 
-One general-purpose subagent, critical-thinking role pasted, told read-only and to verify against `app/`. Its report follows unedited, apart from the `[M]`/`[D]` tags I add in the classification table after it.
+One general-purpose subagent, critical-thinking role pasted, told read-only and to verify against `app/`. Its report follows unedited, apart from the `[M]`/`[D]` tags I add in the classification table after it and two machine-local absolute paths shortened to repo-relative, each marked `[path shortened]`.
 
 ---
 
-READ-ONLY review of docs/specs/09-copy-story.md against app/lib and app/test on main. I did not read or touch .worktrees/. A grep for "copyFee" also surfaced matches under /home/alex/VistaColosseum/.claude/worktrees/, a different directory from .worktrees/. I read none of those files.
+READ-ONLY review of docs/specs/09-copy-story.md against app/lib and app/test on main. I did not read or touch .worktrees/. A grep for "copyFee" also surfaced matches under .claude/worktrees/ [path shortened], a different directory from .worktrees/. I read none of those files.
 
 ## Verified facts (your starting list)
 - CONFIRMED: `activePersona`, `sourceCallId`, `sourceAuthorHandle`, `kCopyFeeCents`, `copyFee` and `copyFeeCents` appear nowhere in app/. The only hits on main are in docs/specs/06 and 09.
@@ -70,7 +78,7 @@ All 7 checkboxes can go green while the on-screen story is untrue.
 1. **The credit lands in the wrong ledger.**
    - The feed has no calls by the creator (maya.eth) that can be copied (item 2, "Source calls").
    - Copying `kaito.eth`'s call, the spec still credits "the creator ledger", which is maya's (PortfolioMock.handle, portfolio_mock.dart:84).
-   - PRD VC-CPY-002 says the creator is the author of the copied call. The spec's own tests use "creator ledger" without ever asserting the author of the call.
+   - [Corrected 2026-10-05; the subagent wrote: PRD VC-CPY-002 says the creator is the author of the copied call.] The PRD does not define creator: line 17 names a seeded creator persona and J6 (line 67) has the creator publish the copied call. The spec matches that. The gap is that no feed call on main is authored by that persona. The spec's own tests use "creator ledger" without ever asserting the author of the call.
    - Why does the spec define "creator" as a persona rather than as the call's author?
 
 2. **The default persona is `creator`.**
@@ -177,7 +185,7 @@ All 7 checkboxes can go green while the on-screen story is untrue.
   - A second seed also makes the copier's balance chart and "+$91" label wrong (item 1.3), because the Wallet chart fixture is built from $12,480.
   - $1,000 is also small. A default feed ticket opens with a $200 stake (feed_order_ticket.dart:~66, `20000`) at 2x, so five copies is about the ceiling. The "Max" stop then makes the insufficient-funds path easy to hit by accident.
 
-- **Ledger stays the creator's.** The rejected alternative is attributing the credit to the call's author. A competent engineer would weigh this. It is the real PRD behavior ("creator receives the full amount", "names the source call and copier").
+- **Ledger stays the creator's.** The rejected alternative is attributing the credit to the call's author. A competent engineer would weigh this. [Corrected 2026-10-05; the subagent wrote: It is the real PRD behavior.] The PRD quotes ("creator receives the full amount", "names the source call and copier") do not define creator as the author; PRD line 17 and J6 (line 67) make the creator the seeded persona who publishes.
   - The spec's choice is simpler (one ledger, one market) but breaks for any call not authored by maya.eth (item 1.1).
   - Cost to do it right: a per-author ledger, or a rule that copy credits only apply for calls with an author who owns a ledger. No author other than maya.eth has a ledger in the app.
 
@@ -222,7 +230,7 @@ All 7 checkboxes can go green while the on-screen story is untrue.
   - "the creator receives the full amount as one ledger credit tagged `copy`".
   - "The ledger row names the source call and copier."
   - Spec: `counterparty: copier handle` plus `sourceCallId`, and the display string "Copy fee · @copier · <asset>". The display shows the copier and an asset but not the source call, so it drifts narrower than "names the source call and copier".
-  - "Creator" in the PRD is the call's author. The spec silently narrows it to the single creator persona (item 1.1). That is the largest narrowing.
+  - [Corrected 2026-10-05; the subagent wrote: "Creator" in the PRD is the call's author.] The PRD does not define creator; line 17 names a seeded creator persona and J6 (line 67) has the creator publish the copied call, which is the spec's reading. No narrowing. The remaining gap is a fixture one: no feed call on main is authored by that persona (item 1.1). Settled by house rule R1 (one creator ledger).
 
 - **PRD VC-CPY-001 (line 159).**
   - "A second persona selects a public copyable call". The spec accepts any feed call. There is no notion of "copyable".
@@ -260,52 +268,54 @@ This risk is not named in the spec. It states "the ledger belongs to the creator
 - "Review sheet adds the line ... to the paper-funds-required total". Only the asset-ticket `_ReviewPanel` (order_ticket.dart:~900-986) has "Paper funds required"; the feed ticket reuses that panel via `part of`. The spec does not say whether the asset ticket (reached from AssetTradeScreen, not from a call) gets the line. That ticket has no source call.
 - "`app/test/feed_order_ticket_test.dart`". Does not exist.
 
-Files consulted: /home/alex/VistaColosseum/docs/specs/09-copy-story.md, docs/specs/06, docs/specs/02, the PRD and roadmap, and under app/lib: scenario/scenario.dart, features/market/{market_mock,receipt_screens,your_market_screen}.dart, features/trade/{feed_order_ticket,order_ticket,caller_play_screen}.dart, features/home/{home_screen,mock_trade_idea}.dart, features/portfolio/{portfolio_screen,portfolio_pager,portfolio_mock,orders_state}.dart, features/account/account_top_bar.dart, features/settings/settings_screen.dart, features/simulation/simulation_indicator.dart, features/live/live_feed.dart. Tests consulted: app/test/scenario_test.dart and a grep of the others.
+Files consulted: docs/specs/09-copy-story.md [path shortened], docs/specs/06, docs/specs/02, the PRD and roadmap, and under app/lib: scenario/scenario.dart, features/market/{market_mock,receipt_screens,your_market_screen}.dart, features/trade/{feed_order_ticket,order_ticket,caller_play_screen}.dart, features/home/{home_screen,mock_trade_idea}.dart, features/portfolio/{portfolio_screen,portfolio_pager,portfolio_mock,orders_state}.dart, features/account/account_top_bar.dart, features/settings/settings_screen.dart, features/simulation/simulation_indicator.dart, features/live/live_feed.dart. Tests consulted: app/test/scenario_test.dart and a grep of the others.
 
 ---
 
 ## Step 3. Classification of every finding
 
-Line numbers marked `~` in the report are the subagent's approximations; I confirmed only those cited in Step 1c myself. The rest are unverified by me.
+Line numbers marked `~` in the report are the subagent's approximations; I confirmed only those cited in Step 1c myself. The rest are unverified by me. Checked against `7d39bff` on 2026-10-05 (the report text is left as written), the `~` cites that are off: in `app/lib/scenario/scenario.dart`, `OrderReceipt` is line 472 (report ~384) and its `totalCents` 502 (~395), `participation` 92 (~84), the stale-price check and `OrderFailed(priceExpired)` 304-305 (~270, ~296), `cashCents.value -=` 348 (~330), `problem()` 238 (~219), `joins` 221 (~213), `tradable` 231 (~207), `maxMarginCents` 264 (~257), the `actionId` guard 273-280 (~277-283); the fill toast is `app/lib/features/trade/order_ticket.dart:873` (~864); `showFeedOrderTicket` is `app/lib/features/trade/feed_order_ticket.dart:10` (~14) and the `20000` stake line 58 (~66); `app/test/receipts_test.dart` builds `FeeEntry` at 199 and 243, so the quoted 97-214 misses the second.
 
-| Finding | Tag |
-|---|---|
-| Verified facts: `Receipt` is `OrderReceipt`; `feed_order_ticket_test.dart` missing | `[M]` |
-| Verified facts: unit-06 types and ledger copy section absent on main. Naming the dependency is `[M]`; whether 09 retrofits them or unit 06 is reopened is `[D]` (S2 "Unit-06 dependency") | `[M]` + `[D]` |
-| S1.1 credit lands in the wrong ledger (creator = persona, not call author) | `[D]` |
-| S1.2 default persona `creator` copying a third party | `[D]` (needs a rule); an acceptance row is `[M]` |
-| S1.3 Wallet chrome (handle, chart, market-cap, fees row) stays the creator's | `[D]` (fix it, or accept and say so in the demo script) |
-| S1.4 ledger invisible when no market is listed | `[D]` |
-| S1.5 toast and `totalCents` with the copy fee | `[M]` (say which) |
-| S1.6 `participation` global vs receipts keyed | `[M]` (list it as shared or keyed) |
-| S1.7 own-call path unreachable on screen | `[D]` (waive manually, or add a fixture call) |
-| S1.8 copied limit order | `[D]` |
-| S2 persona identity (names, handles) | `[D]` for the story, `[M]` for fixture naming once chosen |
-| S2 source calls: card to `sourceCallId` mapping, Maker card | `[D]` |
-| S2 which UI re-reads on switch; keyed vs swap | `[D]` (S3 strawman) |
-| S2 where receipt shows ("Receipt shows the same") | `[M]` |
-| S2 `FeeEntry.marketId` for a copy row | `[M]` |
-| S2 ledger display string and `eventTitle` for a copy row | `[M]` |
-| S2 limit-order copy | `[D]` |
-| S2 "would fill" ordering, `problem()` placement, Max stop | `[M]` |
-| S2 persona switch mid-ticket | `[M]` |
-| S2 Settings control: location and widget type | `[D]` (pill sheet vs Settings, S3) |
-| S2 `$5.00` hard-coded text vs `formatCents(kCopyFeeCents)` | `[M]` |
-| S2 copier open-orders and receipts seeds | `[M]` |
-| S3 flat 500 | no change (fixed by O-06) |
-| S3 copier seed 100000 | `[D]` |
-| S3 ledger stays the creator's | `[D]` |
-| S3 keyed state | `[D]` |
-| S3 persona keying by enum vs handle | `[D]` |
-| S3 Settings vs pill sheet | `[D]` |
-| S4 unit 01: `state()` helper, `mutateEverything`, reset order, direct test writes | `[M]` |
-| S4 unit 02: guard scope across personas, fee write atomicity, `problem()`, vacuous cancel test | `[M]` |
-| S4 unit 06: `kind` default vs required, `marketFeesCents` filter by kind, `example(entries.first)`, `receipts_test.dart` constructors | `[M]` |
-| S4 cross-reader: live series, `AccountState`/`OrdersState` facades | `[M]` |
-| S5 drift: display string omits source call | `[M]` |
-| S5 drift: "copyable" call, position not stamped, DEM-004 "outside the normal journey", no end-to-end criterion, fee not editable | `[D]` for copyable and DEM-004; `[M]` for the rest |
-| S6 largest risk: creator is a persona, not the call's author. Not named in the spec. | `[D]` |
-| S7 unverified claims (all listed there) | `[M]` |
+Rows are numbered A1-A36 for citation; the Tag column is the 2026-10-05 pre-build classification, unchanged except at A20, A28 and A34, where the DEM-004 location question is retagged `[M]` drift because PRD VC-DEM-004 (line 84) already answers it. Status is as of the spec 09 build, PR 27 (`a5eb544`), checked against the tree on 2026-10-05; R1 is the last rule in `baton-runner/br-2026-10-05-copy-story/house-rules.md`. "Same as" marks rows that are one subject listed from more than one section.
+
+| Id | Finding | Tag | Status |
+|---|---|---|---|
+| A1 | Verified facts: `Receipt` is `OrderReceipt`; `feed_order_ticket_test.dart` missing | `[M]` | Built in PR 27: `OrderReceipt.copyFeeCents` (`app/lib/scenario/scenario.dart:617`), `app/test/feed_order_ticket_test.dart` exists. Spec text still says `Receipt`: open |
+| A2 | Verified facts: unit-06 types and ledger copy section absent on main. Naming the dependency is `[M]`; whether 09 retrofits them or unit 06 is reopened is `[D]` (S2 "Unit-06 dependency") | `[M]` + `[D]` | Addressed in PR 27, retrofitted inside unit 09: `FeeKind.copyFee`, `sourceCallId`, `counterparty`, `asset` on `FeeEntry` (`app/lib/features/market/market_mock.dart:91-122`), COPY FEES ledger section (`app/lib/features/market/receipt_screens.dart:126`) |
+| A3 | S1.1 credit lands in the wrong ledger (creator = persona, not call author) | `[D]` | Decided: house rule R1, one fee ledger, the creator persona's. PRD line 17 and J6 (line 67) already seed the creator as a persona |
+| A4 | S1.2 default persona `creator` copying a third party | `[D]` (needs a rule); an acceptance row is `[M]` | Decided: R1, the creator pays the fee and no row is written (`scenario.dart:423`), pinned by PR 27 dw-review F8. Named open in the status block |
+| A5 | S1.3 Wallet chrome (handle, chart, market-cap, fees row) stays the creator's | `[D]` (fix it, or accept and say so in the demo script) | Partly addressed: top bar and Settings header follow `activePersona` (PR 27 dw-review F3). Wallet "Fees from your market" row, Your market subtitle and the chart fixture stay the creator's: open |
+| A6 | S1.4 ledger invisible when no market is listed | `[D]` | Open: the ledger is reached only through the `hasMarket` fees row (`app/lib/features/portfolio/portfolio_screen.dart:89`) and Your market |
+| A7 | S1.5 toast and `totalCents` with the copy fee | `[M]` (say which) | A choice the spec left open; decided by the build: the copy fee is inside `OrderReceipt.totalCents` (`scenario.dart:636`) and the toast reads it |
+| A8 | S1.6 `participation` global vs receipts keyed | `[M]` (list it as shared or keyed) | Addressed: `participation` is per persona (`scenario.dart:112-116`; PR 27 dw-review F1) |
+| A9 | S1.7 own-call path unreachable on screen | `[D]` (waive manually, or add a fixture call) | Open on screen: maya.eth's only feed card is still the `deltaone` trader market (`app/lib/features/home/mock_trade_idea.dart:254-260`); covered by the store test `own call places an ordinary order` |
+| A10 | S1.8 copied limit order | `[D]` | Decided by the build: a limit copy rests with no fee and no row (`scenario.dart:318`; test `a resting copy writes no fee and no ledger row`) |
+| A11 | S2 persona identity (names, handles) | `[D]` for the story, `[M]` for fixture naming once chosen | Addressed: `Persona` enum carries `handle` and `label` (`scenario.dart:479-486`); the copier is `sam.sol` (`PortfolioMock.copierHandle`) |
+| A12 | S2 source calls: card to `sourceCallId` mapping, Maker card | `[D]` | Partly addressed: `sourceCallId` is `handle/ticker` (`app/lib/features/home/home_screen.dart:140`, `app/lib/features/trade/caller_play_screen.dart:47`). The Maker Suggestion card is not a copy: open |
+| A13 | S2 which UI re-reads on switch; keyed vs swap | `[D]` (S3 strawman) | Decided by the build: swap-in-place; `switchPersona()` parks the other persona's `Books` and the notifiers stay (`scenario.dart:117-151`) |
+| A14 | S2 where receipt shows ("Receipt shows the same") | `[M]` | Addressed: review sheet, receipt sheet and Receipts list show the copy line (`app/test/copy_story_test.dart:331`, `app/test/feed_order_ticket_test.dart:35`) |
+| A15 | S2 `FeeEntry.marketId` for a copy row | `[M]` | A choice the spec left open; decided by the build: `marketId: ticker.value`, `eventTitle: 'Copy fee'` (`scenario.dart:427-428`); `marketFeesCents` counts `kind == credit` only (`scenario.dart:201`) |
+| A16 | S2 ledger display string and `eventTitle` for a copy row | `[M]` | Addressed: `FeeEntry.asset` added; the row renders `eventTitle · @counterparty · asset` (`receipt_screens.dart:136-137`). Source call not shown: see A33 |
+| A17 | S2 limit-order copy | `[D]` | Same as A10 |
+| A18 | S2 "would fill" ordering, `problem()` placement, Max stop | `[M]` | Addressed: `problem()` adds the copy fee (`scenario.dart:318-319`); `maxMarginCents` takes `copyFeeCents` (`scenario.dart:329`) |
+| A19 | S2 persona switch mid-ticket | `[M]` | Not verified against PR 27 |
+| A20 | S2 Settings control: location and widget type | `[M]` drift vs VC-DEM-004 (PRD line 84, "outside the normal product journey"): Settings is in the normal journey; the pill sheet in `app/lib/features/simulation/simulation_indicator.dart` already hosts Reset demo outside it. Widget type `[M]`. | Built as a Settings "Demo persona" row (`app/lib/features/settings/settings_screen.dart:122-137`) in PR 27. PRD VC-DEM-004 (line 84) asks for presenter controls outside the normal product journey, so this is drift from the PRD, not an open decision: still open |
+| A21 | S2 `$5.00` hard-coded text vs `formatCents(kCopyFeeCents)` | `[M]` | Addressed: the line is built from `formatCents(cents)` (`scenario.dart:503`) |
+| A22 | S2 copier open-orders and receipts seeds | `[M]` | Addressed: `_copierSeed` has empty positions, orders, receipts and participation (`scenario.dart:119-125`) |
+| A23 | S3 flat 500 | no change (fixed by O-06) | No change |
+| A24 | S3 copier seed 100000 | `[D]` | Decided: house rules, copier seed cash 100000 cents (`PortfolioMock.copierCashCents`) |
+| A25 | S3 ledger stays the creator's | `[D]` | Same as A3 (R1) |
+| A26 | S3 keyed state | `[D]` | Same as A13 |
+| A27 | S3 persona keying by enum vs handle | `[D]` | Decided by the build: an enum with a `handle`; `copyFeeCents` compares handles (`scenario.dart:158`) |
+| A28 | S3 Settings vs pill sheet | `[M]` drift vs VC-DEM-004 (PRD line 84); see A20. | Same as A20 |
+| A29 | S4 unit 01: `state()` helper, `mutateEverything`, reset order, direct test writes | `[M]` | Addressed: `state()` covers `activePersona` and both personas' books (`app/test/scenario_test.dart:49-51`); notifiers unchanged |
+| A30 | S4 unit 02: guard scope across personas, fee write atomicity, `problem()`, vacuous cancel test | `[M]` | Mixed: the fee write sits after the guard, `problem()`, the resting return and the stale return (PR 27 dw-review verdict); the cancel test opens the ticket (`copy_story_test.dart:114`). The `actionId` guard scans only the active persona's books: open |
+| A31 | S4 unit 06: `kind` default vs required, `marketFeesCents` filter by kind, `example(entries.first)`, `receipts_test.dart` constructors | `[M]` | Mixed: `kind` defaults to `credit` (`market_mock.dart:98`) and copy rows set it explicitly (`scenario.dart:431`); `marketFeesCents` filters by kind (`scenario.dart:201`); ledger empty state over a copy row fixed (PR 27 dw-review F2); `receipts_test.dart` constructors updated |
+| A32 | S4 cross-reader: live series, `AccountState`/`OrdersState` facades | `[M]` | Not verified against PR 27 |
+| A33 | S5 drift: display string omits source call | `[M]` | Open: the row does not render `sourceCallId` (`receipt_screens.dart:136-137`); PRD VC-CPY-002 (line 160) |
+| A34 | S5 drift: "copyable" call, position not stamped, DEM-004 "outside the normal journey", no end-to-end criterion, fee not editable | `[D]` for copyable; DEM-004 is `[M]` drift (PRD line 84 answers it); `[M]` for the rest | DEM-004: see A20. Copyable, position stamping, end-to-end criterion and fee editability: not verified against PR 27 |
+| A35 | S6 largest risk: creator is a persona, not the call's author. Not named in the spec. | `[D]` | Same as A3 (R1) |
+| A36 | S7 unverified claims (all listed there) | `[M]` | Mixed: the test file exists, the feed ticket plumbing is built (A12), the Settings row is built (A20); spec text still says `Receipt` and "type from unit 06": open; guard scope: see A30 |
 
 ## My recommendation (mine, after the list)
 
