@@ -212,11 +212,15 @@ class VistaSpanSelector extends StatelessWidget {
     required this.labels,
     required this.selectedIndex,
     required this.onChanged,
+    this.gap = 24,
   });
 
   final List<String> labels;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
+
+  /// Space between tabs.
+  final double gap;
 
   @override
   Widget build(BuildContext context) {
@@ -269,18 +273,22 @@ class VistaUnderlineTabs extends StatelessWidget {
     required this.labels,
     required this.selectedIndex,
     required this.onChanged,
+    this.gap = 24,
   });
 
   final List<String> labels;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
 
+  /// Space between tabs.
+  final double gap;
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         for (var i = 0; i < labels.length; i++) ...[
-          if (i > 0) const SizedBox(width: 24),
+          if (i > 0) SizedBox(width: gap),
           _tab(i),
         ],
       ],

@@ -21,6 +21,9 @@ abstract final class MarketPrices {
     'kestrel': 0.1980,
     'kilo.sol': 0.1720,
     'nara': 0.1410,
+    'vexa': 0.0880,
+    'pip.eth': 0.0620,
+    'orca.sol': 0.0470,
   };
 
   /// The price each market opens the session at.

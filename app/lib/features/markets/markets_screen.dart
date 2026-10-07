@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
+import '../calls/calls_store.dart';
 import '../market/trader_market_screen.dart';
+import '../portfolio/portfolio_mock.dart';
 import '../trade/asset_trade_screen.dart';
 import '../watchlist/edit_favorites_screen.dart';
 import '../watchlist/watchlist_state.dart';
@@ -10,8 +12,13 @@ import '../live/market_prices.dart';
 import 'markets_mock.dart';
 import 'market_chart_card.dart';
 
-/// Explore tab: Assets and Traders markets (Figma 185:110, 222:110). Every
-/// market in the list is a chart card (546:300).
+/// Explore tab: Assets, Leaderboard and Up and coming (Figma 185:110,
+/// 222:110). Every market in the list is a chart card (546:300).
+///
+/// Leaderboard is every trader market ranked (most right, this week's P&L,
+/// cap or change), with each place on its card and yours in the header.
+/// Up and coming is trader markets opened in the last 30 days, ranked by
+/// holders gained this week, newest, or most right.
 ///
 /// Search filters by name, the sort chips order the list (descending), and
 /// stars add or remove favourites (shared with the market pages' stars),
@@ -30,10 +37,10 @@ class _MarketsScreenState extends State<MarketsScreen> {
   /// Height the floating search takes above the nav (field plus margins).
   static const double _searchSpace = 50;
 
-  int _tab = 0; // 0 Assets, 1 Traders
+  int _tab = 0; // 0 Assets, 1 Leaderboard, 2 Up and coming
   final _search = TextEditingController();
   String _query = '';
-  final _sort = [0, 0];
+  final _sort = [0, 0, 0];
 
   @override
   void dispose() {
@@ -41,13 +48,43 @@ class _MarketsScreenState extends State<MarketsScreen> {
     super.dispose();
   }
 
-  bool get _traders => _tab == 1;
-  List<MarketItem> get _all =>
-      _traders ? MarketsMock.traders : MarketsMock.assets;
-  List<String> get _sorts =>
-      _traders ? MarketsMock.traderSorts : MarketsMock.assetSorts;
+  bool get _traders => _tab != 0;
+  bool get _rising => _tab == 2;
 
-  void _notBuilt(String what) => widget.onNotBuilt?.call(what);
+  /// Every trader market, for the Favorites rail on both trader tabs.
+  List<MarketItem> get _railSource =>
+      _traders ? MarketsMock.traders : MarketsMock.assets;
+
+  List<MarketItem> get _all => switch (_tab) {
+    0 => MarketsMock.assets,
+    1 => MarketsMock.traders,
+    _ => [
+      for (final m in MarketsMock.traders)
+        if ((MarketsMock.traderCards[m.id]?.days ?? 999) <=
+            MarketsMock.newMarketDays)
+          m,
+    ],
+  };
+
+  List<String> get _sorts => switch (_tab) {
+    0 => MarketsMock.assetSorts,
+    1 => MarketsMock.traderSorts,
+    _ => MarketsMock.risingSorts,
+  };
+
+  /// What a chip orders by (descending); null keeps designed order.
+  static double? _sortValue(MarketItem m, String key) {
+    final c = MarketsMock.traderCards[m.id];
+    return switch (key) {
+      'Most right' => double.tryParse(
+        (CallsStore.recordOf(m.id) ?? '').split('%').first,
+      ),
+      'Top P&L' => c?.weekPnl,
+      'Rising' => c?.newHolders.toDouble(),
+      'Newest' => c == null ? null : -c.days.toDouble(),
+      _ => m.sortValues[key],
+    };
+  }
 
   void _selectTab(int i) {
     if (i == _tab) return;
@@ -73,26 +110,22 @@ class _MarketsScreenState extends State<MarketsScreen> {
     }
   }
 
-  List<MarketItem> _sorted() {
+  /// The whole list in chip order, each market with its place.
+  List<(int, MarketItem)> _ranked() {
     final key = _sorts[_sort[_tab]];
-    final q = _query.toLowerCase();
-    // Trader markets also match their ticker ("maya" or "MAYA").
-    final list = _all
-        .where(
-          (m) =>
-              m.name.toLowerCase().contains(q) ||
-              (MarketsMock.traderCards[m.id]?.symbol.toLowerCase().contains(
-                    q,
-                  ) ??
-                  false),
-        )
-        .toList();
-    // Items without a value for this chip (e.g. "New") keep designed order.
-    if (list.every((m) => m.sortValues.containsKey(key))) {
-      list.sort((a, b) => b.sortValues[key]!.compareTo(a.sortValues[key]!));
+    final list = [..._all];
+    // Items without a value for this chip keep designed order.
+    if (list.every((m) => _sortValue(m, key) != null)) {
+      list.sort((a, b) => _sortValue(b, key)!.compareTo(_sortValue(a, key)!));
     }
-    return list;
+    return [for (final (i, m) in list.indexed) (i + 1, m)];
   }
+
+  /// Name match; trader markets also match their ticker ("maya" or "MAYA").
+  static bool _matches(MarketItem m, String q) =>
+      m.name.toLowerCase().contains(q) ||
+      (MarketsMock.traderCards[m.id]?.symbol.toLowerCase().contains(q) ??
+          false);
 
   @override
   Widget build(BuildContext context) {
@@ -104,12 +137,22 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
   Widget _build(List<String> favs) {
     // In favourite order, not list order.
-    final byId = {for (final m in _all) m.id: m};
+    final byId = {for (final m in _railSource) m.id: m};
     final favItems = [
       for (final id in favs)
         if (byId[id] != null) byId[id]!,
     ];
-    final rows = _sorted();
+    // Ranked before the search filters, so a match keeps its real place.
+    final ranked = _ranked();
+    final q = _query.toLowerCase();
+    final rows = [
+      for (final e in ranked)
+        if (_matches(e.$2, q)) e,
+    ];
+    final youRank = ranked
+        .where((e) => e.$2.id == PortfolioMock.handle)
+        .firstOrNull
+        ?.$1;
     const gutter = EdgeInsets.symmetric(horizontal: VistaSpace.gutter);
 
     // The list runs to the bottom of the screen and scrolls under the
@@ -144,9 +187,15 @@ class _MarketsScreenState extends State<MarketsScreen> {
                     Padding(
                       padding: gutter,
                       child: VistaUnderlineTabs(
-                        labels: const ['Assets', 'Traders'],
+                        labels: const [
+                          'Assets',
+                          'Leaderboard',
+                          'Up and coming',
+                        ],
                         selectedIndex: _tab,
                         onChanged: _selectTab,
+                        // Three tabs fit a 360pt phone with tighter gaps.
+                        gap: VistaSpace.xl,
                       ),
                     ),
                     if (favItems.isNotEmpty) ...[
@@ -224,24 +273,21 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ),
                     ],
                     const SizedBox(height: VistaSpace.xl),
-                    Padding(
+                    // One line that scrolls sideways when the chips don't fit.
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
                       padding: gutter,
-                      child: Wrap(
-                        spacing: VistaSpace.md,
+                      child: Row(
                         children: [
-                          for (var i = 0; i < _sorts.length; i++)
+                          for (var i = 0; i < _sorts.length; i++) ...[
+                            if (i > 0) const SizedBox(width: VistaSpace.md),
                             VistaFilterChip(
                               label: _sorts[i],
                               accent: true,
                               selected: i == _sort[_tab],
-                              onPressed: () {
-                                if (_sorts[i] == 'New') {
-                                  _notBuilt('Sort by new');
-                                  return;
-                                }
-                                setState(() => _sort[_tab] = i);
-                              },
+                              onPressed: () => setState(() => _sort[_tab] = i),
                             ),
+                          ],
                         ],
                       ),
                     ),
@@ -256,13 +302,37 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              _traders ? 'ALL TRADER MARKETS' : 'ALL MARKETS',
+                              switch (_tab) {
+                                0 => 'ALL MARKETS',
+                                1 => 'RANKED THIS WEEK',
+                                _ =>
+                                  'OPENED IN THE LAST '
+                                      '${MarketsMock.newMarketDays} DAYS',
+                              },
                               style: VistaType.label.copyWith(
                                 color: VistaColors.textMuted,
                                 letterSpacing: 0.6,
                               ),
                             ),
                           ),
+                          // Your place, whatever the search shows.
+                          if (_tab == 1 && youRank != null)
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  const TextSpan(text: 'You  '),
+                                  TextSpan(
+                                    text: '#$youRank',
+                                    style: const TextStyle(
+                                      color: VistaColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              style: VistaType.label.copyWith(
+                                color: VistaColors.textMuted,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -276,7 +346,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           ),
                         ),
                       ),
-                    for (final m in rows)
+                    for (final (rank, m) in rows)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
                           VistaSpace.gutter,
@@ -287,6 +357,11 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         child: _traders
                             ? TraderMarketCard(
                                 market: m,
+                                rank: rank,
+                                foot: _rising
+                                    ? TraderCardFoot.rising
+                                    : TraderCardFoot.leaderboard,
+                                isYou: m.id == PortfolioMock.handle,
                                 starred: favs.contains(m.id),
                                 onStar: () => _toggleFavorite(m.id),
                                 onPressed: () => _open(m),

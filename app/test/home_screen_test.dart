@@ -788,18 +788,25 @@ void main() {
       expect(tester.widget<AssetMarketCard>(arb).starred, isTrue);
     });
 
-    testWidgets('Traders tab lists trader markets and opens one', (
+    testWidgets('Leaderboard ranks trader markets and opens one', (
       tester,
     ) async {
       await openMarkets(tester);
-      await tester.tap(find.text('Traders'));
+      await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      expect(find.text('ALL TRADER MARKETS'), findsOneWidget);
+      expect(find.text('RANKED THIS WEEK'), findsOneWidget);
+      // Most right first: maya.eth (82%) is #1, and it's you.
+      expect(find.textContaining('#1', findRichText: true), findsOneWidget);
       // Each trader market is a chart card; the Favorites rail is unchanged.
       expect(find.byType(VistaMarketRow), findsNothing);
       expect(find.byType(VistaMarketCard), findsNWidgets(3));
       final maya = find.byType(TraderMarketCard).first;
       expect(tester.widget<TraderMarketCard>(maya).name, 'maya.eth');
+      expect(tester.widget<TraderMarketCard>(maya).rank, 1);
+      expect(
+        find.descendant(of: maya, matching: find.text('maya.eth · You')),
+        findsOneWidget,
+      );
       expect(
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
         findsOneWidget,
@@ -811,11 +818,16 @@ void main() {
       expect(
         find.descendant(
           of: maya,
-          matching: find.textContaining('3 open calls', findRichText: true),
+          matching: find.textContaining('82% right', findRichText: true),
         ),
         findsOneWidget,
       );
 
+      await tester.scrollUntilVisible(
+        find.text('0xreal'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       final xreal = find.ancestor(
         of: find.text('0xreal'),
         matching: find.byType(TraderMarketCard),
@@ -825,6 +837,47 @@ void main() {
       await tester.tap(xreal);
       await tester.pumpAndSettle();
       expect(find.byType(VistaIntervalSelector), findsOneWidget);
+    });
+
+    testWidgets('Top P&L reranks the Leaderboard', (tester) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Top P&L'));
+      await tester.pumpAndSettle();
+      final first = tester.widget<TraderMarketCard>(
+        find.byType(TraderMarketCard).first,
+      );
+      expect((first.name, first.rank), ('deltaone', 1));
+      // maya.eth is second by P&L.
+      expect(find.textContaining('#2', findRichText: true), findsOneWidget);
+    });
+
+    testWidgets('Up and coming lists new markets by holders gained', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Up and coming'));
+      await tester.pumpAndSettle();
+      expect(find.text('OPENED IN THE LAST 30 DAYS'), findsOneWidget);
+      final cards = tester
+          .widgetList<TraderMarketCard>(find.byType(TraderMarketCard))
+          .toList();
+      // Rising: vexa (+52) then pip.eth (+41); nothing older than 30 days.
+      expect(cards.first.name, 'vexa');
+      expect(cards.map((c) => c.name), isNot(contains('maya.eth')));
+      expect(cards.first.foot, TraderCardFoot.rising);
+      expect(
+        find.textContaining('+52 holders this week', findRichText: true),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Newest'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TraderMarketCard>(find.byType(TraderMarketCard).first)
+            .name,
+        'pip.eth',
+      );
     });
 
     Future<void> railShows(WidgetTester tester, String name) =>
@@ -890,9 +943,14 @@ void main() {
       tester,
     ) async {
       await openMarkets(tester);
-      await tester.tap(find.text('Traders'));
+      await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
       expect(railNames(tester), ['maya.eth', 'lunaq', 'deltaone']);
+      await tester.scrollUntilVisible(
+        find.text('0xreal'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       final xreal = find.ancestor(
         of: find.text('0xreal'),
         matching: find.byType(TraderMarketCard),
@@ -951,7 +1009,10 @@ void main() {
       testWidgets('renders without overflow on $name', (tester) async {
         await openMarkets(tester, size, padding);
         expect(tester.takeException(), isNull);
-        await tester.tap(find.text('Traders'));
+        await tester.tap(find.text('Leaderboard'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('Up and coming'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
@@ -2285,8 +2346,10 @@ void main() {
     });
 
     test('the feed has one call on every market Explore offers', () {
+      // Markets opened in the last two weeks have no call yet.
       final markets = [
-        for (final m in [...MarketsMock.assets, ...MarketsMock.traders]) m.id,
+        for (final m in [...MarketsMock.assets, ...MarketsMock.traders])
+          if ((MarketsMock.traderCards[m.id]?.days ?? 999) > 14) m.id,
       ];
       expect(
         [for (final i in mockFeed) i.ticker],

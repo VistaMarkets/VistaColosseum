@@ -52,20 +52,109 @@ abstract final class MarketsMock {
   };
 
   /// Ticker, holders and avatar colour for the trader market cards (Figma
-  /// 546:300). maya.eth's ticker matches the one picked in Make a market.
+  /// 546:300), plus this week's P&L, holders gained this week and how many
+  /// days the market has been open (for Leaderboard and Up and coming).
+  /// maya.eth's ticker matches the one picked in Make a market.
   static const traderCards =
-      <String, ({String symbol, int holders, int avatar})>{
-        'maya.eth': (symbol: 'MAYA', holders: 214, avatar: 0xFF3A3550),
-        '0xreal': (symbol: 'REAL', holders: 640, avatar: 0xFF2B4A3F),
-        'lunaq': (symbol: 'LUNQ', holders: 388, avatar: 0xFF4A3B2B),
-        'deltaone': (symbol: 'DELTA', holders: 1180, avatar: 0xFF2B3D4A),
-        'kestrel': (symbol: 'KSTRL', holders: 132, avatar: 0xFF333333),
-        'kilo.sol': (symbol: 'KILO', holders: 96, avatar: 0xFF4A2B36),
-        'nara': (symbol: 'NARA', holders: 58, avatar: 0xFF33363D),
+      <
+        String,
+        ({
+          String symbol,
+          int holders,
+          int avatar,
+          double weekPnl,
+          int newHolders,
+          int days,
+        })
+      >{
+        'maya.eth': (
+          symbol: 'MAYA',
+          holders: 214,
+          avatar: 0xFF3A3550,
+          weekPnl: 12400,
+          newHolders: 18,
+          days: 140,
+        ),
+        '0xreal': (
+          symbol: 'REAL',
+          holders: 640,
+          avatar: 0xFF2B4A3F,
+          weekPnl: 8100,
+          newHolders: 22,
+          days: 300,
+        ),
+        'lunaq': (
+          symbol: 'LUNQ',
+          holders: 388,
+          avatar: 0xFF4A3B2B,
+          weekPnl: -2300,
+          newHolders: 4,
+          days: 210,
+        ),
+        'deltaone': (
+          symbol: 'DELTA',
+          holders: 1180,
+          avatar: 0xFF2B3D4A,
+          weekPnl: 15800,
+          newHolders: 31,
+          days: 400,
+        ),
+        'kestrel': (
+          symbol: 'KSTRL',
+          holders: 132,
+          avatar: 0xFF333333,
+          weekPnl: -900,
+          newHolders: 2,
+          days: 90,
+        ),
+        'kilo.sol': (
+          symbol: 'KILO',
+          holders: 96,
+          avatar: 0xFF4A2B36,
+          weekPnl: 3400,
+          newHolders: 14,
+          days: 24,
+        ),
+        'nara': (
+          symbol: 'NARA',
+          holders: 58,
+          avatar: 0xFF33363D,
+          weekPnl: 1200,
+          newHolders: 11,
+          days: 19,
+        ),
+        'pip.eth': (
+          symbol: 'PIP',
+          holders: 41,
+          avatar: 0xFF2B3F4A,
+          weekPnl: 2100,
+          newHolders: 41,
+          days: 3,
+        ),
+        'vexa': (
+          symbol: 'VEXA',
+          holders: 73,
+          avatar: 0xFF44324A,
+          weekPnl: 4600,
+          newHolders: 52,
+          days: 6,
+        ),
+        'orca.sol': (
+          symbol: 'ORCA',
+          holders: 29,
+          avatar: 0xFF2E3A33,
+          weekPnl: 700,
+          newHolders: 29,
+          days: 11,
+        ),
       };
 
+  /// Up and coming: trader markets younger than this.
+  static const newMarketDays = 30;
+
   static const assetSorts = ['Volume', 'Change', 'Funding'];
-  static const traderSorts = ['Market cap', 'Change', 'Open calls', 'New'];
+  static const traderSorts = ['Most right', 'Top P&L', 'Market cap', 'Change'];
+  static const risingSorts = ['Rising', 'Newest', 'Most right'];
 
   /// Favourites as designed. The Assets rail shows SOL although its row is
   /// unstarred in Figma; favourites here are one list, so SOL is starred.
@@ -249,6 +338,36 @@ abstract final class MarketsMock {
       r'$14.1M',
       14.1,
       VistaAssets.spark24Down,
+    ),
+    _trader(
+      'vexa',
+      14,
+      2,
+      r'$0.0880',
+      11.2,
+      r'$8.8M',
+      8.8,
+      VistaAssets.spark24UpA,
+    ),
+    _trader(
+      'pip.eth',
+      9,
+      1,
+      r'$0.0620',
+      18.4,
+      r'$6.2M',
+      6.2,
+      VistaAssets.spark24UpB,
+    ),
+    _trader(
+      'orca.sol',
+      6,
+      0,
+      r'$0.0470',
+      7.6,
+      r'$4.7M',
+      4.7,
+      VistaAssets.spark24UpA,
     ),
   ];
 }

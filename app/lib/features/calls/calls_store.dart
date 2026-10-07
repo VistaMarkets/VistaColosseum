@@ -38,6 +38,9 @@ abstract final class CallsStore {
     'deltaone': '72% right',
     'kestrel': '57% right',
     'maya.eth': '82% right',
+    'vexa': '66% right',
+    'pip.eth': '71% right',
+    'orca.sol': '63% right',
   };
 
   /// "4.4k" → 4400, "860" → 860.
