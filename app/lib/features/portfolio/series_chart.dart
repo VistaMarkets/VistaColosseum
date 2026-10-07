@@ -66,10 +66,18 @@ double canvasY(double v, double lo, double hi) {
 /// on its own scale behind it; a dashed line marks the start and a dotted
 /// line the current value.
 class SeriesChart extends StatelessWidget {
-  const SeriesChart({super.key, required this.focus, this.muted});
+  const SeriesChart({
+    super.key,
+    required this.focus,
+    this.muted,
+    this.lineWidth = 3,
+  });
 
   final List<double> focus;
   final List<double>? muted;
+
+  /// The line's stroke; thinner where the chart is small.
+  final double lineWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +126,7 @@ class SeriesChart extends StatelessWidget {
                   sx: sx,
                   sy: sy,
                   screenLattice: true,
+                  lineWidth: lineWidth,
                 ),
               ),
             ),

@@ -521,7 +521,11 @@ class MarketLineChart extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned.fill(child: SeriesChart(focus: series)),
+          // The 3pt line reads heavy on small charts (the Favorites rail,
+          // the Leaderboard), so they draw it at 1.5pt.
+          Positioned.fill(
+            child: SeriesChart(focus: series, lineWidth: height < 40 ? 1.5 : 3),
+          ),
           Positioned(
             right: -6,
             top: endY - 6,

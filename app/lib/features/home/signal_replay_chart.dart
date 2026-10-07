@@ -702,10 +702,14 @@ class ReplayLinePainter extends CustomPainter {
     required this.sy,
     this.screenLattice = false,
     this.invert = false,
+    this.lineWidth = 3,
   });
 
   final List<Offset> points;
   final bool screenLattice;
+
+  /// The line's stroke, in screen points; thinner on tiny charts.
+  final double lineWidth;
 
   /// Red above the line and green below, for a short (where up is a loss).
   final bool invert;
@@ -778,7 +782,7 @@ class ReplayLinePainter extends CustomPainter {
     Paint stroke(Color c) => Paint()
       ..color = c
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
+      ..strokeWidth = lineWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -807,7 +811,8 @@ class ReplayLinePainter extends CustomPainter {
       old.latticeShift != latticeShift ||
       old.sx != sx ||
       old.sy != sy ||
-      old.screenLattice != screenLattice;
+      old.screenLattice != screenLattice ||
+      old.lineWidth != lineWidth;
 }
 
 /// When the tip reaches each vertex of the path, in replay ms.
