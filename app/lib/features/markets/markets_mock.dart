@@ -52,26 +52,18 @@ abstract final class MarketsMock {
   };
 
   /// Ticker, holders and avatar colour for the trader market cards (Figma
-  /// 546:300), plus this week's P&L, holders gained this week and how many
-  /// days the market has been open (for Leaderboard and Up and coming).
+  /// 546:300), plus holders gained this week and how many days the market
+  /// has been open (for the Leaderboard's Up and coming).
   /// maya.eth's ticker matches the one picked in Make a market.
   static const traderCards =
       <
         String,
-        ({
-          String symbol,
-          int holders,
-          int avatar,
-          double weekPnl,
-          int newHolders,
-          int days,
-        })
+        ({String symbol, int holders, int avatar, int newHolders, int days})
       >{
         'maya.eth': (
           symbol: 'MAYA',
           holders: 214,
           avatar: 0xFF3A3550,
-          weekPnl: 12400,
           newHolders: 18,
           days: 140,
         ),
@@ -79,7 +71,6 @@ abstract final class MarketsMock {
           symbol: 'REAL',
           holders: 640,
           avatar: 0xFF2B4A3F,
-          weekPnl: 8100,
           newHolders: 22,
           days: 300,
         ),
@@ -87,7 +78,6 @@ abstract final class MarketsMock {
           symbol: 'LUNQ',
           holders: 388,
           avatar: 0xFF4A3B2B,
-          weekPnl: -2300,
           newHolders: 4,
           days: 210,
         ),
@@ -95,7 +85,6 @@ abstract final class MarketsMock {
           symbol: 'DELTA',
           holders: 1180,
           avatar: 0xFF2B3D4A,
-          weekPnl: 15800,
           newHolders: 31,
           days: 400,
         ),
@@ -103,7 +92,6 @@ abstract final class MarketsMock {
           symbol: 'KSTRL',
           holders: 132,
           avatar: 0xFF333333,
-          weekPnl: -900,
           newHolders: 2,
           days: 90,
         ),
@@ -111,7 +99,6 @@ abstract final class MarketsMock {
           symbol: 'KILO',
           holders: 96,
           avatar: 0xFF4A2B36,
-          weekPnl: 3400,
           newHolders: 14,
           days: 24,
         ),
@@ -119,7 +106,6 @@ abstract final class MarketsMock {
           symbol: 'NARA',
           holders: 58,
           avatar: 0xFF33363D,
-          weekPnl: 1200,
           newHolders: 11,
           days: 19,
         ),
@@ -127,7 +113,6 @@ abstract final class MarketsMock {
           symbol: 'PIP',
           holders: 41,
           avatar: 0xFF2B3F4A,
-          weekPnl: 2100,
           newHolders: 41,
           days: 3,
         ),
@@ -135,7 +120,6 @@ abstract final class MarketsMock {
           symbol: 'VEXA',
           holders: 73,
           avatar: 0xFF44324A,
-          weekPnl: 4600,
           newHolders: 52,
           days: 6,
         ),
@@ -143,7 +127,6 @@ abstract final class MarketsMock {
           symbol: 'ORCA',
           holders: 29,
           avatar: 0xFF2E3A33,
-          weekPnl: 700,
           newHolders: 29,
           days: 11,
         ),
@@ -157,7 +140,6 @@ abstract final class MarketsMock {
   /// Leaderboard chips; Up and coming narrows the board to new markets.
   static const traderSorts = [
     'Most right',
-    'Top P&L',
     'Up and coming',
     'Market cap',
     'Change',

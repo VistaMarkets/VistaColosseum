@@ -809,7 +809,7 @@ void main() {
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
         findsOneWidget,
       );
-      for (final text in ['MAYA  maya.eth · You', r'$44.0M cap · ', '▲4.3%']) {
+      for (final text in ['MAYA  You', r'$44.0M cap · ', '▲4.3%']) {
         expect(
           find.descendant(
             of: maya,
@@ -818,7 +818,7 @@ void main() {
           findsOneWidget,
         );
       }
-      for (final text in ['76%', 'right · 7d']) {
+      for (final text in ['76%', 'right']) {
         expect(
           find.descendant(of: maya, matching: find.text(text)),
           findsOneWidget,
@@ -851,19 +851,21 @@ void main() {
       expect(find.byType(VistaIntervalSelector), findsOneWidget);
     });
 
-    testWidgets('Top P&L reranks the Leaderboard', (tester) async {
+    testWidgets('Change reranks the Leaderboard; no Top P&L', (tester) async {
       await openMarkets(tester);
       await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(VistaFilterChip, 'Top P&L'));
+      expect(find.widgetWithText(VistaFilterChip, 'Top P&L'), findsNothing);
+      await tester.ensureVisible(
+        find.widgetWithText(VistaFilterChip, 'Change'),
+      );
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Change'));
       await tester.pumpAndSettle();
       final first = tester.widget<LeaderboardCard>(
         find.byType(LeaderboardCard).first,
       );
-      expect((first.name, first.rank), ('deltaone', 1));
-      expect(find.text(r'+$15.8K'), findsOneWidget);
-      // maya.eth is second by P&L.
-      expect(find.textContaining('#2', findRichText: true), findsOneWidget);
+      expect((first.name, first.rank), ('pip.eth', 1));
+      expect(find.text('▲18.4%'), findsOneWidget);
     });
 
     testWidgets('Up and coming narrows the board to new markets', (

@@ -52,13 +52,8 @@ class LeaderboardCard extends StatelessWidget {
     final medal = rank <= 3 ? medals[rank - 1] : null;
     final v = Leaderboard.value(m, metric, window) ?? 0;
     final change = Leaderboard.value(m, 'Change', window) ?? m.changePct;
-    final w = Leaderboard.windows[window].toLowerCase();
+    final w = const ['24h', '7d', '30d', 'all time'][window];
     final (figure, caption, color) = switch (metric) {
-      'Top P&L' => (
-        Leaderboard.money(v),
-        Leaderboard.periods[window],
-        vistaChangeColor(v),
-      ),
       'Up and coming' => (
         '+${v.toInt()}',
         window == 3 ? 'holders' : 'new holders',
@@ -70,11 +65,12 @@ class LeaderboardCard extends StatelessWidget {
         w,
         vistaChangeColor(change),
       ),
-      _ => ('${v.toInt()}%', 'right · $w', VistaColors.textPrimary),
+      // The window is in the selector above, so just "right".
+      _ => ('${v.toInt()}%', 'right', VistaColors.textPrimary),
     };
     final handle = [
-      m.name,
-      if (isYou) 'You',
+      // Your own market just says so; the handle is yours.
+      isYou ? 'You' : m.name,
       if (metric == 'Up and coming') '${card?.days ?? 0}d',
     ].join(' · ');
     final muted = VistaType.label.copyWith(color: VistaColors.textMuted);
@@ -97,11 +93,12 @@ class LeaderboardCard extends StatelessWidget {
           const TextSpan(text: ' cap'),
         ];
         const dot = TextSpan(text: ' · ');
-        // Two figures under the name, never the one on the right; the
-        // second never truncates, the first gives way on small phones.
+        // Figures under the name, never the one on the right; the second
+        // never truncates, the first gives way on small phones. Change
+        // (on the right) leaves just the cap.
         final (first, second) = switch (metric) {
           'Market cap' => (<InlineSpan>[priceSpan], changeSpan),
-          'Change' => (capSpans, priceSpan),
+          'Change' => (capSpans, null),
           _ => (capSpans, changeSpan),
         };
         final narrow = MediaQuery.sizeOf(context).width < 390;
@@ -156,7 +153,7 @@ class LeaderboardCard extends StatelessWidget {
                     ),
                     child: Text(m.name[0].toUpperCase(), style: VistaType.body),
                   ),
-                  const SizedBox(width: VistaSpace.lg),
+                  SizedBox(width: narrow ? VistaSpace.md : VistaSpace.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,35 +178,39 @@ class LeaderboardCard extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text.rich(
-                                TextSpan(children: [...first, dot]),
+                                TextSpan(
+                                  children: [...first, if (second != null) dot],
+                                ),
                                 style: muted,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            Text.rich(second, style: muted, maxLines: 1),
+                            if (second != null)
+                              Text.rich(second, style: muted, maxLines: 1),
                           ],
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: VistaSpace.md),
-                  // The window, small, in the app's line style.
+                  // The window as the Assets cards draw it, live end dot
+                  // and all, just smaller.
                   SizedBox(
                     // Narrower on small phones so the figures keep room.
-                    width: narrow ? 40 : 56,
+                    width: narrow ? 44 : 72,
                     child: MarketLineChart(
                       id: m.id,
                       changePct: change,
                       price: price,
-                      height: 26,
+                      height: 32,
                       seriesKey: 'explore/${m.id}/$window',
-                      endDot: false,
                     ),
                   ),
-                  const SizedBox(width: VistaSpace.lg),
+                  // Clear of the end dot, which sits on the chart's edge.
+                  const SizedBox(width: VistaSpace.xl),
                   ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 56),
+                    constraints: BoxConstraints(minWidth: narrow ? 44 : 56),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -489,13 +490,9 @@ class MarketLineChart extends StatelessWidget {
     required this.price,
     required this.height,
     this.seriesKey,
-    this.endDot = true,
   });
 
   final String id;
-
-  /// The ringed live dot at the end; off where the chart is tiny.
-  final bool endDot;
 
   /// Seeds the line's shape; defaults to the market's own.
   final String? seriesKey;
@@ -525,12 +522,11 @@ class MarketLineChart extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(child: SeriesChart(focus: series)),
-          if (endDot)
-            Positioned(
-              right: -6,
-              top: endY - 6,
-              child: _EndDot(up: price >= series.first),
-            ),
+          Positioned(
+            right: -6,
+            top: endY - 6,
+            child: _EndDot(up: price >= series.first),
+          ),
         ],
       ),
     );

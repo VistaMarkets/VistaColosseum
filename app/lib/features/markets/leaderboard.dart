@@ -8,9 +8,6 @@ abstract final class Leaderboard {
   /// Time windows; 7d (index 1) is the default.
   static const windows = ['24h', '7d', '30d', 'All'];
 
-  /// How each window reads after a figure ("+$12.4K this week").
-  static const periods = ['today', 'this week', 'this month', 'all time'];
-
   /// A steady 0.6–1.4 per trader and window, so other windows reorder the
   /// board without random churn.
   static double _jitter(String id, int window) {
@@ -35,10 +32,6 @@ abstract final class Leaderboard {
         );
         if (pct == null || window == 3) return pct;
         return (pct + (j - 1) * 20).roundToDouble().clamp(35, 95);
-      case 'Top P&L':
-        if (c == null) return null;
-        const scale = [1 / 6, 1.0, 3.5, 12.0];
-        return c.weekPnl * scale[window] * (window == 1 ? 1 : j);
       case 'Up and coming':
         if (c == null) return null;
         return switch (window) {
@@ -53,11 +46,5 @@ abstract final class Leaderboard {
       default:
         return m.sortValues[metric];
     }
-  }
-
-  /// "+$12.4K" / "−$0.9K"; whole thousands from $100K ("+$214K").
-  static String money(double v) {
-    final k = v.abs() / 1000;
-    return '${v < 0 ? '−' : '+'}\$${k.toStringAsFixed(k >= 100 ? 0 : 1)}K';
   }
 }
