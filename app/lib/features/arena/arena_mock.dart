@@ -182,7 +182,7 @@ class Take {
 /// Mock content from Figma 505:204 ("Arena — takes feed"). Simulated.
 abstract final class ArenaMock {
   /// How the Calls list is ordered (the dropdown by its heading).
-  static const sorts = ['Popular', 'Recent'];
+  static const sorts = ['Following', 'Trending', 'New'];
 
   /// Callers still building a record: fewer settled calls than this and
   /// their backed calls get the new-caller boost (`HomeFeed`).

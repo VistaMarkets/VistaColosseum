@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../calls/calls_store.dart';
 import '../home/home_feed.dart';
+import '../people/follow_state.dart';
 import '../market/trader_market_screen.dart';
 import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
@@ -15,8 +16,8 @@ import 'settlement_item.dart';
 import 'hub_call_card.dart';
 
 /// Trending calls (Arena › Trending calls › See all): every call, nothing
-/// else, in the hub's call cards, ordered Popular (the Home ranking) or
-/// Recent, with settled calls mixed in as receipts. The + makes a call.
+/// else, in the hub's call cards, ordered Following, Trending (the Home
+/// ranking) or New, with settled calls mixed in as receipts. The + makes a call.
 class TrendingCallsScreen extends StatefulWidget {
   const TrendingCallsScreen({super.key, this.onExplore});
 
@@ -35,7 +36,7 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
   /// Height the floating + button takes above the nav (button plus margins).
   static const double _composerSpace = 68;
 
-  int _sort = 0; // ArenaMock.sorts
+  int _sort = 1; // ArenaMock.sorts: Following, Trending, New
 
   void _push(Route<void> route) => Navigator.of(context).push(route);
 
@@ -54,7 +55,7 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
         .push(PickPositionScreen.route(onExplore: widget.onExplore));
     if (take == null || !mounted) return;
     CallsStore.add(take);
-    setState(() => _sort = 0);
+    setState(() => _sort = 1);
     if (_feedScroll.hasClients) _feedScroll.jumpTo(0);
   }
 
@@ -74,13 +75,15 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
     );
   }
 
-  /// Calls in the chosen order with settlements mixed in: by age for
-  /// Recent; for Popular, one after every [_settlementEvery] calls, newest
-  /// first.
+  /// Calls in the chosen order with settlements mixed in.
+  /// - Following: calls and settled calls from people you follow, ranked.
+  /// - Trending: every call, ranked as Home's For You, a settled call after
+  ///   every [_settlementEvery].
+  /// - New: everything by age.
   static const _settlementEvery = 3;
 
   List<Object> _feed(List<Take> calls, List<Settlement> settled) {
-    if (_sort == 1) {
+    if (_sort == 2) {
       final items = <(int, Object)>[
         for (final t in calls) (CallsStore.minutesAgo(t.age), t),
         for (final st in settled) (CallsStore.minutesAgo(st.when), st),
@@ -88,16 +91,25 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
       mergeSort(items, compare: (a, b) => a.$1.compareTo(b.$1));
       return [for (final (_, x) in items) x];
     }
-    final ranked = HomeFeed.forYou(calls);
+    final following = _sort == 0;
+    final ranked = following
+        ? HomeFeed.following(calls)
+        : HomeFeed.forYou(calls);
+    final receipts = [
+      for (final st in settled)
+        if (!following ||
+            (st.handle != null && FollowState.isFollowing(st.handle!)))
+          st,
+    ];
     final out = <Object>[];
     var s = 0;
     for (final (i, t) in ranked.indexed) {
       out.add(t);
-      if ((i + 1) % _settlementEvery == 0 && s < settled.length) {
-        out.add(settled[s++]);
+      if ((i + 1) % _settlementEvery == 0 && s < receipts.length) {
+        out.add(receipts[s++]);
       }
     }
-    out.addAll(settled.skip(s));
+    out.addAll(receipts.skip(s));
     return out;
   }
 
@@ -112,6 +124,7 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
         child: Stack(
           children: [
             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Back to the Arena hub.
                 Padding(
@@ -133,10 +146,35 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
                       Expanded(
                         child: Text('Trending calls', style: VistaType.title),
                       ),
-                      _SortMenu(
-                        sort: _sort,
-                        onChanged: (i) => setState(() => _sort = i),
-                      ),
+                    ],
+                  ),
+                ),
+                // Following · Trending · New, like Explore's sort chips; one
+                // row that scrolls sideways.
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  // Starts at the gutter, as on Explore.
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.fromLTRB(
+                    VistaSpace.gutter,
+                    VistaSpace.md,
+                    VistaSpace.gutter,
+                    VistaSpace.xs,
+                  ),
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < ArenaMock.sorts.length; i++) ...[
+                        if (i > 0) const SizedBox(width: VistaSpace.md),
+                        VistaFilterChip(
+                          label: ArenaMock.sorts[i],
+                          accent: true,
+                          selected: i == _sort,
+                          onPressed: () {
+                            setState(() => _sort = i);
+                            if (_feedScroll.hasClients) _feedScroll.jumpTo(0);
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -242,65 +280,6 @@ class _AddTakeButton extends StatelessWidget {
             style: VistaType.displayMedium.copyWith(
               color: VistaColors.onAccent,
               height: 1,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The room's market at the top of its feed: name, live price and change,
-
-/// "Popular ▾" by the Calls heading: picks how the calls are ordered.
-class _SortMenu extends StatelessWidget {
-  const _SortMenu({required this.sort, required this.onChanged});
-
-  final int sort;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<int>(
-      tooltip: '',
-      initialValue: sort,
-      color: VistaColors.surfaceRaised,
-      onSelected: onChanged,
-      position: PopupMenuPosition.under,
-      itemBuilder: (_) => [
-        for (var i = 0; i < ArenaMock.sorts.length; i++)
-          PopupMenuItem(
-            value: i,
-            child: Text(
-              ArenaMock.sorts[i],
-              style: VistaType.subhead.copyWith(
-                color: i == sort ? VistaColors.accent : VistaColors.textPrimary,
-              ),
-            ),
-          ),
-      ],
-      child: Semantics(
-        button: true,
-        label: 'Sort calls: ${ArenaMock.sorts[sort]}',
-        excludeSemantics: true,
-        child: SizedBox(
-          height: VistaSize.tapTarget,
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  ArenaMock.sorts[sort],
-                  style: VistaType.bodyMedium.copyWith(
-                    color: VistaColors.textMuted,
-                  ),
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: 18,
-                  color: VistaColors.textMuted,
-                ),
-              ],
             ),
           ),
         ),

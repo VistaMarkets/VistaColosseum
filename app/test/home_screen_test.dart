@@ -1116,7 +1116,13 @@ void main() {
       await openArena(tester);
       expect(find.text('Trending calls'), findsOneWidget);
       expect(find.byType(BattleTile), findsNothing);
-      expect(find.byType(VistaFilterChip), findsNothing);
+      // No room chips: just the three sorts.
+      expect(
+        tester
+            .widgetList<VistaFilterChip>(find.byType(VistaFilterChip))
+            .map((c) => c.label),
+        ['Following', 'Trending', 'New'],
+      );
       expect(find.byType(HubCallCard), findsWidgets);
       final renata = find.byWidgetPredicate(
         (w) => w is HubCallCard && w.take.handle == 'renatafx',
@@ -1227,19 +1233,32 @@ void main() {
       );
     });
 
-    testWidgets('Popular / Recent orders the calls', (tester) async {
+    testWidgets('Following / Trending / New order the calls', (tester) async {
       await openArena(tester);
-      expect(find.text('Popular'), findsOneWidget);
-      await tester.tap(find.text('Popular'));
+      // Sideways chips like Explore's sorts; Trending is on.
+      bool on(String l) => tester
+          .widget<VistaFilterChip>(find.widgetWithText(VistaFilterChip, l))
+          .selected;
+      expect(on('Trending'), isTrue);
+      expect(find.byType(PopupMenuButton<int>), findsNothing);
+
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'New'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Recent').last);
-      await tester.pumpAndSettle();
-      expect(find.text('Recent'), findsOneWidget); // the menu has closed
+      expect(on('New'), isTrue);
       final newest = CallsStore.all.value
           .map((t) => CallsStore.minutesAgo(t.age))
           .reduce((a, b) => a < b ? a : b);
       final first = tester.widget<HubCallCard>(find.byType(HubCallCard).first);
       expect(CallsStore.minutesAgo(first.take.age), newest);
+
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Following'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<HubCallCard>(find.byType(HubCallCard))
+            .every((c) => FollowState.isFollowing(c.take.handle)),
+        isTrue,
+      );
     });
 
     testWidgets('settled calls and debates post to the feed', (tester) async {
