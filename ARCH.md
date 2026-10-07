@@ -476,6 +476,8 @@ VistaColosseum/
 │   ├── assets/  — animated Vista logo and reduced-motion fallback
 │   │   ├── vista-logo-animated.gif
 │   │   └── vista-logo-static.png
+│   ├── plans/
+│   │   └── 2026-10-06-explore-redesign.md
 │   ├── prompts/
 │   │   └── social-market-demo-brief-prompt.md
 │   └── backend-data-map.md
