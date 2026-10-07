@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
@@ -8,28 +7,22 @@ import '../home/home_feed.dart';
 import '../live/market_prices.dart';
 import '../market/trader_market_screen.dart';
 import '../markets/markets_mock.dart';
+import '../people/follow_state.dart';
 import '../profile/profile_screen.dart';
-import '../trade/asset_trade_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
+import '../watchlist/watchlist_state.dart';
+import 'arena_feed_screen.dart';
 import 'arena_mock.dart';
-import 'live_battles_screen.dart';
 import 'debate_screen.dart';
 import 'pick_position_screen.dart';
-import 'settlement_item.dart';
 import 'take_card.dart';
 
-/// Arena tab (Figma 505:204, "Arena — takes feed"; rooms from
-/// ARENA-SOCIAL 542:205): market rooms along the top, live debates in a
-/// sideways carousel, then an X-style feed of calls with settled calls and
-/// debates mixed in. A call is either on a debate (with a chip opening its
-/// thread) or a plain call on a market; backed calls carry their position.
-///
-/// Rooms: All, then every asset with calls or debates (busiest first), then
-/// every trader market with calls. A room filters the debates, calls and
-/// settlements to that market and leads with its price and a way to trade
-/// it. Calls are ordered Popular (the Home ranking, new-caller boost and
-/// all) or Recent.
+/// Arena tab (Figma 551:205, ARENA-HUB-01): the account bar, search, your
+/// markets and what's trending as people-first rows (who is in, which way),
+/// then the top calls with their top reply. A market's row opens its room,
+/// and Calls › See all opens every call (`ArenaFeedScreen`). The + makes a
+/// call from a position.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt, this.onExplore});
 
@@ -44,83 +37,48 @@ class ArenaScreen extends StatefulWidget {
 }
 
 class _ArenaScreenState extends State<ArenaScreen> {
-  /// Height the floating + button takes above the nav (button plus margins).
-  static const double _composerSpace = 68;
+  /// Room for the floating + above the nav (button plus margins).
+  static const double _plusSpace = 68;
 
-  int _sort = 0; // ArenaMock.sorts
-
-  /// The selected room's key; null is All.
-  String? _room;
-
-  void _push(Route<void> route) => Navigator.of(context).push(route);
-
-  // Each room is its own list from the top; nothing restores an old offset.
-  final _feedScroll = ScrollController(keepScrollOffset: false);
+  final _search = TextEditingController();
 
   @override
   void dispose() {
-    _feedScroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  /// The + : pick the position to back the take, write it, post it. The
-  /// new call leads the feed: back to All and the top, so it shows whichever
-  /// room you were in or however far you had scrolled.
-  Future<void> _newTake() async {
+  void _push(Route<void> route) => Navigator.of(context).push(route);
+
+  /// Every call, opened on [room] (a ticker or "@handle") or All.
+  void _feed([String? room]) =>
+      _push(ArenaFeedScreen.route(onExplore: widget.onExplore, room: room));
+
+  /// The + : pick a position, write the call, post it. It leads Calls.
+  Future<void> _newCall() async {
     final take = await Navigator.of(context)
         .push(PickPositionScreen.route(onExplore: widget.onExplore));
-    if (take == null || !mounted) return;
-    CallsStore.add(take);
-    setState(() => _room = null);
-    if (_feedScroll.hasClients) _feedScroll.jumpTo(0);
+    if (take != null) CallsStore.add(take);
   }
 
-  Widget _takeItem(Take t) {
-    final debate = Debates.of(t);
-    return TakeItem(
-      take: t,
-      onCaller: () => _push(ProfileScreen.route(t.handle)),
-      onMarket: () => _push(TraderMarketScreen.route(t.handle)),
-      onBattle: debate == null ? null : () => _push(DebateScreen.route(debate)),
-      onCall: t.call == null
-          ? null
-          : () => _push(CallerPlayScreen.route(CallsStore.postOf(t), t.ticker)),
-      // Simulated only: joining places nothing real.
-      onJoin: () => showOrderTicket(context, symbol: t.ticker, side: t.side),
-    );
-  }
-
-  /// Calls in the chosen order with settlements mixed in: by age for
-  /// Recent; for Popular, one after every [_settlementEvery] calls, newest
-  /// first.
-  static const _settlementEvery = 3;
-
-  List<Object> _feed(List<Take> calls, List<Settlement> settled) {
-    if (_sort == 1) {
-      final items = <(int, Object)>[
-        for (final t in calls) (CallsStore.minutesAgo(t.age), t),
-        for (final st in settled) (CallsStore.minutesAgo(st.when), st),
-      ];
-      mergeSort(items, compare: (a, b) => a.$1.compareTo(b.$1));
-      return [for (final (_, x) in items) x];
+  /// "$eth", "ETH", "@maya.eth" or "maya" opens that market's room.
+  void _find(String q) {
+    final s = q.trim().replaceFirst(RegExp(r'^[\$@]'), '').toLowerCase();
+    if (s.isEmpty) return;
+    for (final m in MarketsMock.assets) {
+      if (m.id.toLowerCase() == s) return _feed(m.id);
     }
-    final ranked = HomeFeed.forYou(calls);
-    final out = <Object>[];
-    var s = 0;
-    for (final (i, t) in ranked.indexed) {
-      out.add(t);
-      if ((i + 1) % _settlementEvery == 0 && s < settled.length) {
-        out.add(settled[s++]);
+    for (final m in MarketsMock.traders) {
+      final symbol = MarketsMock.traderCards[m.id]?.symbol.toLowerCase();
+      if (m.id.toLowerCase().startsWith(s) || symbol == s) {
+        return _feed('@${m.id}');
       }
     }
-    out.addAll(settled.skip(s));
-    return out;
+    widget.onNotBuilt?.call('Search');
   }
 
   @override
   Widget build(BuildContext context) {
-    // The list runs to the bottom of the screen and scrolls under the
-    // floating + button and nav, which sit over it with nothing behind them.
     final navSpace = MediaQuery.paddingOf(context).bottom;
     return SafeArea(
       bottom: false,
@@ -128,7 +86,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
         children: [
           Column(
             children: [
-              // The same account bar as Home and Portfolio.
+              // The same account bar as Home and Explore.
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: VistaSpace.gutter,
@@ -138,163 +96,71 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   showSettings: true,
                 ),
               ),
-              const SizedBox(height: VistaSpace.md),
-              // Rooms stay put while the feed scrolls. One row that
-              // scrolls sideways when they outrun the screen.
-              ValueListenableBuilder(
-                valueListenable: CallsStore.all,
-                builder: (context, takes, _) {
-                  final rooms = _Room.all(takes);
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.fromLTRB(
-                      VistaSpace.gutter,
-                      0,
-                      VistaSpace.gutter,
-                      VistaSpace.xs,
-                    ),
-                    child: Row(
-                      children: [
-                        for (final (i, r) in rooms.indexed) ...[
-                          if (i > 0) const SizedBox(width: VistaSpace.md),
-                          VistaFilterChip(
-                            label: r.label,
-                            accent: true,
-                            selected: r.key == (_room ?? ''),
-                            onPressed: () => setState(() => _room = r.key),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                },
-              ),
               Expanded(
-                // Every call, shared with the trade pages' Callers.
                 child: ValueListenableBuilder(
                   valueListenable: CallsStore.all,
-                  builder: (context, takes, _) {
-                    final room = _Room.find(takes, _room);
-                    final debates = [
-                      for (final b in BattlesStore.all.value)
-                        if (room == null || room.ticker == b.ticker) b,
-                    ];
-                    final items = _feed(
-                      [
-                        for (final t in takes)
-                          if (room == null || room.matches(t)) t,
-                      ],
-                      [
-                        for (final st in ArenaMock.settlements)
-                          if (room == null || room.matchesSettlement(st)) st,
-                      ],
-                    );
-                    return ListView(
-                      key: ValueKey(_room ?? ''),
-                      controller: _feedScroll,
-                      // Room to scroll the last call clear of the + button
-                      // and nav.
+                  builder: (context, calls, _) => ValueListenableBuilder(
+                    valueListenable: WatchlistState.assets,
+                    builder: (context, favs, _) => ListView(
                       padding: EdgeInsets.only(
-                        bottom: VistaSpace.gutter + _composerSpace + navSpace,
+                        bottom: VistaSpace.gutter + _plusSpace + navSpace,
                       ),
                       children: [
-                        if (room != null)
-                          _RoomHeader(room: room, onOpen: _push),
-                        if (room == null || debates.isNotEmpty) ...[
-                          ArenaSectionHead(
-                            title: 'Live debates',
-                            // "See all" sits in a 44pt tap row; the head's
-                            // padding gives back the extra height.
-                            top: VistaSpace.md,
-                            bottom: 0,
-                            trailing: Semantics(
-                              button: true,
-                              label: 'See all live debates',
-                              excludeSemantics: true,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _push(LiveBattlesScreen.route()),
-                                child: SizedBox(
-                                  height: VistaSize.tapTarget,
-                                  child: Center(
-                                    child: Text(
-                                      'See all',
-                                      style: VistaType.subhead.copyWith(
-                                        color: VistaColors.accent,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            VistaSpace.gutter,
+                            VistaSpace.xl,
+                            VistaSpace.gutter,
+                            0,
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: VistaSpace.gutter,
-                            ),
-                            // Tiles share the tallest one's height.
-                            child: IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  for (final (i, b)
-                                      in debates.take(3).indexed) ...[
-                                    if (i > 0)
-                                      const SizedBox(width: VistaSpace.lg),
-                                    BattleTile(
-                                      battle: b,
-                                      onTap: () => _push(DebateScreen.route(b)),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                        ArenaSectionHead(
-                          title: 'Calls',
-                          bottom: 0,
-                          trailing: _SortMenu(
-                            sort: _sort,
-                            onChanged: (i) => setState(() => _sort = i),
+                          child: VistaSearchField(
+                            hint: r'Search $tickers or @people',
+                            controller: _search,
+                            onChanged: (_) {},
+                            onSubmitted: _find,
                           ),
                         ),
-                        if (items.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(VistaSpace.section),
-                            child: Text(
-                              'No calls here yet.',
-                              textAlign: TextAlign.center,
-                              style: VistaType.body.copyWith(
-                                color: VistaColors.textMuted,
+                        const _Head('Your markets'),
+                        for (final r in _yourMarkets(calls, favs))
+                          _RoomRow(room: r, onTap: () => _feed(r.key)),
+                        _Head(
+                          'Trending now',
+                          trailing: 'See all',
+                          onTrailing: _feed,
+                        ),
+                        for (final r in _trending(calls))
+                          _RoomRow(room: r, onTap: () => _feed(r.key)),
+                        _Head('Calls', trailing: 'See all', onTrailing: _feed),
+                        for (final t in [
+                          for (final t in HomeFeed.forYou(calls))
+                            if (t.call != null) t,
+                        ].take(2))
+                          _HubCall(
+                            take: t,
+                            onCaller: () =>
+                                _push(ProfileScreen.route(t.handle)),
+                            onMarket: () =>
+                                _push(TraderMarketScreen.route(t.handle)),
+                            onDebate: Debates.of(t) == null
+                                ? null
+                                : () =>
+                                      _push(DebateScreen.route(Debates.of(t)!)),
+                            onPosition: () => _push(
+                              CallerPlayScreen.route(
+                                CallsStore.postOf(t),
+                                t.ticker,
                               ),
                             ),
+                            onJoin: () => showOrderTicket(
+                              context,
+                              symbol: t.ticker,
+                              side: t.side,
+                            ),
+                            onReplies: () => _feed(t.ticker),
                           ),
-                        for (final item in items)
-                          if (item is Settlement)
-                            SettlementItem(
-                              settlement: item,
-                              onCaller: item.handle == null
-                                  ? null
-                                  : () => _push(
-                                      ProfileScreen.route(item.handle!),
-                                    ),
-                              onMarket: item.handle == null
-                                  ? null
-                                  : () => _push(
-                                      TraderMarketScreen.route(item.handle!),
-                                    ),
-                              onDebate: item.debate == null
-                                  ? null
-                                  : () =>
-                                        _push(DebateScreen.route(item.debate!)),
-                            )
-                          else if (item is Take)
-                            _takeItem(item),
                       ],
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -303,7 +169,597 @@ class _ArenaScreenState extends State<ArenaScreen> {
           Positioned(
             right: VistaSpace.gutter,
             bottom: navSpace + VistaSpace.md,
-            child: _AddTakeButton(onTap: _newTake),
+            child: _PlusButton(onTap: _newCall),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Your favourite assets (busiest first, two) and your first favourite
+  /// trader market.
+  static List<_Room> _yourMarkets(List<Take> calls, List<String> favs) {
+    final assets = [
+      for (final m in MarketsMock.assets)
+        if (favs.contains(m.id)) _Room.asset(m, calls),
+    ]..sort((a, b) => b.calls.compareTo(a.calls));
+    final traders = [
+      for (final m in MarketsMock.traders)
+        if (WatchlistState.isTrader(m.id)) _Room.trader(m, calls),
+    ];
+    return [...assets.take(2), ...traders.take(1)];
+  }
+
+  static List<_Room> _trending(List<Take> calls) => [
+    for (final t in ArenaMock.trending)
+      for (final m in [...MarketsMock.assets, ...MarketsMock.traders])
+        if (m.id == t.id)
+          MarketsMock.traders.contains(m)
+              ? _Room.trader(m, calls, trend: t)
+              : _Room.asset(m, calls, trend: t),
+  ];
+}
+
+/// A market as the hub shows it: its line, and who is in it.
+class _Room {
+  _Room({
+    required this.key,
+    required this.market,
+    required this.title,
+    required this.sub,
+    required this.calls,
+    required this.people,
+    required this.line,
+    this.trader,
+    this.reason,
+  });
+
+  /// An asset's room: its calls today and debates, and who is in which way.
+  factory _Room.asset(MarketItem m, List<Take> calls, {Trend? trend}) {
+    final on = calls.where((t) => t.ticker == m.id).toList();
+    final debates = BattlesStore.all.value
+        .where((b) => b.ticker == m.id)
+        .length;
+    // Everyone with a call on it, most liked first.
+    final backed = [...on]..sort((a, b) => b.likes.compareTo(a.likes));
+    final longs = backed.where((t) => t.side == TradeSide.long).toList();
+    final shorts = backed.where((t) => t.side == TradeSide.short).toList();
+    final followed = backed
+        .where((t) => FollowState.isFollowing(t.handle))
+        .toList();
+    final majority = longs.length >= shorts.length
+        ? TradeSide.long
+        : TradeSide.short;
+    final side = majority == TradeSide.long ? longs : shorts;
+    final List<InlineSpan> line;
+    final List<String> people;
+    if (longs.isNotEmpty && shorts.isNotEmpty && followed.isEmpty) {
+      people = [longs.first.handle, shorts.first.handle];
+      line = [
+        _strong(longs.first.handle),
+        _muted(' is long, '),
+        _strong(shorts.first.handle),
+        _muted(' is short'),
+      ];
+    } else if (side.isNotEmpty) {
+      final others = {for (final t in side) t.handle}.toList();
+      final you = others.where(FollowState.isFollowing).length;
+      people = others.take(3).toList();
+      line = [
+        _strong(others.first),
+        _muted(
+          you > 1 || (you == 1 && !FollowState.isFollowing(others.first))
+              ? ' and ${you - (FollowState.isFollowing(others.first) ? 1 : 0)} you follow are '
+              : others.length > 1
+              ? ' and ${others.length - 1} others are '
+              : ' is ',
+        ),
+        _sideSpan(majority),
+      ];
+    } else {
+      people = const [];
+      line = [_muted('No calls yet. Be first.')];
+    }
+    final n = on.length;
+    return _Room(
+      key: m.id,
+      market: m,
+      title: m.name,
+      sub:
+          trend?.note ??
+          [
+            '$n call${n == 1 ? '' : 's'} today',
+            if (debates > 0) '$debates debate${debates == 1 ? '' : 's'}',
+          ].join(' · '),
+      calls: n,
+      people: people,
+      line: line,
+      reason: trend?.reason,
+    );
+  }
+
+  /// A trader market's room: its owner and record, and who holds it.
+  factory _Room.trader(MarketItem m, List<Take> calls, {Trend? trend}) {
+    final symbol = MarketsMock.traderCards[m.id]?.symbol ?? m.name;
+    final record = CallsStore.recordOf(m.id);
+    final holders = ArenaMock.holders[m.id];
+    final bought = ArenaMock.boughtToday[m.id];
+    final List<InlineSpan> line;
+    final List<String> people;
+    if (trend != null && bought != null) {
+      people = {bought, ...?holders?.names}.take(2).toList();
+      line = [_strong(bought), _muted(' bought $symbol today')];
+    } else if (holders != null) {
+      people = holders.names;
+      line = [
+        _strong(holders.names.first),
+        _muted(' and ${holders.count - 1} others hold $symbol'),
+      ];
+    } else {
+      people = const [];
+      line = [_muted('Be the first to hold $symbol')];
+    }
+    return _Room(
+      key: '@${m.id}',
+      market: m,
+      trader: m.id,
+      title: symbol,
+      sub: [m.id, ?record].join(' · '),
+      calls: calls.where((t) => t.handle == m.id).length,
+      people: people,
+      line: line,
+      reason: trend?.reason,
+    );
+  }
+
+  final String key;
+  final MarketItem market;
+  final String? trader;
+  final String title;
+  final String sub;
+  final int calls;
+  final List<String> people;
+  final List<InlineSpan> line;
+  final String? reason;
+
+  static TextSpan _strong(String s) => TextSpan(
+    text: s,
+    style: const TextStyle(color: VistaColors.textPrimary),
+  );
+  static TextSpan _muted(String s) => TextSpan(
+    text: s,
+    style: const TextStyle(
+      color: VistaColors.textMuted,
+      fontWeight: FontWeight.w500,
+    ),
+  );
+  static TextSpan _sideSpan(TradeSide s) => TextSpan(
+    text: s.label.toLowerCase(),
+    style: TextStyle(color: s.color),
+  );
+}
+
+/// Section title with an optional link on the right.
+class _Head extends StatelessWidget {
+  const _Head(this.title, {this.trailing, this.onTrailing});
+
+  final String title;
+  final String? trailing;
+  final VoidCallback? onTrailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        VistaSpace.gutter + VistaSpace.xs,
+        VistaSpace.lg,
+        VistaSpace.gutter + VistaSpace.xs,
+        0,
+      ),
+      child: SizedBox(
+        height: VistaSize.tapTarget,
+        child: Row(
+          children: [
+            Expanded(child: Text(title, style: VistaType.title)),
+            if (trailing != null)
+              Semantics(
+                button: true,
+                label: '$trailing: $title',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onTrailing,
+                  child: SizedBox(
+                    height: VistaSize.tapTarget,
+                    child: Center(
+                      child: Text(
+                        trailing!,
+                        style: VistaType.subhead.copyWith(
+                          color: VistaColors.accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// An initial in a filled circle (a person until avatars come from the
+/// backend).
+class _Initial extends StatelessWidget {
+  const _Initial(this.handle, {this.size = 22, this.ring});
+
+  final String handle;
+  final double size;
+  final Color? ring;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: VistaColors.surfaceRaised,
+      shape: BoxShape.circle,
+      border: Border.all(
+        color: ring ?? VistaColors.background,
+        width: size > 30 ? 2.5 : 2,
+      ),
+    ),
+    child: Text(
+      handle.isEmpty ? '' : handle[0].toUpperCase(),
+      style: VistaType.labelStrong.copyWith(
+        fontSize: size * 0.4,
+        color: VistaColors.textPrimary,
+        height: 1,
+      ),
+    ),
+  );
+}
+
+/// A market row (Figma room/ETH): icon, name (with why it's trending),
+/// a second line, live price and change, then who is in it.
+class _RoomRow extends StatelessWidget {
+  const _RoomRow({required this.room, required this.onTap});
+
+  final _Room room;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = room;
+    final m = r.market;
+    return Semantics(
+      button: true,
+      label: '${r.title} room',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(
+            VistaSpace.gutter + VistaSpace.xs,
+            VistaSpace.xl,
+            VistaSpace.gutter + VistaSpace.xs,
+            VistaSpace.xl,
+          ),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: VistaColors.hairline)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (r.trader != null)
+                    _Initial(r.trader!, size: 36)
+                  else
+                    VistaIcon(m.rowIcon, size: 36),
+                  const SizedBox(width: VistaSpace.xl),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: r.title),
+                              if (r.reason != null)
+                                TextSpan(
+                                  text: '  ${r.reason}',
+                                  style: VistaType.subhead.copyWith(
+                                    color: VistaColors.accent,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          style: VistaType.headline,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: VistaSpace.xxs),
+                        Text(
+                          r.sub,
+                          style: VistaType.bodyMedium.copyWith(
+                            color: VistaColors.textMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: VistaSpace.md),
+                  ValueListenableBuilder(
+                    valueListenable: MarketPrices.of(m.id),
+                    builder: (context, price, _) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          MarketPrices.format(price, compact: true),
+                          style: VistaType.figures(VistaType.subhead),
+                        ),
+                        const SizedBox(height: VistaSpace.xxs),
+                        Text(
+                          vistaChangeLabel(m.changePct),
+                          style: VistaType.figures(VistaType.chip)
+                              .copyWith(color: vistaChangeColor(m.changePct)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.md),
+              Padding(
+                padding: const EdgeInsets.only(left: 48),
+                child: Row(
+                  children: [
+                    if (r.people.isNotEmpty) ...[
+                      SizedBox(
+                        width: 22.0 + (r.people.length - 1) * 16,
+                        height: 22,
+                        child: Stack(
+                          children: [
+                            for (final (i, h) in r.people.indexed)
+                              Positioned(left: i * 16.0, child: _Initial(h)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: VistaSpace.md),
+                    ],
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(children: r.line),
+                        style: VistaType.body,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A call on the hub (Figma call · @maya.eth): the caller and record, their
+/// market, the position and debate badges, the call, its live position, like
+/// / replies / counters / Join, then the top reply.
+class _HubCall extends StatelessWidget {
+  const _HubCall({
+    required this.take,
+    required this.onCaller,
+    required this.onMarket,
+    required this.onPosition,
+    required this.onJoin,
+    required this.onReplies,
+    this.onDebate,
+  });
+
+  final Take take;
+  final VoidCallback onCaller;
+  final VoidCallback onMarket;
+  final VoidCallback onPosition;
+  final VoidCallback onJoin;
+  final VoidCallback onReplies;
+  final VoidCallback? onDebate;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = take;
+    final c = t.call!;
+    final thread = ArenaMock.threadOf(t);
+    final record = t.accuracy.split(' ').first;
+    final good = (int.tryParse(record.replaceAll('%', '')) ?? 0) >= 55;
+    final muted = VistaType.bodyMedium.copyWith(color: VistaColors.textMuted);
+    final market = MarketsMock.traders.where((m) => m.id == t.handle);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        VistaSpace.gutter + VistaSpace.xs,
+        VistaSpace.gutter,
+        VistaSpace.gutter + VistaSpace.xs,
+        VistaSpace.lg,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: VistaColors.hairline)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            button: true,
+            label: "${t.handle}'s profile",
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onCaller,
+              child: _Initial(t.handle, size: 40, ring: t.side.color),
+            ),
+          ),
+          const SizedBox(width: VistaSpace.xl),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: GestureDetector(
+                        onTap: onCaller,
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: t.handle),
+                              TextSpan(
+                                text: '  $record right',
+                                style: TextStyle(
+                                  color: good
+                                      ? VistaColors.long
+                                      : VistaColors.textMuted,
+                                ),
+                              ),
+                              TextSpan(text: ' · ${t.age}', style: muted),
+                            ],
+                          ),
+                          style: VistaType.body.copyWith(fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.sm),
+                    FollowChip(handle: t.handle),
+                  ],
+                ),
+                if (market.isNotEmpty)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onMarket,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: VistaSpace.xs),
+                      child: ValueListenableBuilder(
+                        valueListenable: MarketPrices.of(t.handle),
+                        builder: (context, price, _) {
+                          final ch = market.first.changePct;
+                          return Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text:
+                                      '${MarketsMock.traderCards[t.handle]?.symbol ?? t.handle} ',
+                                  style: muted,
+                                ),
+                                TextSpan(
+                                  text:
+                                      '${MarketPrices.format(price, compact: true)} ',
+                                ),
+                                TextSpan(
+                                  text:
+                                      '${ch >= 0 ? '▲' : '▼'}${ch.abs().toStringAsFixed(1)}% ›',
+                                  style: TextStyle(color: vistaChangeColor(ch)),
+                                ),
+                              ],
+                            ),
+                            style: VistaType.figures(VistaType.body),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: VistaSpace.sm),
+                Wrap(
+                  spacing: VistaSpace.sm,
+                  runSpacing: VistaSpace.xs,
+                  children: [
+                    _Badge(
+                      '${t.side.label.toUpperCase()} ${t.ticker} ${c.leverage}x',
+                      t.side.color,
+                    ),
+                    if (t.battle != null)
+                      GestureDetector(
+                        onTap: onDebate,
+                        child: _Badge('${t.battle!} ›', VistaColors.textMuted),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: VistaSpace.sm),
+                Text(
+                  t.body,
+                  style: VistaType.subheadMuted.copyWith(
+                    fontWeight: FontWeight.w400,
+                    color: VistaColors.textPrimary,
+                    height: 21 / 15,
+                  ),
+                ),
+                const SizedBox(height: VistaSpace.sm),
+                BackedPositionCard(
+                  post: c,
+                  ticker: t.ticker,
+                  onTap: onPosition,
+                ),
+                SizedBox(
+                  height: VistaSize.tapTarget,
+                  child: Row(
+                    children: [
+                      // Gives way (shrinks a little) before the Join pill.
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              children: [
+                                TakeAgreeButton(take: t),
+                                if (thread != null) ...[
+                                  const SizedBox(width: VistaSpace.md),
+                                  _Count(
+                                    Icons.chat_bubble_outline_rounded,
+                                    thread.replies,
+                                  ),
+                                  const SizedBox(width: VistaSpace.lg),
+                                  _Count(
+                                    Icons.swap_horiz_rounded,
+                                    thread.counters,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: VistaSpace.sm),
+                      VistaJoinPill(side: t.side, onTap: onJoin),
+                    ],
+                  ),
+                ),
+                if (thread?.top case final r?) _TopReply(reply: r),
+                if (thread != null && thread.replies > 0)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onReplies,
+                    child: SizedBox(
+                      height: 36,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'View all ${thread.replies} replies ›',
+                          style: VistaType.body.copyWith(
+                            color: VistaColors.accent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -311,11 +767,116 @@ class _ArenaScreenState extends State<ArenaScreen> {
   }
 }
 
-/// The floating + in the lower right: starts a take by picking a position.
-class _AddTakeButton extends StatelessWidget {
-  const _AddTakeButton({required this.onTap});
+class _Badge extends StatelessWidget {
+  const _Badge(this.label, this.color);
 
-  static const double size = 56;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: color == VistaColors.textMuted
+          ? VistaColors.surfaceRaised
+          : color.withValues(alpha: 0.14),
+      borderRadius: BorderRadius.circular(VistaRadius.sm),
+    ),
+    child: Text(label, style: VistaType.labelStrong.copyWith(color: color)),
+  );
+}
+
+class _Count extends StatelessWidget {
+  const _Count(this.icon, this.count);
+
+  final IconData icon;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 18, color: VistaColors.textMuted),
+      const SizedBox(width: 5),
+      Text(
+        '$count',
+        style: VistaType.bodyMedium.copyWith(color: VistaColors.textMuted),
+      ),
+    ],
+  );
+}
+
+/// The top reply under a call: who, their record and badge, what they said.
+class _TopReply extends StatelessWidget {
+  const _TopReply({required this.reply});
+
+  final Reply reply;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = reply;
+    final counter = r.counter;
+    final side = counter == null
+        ? null
+        : (counter.startsWith('LONG') ? VistaColors.long : VistaColors.short);
+    final record = CallsStore.recordOf(r.handle)?.split(' ').first;
+    return Padding(
+      padding: const EdgeInsets.only(top: VistaSpace.xxs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Initial(r.handle, size: 26, ring: side ?? VistaColors.surfaceRaised),
+          const SizedBox(width: VistaSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(text: r.handle),
+                            if (record != null)
+                              TextSpan(
+                                text: '  $record right',
+                                style: const TextStyle(color: VistaColors.long),
+                              ),
+                          ],
+                        ),
+                        style: VistaType.body,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.sm),
+                    _Badge(
+                      counter == null ? 'No position' : 'COUNTER · $counter',
+                      side ?? VistaColors.textMuted,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: VistaSpace.xs),
+                Text(
+                  r.body,
+                  style: VistaType.rowRegular.copyWith(
+                    color: VistaColors.textPrimary,
+                    height: 19 / 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The floating + in the lower right: starts a call by picking a position.
+class _PlusButton extends StatelessWidget {
+  const _PlusButton({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -328,8 +889,8 @@ class _AddTakeButton extends StatelessWidget {
       child: VistaPressable(
         onTap: onTap,
         child: Container(
-          width: size,
-          height: size,
+          width: 56,
+          height: 56,
           alignment: Alignment.center,
           decoration: const BoxDecoration(
             color: VistaColors.accent,
@@ -347,206 +908,6 @@ class _AddTakeButton extends StatelessWidget {
             style: VistaType.displayMedium.copyWith(
               color: VistaColors.onAccent,
               height: 1,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A market room: an asset (by ticker) or a trader market (by handle).
-class _Room {
-  const _Room({
-    required this.key,
-    required this.label,
-    this.ticker,
-    this.handle,
-  });
-
-  final String key;
-  final String label;
-  final String? ticker;
-  final String? handle;
-
-  bool matches(Take t) =>
-      ticker != null ? t.ticker == ticker : t.handle == handle;
-
-  bool matchesSettlement(Settlement s) =>
-      ticker != null ? s.marketTicker == ticker : s.handle == handle;
-
-  /// All, the busiest assets, then trader markets with calls.
-  static List<_Room> all(List<Take> takes) {
-    final debates = BattlesStore.all.value;
-    final assets = [
-      for (final m in MarketsMock.assets)
-        (
-          m.id,
-          takes.where((t) => t.ticker == m.id).length +
-              debates.where((b) => b.ticker == m.id).length,
-        ),
-    ].where((a) => a.$2 > 0).toList()..sort((a, b) => b.$2.compareTo(a.$2));
-    final traders = [
-      for (final m in MarketsMock.traders)
-        (m.id, takes.where((t) => t.handle == m.id).length),
-    ].where((a) => a.$2 > 0).toList()..sort((a, b) => b.$2.compareTo(a.$2));
-    return [
-      const _Room(key: '', label: 'All'),
-      for (final (id, _) in assets) _Room(key: id, label: id, ticker: id),
-      for (final (handle, _) in traders)
-        _Room(
-          key: '@$handle',
-          label: MarketsMock.traderCards[handle]?.symbol ?? handle,
-          handle: handle,
-        ),
-    ];
-  }
-
-  /// The room for [key], or null for All (or a room that has emptied).
-  static _Room? find(List<Take> takes, String? key) {
-    if (key == null || key.isEmpty) return null;
-    for (final r in all(takes)) {
-      if (r.key == key) return r;
-    }
-    return null;
-  }
-}
-
-/// The room's market at the top of its feed: name, live price and change,
-/// and a way into the market.
-class _RoomHeader extends StatelessWidget {
-  const _RoomHeader({required this.room, required this.onOpen});
-
-  final _Room room;
-  final void Function(Route<void>) onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = room;
-    final id = r.ticker ?? r.handle!;
-    final item = [
-      ...MarketsMock.assets,
-      ...MarketsMock.traders,
-    ].where((m) => m.id == id).firstOrNull;
-    final change = item?.changePct ?? 0;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        VistaSpace.gutter + VistaSpace.xs,
-        VistaSpace.md,
-        VistaSpace.gutter + VistaSpace.xs,
-        0,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: MarketPrices.of(id),
-              builder: (context, price, _) => Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(text: r.label, style: VistaType.headline),
-                    if (r.handle != null)
-                      TextSpan(
-                        text: ' ${r.handle}',
-                        style: VistaType.bodyMedium.copyWith(
-                          color: VistaColors.textMuted,
-                        ),
-                      ),
-                    TextSpan(
-                      text: '  ${MarketPrices.format(price, compact: true)} ',
-                      style: VistaType.figures(VistaType.subhead),
-                    ),
-                    TextSpan(
-                      text: vistaChangeLabel(change),
-                      style: VistaType.figures(VistaType.label)
-                          .copyWith(color: vistaChangeColor(change)),
-                    ),
-                  ],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          Semantics(
-            button: true,
-            label: 'Open the ${r.label} market',
-            excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onOpen(
-                r.ticker != null
-                    ? AssetTradeScreen.route(r.ticker!)
-                    : TraderMarketScreen.route(r.handle!),
-              ),
-              child: SizedBox(
-                height: VistaSize.tapTarget,
-                child: Center(
-                  child: Text(
-                    'Trade ›',
-                    style: VistaType.subhead.copyWith(
-                      color: VistaColors.accent,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// "Popular ▾" by the Calls heading: picks how the calls are ordered.
-class _SortMenu extends StatelessWidget {
-  const _SortMenu({required this.sort, required this.onChanged});
-
-  final int sort;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<int>(
-      tooltip: '',
-      initialValue: sort,
-      color: VistaColors.surfaceRaised,
-      onSelected: onChanged,
-      position: PopupMenuPosition.under,
-      itemBuilder: (_) => [
-        for (var i = 0; i < ArenaMock.sorts.length; i++)
-          PopupMenuItem(
-            value: i,
-            child: Text(
-              ArenaMock.sorts[i],
-              style: VistaType.subhead.copyWith(
-                color: i == sort ? VistaColors.accent : VistaColors.textPrimary,
-              ),
-            ),
-          ),
-      ],
-      child: Semantics(
-        button: true,
-        label: 'Sort calls: ${ArenaMock.sorts[sort]}',
-        excludeSemantics: true,
-        child: SizedBox(
-          height: VistaSize.tapTarget,
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  ArenaMock.sorts[sort],
-                  style: VistaType.bodyMedium.copyWith(
-                    color: VistaColors.textMuted,
-                  ),
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: 18,
-                  color: VistaColors.textMuted,
-                ),
-              ],
             ),
           ),
         ),

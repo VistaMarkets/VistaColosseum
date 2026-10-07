@@ -337,7 +337,7 @@ class TakeItem extends StatelessWidget {
                 const SizedBox(height: VistaSpace.xs),
                 Row(
                   children: [
-                    _AgreeButton(take: t),
+                    TakeAgreeButton(take: t),
                     if (t.joined case final joined?) ...[
                       const SizedBox(width: VistaSpace.gutter),
                       // Takes the room up to the Join pill; shortens only when
@@ -553,8 +553,8 @@ class _BattleChip extends StatelessWidget {
 }
 
 /// Agree with a take: the Home card's heart button and its count.
-class _AgreeButton extends StatelessWidget {
-  const _AgreeButton({required this.take});
+class TakeAgreeButton extends StatelessWidget {
+  const TakeAgreeButton({super.key, required this.take});
 
   final Take take;
 

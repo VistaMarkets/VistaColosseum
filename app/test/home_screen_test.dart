@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/arena/arena_feed_screen.dart';
+import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
@@ -95,6 +97,32 @@ Finder redFields(Type of) => find.descendant(
             VistaColors.short,
   ),
 );
+
+/// From the Arena hub, Calls › See all: every call (`ArenaFeedScreen`).
+Future<void> openAllCalls(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    find.text('Calls'),
+    300,
+    scrollable: find
+        .descendant(
+          of: find.byType(ArenaScreen),
+          matching: find.byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          ),
+        )
+        .first,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(
+      of: find
+          .ancestor(of: find.text('Calls'), matching: find.byType(Row))
+          .first,
+      matching: find.text('See all'),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
 
 void main() {
   setUpAll(_loadFonts);
@@ -920,6 +948,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
+      // Most of these are about every call: Calls › See all on the hub.
+      await openAllCalls(tester);
     }
 
     // The feed's vertical list (the carousel and chips scroll sideways).
@@ -931,19 +961,43 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Arena tab is a feed: live battles, then takes', (
-      tester,
-    ) async {
-      await openArena(tester);
-      expect(find.text('Live debates'), findsOneWidget);
-      expect(find.byType(BattleTile), findsWidgets);
-      expect(find.text('Calls'), findsOneWidget);
-      expect(find.byType(TakeItem), findsWidgets);
-      expect(find.byType(VistaBattleCard), findsNothing);
-      // The account bar on top (with settings), the composer at the bottom.
-      expect(find.bySemanticsLabel('Settings'), findsOneWidget);
-      expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
-    });
+    testWidgets(
+      'Arena hub: markets, trending, top calls; See all is every call',
+      (tester) async {
+        tester.view
+          ..physicalSize = const Size(402, 874) * 3
+          ..devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(const VistaColosseumApp());
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Arena'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        // The account bar (with settings), search, your markets, the +.
+        expect(find.bySemanticsLabel('Settings'), findsOneWidget);
+        expect(find.text(r'Search $tickers or @people'), findsOneWidget);
+        expect(find.text('Your markets'), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('room')), findsWidgets);
+        expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
+        // A market row opens that market's room in every call.
+        await tester.tap(find.bySemanticsLabel(RegExp('^BTC room')).first);
+        await tester.pumpAndSettle();
+        expect(find.byType(ArenaFeedScreen), findsOneWidget);
+        expect(
+          tester
+              .widgetList<TakeItem>(find.byType(TakeItem))
+              .every((t) => t.take.ticker == 'BTC'),
+          isTrue,
+        );
+        await tester.tap(find.bySemanticsLabel('Back').last);
+        await tester.pumpAndSettle();
+        // Calls › See all: every call, debates on top.
+        await openAllCalls(tester);
+        expect(find.text('Live debates'), findsOneWidget);
+        expect(find.byType(BattleTile), findsWidgets);
+        expect(find.byType(TakeItem), findsWidgets);
+      },
+    );
 
     testWidgets('room chips stay fixed while the feed scrolls', (tester) async {
       await openArena(tester);
@@ -1600,6 +1654,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
+      await openAllCalls(tester);
       await tester.tap(find.byType(BattleTile).first);
       await tester.pumpAndSettle();
     }

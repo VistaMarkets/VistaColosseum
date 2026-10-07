@@ -119,6 +119,41 @@ class Settlement {
   String get when => debate?.result?.age ?? age;
 }
 
+/// A reply under a call (replies are open to everyone): who, their badge
+/// ("No position", "COUNTER · LONG 3x"), and what they said.
+class Reply {
+  const Reply(this.handle, this.body, {this.counter});
+
+  final String handle;
+  final String body;
+
+  /// The counter's position when it is one ("LONG 3x"); null for a reply
+  /// without a position.
+  final String? counter;
+}
+
+/// The conversation under a call: how many replies and counters, and the
+/// top reply shown on the Arena hub.
+class Thread {
+  const Thread({required this.replies, required this.counters, this.top});
+
+  final int replies;
+  final int counters;
+  final Reply? top;
+}
+
+/// Why a market is trending, for the Arena hub ("↑ 31 calls this hour").
+class Trend {
+  const Trend(this.id, this.reason, {this.note});
+
+  /// A ticker, or a trader's handle.
+  final String id;
+  final String reason;
+
+  /// The second line for an asset ("Unlock tomorrow").
+  final String? note;
+}
+
 /// One person's take in the feed. A take on a battle carries [battle]; a
 /// plain call on a market leaves it null. A backed take carries the
 /// position behind it in [call].
@@ -275,6 +310,64 @@ abstract final class ArenaMock {
     ),
     Settlement.debate(debate: settledDebates.first),
   ];
+
+  /// Threads under calls, by `Take.id`'s handle and ticker. Mock: the
+  /// backend's replies replace it.
+  static const threads = {
+    'maya.eth/ETH': Thread(
+      replies: 48,
+      counters: 6,
+      top: Reply(
+        'lunaq',
+        r'Agree on flows, but $2,990 has rejected twice today. Waiting for a '
+            'close above.',
+      ),
+    ),
+    'vega/ETH': Thread(
+      replies: 12,
+      counters: 3,
+      top: Reply(
+        '0xreal',
+        r'Bids at $2,940 have held four times. The ceiling breaks first.',
+        counter: 'LONG 3x',
+      ),
+    ),
+    'renatafx/BTC': Thread(
+      replies: 31,
+      counters: 4,
+      top: Reply(
+        'voskov',
+        'Funding says otherwise. That bid is leverage, not demand.',
+        counter: 'SHORT 5x',
+      ),
+    ),
+    'voskov/BTC': Thread(
+      replies: 19,
+      counters: 2,
+      top: Reply('kilo.sol', 'Same read. Spot volume is nowhere near it.'),
+    ),
+    'lunaq/ETH': Thread(replies: 7, counters: 1),
+    'kilo.sol/SOL': Thread(replies: 9, counters: 1),
+  };
+
+  static Thread? threadOf(Take t) => threads['${t.handle}/${t.ticker}'];
+
+  /// Trending on the Arena hub, hottest first.
+  static const trending = [
+    Trend('ARB', '↑ 31 calls this hour', note: 'Unlock tomorrow'),
+    Trend('deltaone', '↑ 12 new holders'),
+  ];
+
+  /// Who holds a trader's market, for the hub's people line: two names and
+  /// how many in all. Mock.
+  static const holders = {
+    'maya.eth': (names: ['kilo.sol', 'nara'], count: 26),
+    'deltaone': (names: ['maya.eth', 'vega'], count: 41),
+    'lunaq': (names: ['0xreal', 'kestrel'], count: 12),
+  };
+
+  /// Who just did something in a trader market today (trending lines).
+  static const boughtToday = {'deltaone': 'maya.eth'};
 
   /// Ways to order the Live battles page.
   static const battleSorts = ['Most calls', 'Closing soon', 'Closest split'];
