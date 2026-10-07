@@ -6,7 +6,137 @@ import '../../design_system/design_system.dart';
 import '../calls/calls_store.dart';
 import '../live/market_prices.dart';
 import '../portfolio/series_chart.dart';
+import 'leaderboard.dart';
 import 'markets_mock.dart';
+
+/// A trader market on the Explore Leaderboard, in the same chart card as
+/// Assets: its place before the avatar (the top three in medal colours,
+/// the avatar ringed to match), ticker over handle, live price with its
+/// change over the selected [window], the chart over that window, then the
+/// figure the [metric] chip ranks by, market cap and holders. Your own
+/// market is outlined. Simulated history.
+class LeaderboardCard extends StatelessWidget {
+  const LeaderboardCard({
+    super.key,
+    required this.rank,
+    required this.market,
+    required this.metric,
+    required this.window,
+    required this.starred,
+    required this.onStar,
+    this.isYou = false,
+    this.onPressed,
+  });
+
+  final int rank;
+  final MarketItem market;
+
+  /// The chip the board is ranked by (`MarketsMock.traderSorts`).
+  final String metric;
+
+  /// Index into [Leaderboard.windows].
+  final int window;
+  final bool starred;
+  final VoidCallback onStar;
+  final bool isYou;
+  final VoidCallback? onPressed;
+
+  String get name => market.name;
+
+  static const medals = [
+    Color(0xFFE8C14A), // gold
+    Color(0xFFC3C8D0), // silver
+    Color(0xFFCB8E5C), // bronze
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final m = market;
+    final card = MarketsMock.traderCards[m.id];
+    final medal = rank <= 3 ? medals[rank - 1] : null;
+    final v = Leaderboard.value(m, metric, window) ?? 0;
+    final record = (CallsStore.recordOf(m.id) ?? '').split(' ').first;
+    final holders = card?.holders ?? 0;
+    return _MarketChartCard(
+      market: m,
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 26,
+            child: Text(
+              '$rank',
+              style: VistaType.figures(VistaType.headline).copyWith(
+                fontWeight: FontWeight.w700,
+                color: medal ?? VistaColors.textMuted,
+              ),
+            ),
+          ),
+          Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Color(
+                card?.avatar ?? VistaColors.surfaceRaised.toARGB32(),
+              ),
+              shape: BoxShape.circle,
+              border: medal == null ? null : Border.all(color: medal, width: 2),
+            ),
+            child: Text(m.name[0].toUpperCase(), style: VistaType.subhead),
+          ),
+        ],
+      ),
+      title: card?.symbol ?? m.name,
+      subtitle: [
+        m.name,
+        if (isYou) 'You',
+        if (metric == 'Up and coming') '${card?.days ?? 0}d old',
+      ].join(' · '),
+      period: Leaderboard.windows[window].toLowerCase(),
+      changePct: Leaderboard.value(m, 'Change', window),
+      chartKey: 'explore/${m.id}/$window',
+      highlight: isYou,
+      starred: starred,
+      onStar: onStar,
+      onPressed: onPressed,
+      // The ranked figure first, then cap and holders.
+      foot: (strong) => [
+        ...switch (metric) {
+          'Most right' => [
+            TextSpan(text: '${v.toInt()}%', style: strong),
+            const TextSpan(text: ' right  ·  '),
+          ],
+          'Top P&L' => [
+            TextSpan(
+              text: Leaderboard.money(v),
+              style: strong.copyWith(color: vistaChangeColor(v)),
+            ),
+            TextSpan(text: ' ${Leaderboard.periods[window]}  ·  '),
+          ],
+          'Up and coming' => [
+            TextSpan(
+              text: '+${v.toInt()}',
+              style: strong.copyWith(color: VistaColors.long),
+            ),
+            TextSpan(text: window == 3 ? ' holders  ·  ' : ' new holders  ·  '),
+          ],
+          _ => [
+            TextSpan(text: record, style: strong),
+            const TextSpan(text: ' right  ·  '),
+          ],
+        },
+        TextSpan(text: m.third, style: strong),
+        const TextSpan(text: ' cap'),
+        if (metric != 'Up and coming') ...[
+          const TextSpan(text: '  ·  '),
+          TextSpan(text: '$holders', style: strong),
+          const TextSpan(text: ' holders'),
+        ],
+      ],
+    );
+  }
+}
 
 /// An asset perp in the Assets list, in the same card as trader markets:
 /// ticker over the asset's name with its max leverage, live price with its
@@ -79,10 +209,23 @@ class _MarketChartCard extends StatelessWidget {
     required this.foot,
     this.badge,
     this.onPressed,
+    this.changePct,
+    this.chartKey,
+    this.highlight = false,
   });
 
   final MarketItem market;
   final Widget leading;
+
+  /// The change over [period] when it isn't the market's own (a
+  /// Leaderboard window); the chart follows it.
+  final double? changePct;
+
+  /// Seeds the chart's shape, so each window draws its own history.
+  final String? chartKey;
+
+  /// Outlines the card (your own market on the Leaderboard).
+  final bool highlight;
   final String title;
   final String subtitle;
   final String? badge;
@@ -104,12 +247,13 @@ class _MarketChartCard extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: MarketPrices.of(m.id),
       builder: (context, price, _) {
-        final up = m.changePct >= 0;
+        final change = changePct ?? m.changePct;
+        final up = change >= 0;
         return Semantics(
           button: true,
           label:
               '$title, $subtitle, ${MarketPrices.format(price, compact: true)}, '
-              '${vistaChangeLabel(m.changePct)} over $period',
+              '${vistaChangeLabel(change)} over $period',
           child: VistaPressable(
             scale: 0.98,
             onTap: onPressed,
@@ -123,6 +267,9 @@ class _MarketChartCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: VistaColors.surface,
                 borderRadius: BorderRadius.circular(VistaRadius.card),
+                border: highlight
+                    ? Border.all(color: VistaColors.accent, width: 1.5)
+                    : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,9 +347,9 @@ class _MarketChartCard extends StatelessWidget {
                                   TextSpan(
                                     text:
                                         '${up ? '▲' : '▼'}'
-                                        '${m.changePct.abs().toStringAsFixed(1)}%',
+                                        '${change.abs().toStringAsFixed(1)}%',
                                     style: TextStyle(
-                                      color: vistaChangeColor(m.changePct),
+                                      color: vistaChangeColor(change),
                                     ),
                                   ),
                                   TextSpan(
@@ -229,9 +376,10 @@ class _MarketChartCard extends StatelessWidget {
                   const SizedBox(height: VistaSpace.md),
                   MarketLineChart(
                     id: m.id,
-                    changePct: m.changePct,
+                    changePct: change,
                     price: price,
                     height: 56,
+                    seriesKey: chartKey,
                   ),
                   const SizedBox(height: VistaSpace.md),
                   Text.rich(
@@ -262,9 +410,13 @@ class MarketLineChart extends StatelessWidget {
     required this.changePct,
     required this.price,
     required this.height,
+    this.seriesKey,
   });
 
   final String id;
+
+  /// Seeds the line's shape; defaults to the market's own.
+  final String? seriesKey;
   final double changePct;
   final double price;
   final double height;
@@ -273,7 +425,12 @@ class MarketLineChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = MarketPrices.base(id);
     final series = endAt(
-      bridgeSeries('explore/$id', base / (1 + changePct / 100), base, n: 42),
+      bridgeSeries(
+        seriesKey ?? 'explore/$id',
+        base / (1 + changePct / 100),
+        base,
+        n: 42,
+      ),
       price,
     );
     final lo = series.reduce(math.min);

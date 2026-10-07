@@ -8,18 +8,18 @@ import '../trade/asset_trade_screen.dart';
 import '../watchlist/edit_favorites_screen.dart';
 import '../watchlist/watchlist_state.dart';
 import '../live/market_prices.dart';
-import 'leaderboard_row.dart';
+import 'leaderboard.dart';
 import 'markets_mock.dart';
 import 'market_chart_card.dart';
 
-/// Explore tab: Assets and Leaderboard (Figma 185:110, 222:110). Assets are
-/// chart cards (546:300).
+/// Explore tab: Assets and Leaderboard (Figma 185:110, 222:110). Every
+/// market is the same chart card (546:300).
 ///
-/// Leaderboard ranks every trader market as flush rows with no chart
-/// ([LeaderboardRow]): most right, this week's P&L, cap or change, with
-/// yours lifted and your place in the header. Its Up and coming chip
-/// narrows the board to markets opened in the last 30 days, ranked by
-/// holders gained this week.
+/// Leaderboard ranks every trader market ([LeaderboardCard]) by most right,
+/// P&L, cap or change over a 24h / 7d / 30d / All window, which the cards'
+/// change and charts follow; yours is outlined and your place is in the
+/// header. Its Up and coming chip narrows the board to markets opened in
+/// the last 30 days, ranked by holders gained.
 ///
 /// Search filters by name, the sort chips order the list (descending), and
 /// stars add or remove favourites (shared with the market pages' stars),
@@ -43,7 +43,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
   String _query = '';
   final _sort = [0, 0];
 
-  /// Leaderboard time window, an index into [leaderboardWindows] (7d).
+  /// Leaderboard time window, an index into [Leaderboard.windows] (7d).
   int _window = 1;
 
   @override
@@ -74,7 +74,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
   /// What a chip orders by (descending); null keeps designed order.
   double? _sortValue(MarketItem m, String key) =>
-      _traders ? LeaderboardRow.value(m, key, _window) : m.sortValues[key];
+      _traders ? Leaderboard.value(m, key, _window) : m.sortValues[key];
 
   void _selectTab(int i) {
     if (i == _tab) return;
@@ -121,7 +121,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
   Widget _windowSelector() => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      for (final (i, w) in leaderboardWindows.indexed)
+      for (final (i, w) in Leaderboard.windows.indexed)
         Semantics(
           button: true,
           selected: i == _window,
@@ -333,19 +333,15 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Market cap is a snapshot; every other chip has a
-                          // time window.
-                          if (_traders && _sortKey != 'Market cap')
+                          // The window every card's change and chart follow.
+                          if (_traders)
                             _windowSelector()
                           else
                             SizedBox(
                               height: VistaSize.tapTarget,
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: Text(
-                                  _traders ? 'RIGHT NOW' : 'ALL MARKETS',
-                                  style: label,
-                                ),
+                                child: Text('ALL MARKETS', style: label),
                               ),
                             ),
                           const Spacer(),
@@ -385,42 +381,32 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           ),
                         ),
                       ),
-                    // The board: flush rows split by hairlines, no charts.
-                    if (_traders)
-                      for (final (i, (rank, m)) in rows.indexed) ...[
-                        if (i > 0)
-                          const Divider(
-                            height: 1,
-                            thickness: 1,
-                            indent: VistaSpace.gutter,
-                            endIndent: VistaSpace.gutter,
-                            color: VistaColors.hairline,
-                          ),
-                        LeaderboardRow(
-                          rank: rank,
-                          market: m,
-                          metric: _sortKey,
-                          window: _window,
-                          isYou: m.id == PortfolioMock.handle,
-                          onPressed: () => _open(m),
+                    for (final (rank, m) in rows)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          VistaSpace.gutter,
+                          0,
+                          VistaSpace.gutter,
+                          VistaSpace.md,
                         ),
-                      ]
-                    else
-                      for (final (_, m) in rows)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            VistaSpace.gutter,
-                            0,
-                            VistaSpace.gutter,
-                            VistaSpace.md,
-                          ),
-                          child: AssetMarketCard(
-                            market: m,
-                            starred: favs.contains(m.id),
-                            onStar: () => _toggleFavorite(m.id),
-                            onPressed: () => _open(m),
-                          ),
-                        ),
+                        child: _traders
+                            ? LeaderboardCard(
+                                rank: rank,
+                                market: m,
+                                metric: _sortKey,
+                                window: _window,
+                                isYou: m.id == PortfolioMock.handle,
+                                starred: favs.contains(m.id),
+                                onStar: () => _toggleFavorite(m.id),
+                                onPressed: () => _open(m),
+                              )
+                            : AssetMarketCard(
+                                market: m,
+                                starred: favs.contains(m.id),
+                                onStar: () => _toggleFavorite(m.id),
+                                onPressed: () => _open(m),
+                              ),
+                      ),
                   ],
                 ),
               ),
