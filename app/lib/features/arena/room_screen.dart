@@ -176,7 +176,6 @@ class _RoomScreenState extends State<RoomScreen> {
                       for (final t in _tab == 0 ? top : fresh)
                         HubCallCard(
                           take: t,
-                          showReply: false,
                           onCaller: () => _push(ProfileScreen.route(t.handle)),
                           onMarket: () =>
                               _push(TraderMarketScreen.route(t.handle)),
@@ -197,7 +196,6 @@ class _RoomScreenState extends State<RoomScreen> {
                             symbol: t.ticker,
                             side: t.side,
                           ),
-                          onReplies: () {},
                         ),
                     ],
                   ],

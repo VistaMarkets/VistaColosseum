@@ -21,7 +21,7 @@ import 'hub_call_card.dart';
 
 /// Arena tab (Figma 551:205, ARENA-HUB-01): the account bar, search, your
 /// markets and what's trending as people-first rows (who is in, which way),
-/// then the top calls with their top reply. A market's row opens its room
+/// then the top calls. A market's row opens its room
 /// (`RoomScreen`), and See all opens every call (`ArenaFeedScreen`). The + makes a
 /// call from a position.
 class ArenaScreen extends StatefulWidget {
@@ -138,7 +138,6 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         ].take(2))
                           HubCallCard(
                             take: t,
-                            showReply: false,
                             onCaller: () =>
                                 _push(ProfileScreen.route(t.handle)),
                             onMarket: () =>
@@ -158,7 +157,6 @@ class _ArenaScreenState extends State<ArenaScreen> {
                               symbol: t.ticker,
                               side: t.side,
                             ),
-                            onReplies: () => _feed(t.ticker),
                           ),
                       ],
                     ),
