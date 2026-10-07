@@ -2331,6 +2331,32 @@ void main() {
       );
     });
 
+    testWidgets('Home + makes a call and shows it first', (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      await tester.tap(find.text('Solana'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Fading the unlock.');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      // Back on Home, with the new call first.
+      expect(find.byType(PickPositionScreen), findsNothing);
+      final first = tester.widget<TradeIdeaCard>(
+        find.byType(TradeIdeaCard).first,
+      );
+      expect(first.idea.callerHandle, 'maya.eth');
+      expect(first.idea.ticker, 'SOL');
+      expect(first.idea.question, 'Fading the unlock.');
+    });
+
     testWidgets('the tabs switch feeds and start at the top', (tester) async {
       tester.view
         ..physicalSize = const Size(402, 874) * 3

@@ -6,19 +6,28 @@ import '../profile/profile_screen.dart';
 import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import '../trade/order_ticket.dart';
+import '../arena/pick_position_screen.dart';
 import '../calls/calls_store.dart';
 import 'home_feed.dart';
 import 'trade_idea_card.dart';
 
 /// Home feed (Figma 301:102, "Home · header A — caller first, aligned").
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.visible = true, this.onNotBuilt});
+  const HomeScreen({
+    super.key,
+    this.visible = true,
+    this.onNotBuilt,
+    this.onExplore,
+  });
 
   /// Whether the Home tab is showing; card animations only run while it is.
   final bool visible;
 
   /// Called with a feature name when a control leads somewhere not built yet.
   final ValueChanged<String>? onNotBuilt;
+
+  /// Switches to the Explore tab (from the + flow's empty state).
+  final VoidCallback? onExplore;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -52,6 +61,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
+  /// + : pick a position, write the call (optionally a debate), post. The
+  /// new call leads the feed, so the feed goes back to its top to show it.
+  Future<void> _newCall() async {
+    final call = await Navigator.of(context)
+        .push(PickPositionScreen.route(onExplore: widget.onExplore));
+    if (call == null || !mounted) return;
+    CallsStore.add(call);
+    setState(() => _settledPage = 0);
+    if (_pages.hasClients) _pages.jumpToPage(0);
+  }
+
   @override
   Widget build(BuildContext context) {
     // The feed runs to the bottom of the screen, under the floating nav:
@@ -70,18 +90,28 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: VistaSpace.md),
-          VistaSegmentedTabs(
-            labels: const ['Following', 'For You'],
-            selectedIndex: _feed,
-            onChanged: (i) {
-              if (i == _feed) return;
-              // A new feed starts at its top.
-              setState(() {
-                _feed = i;
-                _settledPage = 0;
-              });
-              if (_pages.hasClients) _pages.jumpToPage(0);
-            },
+          // The feed tabs, centred, with + (make a call) at the row's end.
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              VistaSegmentedTabs(
+                labels: const ['Following', 'For You'],
+                selectedIndex: _feed,
+                onChanged: (i) {
+                  if (i == _feed) return;
+                  // A new feed starts at its top.
+                  setState(() {
+                    _feed = i;
+                    _settledPage = 0;
+                  });
+                  if (_pages.hasClients) _pages.jumpToPage(0);
+                },
+              ),
+              Positioned(
+                right: VistaSpace.gutter - VistaSpace.xs,
+                child: _MakeCallButton(onTap: _newCall),
+              ),
+            ],
           ),
           const SizedBox(height: VistaSpace.md),
           Expanded(
@@ -144,6 +174,49 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The Home +: a blue circle at the end of the feed tabs, in a 44pt tap
+/// target. Starts a call, as Arena's floating + does.
+class _MakeCallButton extends StatelessWidget {
+  const _MakeCallButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Make a call',
+      excludeSemantics: true,
+      child: VistaPressable(
+        scale: 0.9,
+        onTap: onTap,
+        child: SizedBox(
+          width: VistaSize.tapTarget,
+          height: VistaSize.tapTarget,
+          child: Center(
+            child: Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: VistaColors.accent,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '+',
+                style: VistaType.title.copyWith(
+                  color: VistaColors.onAccent,
+                  height: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

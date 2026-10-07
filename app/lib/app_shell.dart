@@ -78,7 +78,11 @@ class _AppShellState extends State<AppShell> {
               child: _FadeThroughStack(
                 index: _tab,
                 children: [
-                  HomeScreen(visible: _tab == _home, onNotBuilt: _notBuilt),
+                  HomeScreen(
+                    visible: _tab == _home,
+                    onNotBuilt: _notBuilt,
+                    onExplore: () => _select(_explore),
+                  ),
                   MarketsScreen(onNotBuilt: _notBuilt),
                   ArenaScreen(
                     onNotBuilt: _notBuilt,
