@@ -502,7 +502,8 @@ VistaColosseum/
 │   │   ├── vista-logo-animated.gif
 │   │   └── vista-logo-static.png
 │   ├── plans/
-│   │   └── 2026-10-06-explore-redesign.md
+│   │   ├── 2026-10-06-explore-redesign.md
+│   │   └── 2026-10-07-debates-return.md
 │   ├── prompts/
 │   │   └── social-market-demo-brief-prompt.md
 │   └── backend-data-map.md
