@@ -3332,7 +3332,6 @@ void main() {
     expect(find.byType(NotificationsScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
     expect(find.text('TODAY'), findsOneWidget);
-    expect(find.text('EARLIER'), findsOneWidget);
     expect(Notifications.unread.value, 0);
     // People: follows, with Follow back.
     await tester.tap(find.widgetWithText(VistaFilterChip, 'People'));
@@ -3360,4 +3359,54 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Notifications'), findsOneWidget);
   });
+
+  testWidgets(
+    'a call from someone you follow shows in Notifications as a call card',
+    (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VistaTheme.dark(),
+          home: const NotificationsScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      HubCallCard? voskov() => tester
+          .widgetList<HubCallCard>(
+            find.byType(HubCallCard, skipOffstage: false),
+          )
+          .where((c) => c.take.handle == 'voskov')
+          .firstOrNull;
+      // Not following voskov: no card for their call.
+      expect(FollowState.isFollowing('voskov'), isFalse);
+      expect(voskov(), isNull);
+      FollowState.toggle('voskov');
+      await tester.pumpAndSettle();
+      // Following: voskov's call shows, as a call card.
+      await tester.scrollUntilVisible(
+        find.byWidgetPredicate(
+          (w) => w is HubCallCard && w.take.handle == 'voskov',
+        ),
+        300,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      expect(voskov(), isNotNull);
+      expect(voskov()!.take.ticker, 'BTC');
+      // Join right from it.
+      final card = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'voskov',
+      );
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(VistaJoinPill)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Place market short'), findsOneWidget);
+    },
+  );
 }

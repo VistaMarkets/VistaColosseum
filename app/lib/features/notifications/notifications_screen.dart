@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../arena/arena_mock.dart';
+import '../arena/debate_screen.dart';
 import '../arena/hub_call_card.dart';
+import '../calls/calls_store.dart';
+import '../trade/caller_play_screen.dart';
+import '../trade/order_ticket.dart';
 import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_state.dart';
@@ -25,7 +30,6 @@ class Note {
     this.handle,
     this.detail,
     this.detailColor,
-    this.today = true,
   });
 
   final NoteKind kind;
@@ -37,15 +41,15 @@ class Note {
   final String? detail;
   final Color? detailColor;
   final String age;
-  final bool today;
 
   /// Where it leads.
   final Route<void> Function() open;
 }
 
 /// The viewer's notifications: who joined your calls, new followers, your
-/// calls settling (with your market's move), calls from people you follow,
-/// and markets you hold or watch moving. Mock: the backend's
+/// calls settling (with your market's move), and markets you hold moving.
+/// New calls from people you follow come live from `CallsStore` and show
+/// as call cards. Mock: the backend's
 /// `/v1/notifications` and its stream replace it.
 abstract final class Notifications {
   static final unread = ValueNotifier<int>(4);
@@ -90,15 +94,6 @@ abstract final class Notifications {
       open: () => ReceiptsScreen.route(PortfolioMock.handle),
     ),
     Note(
-      kind: NoteKind.calls,
-      handle: 'renatafx',
-      lead: 'renatafx',
-      rest: ' called LONG BTC 10x',
-      detail: r"Reclaims $72,000 before Friday's expiry",
-      age: '2h',
-      open: () => AssetTradeScreen.route('BTC'),
-    ),
-    Note(
       kind: NoteKind.markets,
       lead: 'SOL ▲3.8%',
       rest: ' · against your 10x short',
@@ -113,18 +108,7 @@ abstract final class Notifications {
       lead: 'nara and 3 others',
       rest: ' started following you',
       age: '1d',
-      today: false,
       open: () => FollowListScreen.route(),
-    ),
-    Note(
-      kind: NoteKind.calls,
-      handle: 'lunaq',
-      lead: 'lunaq',
-      rest: ' called LONG ETH 10x',
-      detail: 'Big bids stacked just under price.',
-      age: '1d',
-      today: false,
-      open: () => AssetTradeScreen.route('ETH'),
     ),
     Note(
       kind: NoteKind.calls,
@@ -133,7 +117,6 @@ abstract final class Notifications {
       detail: '−6.0% · MAYA ▼0.8% as it settled',
       detailColor: VistaColors.short,
       age: '2d',
-      today: false,
       open: () => ReceiptsScreen.route(PortfolioMock.handle),
     ),
   ];
@@ -166,14 +149,51 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  void _push(Route<void> route) => Navigator.of(context).push(route);
+
+  /// New calls from people you follow, as call cards (newest first).
+  static const _postsShown = 5;
+
   @override
   Widget build(BuildContext context) {
-    final notes = [
-      for (final (i, n) in Notifications.all.indexed)
-        if (_filter == 0 || n.kind.index == _filter - 1) (i, n),
+    return ValueListenableBuilder(
+      valueListenable: CallsStore.all,
+      builder: (context, calls, _) => ValueListenableBuilder(
+        valueListenable: FollowState.following,
+        builder: (context, following, _) => _page(calls, following),
+      ),
+    );
+  }
+
+  Widget _page(List<Take> calls, Set<String> following) {
+    final posts =
+        [
+          for (final t in calls)
+            if (following.contains(t.handle) &&
+                t.handle != PortfolioMock.handle)
+              t,
+        ]..sort(
+          (a, b) =>
+              CallsStore.minutesAgo(a.age)
+                  .compareTo(CallsStore.minutesAgo(b.age)),
+        );
+    // Everything in time order: notes and your follows' calls.
+    final items = <(int, Object)>[
+      for (final n in Notifications.all)
+        if (_filter == 0 || n.kind.index == _filter - 1)
+          (CallsStore.minutesAgo(n.age), n),
+      if (_filter <= 1)
+        for (final t in posts.take(_postsShown))
+          (CallsStore.minutesAgo(t.age), t),
+    ]..sort((a, b) => a.$1.compareTo(b.$1));
+    final today = [
+      for (final e in items)
+        if (e.$1 < 1440) e,
     ];
-    final today = notes.where((e) => e.$2.today).toList();
-    final earlier = notes.where((e) => !e.$2.today).toList();
+    final earlier = [
+      for (final e in items)
+        if (e.$1 >= 1440) e,
+    ];
     Widget head(String t) => Padding(
       padding: const EdgeInsets.fromLTRB(
         VistaSpace.gutter + VistaSpace.xs,
@@ -189,11 +209,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
       ),
     );
-    Widget row((int, Note) e) => _NoteRow(
-      note: e.$2,
-      unread: e.$1 < _fresh,
-      onTap: () => Navigator.of(context).push(e.$2.open()),
-    );
+    Widget row(int i, Object item) {
+      final unread = i < _fresh;
+      if (item is Take) {
+        return _PostNote(
+          take: item,
+          unread: unread,
+          onCaller: () => _push(ProfileScreen.route(item.handle)),
+          onMarket: () => _push(TraderMarketScreen.route(item.handle)),
+          onDebate: Debates.of(item) == null
+              ? null
+              : () => _push(DebateScreen.route(Debates.of(item)!)),
+          onPosition: () {
+            if (item.call == null) return;
+            _push(CallerPlayScreen.route(CallsStore.postOf(item), item.ticker));
+          },
+          // Simulated only: joining places nothing real.
+          onJoin: () =>
+              showOrderTicket(context, symbol: item.ticker, side: item.side),
+        );
+      }
+      final n = item as Note;
+      return _NoteRow(note: n, unread: unread, onTap: () => _push(n.open()));
+    }
+
+    final notes = items;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -260,9 +300,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       children: [
                         if (today.isNotEmpty) head('Today'),
-                        for (final e in today) row(e),
+                        for (final (i, e) in today.indexed) row(i, e.$2),
                         if (earlier.isNotEmpty) head('Earlier'),
-                        for (final e in earlier) row(e),
+                        for (final (i, e) in earlier.indexed)
+                          row(today.length + i, e.$2),
                       ],
                     ),
             ),
@@ -434,6 +475,73 @@ class _NoteRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A new call from someone you follow, as the call card it is everywhere
+/// else, with a line saying why it's here.
+class _PostNote extends StatelessWidget {
+  const _PostNote({
+    required this.take,
+    required this.unread,
+    required this.onCaller,
+    required this.onMarket,
+    required this.onPosition,
+    required this.onJoin,
+    this.onDebate,
+  });
+
+  final Take take;
+  final bool unread;
+  final VoidCallback onCaller;
+  final VoidCallback onMarket;
+  final VoidCallback onPosition;
+  final VoidCallback onJoin;
+  final VoidCallback? onDebate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: unread ? VistaColors.accent.withValues(alpha: 0.06) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              VistaSpace.gutter + VistaSpace.xs + 52,
+              VistaSpace.lg,
+              VistaSpace.gutter + VistaSpace.xs,
+              0,
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.campaign_outlined,
+                  size: 14,
+                  color: VistaColors.accent,
+                ),
+                const SizedBox(width: VistaSpace.xs),
+                Text(
+                  'New call from someone you follow',
+                  style: VistaType.caption.copyWith(
+                    color: VistaColors.textMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          HubCallCard(
+            take: take,
+            onCaller: onCaller,
+            onMarket: onMarket,
+            onDebate: onDebate,
+            onPosition: onPosition,
+            onJoin: onJoin,
+          ),
+        ],
       ),
     );
   }
