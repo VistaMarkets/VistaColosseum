@@ -119,7 +119,8 @@ class _RoomScreenState extends State<RoomScreen> {
                     .toList();
                 final top = [
                   for (final t in HomeFeed.forYou(calls))
-                    if (_inRoom(t)) t,
+                    // Only calls with a position behind them.
+                    if (_inRoom(t) && t.backed) t,
                 ];
                 final fresh = [...top]
                   ..sort(

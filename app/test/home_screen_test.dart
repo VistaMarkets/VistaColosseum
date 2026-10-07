@@ -1250,6 +1250,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(on('New'), isTrue);
       final newest = CallsStore.all.value
+          .where((t) => t.backed)
           .map((t) => CallsStore.minutesAgo(t.age))
           .reduce((a, b) => a < b ? a : b);
       final first = tester.widget<HubCallCard>(find.byType(HubCallCard).first);

@@ -169,7 +169,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final posts =
         [
           for (final t in calls)
-            if (following.contains(t.handle) &&
+            // Only calls with a position behind them.
+            if (t.backed &&
+                following.contains(t.handle) &&
                 t.handle != PortfolioMock.handle)
               t,
         ]..sort(

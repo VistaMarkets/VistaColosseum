@@ -166,10 +166,13 @@ class HubCallCard extends StatelessWidget {
                   spacing: VistaSpace.sm,
                   runSpacing: VistaSpace.xs,
                   children: [
-                    _Badge(
+                    // The side as coloured text, no box.
+                    Text(
                       '${t.side.label.toUpperCase()} ${t.ticker}'
                       '${c == null ? '' : ' ${c.leverage}x'}',
-                      t.side.color,
+                      style: VistaType.labelStrong.copyWith(
+                        color: t.side.color,
+                      ),
                     ),
                     if (t.battle != null)
                       GestureDetector(

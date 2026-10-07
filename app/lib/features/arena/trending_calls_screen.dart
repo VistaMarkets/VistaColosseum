@@ -82,7 +82,12 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
   /// - New: everything by age.
   static const _settlementEvery = 3;
 
-  List<Object> _feed(List<Take> calls, List<Settlement> settled) {
+  List<Object> _feed(List<Take> all, List<Settlement> settled) {
+    // A call stands on a position: only those with one show.
+    final calls = [
+      for (final t in all)
+        if (t.backed) t,
+    ];
     if (_sort == 2) {
       final items = <(int, Object)>[
         for (final t in calls) (CallsStore.minutesAgo(t.age), t),
