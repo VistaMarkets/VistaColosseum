@@ -15,7 +15,8 @@ class VistaListRow extends StatelessWidget {
     required this.title,
     required this.tag,
     required this.tagColor,
-    required this.sparkAsset,
+    this.sparkAsset,
+    this.chart,
     required this.value,
     required this.change,
     required this.valueColor,
@@ -28,8 +29,11 @@ class VistaListRow extends StatelessWidget {
   final String tag;
   final Color tagColor;
 
-  /// Spark chart vector (88×30).
-  final String sparkAsset;
+  /// Spark chart vector (88×30), unless a live [chart] is given.
+  final String? sparkAsset;
+
+  /// A live chart in the spark's 88×30 slot, in place of [sparkAsset].
+  final Widget? chart;
   final String value;
   final String change;
   final Color valueColor;
@@ -96,16 +100,22 @@ class VistaListRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: VistaSpace.lg),
-              // Spark chart; the vector bleeds 0.85% past each side.
-              SizedBox(
-                width: 88,
-                height: 30,
-                child: OverflowBox(
-                  maxWidth: 88 * 1.017,
-                  child: VistaIcon(sparkAsset, size: 88 * 1.017, height: 30),
+              if (chart != null) ...[
+                SizedBox(width: 88, height: 30, child: chart),
+                // Clear of the live end dot on the chart's edge.
+                const SizedBox(width: VistaSpace.xl),
+              ] else if (sparkAsset != null) ...[
+                // Spark chart; the vector bleeds 0.85% past each side.
+                SizedBox(
+                  width: 88,
+                  height: 30,
+                  child: OverflowBox(
+                    maxWidth: 88 * 1.017,
+                    child: VistaIcon(sparkAsset!, size: 88 * 1.017, height: 30),
+                  ),
                 ),
-              ),
-              const SizedBox(width: VistaSpace.lg),
+                const SizedBox(width: VistaSpace.lg),
+              ],
               ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 64),
                 child: Column(

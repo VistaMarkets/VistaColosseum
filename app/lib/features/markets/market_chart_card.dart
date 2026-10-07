@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../calls/calls_store.dart';
 import '../live/market_prices.dart';
+import '../portfolio/portfolio_mock.dart';
 import '../portfolio/series_chart.dart';
 import 'leaderboard.dart';
 import 'markets_mock.dart';
@@ -490,9 +491,14 @@ class MarketLineChart extends StatelessWidget {
     required this.price,
     required this.height,
     this.seriesKey,
+    this.invert = false,
   });
 
   final String id;
+
+  /// Flips the line, so up is green for a short (where a falling price is
+  /// the gain).
+  final bool invert;
 
   /// Seeds the line's shape; defaults to the market's own.
   final String? seriesKey;
@@ -503,7 +509,7 @@ class MarketLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = MarketPrices.base(id);
-    final series = endAt(
+    final raw = endAt(
       bridgeSeries(
         seriesKey ?? 'explore/$id',
         base / (1 + changePct / 100),
@@ -512,6 +518,7 @@ class MarketLineChart extends StatelessWidget {
       ),
       price,
     );
+    final series = invert ? [for (final v in raw) -v] : raw;
     final lo = series.reduce(math.min);
     final hi = series.reduce(math.max);
     final pad = (hi - lo) * 0.12;
@@ -529,9 +536,37 @@ class MarketLineChart extends StatelessWidget {
           Positioned(
             right: -6,
             top: endY - 6,
-            child: _EndDot(up: price >= series.first),
+            child: _EndDot(up: series.last >= series.first),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// An open position's chart for its row (Portfolio, the position picker):
+/// the app's line from the entry to the live price, flipped for a short so
+/// green is always the gain. Simulated history.
+class PositionLineChart extends StatelessWidget {
+  const PositionLineChart({super.key, required this.position});
+
+  final PortfolioPosition position;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = position.detail;
+    final base = MarketPrices.base(d.symbol);
+    if (base == 0 || d.entry == 0) return const SizedBox.shrink();
+    return ValueListenableBuilder(
+      valueListenable: MarketPrices.of(d.symbol),
+      builder: (context, price, _) => MarketLineChart(
+        id: d.symbol,
+        // Starts at the entry, ends at the live price.
+        changePct: (base / d.entry - 1) * 100,
+        price: price,
+        height: 30,
+        seriesKey: 'position/${d.symbol}/${d.entry}',
+        invert: position.side == TradeSide.short,
       ),
     );
   }

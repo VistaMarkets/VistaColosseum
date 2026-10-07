@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
+import '../markets/market_chart_card.dart';
 
 import '../account/account_state.dart';
 import '../account/account_top_bar.dart';
@@ -297,7 +298,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             title: p.title,
             tag: p.tag,
             tagColor: p.side.color,
-            sparkAsset: p.sparkAsset,
+            chart: PositionLineChart(position: p),
             value: p.pnl,
             change: p.pnlPercent,
             valueColor: p.pnlColor,

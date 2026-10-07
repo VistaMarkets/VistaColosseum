@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../markets/market_chart_card.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../portfolio/positions_state.dart';
 import 'arena_mock.dart';
@@ -168,7 +169,7 @@ class PickPositionScreen extends StatelessWidget {
                       title: p.title,
                       tag: p.tag,
                       tagColor: p.side.color,
-                      sparkAsset: p.sparkAsset,
+                      chart: PositionLineChart(position: p),
                       value: p.pnl,
                       change: p.pnlPercent,
                       valueColor: p.pnlColor,
