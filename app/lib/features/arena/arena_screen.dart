@@ -54,12 +54,25 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   void _push(Route<void> route) => Navigator.of(context).push(route);
 
+  // Each room is its own list from the top; nothing restores an old offset.
+  final _feedScroll = ScrollController(keepScrollOffset: false);
+
+  @override
+  void dispose() {
+    _feedScroll.dispose();
+    super.dispose();
+  }
+
   /// The + : pick the position to back the take, write it, post it. The
-  /// new take goes to the top of the feed.
+  /// new call leads the feed: back to All and the top, so it shows whichever
+  /// room you were in or however far you had scrolled.
   Future<void> _newTake() async {
     final take = await Navigator.of(context)
         .push(PickPositionScreen.route(onExplore: widget.onExplore));
-    if (take != null) CallsStore.add(take);
+    if (take == null || !mounted) return;
+    CallsStore.add(take);
+    setState(() => _room = null);
+    if (_feedScroll.hasClients) _feedScroll.jumpTo(0);
   }
 
   Widget _takeItem(Take t) {
@@ -177,6 +190,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
                       ],
                     );
                     return ListView(
+                      key: ValueKey(_room ?? ''),
+                      controller: _feedScroll,
                       // Room to scroll the last call clear of the + button
                       // and nav.
                       padding: EdgeInsets.only(

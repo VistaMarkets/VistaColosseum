@@ -1142,6 +1142,36 @@ void main() {
       );
     });
 
+    testWidgets('posting from another room lands on top of All', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'BTC'));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).last, const Offset(0, -600));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'ETH/BTC bottomed.');
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      // Back in All, at the top, with the new ETH call first.
+      expect(
+        tester
+            .widget<VistaFilterChip>(
+              find.widgetWithText(VistaFilterChip, 'All'),
+            )
+            .selected,
+        isTrue,
+      );
+      expect(find.text('Live debates'), findsOneWidget);
+      final first = tester.widget<TakeItem>(find.byType(TakeItem).first);
+      expect(first.take.body, 'ETH/BTC bottomed.');
+    });
+
     testWidgets('Popular / Recent orders the calls', (tester) async {
       await openArena(tester);
       expect(find.text('Popular'), findsOneWidget);
