@@ -149,12 +149,19 @@ abstract final class MarketsMock {
         ),
       };
 
-  /// Up and coming: trader markets younger than this.
+  /// Up and coming: trader markets younger than this, by holders gained.
   static const newMarketDays = 30;
 
   static const assetSorts = ['Volume', 'Change', 'Funding'];
-  static const traderSorts = ['Most right', 'Top P&L', 'Market cap', 'Change'];
-  static const risingSorts = ['Rising', 'Newest', 'Most right'];
+
+  /// Leaderboard chips; Up and coming narrows the board to new markets.
+  static const traderSorts = [
+    'Most right',
+    'Top P&L',
+    'Up and coming',
+    'Market cap',
+    'Change',
+  ];
 
   /// Favourites as designed. The Assets rail shows SOL although its row is
   /// unstarred in Figma; favourites here are one list, so SOL is starred.

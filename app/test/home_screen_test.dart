@@ -11,6 +11,7 @@ import 'package:vista_colosseum/features/arena/trending_calls_screen.dart';
 import 'package:vista_colosseum/features/arena/hub_call_card.dart';
 import 'package:vista_colosseum/features/arena/room_screen.dart';
 import 'package:vista_colosseum/features/arena/arena_screen.dart';
+import 'package:vista_colosseum/features/markets/leaderboard_row.dart';
 import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
@@ -797,31 +798,24 @@ void main() {
       expect(find.text('RANKED THIS WEEK'), findsOneWidget);
       // Most right first: maya.eth (82%) is #1, and it's you.
       expect(find.textContaining('#1', findRichText: true), findsOneWidget);
-      // Each trader market is a chart card; the Favorites rail is unchanged.
+      // Each trader is a flush row with no chart; the Favorites rail is
+      // unchanged.
       expect(find.byType(VistaMarketRow), findsNothing);
       expect(find.byType(VistaMarketCard), findsNWidgets(3));
-      final maya = find.byType(TraderMarketCard).first;
-      expect(tester.widget<TraderMarketCard>(maya).name, 'maya.eth');
-      expect(tester.widget<TraderMarketCard>(maya).rank, 1);
-      expect(
-        find.descendant(of: maya, matching: find.text('maya.eth · You')),
-        findsOneWidget,
-      );
+      expect(find.byType(AssetMarketCard), findsNothing);
+      final maya = find.byType(LeaderboardRow).first;
+      expect(tester.widget<LeaderboardRow>(maya).name, 'maya.eth');
+      expect(tester.widget<LeaderboardRow>(maya).rank, 1);
       expect(
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(
-        find.descendant(of: maya, matching: find.text('MAYA')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: maya,
-          matching: find.textContaining('82% right', findRichText: true),
-        ),
-        findsOneWidget,
-      );
+      for (final text in ['MAYA', 'maya.eth · You', '82%', 'right']) {
+        expect(
+          find.descendant(of: maya, matching: find.text(text)),
+          findsOneWidget,
+        );
+      }
 
       await tester.scrollUntilVisible(
         find.text('0xreal'),
@@ -830,7 +824,7 @@ void main() {
       );
       final xreal = find.ancestor(
         of: find.text('0xreal'),
-        matching: find.byType(TraderMarketCard),
+        matching: find.byType(LeaderboardRow),
       );
       await tester.ensureVisible(xreal);
       await tester.pumpAndSettle();
@@ -845,39 +839,34 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(VistaFilterChip, 'Top P&L'));
       await tester.pumpAndSettle();
-      final first = tester.widget<TraderMarketCard>(
-        find.byType(TraderMarketCard).first,
+      final first = tester.widget<LeaderboardRow>(
+        find.byType(LeaderboardRow).first,
       );
       expect((first.name, first.rank), ('deltaone', 1));
+      expect(find.text(r'+$15.8K'), findsOneWidget);
       // maya.eth is second by P&L.
       expect(find.textContaining('#2', findRichText: true), findsOneWidget);
     });
 
-    testWidgets('Up and coming lists new markets by holders gained', (
+    testWidgets('Up and coming narrows the board to new markets', (
       tester,
     ) async {
       await openMarkets(tester);
-      await tester.tap(find.text('Up and coming'));
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
       await tester.pumpAndSettle();
       expect(find.text('OPENED IN THE LAST 30 DAYS'), findsOneWidget);
-      final cards = tester
-          .widgetList<TraderMarketCard>(find.byType(TraderMarketCard))
+      final rows = tester
+          .widgetList<LeaderboardRow>(find.byType(LeaderboardRow))
           .toList();
-      // Rising: vexa (+52) then pip.eth (+41); nothing older than 30 days.
-      expect(cards.first.name, 'vexa');
-      expect(cards.map((c) => c.name), isNot(contains('maya.eth')));
-      expect(cards.first.foot, TraderCardFoot.rising);
-      expect(
-        find.textContaining('+52 holders this week', findRichText: true),
-        findsOneWidget,
-      );
-      await tester.tap(find.widgetWithText(VistaFilterChip, 'Newest'));
-      await tester.pumpAndSettle();
-      expect(
-        tester.widget<TraderMarketCard>(find.byType(TraderMarketCard).first)
-            .name,
-        'pip.eth',
-      );
+      // By holders gained: vexa (+52) then pip.eth (+41); nothing older
+      // than 30 days, so you (maya.eth) aren't on it.
+      expect(rows.map((r) => r.name).take(2), ['vexa', 'pip.eth']);
+      expect(rows.map((r) => r.name), isNot(contains('maya.eth')));
+      expect(find.text('vexa · 6d old'), findsOneWidget);
+      expect(find.text('+52'), findsOneWidget);
+      expect(find.textContaining('You', findRichText: true), findsNothing);
     });
 
     Future<void> railShows(WidgetTester tester, String name) =>
@@ -953,7 +942,7 @@ void main() {
       );
       final xreal = find.ancestor(
         of: find.text('0xreal'),
-        matching: find.byType(TraderMarketCard),
+        matching: find.byType(LeaderboardRow),
       );
       await tester.ensureVisible(xreal);
       await tester.pumpAndSettle();
@@ -1012,7 +1001,9 @@ void main() {
         await tester.tap(find.text('Leaderboard'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await tester.tap(find.text('Up and coming'));
+        await tester.tap(
+          find.widgetWithText(VistaFilterChip, 'Up and coming'),
+        );
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
