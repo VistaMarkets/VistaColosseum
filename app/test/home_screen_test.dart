@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/arena/game_mock.dart';
+import 'package:vista_colosseum/features/arena/arena_hub.dart';
+import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
@@ -111,6 +114,7 @@ void main() {
     SettingsState.reset();
     WatchlistState.reset();
     OrdersState.reset();
+    ArenaScreen.lastTab.value = 0;
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -906,6 +910,17 @@ void main() {
   });
 
   group('arena', () {
+    // Arena | Threads | Ranks at the top of the Arena tab.
+    Future<void> view(WidgetTester tester, String name) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(VistaSegmentedTabs),
+          matching: find.text(name),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
     Future<void> openArena(
       WidgetTester tester, [
       Size size = const Size(402, 874),
@@ -920,7 +935,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
+      // Most of these are about the feed, which lives under Threads.
+      await view(tester, 'Threads');
     }
+
+    // The hub's battle face-off: tapping it opens the debate.
+    Finder hero() => find.bySemanticsLabel(RegExp('^Battle: '));
 
     // The feed's vertical list (the carousel and chips scroll sideways).
     final feed = find.byWidgetPredicate(
@@ -931,18 +951,103 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Arena tab is a feed: live battles, then takes', (
+    testWidgets('Arena is a hub; Threads the feed; Ranks the table', (
       tester,
     ) async {
       await openArena(tester);
-      expect(find.text('Live debates'), findsOneWidget);
-      expect(find.byType(BattleTile), findsWidgets);
+      await view(tester, 'Arena');
+      expect(find.text('Gold II'), findsOneWidget); // your season
+      expect(find.text('Live battles'), findsOneWidget);
+      expect(find.text('Back renatafx'), findsOneWidget); // the face-off
+      expect(find.text('Back voskov'), findsOneWidget);
+      await view(tester, 'Ranks');
+      expect(find.text('#1'), findsOneWidget);
+      expect(find.text('This week'), findsOneWidget);
+      expect(find.bySemanticsLabel('Make a call'), findsNothing);
+      await view(tester, 'Threads');
       expect(find.text('Calls'), findsOneWidget);
       expect(find.byType(TakeItem), findsWidgets);
       expect(find.byType(VistaBattleCard), findsNothing);
       // The account bar on top (with settings), the composer at the bottom.
       expect(find.bySemanticsLabel('Settings'), findsOneWidget);
       expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
+    });
+
+    testWidgets('hub: back a side, challenge a call, ranks, a room', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await view(tester, 'Arena');
+      // Back the long side of the hottest battle: the ticket opens long.
+      await tester.tap(find.text('Back renatafx'));
+      await tester.pumpAndSettle();
+      expect(find.text('Place market long'), findsOneWidget);
+      await tester.tapAt(const Offset(200, 80));
+      await tester.pumpAndSettle();
+
+      // Challenge a hot thread: pick a position on the other side.
+      final hub = find
+          .descendant(
+            of: find.byType(ArenaHub),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      await tester.scrollUntilVisible(
+        find.text('Hot threads'),
+        200,
+        scrollable: hub,
+      );
+      await tester.drag(hub, const Offset(0, -250));
+      await tester.pumpAndSettle();
+      final callSide = tester
+          .widget<TakeItem>(find.byType(TakeItem).first)
+          .take
+          .side;
+      await tester.tap(find.text('Challenge').first);
+      await tester.pumpAndSettle();
+      final picker = tester.widget<PickPositionScreen>(
+        find.byType(PickPositionScreen),
+      );
+      expect(picker.side, isNot(callSide));
+      expect(find.text('Take the other side'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+
+      // Your markets: a market opens its room under Threads.
+      await tester.scrollUntilVisible(
+        find.text('Your markets'),
+        200,
+        scrollable: hub,
+      );
+      await tester.drag(hub, const Offset(0, -300));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel(RegExp('^ETH room')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<VistaFilterChip>(
+              find.widgetWithText(VistaFilterChip, 'ETH'),
+            )
+            .selected,
+        isTrue,
+      );
+      expect(
+        tester
+            .widgetList<TakeItem>(find.byType(TakeItem))
+            .every((t) => t.take.ticker == 'ETH'),
+        isTrue,
+      );
+
+      // Ranks: the week by return, the season by points.
+      await view(tester, 'Ranks');
+      String first() => GameMock.ranked(season: false).first.handle;
+      expect(find.text(first()), findsWidgets);
+      await tester.tap(find.text(GameMock.season));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('${GameMock.ranked(season: true).first.points} pts'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('room chips stay fixed while the feed scrolls', (tester) async {
@@ -1076,7 +1181,7 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
-      expect(find.byType(BattleTile), findsNWidgets(3)); // carousel: top 3
+      await view(tester, 'Arena');
       await tester.tap(find.text('See all'));
       await tester.pumpAndSettle();
       expect(find.byType(LiveBattlesScreen), findsOneWidget);
@@ -1167,7 +1272,6 @@ void main() {
             .selected,
         isTrue,
       );
-      expect(find.text('Live debates'), findsOneWidget);
       final first = tester.widget<TakeItem>(find.byType(TakeItem).first);
       expect(first.take.body, 'ETH/BTC bottomed.');
     });
@@ -1217,7 +1321,8 @@ void main() {
 
     testWidgets('a debate is a thread you can argue in', (tester) async {
       await openArena(tester);
-      await tester.tap(find.byType(BattleTile).first);
+      await view(tester, 'Arena');
+      await tester.tap(hero());
       await tester.pumpAndSettle();
       // Every call on it, backed first.
       expect(find.byType(BackedPositionCard), findsWidgets);
@@ -1243,6 +1348,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // ETH: argue long with the ETH long, the debate already attached.
+      await tester.tap(find.text('See all'));
+      await tester.pumpAndSettle();
       final eth = find.byWidgetPredicate(
         (w) => w is BattleTile && w.battle.ticker == 'ETH',
       );
@@ -1278,6 +1385,7 @@ void main() {
         tester,
       ) async {
         await openArena(tester, size, padding);
+        await view(tester, 'Arena');
         await tester.tap(find.text('See all'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
@@ -1428,14 +1536,6 @@ void main() {
       );
       expect(
         CallsStore.all.value.first.battle,
-        r'ETH touches $3,200 before Friday',
-      );
-      expect(
-        tester
-            .widgetList<BattleTile>(find.byType(BattleTile))
-            .first
-            .battle
-            .question,
         r'ETH touches $3,200 before Friday',
       );
     });
@@ -1600,7 +1700,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(BattleTile).first);
+      // The hub's battle face-off.
+      await tester.tap(find.bySemanticsLabel(RegExp('^Battle: ')));
       await tester.pumpAndSettle();
     }
 
@@ -1614,7 +1715,7 @@ void main() {
       expect(find.text('Argue long'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Back').last);
       await tester.pumpAndSettle();
-      expect(find.byType(BattleTile), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('^Battle: ')), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -2882,10 +2983,20 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      // Bring voskov's take clear of the floating composer first.
-      await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+      // Heating up on the Arena hub: voskov just went short BTC.
+      final join = find.text('Join short');
+      await tester.scrollUntilVisible(
+        join.first,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(ArenaHub),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Join short').first);
+      await tester.tap(join.first);
       await tester.pumpAndSettle();
       expect(find.text('Place market short'), findsOneWidget);
     });
