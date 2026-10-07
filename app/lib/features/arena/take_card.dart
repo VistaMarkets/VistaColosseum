@@ -212,14 +212,9 @@ class TakeItem extends StatelessWidget {
     this.onBattle,
     this.onCall,
     this.onJoin,
-    this.onChallenge,
   });
 
   final Take take;
-
-  /// Take the other side of this call (Arena's Hot threads); hidden when
-  /// null.
-  final VoidCallback? onChallenge;
   final VoidCallback? onCaller;
 
   /// Opens the caller's market (when they have one).
@@ -343,9 +338,7 @@ class TakeItem extends StatelessWidget {
                 Row(
                   children: [
                     _AgreeButton(take: t),
-                    // Hot threads trade the joined count for Challenge.
-                    if (t.joined case final joined?
-                        when onChallenge == null) ...[
+                    if (t.joined case final joined?) ...[
                       const SizedBox(width: VistaSpace.gutter),
                       // Takes the room up to the Join pill; shortens only when
                       // it truly doesn't fit (small phones).
@@ -378,10 +371,6 @@ class TakeItem extends StatelessWidget {
                       ),
                     ] else
                       const Spacer(),
-                    if (onChallenge != null) ...[
-                      _ChallengePill(against: t.side, onTap: onChallenge!),
-                      const SizedBox(width: VistaSpace.md),
-                    ],
                     VistaJoinPill(side: t.side, onTap: onJoin),
                   ],
                 ),
@@ -667,43 +656,6 @@ class _CallerMarket extends StatelessWidget {
               ),
               maxLines: 1,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// "Challenge": take the other side of a call, in that side's colour.
-class _ChallengePill extends StatelessWidget {
-  const _ChallengePill({required this.against, required this.onTap});
-
-  final TradeSide against;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = against == TradeSide.long
-        ? VistaColors.short
-        : VistaColors.long;
-    return Semantics(
-      button: true,
-      label: 'Challenge',
-      excludeSemantics: true,
-      child: VistaPressable(
-        scale: 0.96,
-        onTap: onTap,
-        child: Container(
-          height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: VistaSpace.xl),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(VistaRadius.pill),
-          ),
-          child: Text(
-            'Challenge',
-            style: VistaType.subhead.copyWith(color: color),
           ),
         ),
       ),

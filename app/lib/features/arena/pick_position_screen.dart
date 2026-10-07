@@ -16,36 +16,20 @@ import '../trade/order_ticket.dart';
 /// debate attached, and with none it offers to open one: a call always
 /// stands on a position.
 class PickPositionScreen extends StatelessWidget {
-  const PickPositionScreen({
-    super.key,
-    this.onExplore,
-    this.debate,
-    this.side,
-    this.ticker,
-  });
+  const PickPositionScreen({super.key, this.onExplore, this.debate, this.side});
 
   /// Takes the viewer to Explore to open a position (the empty state).
   final VoidCallback? onExplore;
   final LiveBattle? debate;
   final TradeSide? side;
 
-  /// A challenge on a plain call: only positions on this market and [side].
-  final String? ticker;
-
-  String? get _market => debate?.ticker ?? ticker;
-
   static Route<Take> route({
     VoidCallback? onExplore,
     LiveBattle? debate,
     TradeSide? side,
-    String? ticker,
   }) => MaterialPageRoute(
-    builder: (_) => PickPositionScreen(
-      onExplore: onExplore,
-      debate: debate,
-      side: side,
-      ticker: ticker,
-    ),
+    builder: (_) =>
+        PickPositionScreen(onExplore: onExplore, debate: debate, side: side),
   );
 
   @override
@@ -53,7 +37,8 @@ class PickPositionScreen extends StatelessWidget {
     valueListenable: PositionsState.open,
     builder: (context, positions, _) => _page(context, [
       for (final p in positions)
-        if (_market == null || (p.detail.symbol == _market && p.side == side))
+        if (debate == null ||
+            (p.detail.symbol == debate!.ticker && p.side == side))
           p,
     ]),
   );
@@ -95,21 +80,15 @@ class PickPositionScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _market == null
+                    debate == null
                         ? 'What are you calling?'
-                        : debate == null
-                        ? 'Take the other side'
                         : 'Back your ${side!.label.toLowerCase()} case',
                     style: VistaType.displaySmall,
                   ),
                   const SizedBox(height: VistaSpace.sm),
                   Text(
-                    _market == null
+                    debate == null
                         ? 'Your position shows on the call, live.'
-                        : debate == null
-                        ? 'Challenge it with a $_market '
-                              '${side!.label.toLowerCase()}: your position '
-                              'shows on the call, live.'
                         : 'On "${debate!.question}". Your '
                               '${debate!.ticker} ${side!.label.toLowerCase()} '
                               'shows on the call, live.',
@@ -143,13 +122,13 @@ class PickPositionScreen extends StatelessWidget {
                     ),
                   ),
                   // No positions yet: a call needs one, so point the way.
-                  if (positions.isEmpty && _market != null)
+                  if (positions.isEmpty && debate != null)
                     _NoSidePosition(
-                      ticker: _market!,
+                      ticker: debate!.ticker,
                       side: side!,
                       onOpen: () => showOrderTicket(
                         context,
-                        symbol: _market!,
+                        symbol: debate!.ticker,
                         side: side!,
                       ),
                     )

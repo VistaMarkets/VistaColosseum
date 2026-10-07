@@ -12,24 +12,24 @@ import '../profile/profile_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
-import 'arena_hub.dart';
 import 'arena_mock.dart';
-import 'arena_ranks.dart';
 import 'live_battles_screen.dart';
 import 'debate_screen.dart';
 import 'pick_position_screen.dart';
 import 'settlement_item.dart';
 import 'take_card.dart';
 
-/// Arena tab (Figma 559:204, ARENA-GAME): three views under the account
-/// bar, Arena | Threads | Ranks, and the last one used comes back.
+/// Arena tab (Figma 505:204, "Arena — takes feed"; rooms from
+/// ARENA-SOCIAL 542:205): market rooms along the top, live debates in a
+/// sideways carousel, then an X-style feed of calls with settled calls and
+/// debates mixed in. A call is either on a debate (with a chip opening its
+/// thread) or a plain call on a market; backed calls carry their position.
 ///
-/// - Arena (`arena_hub.dart`): your season, the hottest battle face to face,
-///   markets heating up, hot threads, your markets.
-/// - Threads: the feed. Market rooms along the top (All, busy assets, trader
-///   markets), then calls with settled calls and debates mixed in, ordered
-///   Popular (the Home ranking) or Recent.
-/// - Ranks (`arena_ranks.dart`): the week's and season's leaderboard.
+/// Rooms: All, then every asset with calls or debates (busiest first), then
+/// every trader market with calls. A room filters the debates, calls and
+/// settlements to that market and leads with its price and a way to trade
+/// it. Calls are ordered Popular (the Home ranking, new-caller boost and
+/// all) or Recent.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt, this.onExplore});
 
@@ -39,9 +39,6 @@ class ArenaScreen extends StatefulWidget {
   /// Switches to the Explore tab (from the + flow's empty state).
   final VoidCallback? onExplore;
 
-  /// Arena, Threads or Ranks; remembered while the app runs.
-  static final lastTab = ValueNotifier<int>(0);
-
   @override
   State<ArenaScreen> createState() => _ArenaScreenState();
 }
@@ -49,8 +46,6 @@ class ArenaScreen extends StatefulWidget {
 class _ArenaScreenState extends State<ArenaScreen> {
   /// Height the floating + button takes above the nav (button plus margins).
   static const double _composerSpace = 68;
-
-  set _tab(int i) => ArenaScreen.lastTab.value = i;
 
   int _sort = 0; // ArenaMock.sorts
 
@@ -69,38 +64,21 @@ class _ArenaScreenState extends State<ArenaScreen> {
   }
 
   /// The + : pick the position to back the take, write it, post it. The
-  /// new call leads Threads: back to All and the top, so it shows whichever
-  /// view or room you were in or however far you had scrolled.
-  Future<void> _newTake() =>
-      _post(PickPositionScreen.route(onExplore: widget.onExplore));
-
-  /// Challenge: take the other side of [t] with a position on its market
-  /// (and its debate, when it's on one).
-  Future<void> _challenge(Take t) => _post(
-    PickPositionScreen.route(
-      onExplore: widget.onExplore,
-      debate: Debates.of(t),
-      ticker: t.ticker,
-      side: t.side == TradeSide.long ? TradeSide.short : TradeSide.long,
-    ),
-  );
-
-  Future<void> _post(Route<Take> route) async {
-    final take = await Navigator.of(context).push(route);
+  /// new call leads the feed: back to All and the top, so it shows whichever
+  /// room you were in or however far you had scrolled.
+  Future<void> _newTake() async {
+    final take = await Navigator.of(context)
+        .push(PickPositionScreen.route(onExplore: widget.onExplore));
     if (take == null || !mounted) return;
     CallsStore.add(take);
-    setState(() {
-      _tab = 1;
-      _room = null;
-    });
+    setState(() => _room = null);
     if (_feedScroll.hasClients) _feedScroll.jumpTo(0);
   }
 
-  Widget _takeItem(Take t, {bool challenge = false}) {
+  Widget _takeItem(Take t) {
     final debate = Debates.of(t);
     return TakeItem(
       take: t,
-      onChallenge: challenge ? () => _challenge(t) : null,
       onCaller: () => _push(ProfileScreen.route(t.handle)),
       onMarket: () => _push(TraderMarketScreen.route(t.handle)),
       onBattle: debate == null ? null : () => _push(DebateScreen.route(debate)),
@@ -139,109 +117,6 @@ class _ArenaScreenState extends State<ArenaScreen> {
     return out;
   }
 
-  /// Threads: rooms on top, then the feed.
-  Widget _threads(double navSpace) => Column(
-    children: [
-      // Rooms stay put while the feed scrolls. One row that
-      // scrolls sideways when they outrun the screen.
-      ValueListenableBuilder(
-        valueListenable: CallsStore.all,
-        builder: (context, takes, _) {
-          final rooms = _Room.all(takes);
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              0,
-              VistaSpace.gutter,
-              VistaSpace.xs,
-            ),
-            child: Row(
-              children: [
-                for (final (i, r) in rooms.indexed) ...[
-                  if (i > 0) const SizedBox(width: VistaSpace.md),
-                  VistaFilterChip(
-                    label: r.label,
-                    accent: true,
-                    selected: r.key == (_room ?? ''),
-                    onPressed: () => setState(() => _room = r.key),
-                  ),
-                ],
-              ],
-            ),
-          );
-        },
-      ),
-      Expanded(
-        // Every call, shared with the trade pages' Callers.
-        child: ValueListenableBuilder(
-          valueListenable: CallsStore.all,
-          builder: (context, takes, _) {
-            final room = _Room.find(takes, _room);
-            final items = _feed(
-              [
-                for (final t in takes)
-                  if (room == null || room.matches(t)) t,
-              ],
-              [
-                for (final st in ArenaMock.settlements)
-                  if (room == null || room.matchesSettlement(st)) st,
-              ],
-            );
-            return ListView(
-              key: ValueKey(_room ?? ''),
-              controller: _feedScroll,
-              // Room to scroll the last call clear of the + button
-              // and nav.
-              padding: EdgeInsets.only(
-                bottom: VistaSpace.gutter + _composerSpace + navSpace,
-              ),
-              children: [
-                if (room != null) _RoomHeader(room: room, onOpen: _push),
-                ArenaSectionHead(
-                  title: 'Calls',
-                  top: VistaSpace.md,
-                  bottom: 0,
-                  trailing: _SortMenu(
-                    sort: _sort,
-                    onChanged: (i) => setState(() => _sort = i),
-                  ),
-                ),
-                if (items.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(VistaSpace.section),
-                    child: Text(
-                      'No calls here yet.',
-                      textAlign: TextAlign.center,
-                      style: VistaType.body.copyWith(
-                        color: VistaColors.textMuted,
-                      ),
-                    ),
-                  ),
-                for (final item in items)
-                  if (item is Settlement)
-                    SettlementItem(
-                      settlement: item,
-                      onCaller: item.handle == null
-                          ? null
-                          : () => _push(ProfileScreen.route(item.handle!)),
-                      onMarket: item.handle == null
-                          ? null
-                          : () => _push(TraderMarketScreen.route(item.handle!)),
-                      onDebate: item.debate == null
-                          ? null
-                          : () => _push(DebateScreen.route(item.debate!)),
-                    )
-                  else if (item is Take)
-                    _takeItem(item),
-              ],
-            );
-          },
-        ),
-      ),
-    ],
-  );
-
   @override
   Widget build(BuildContext context) {
     // The list runs to the bottom of the screen and scrolls under the
@@ -263,57 +138,172 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   showSettings: true,
                 ),
               ),
+              const SizedBox(height: VistaSpace.md),
+              // Rooms stay put while the feed scrolls. One row that
+              // scrolls sideways when they outrun the screen.
               ValueListenableBuilder(
-                valueListenable: ArenaScreen.lastTab,
-                builder: (context, tab, _) => VistaSegmentedTabs(
-                  labels: const ['Arena', 'Threads', 'Ranks'],
-                  selectedIndex: tab,
-                  onChanged: (i) => setState(() => _tab = i),
-                ),
+                valueListenable: CallsStore.all,
+                builder: (context, takes, _) {
+                  final rooms = _Room.all(takes);
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(
+                      VistaSpace.gutter,
+                      0,
+                      VistaSpace.gutter,
+                      VistaSpace.xs,
+                    ),
+                    child: Row(
+                      children: [
+                        for (final (i, r) in rooms.indexed) ...[
+                          if (i > 0) const SizedBox(width: VistaSpace.md),
+                          VistaFilterChip(
+                            label: r.label,
+                            accent: true,
+                            selected: r.key == (_room ?? ''),
+                            onPressed: () => setState(() => _room = r.key),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
               ),
               Expanded(
+                // Every call, shared with the trade pages' Callers.
                 child: ValueListenableBuilder(
-                  valueListenable: ArenaScreen.lastTab,
-                  builder: (context, tab, _) => switch (tab) {
-                    1 => _threads(navSpace),
-                    2 => ArenaRanks(
-                      bottomPadding: navSpace + VistaSize.navBar,
-                      onTrader: (h) => _push(ProfileScreen.route(h)),
-                    ),
-                    _ => ArenaHub(
-                      bottomPadding:
-                          VistaSpace.gutter + _composerSpace + navSpace,
-                      onRanks: () => setState(() => _tab = 2),
-                      onRoom: (key) => setState(() {
-                        _tab = 1;
-                        _room = key;
-                      }),
-                      onThreads: () => setState(() {
-                        _tab = 1;
-                        _room = null;
-                      }),
-                      onDebate: (b) => _push(DebateScreen.route(b)),
-                      onAllDebates: () => _push(LiveBattlesScreen.route()),
-                      onNewCall: _newTake,
-                      onJoin: (ticker, side) =>
-                          showOrderTicket(context, symbol: ticker, side: side),
-                      takeItem: (t) => _takeItem(t, challenge: true),
-                    ),
+                  valueListenable: CallsStore.all,
+                  builder: (context, takes, _) {
+                    final room = _Room.find(takes, _room);
+                    final debates = [
+                      for (final b in BattlesStore.all.value)
+                        if (room == null || room.ticker == b.ticker) b,
+                    ];
+                    final items = _feed(
+                      [
+                        for (final t in takes)
+                          if (room == null || room.matches(t)) t,
+                      ],
+                      [
+                        for (final st in ArenaMock.settlements)
+                          if (room == null || room.matchesSettlement(st)) st,
+                      ],
+                    );
+                    return ListView(
+                      key: ValueKey(_room ?? ''),
+                      controller: _feedScroll,
+                      // Room to scroll the last call clear of the + button
+                      // and nav.
+                      padding: EdgeInsets.only(
+                        bottom: VistaSpace.gutter + _composerSpace + navSpace,
+                      ),
+                      children: [
+                        if (room != null)
+                          _RoomHeader(room: room, onOpen: _push),
+                        if (room == null || debates.isNotEmpty) ...[
+                          ArenaSectionHead(
+                            title: 'Live debates',
+                            // "See all" sits in a 44pt tap row; the head's
+                            // padding gives back the extra height.
+                            top: VistaSpace.md,
+                            bottom: 0,
+                            trailing: Semantics(
+                              button: true,
+                              label: 'See all live debates',
+                              excludeSemantics: true,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _push(LiveBattlesScreen.route()),
+                                child: SizedBox(
+                                  height: VistaSize.tapTarget,
+                                  child: Center(
+                                    child: Text(
+                                      'See all',
+                                      style: VistaType.subhead.copyWith(
+                                        color: VistaColors.accent,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: VistaSpace.gutter,
+                            ),
+                            // Tiles share the tallest one's height.
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  for (final (i, b)
+                                      in debates.take(3).indexed) ...[
+                                    if (i > 0)
+                                      const SizedBox(width: VistaSpace.lg),
+                                    BattleTile(
+                                      battle: b,
+                                      onTap: () => _push(DebateScreen.route(b)),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                        ArenaSectionHead(
+                          title: 'Calls',
+                          bottom: 0,
+                          trailing: _SortMenu(
+                            sort: _sort,
+                            onChanged: (i) => setState(() => _sort = i),
+                          ),
+                        ),
+                        if (items.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(VistaSpace.section),
+                            child: Text(
+                              'No calls here yet.',
+                              textAlign: TextAlign.center,
+                              style: VistaType.body.copyWith(
+                                color: VistaColors.textMuted,
+                              ),
+                            ),
+                          ),
+                        for (final item in items)
+                          if (item is Settlement)
+                            SettlementItem(
+                              settlement: item,
+                              onCaller: item.handle == null
+                                  ? null
+                                  : () => _push(
+                                      ProfileScreen.route(item.handle!),
+                                    ),
+                              onMarket: item.handle == null
+                                  ? null
+                                  : () => _push(
+                                      TraderMarketScreen.route(item.handle!),
+                                    ),
+                              onDebate: item.debate == null
+                                  ? null
+                                  : () =>
+                                        _push(DebateScreen.route(item.debate!)),
+                            )
+                          else if (item is Take)
+                            _takeItem(item),
+                      ],
+                    );
                   },
                 ),
               ),
             ],
           ),
           // The + floats in the lower right, just above the nav.
-          ValueListenableBuilder(
-            valueListenable: ArenaScreen.lastTab,
-            builder: (context, tab, _) => tab == 2
-                ? const SizedBox.shrink()
-                : Positioned(
-                    right: VistaSpace.gutter,
-                    bottom: navSpace + VistaSpace.md,
-                    child: _AddTakeButton(onTap: _newTake),
-                  ),
+          Positioned(
+            right: VistaSpace.gutter,
+            bottom: navSpace + VistaSpace.md,
+            child: _AddTakeButton(onTap: _newTake),
           ),
         ],
       ),
