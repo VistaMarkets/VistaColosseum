@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vista_colosseum/features/markets/trader_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
@@ -751,50 +750,25 @@ void main() {
       expect(find.byType(VistaIntervalSelector), findsOneWidget);
     });
 
-    // Assets favourites are market cards; Traders ones are chart cards.
-    final railCard = find.byWidgetPredicate(
-      (w) => w is VistaMarketCard || w is TraderChartCard,
-    );
-
     Future<void> railShows(WidgetTester tester, String name) =>
         tester.scrollUntilVisible(
-          find.descendant(of: railCard, matching: find.text(name)),
+          find.descendant(
+            of: find.byType(VistaMarketCard),
+            matching: find.text(name),
+          ),
           150,
           scrollable: find
-              .ancestor(of: railCard.first, matching: find.byType(Scrollable))
+              .ancestor(
+                of: find.byType(VistaMarketCard).first,
+                matching: find.byType(Scrollable),
+              )
               .first,
         );
 
-    List<String> railNames(WidgetTester tester) => [
-      for (final w in tester.widgetList(railCard))
-        if (w is VistaMarketCard) w.name else (w as TraderChartCard).name,
-    ];
-
-    testWidgets('Traders rail shows chart cards with the record', (
-      tester,
-    ) async {
-      await openMarkets(tester);
-      await tester.tap(find.text('Traders'));
-      await tester.pumpAndSettle();
-      expect(find.byType(VistaMarketCard), findsNothing);
-      final maya = find.byType(TraderChartCard).first;
-      expect(tester.widget<TraderChartCard>(maya).name, 'maya.eth');
-      expect(
-        find.descendant(of: maya, matching: find.byType(SeriesChart)),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: maya, matching: find.text('214')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: maya, matching: find.text('3 calls')),
-        findsOneWidget,
-      );
-      await tester.tap(maya);
-      await tester.pumpAndSettle();
-      expect(find.byType(VistaIntervalSelector), findsOneWidget);
-    });
+    List<String> railNames(WidgetTester tester) => tester
+        .widgetList<VistaMarketCard>(find.byType(VistaMarketCard))
+        .map((c) => c.name)
+        .toList();
 
     testWidgets('asset page star and Explore stars share one watchlist', (
       tester,

@@ -64,19 +64,12 @@ double canvasY(double v, double lo, double hi) {
 /// green above its starting value and red below, with the dot lattice in
 /// the fill; [muted] (if any) is a second series drawn as a quiet grey line
 /// on its own scale behind it; a dashed line marks the start and a dotted
-/// line the current value. [marks] pins settled calls on the line by point
-/// index: white dots ringed green (right) or red (wrong).
+/// line the current value.
 class SeriesChart extends StatelessWidget {
-  const SeriesChart({
-    super.key,
-    required this.focus,
-    this.muted,
-    this.marks = const [],
-  });
+  const SeriesChart({super.key, required this.focus, this.muted});
 
   final List<double> focus;
   final List<double>? muted;
-  final List<(int, bool)> marks;
 
   @override
   Widget build(BuildContext context) {
@@ -137,47 +130,11 @@ class SeriesChart extends StatelessWidget {
                 ),
               ),
             ),
-            if (marks.isNotEmpty)
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _CallMarks([
-                    for (final (i, right) in marks)
-                      if (i >= 0 && i < points.length)
-                        (Offset(points[i].dx * sx, points[i].dy * sy), right),
-                  ]),
-                ),
-              ),
           ],
         );
       },
     );
   }
-}
-
-class _CallMarks extends CustomPainter {
-  const _CallMarks(this.marks);
-
-  final List<(Offset, bool)> marks;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final dot = Paint()..color = VistaColors.textPrimary;
-    for (final (o, right) in marks) {
-      canvas
-        ..drawCircle(o, 5, dot)
-        ..drawCircle(
-          o,
-          3.75,
-          Paint()
-            ..color = right ? VistaColors.long : VistaColors.short
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.5,
-        );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CallMarks old) => !listEquals(old.marks, marks);
 }
 
 /// A horizontal level across the chart at [y]: grey 2-on-3 dashes (a
