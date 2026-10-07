@@ -6,6 +6,7 @@ import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../people/follow_mock.dart';
 import 'settings_mock.dart';
+import '../profile/edit_profile_screen.dart';
 import 'settings_state.dart';
 
 /// Settings, opened from the Portfolio gear (Figma 442:102; sections open
@@ -86,7 +87,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _account(),
                     const VistaSettingsDivider(),
-                    Text(SettingsMock.bio, style: VistaType.bodyRegular),
+                    ValueListenableBuilder(
+                      valueListenable: ProfileEdits.bio,
+                      builder: (context, bio, _) =>
+                          Text(bio, style: VistaType.bodyRegular),
+                    ),
                     const VistaSettingsDivider(),
                     VistaSettingRow(
                       title: 'Wallet',
@@ -170,7 +175,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           excludeSemantics: true,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _notBuilt('Edit profile'),
+            onTap: () async {
+              final saved = await Navigator.of(context)
+                  .push(EditProfileScreen.route());
+              if (saved == true) _say('Profile updated');
+            },
             child: SizedBox(
               height: VistaSize.tapTarget,
               child: Center(

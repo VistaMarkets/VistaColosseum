@@ -428,6 +428,7 @@ VistaColosseum/
 │   │   │   │   ├── positions_state.dart
 │   │   │   │   └── series_chart.dart
 │   │   │   ├── profile/  — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data); `receipts_screen.dart` is a trader's full record ("All receipts" from a profile, trader market or your market): % right, counts, All/Calls/Arena/Open filters, every receipt; a receipt, or a "Holding now" row, opens `ReceiptSheet` (side, called at, settled at / now, verdict)
+│   │   │   │   ├── edit_profile_screen.dart
 │   │   │   │   ├── holdings_table.dart
 │   │   │   │   ├── private_profile_screen.dart
 │   │   │   │   ├── profile_mock.dart

@@ -8,6 +8,7 @@ import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
 import '../people/follow_state.dart';
+import 'edit_profile_screen.dart';
 import 'profile_mock.dart';
 import 'receipts_screen.dart';
 
@@ -35,6 +36,9 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _span = PortfolioMock.defaultSpan;
+
+  /// Your own profile (shows your edits).
+  bool get _mine => widget.handle == PortfolioMock.handle;
   int _filter = 0; // 0 All, 1 Calls, 2 Arena
 
   final _scroll = ScrollController();
@@ -254,6 +258,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         gap,
+        // Your own name from Edit profile, over your handle.
+        if (_mine)
+          ValueListenableBuilder(
+            valueListenable: ProfileEdits.name,
+            builder: (context, name, _) => name.isEmpty
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: VistaSpace.xs),
+                    child: Text(
+                      name,
+                      style: VistaType.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+          ),
         Text(
           widget.handle,
           style: VistaType.displayNumber,
@@ -303,10 +323,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
         gap,
-        Text(
-          ProfileMock.bio,
-          textAlign: TextAlign.center,
-          style: VistaType.bodyRegular.copyWith(height: 1.35),
+        ValueListenableBuilder(
+          valueListenable: ProfileEdits.bio,
+          builder: (context, bio, _) => Text(
+            _mine ? bio : ProfileMock.bio,
+            textAlign: TextAlign.center,
+            style: VistaType.bodyRegular.copyWith(height: 1.35),
+          ),
         ),
         gap,
         Row(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/profile/edit_profile_screen.dart';
 import 'package:vista_colosseum/features/arena/trending_calls_screen.dart';
 import 'package:vista_colosseum/features/arena/hub_call_card.dart';
 import 'package:vista_colosseum/features/arena/room_screen.dart';
@@ -159,6 +160,7 @@ void main() {
     SettingsState.reset();
     WatchlistState.reset();
     OrdersState.reset();
+    ProfileEdits.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -3255,5 +3257,51 @@ void main() {
     final ranked = HomeFeed.forYou(CallsStore.all.value);
     final i = ranked.indexWhere((t) => t.handle == 'vega' && t.backed);
     expect(i, lessThanOrEqualTo(HomeFeed.newCallerSlot));
+  });
+
+  testWidgets('Settings › Edit: change name and bio; your profile shows them', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Settings').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit').first);
+    await tester.pumpAndSettle();
+    expect(find.byType(EditProfileScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // Nothing changed yet: Save waits.
+    await tester.tap(find.bySemanticsLabel('Save'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditProfileScreen), findsOneWidget);
+    // Bios stop at 60 characters.
+    await tester.enterText(find.byType(TextField).last, 'x' * 80);
+    await tester.pump();
+    expect(find.text('60/60'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Maya');
+    await tester.enterText(
+      find.byType(TextField).last,
+      'Swing trades, receipts.',
+    );
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Save'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditProfileScreen), findsNothing);
+    expect(find.text('Profile updated'), findsOneWidget);
+    expect(find.text('Swing trades, receipts.'), findsOneWidget); // settings
+    // Your profile shows the name over the handle, and the bio.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const ProfileScreen(handle: 'maya.eth'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Maya'), findsOneWidget);
+    expect(find.text('Swing trades, receipts.'), findsOneWidget);
   });
 }
