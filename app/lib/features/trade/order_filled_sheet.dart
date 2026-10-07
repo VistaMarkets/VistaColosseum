@@ -84,7 +84,8 @@ class OrderFilledSheet extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         VistaSpace.gutter,
-        VistaSpace.lg,
+        // Room above the burst so its sparkles don't crowd the sheet's edge.
+        VistaSpace.section + VistaSpace.gutter,
         VistaSpace.gutter,
         bottom > 0 ? bottom : VistaSpace.gutter,
       ),
