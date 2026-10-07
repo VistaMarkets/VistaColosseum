@@ -15,14 +15,20 @@ import 'take_card.dart';
 /// viewer's avatar beside the text, and under the text the position that
 /// backs it, live. Pops with the new [Take] on Post.
 class ComposeTakeScreen extends StatefulWidget {
-  const ComposeTakeScreen({super.key, required this.position});
+  const ComposeTakeScreen({super.key, required this.position, this.debate});
 
   final PortfolioPosition position;
 
+  /// The live debate the call goes on, when written from that debate's
+  /// page (Argue long / short).
+  final LiveBattle? debate;
+
   static const maxLength = 280;
 
-  static Route<Take> route(PortfolioPosition position) =>
-      MaterialPageRoute(builder: (_) => ComposeTakeScreen(position: position));
+  static Route<Take> route(PortfolioPosition position, {LiveBattle? debate}) =>
+      MaterialPageRoute(
+        builder: (_) => ComposeTakeScreen(position: position, debate: debate),
+      );
 
   /// The position as the order a backed take shows, in the market's own
   /// prices.
@@ -53,7 +59,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   BattleSpec? _battle;
 
   /// Set instead when the call goes on a battle that's already live.
-  LiveBattle? _joined;
+  late LiveBattle? _joined = widget.debate;
 
   @override
   void initState() {

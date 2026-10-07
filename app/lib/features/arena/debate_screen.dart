@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
 import '../calls/calls_store.dart';
 import '../live/market_prices.dart';
 import '../market/trader_market_screen.dart';
-import '../portfolio/portfolio_mock.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
+import 'pick_position_screen.dart';
 import 'take_card.dart';
 
 /// A debate as a thread: the question, its live split and time left (or
-/// how it settled), then every call on it, backed or argued, newest
-/// arguments in with the rest. Argue long / short posts your case on a
-/// side; it shows here, in the Arena feed with the debate chip, and on
-/// Home. Arguments without a position don't move the split or count for a
-/// record.
+/// how it settled), then every call on it. Argue long / short makes your
+/// case as a call: pick (or open) a position on that side, write it, and it
+/// joins the debate, moves the split and shows here, in the Arena feed and
+/// on Home. Every call stands on a position.
 class DebateScreen extends StatefulWidget {
   const DebateScreen({super.key, required this.debate});
 
@@ -38,32 +36,29 @@ class _DebateScreenState extends State<DebateScreen> {
 
   void _push(Route<void> route) => Navigator.of(context).push(route);
 
-  Future<void> _argue(TradeSide side) async {
-    final b = widget.debate;
-    final body = await showVistaSheet<String>(
-      context,
-      color: VistaColors.background,
-      builder: (_) => _ArgueSheet(debate: b, side: side),
-    );
-    if (body == null || body.isEmpty) return;
-    CallsStore.add(
-      Take(
-        handle: PortfolioMock.handle,
-        side: side,
-        accuracy: '82% right',
-        age: 'now',
-        ticker: b.ticker,
-        battle: b.label,
-        body: body,
-        likes: 0,
-      ),
-    );
+  /// Argue a side: pick (or open) a position on it, write the call with
+  /// the debate attached. It joins the debate (moving the split) and lands
+  /// in every call feed.
+  Future<void> _argue(LiveBattle b, TradeSide side) async {
+    final take = await Navigator.of(context)
+        .push(PickPositionScreen.route(debate: b, side: side));
+    if (take == null || !mounted) return;
+    CallsStore.add(take);
     setState(() => _filter = 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final b = widget.debate;
+    // The live debate, so a call joining it moves the split here.
+    return ValueListenableBuilder(
+      valueListenable: BattlesStore.all,
+      builder: (context, all, _) => _page(
+        all.where((x) => x.id == widget.debate.id).firstOrNull ?? widget.debate,
+      ),
+    );
+  }
+
+  Widget _page(LiveBattle b) {
     final long = (b.longShare * 100).round();
     final result = b.result;
     return Scaffold(
@@ -235,7 +230,7 @@ class _DebateScreenState extends State<DebateScreen> {
                 },
               ),
             ),
-            if (!b.settled) _ArgueDock(onArgue: _argue),
+            if (!b.settled) _ArgueDock(onArgue: (side) => _argue(b, side)),
           ],
         ),
       ),
@@ -318,102 +313,6 @@ class _ArgueDock extends StatelessWidget {
             onPressed: () => onArgue(TradeSide.short),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Write your case for a side; pops with the text on Post.
-class _ArgueSheet extends StatefulWidget {
-  const _ArgueSheet({required this.debate, required this.side});
-
-  final LiveBattle debate;
-  final TradeSide side;
-
-  @override
-  State<_ArgueSheet> createState() => _ArgueSheetState();
-}
-
-class _ArgueSheetState extends State<_ArgueSheet> {
-  final _text = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _text.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _text.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final side = widget.side;
-    final body = VistaType.subheadMuted.copyWith(
-      fontWeight: FontWeight.w400,
-      color: VistaColors.textPrimary,
-      height: 21 / 15,
-    );
-    final ready = _text.text.trim().isNotEmpty;
-    final inset = MediaQuery.viewInsetsOf(context).bottom;
-    final bottom = MediaQuery.paddingOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        VistaSpace.gutter + VistaSpace.xs,
-        VistaSpace.lg,
-        VistaSpace.gutter + VistaSpace.xs,
-        inset > 0
-            ? inset + VistaSpace.lg
-            : (bottom > 0 ? bottom : VistaSpace.gutter),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'ARGUE ${side.label.toUpperCase()}',
-            style: VistaType.labelStrong.copyWith(color: side.color),
-          ),
-          const SizedBox(height: VistaSpace.xs),
-          Text(widget.debate.question, style: VistaType.subhead),
-          const SizedBox(height: VistaSpace.lg),
-          TextField(
-            controller: _text,
-            autofocus: true,
-            minLines: 3,
-            maxLines: 6,
-            maxLength: 280,
-            maxLengthEnforcement: MaxLengthEnforcement.enforced,
-            keyboardType: TextInputType.multiline,
-            textCapitalization: TextCapitalization.sentences,
-            style: body,
-            cursorColor: VistaColors.accent,
-            decoration: InputDecoration(
-              isCollapsed: true,
-              border: InputBorder.none,
-              counterText: '',
-              hintText: 'Make your case…',
-              hintStyle: body.copyWith(color: VistaColors.textPlaceholder),
-            ),
-          ),
-          const SizedBox(height: VistaSpace.lg),
-          Text(
-            'Posted without a position, so it won\'t count for your record. '
-            'Back it with a trade from + to make it a call.',
-            style: VistaType.caption.copyWith(color: VistaColors.textMuted),
-          ),
-          const SizedBox(height: VistaSpace.lg),
-          VistaPillButton(
-            label: 'Post',
-            variant: ready ? VistaPillVariant.accent : VistaPillVariant.neutral,
-            onPressed: ready
-                ? () => Navigator.of(context).pop(_text.text.trim())
-                : null,
-          ),
-        ],
       ),
     );
   }

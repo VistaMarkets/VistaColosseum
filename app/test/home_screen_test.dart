@@ -1219,8 +1219,7 @@ void main() {
       await openArena(tester);
       await tester.tap(find.byType(BattleTile).first);
       await tester.pumpAndSettle();
-      final b = tester.widget<DebateScreen>(find.byType(DebateScreen)).debate;
-      // Backed calls and arguments on it, backed first.
+      // Every call on it, backed first.
       expect(find.byType(BackedPositionCard), findsWidgets);
       expect(find.text('orbit.eth'), findsOneWidget);
       await tester.tap(find.text('Short'));
@@ -1232,21 +1231,46 @@ void main() {
         isTrue,
       );
 
-      final split = b.takes;
+      // No BTC position: arguing a side means opening one first.
       await tester.tap(find.text('Argue short'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Funding says no.');
-      await tester.pump(); // Post enables once there's text
-      await tester.tap(find.text('Post'));
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      expect(find.text('No BTC short open'), findsOneWidget);
+      expect(find.text('Open a short'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back').last);
       await tester.pumpAndSettle();
-      final mine = CallsStore.all.value.firstWhere(
-        (t) => t.body == 'Funding says no.',
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+
+      // ETH: argue long with the ETH long, the debate already attached.
+      final eth = find.byWidgetPredicate(
+        (w) => w is BattleTile && w.battle.ticker == 'ETH',
       );
-      expect(mine.battle, b.label);
-      expect(mine.backed, isFalse);
-      expect(find.text('Funding says no.'), findsOneWidget);
-      // An argument doesn't move the split.
-      expect(BattlesStore.all.value.first.takes, split);
+      await tester.tap(eth.first);
+      await tester.pumpAndSettle();
+      final debate = tester
+          .widget<DebateScreen>(find.byType(DebateScreen))
+          .debate;
+      final before = debate.takes;
+      await tester.tap(find.text('Argue long'));
+      await tester.pumpAndSettle();
+      expect(find.text('Back your long case'), findsOneWidget);
+      expect(find.text('Ethereum'), findsOneWidget); // only ETH longs
+      expect(find.text('Solana'), findsNothing);
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+      expect(find.text('LIVE DEBATE'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Staking flows turned.');
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      // Back on the thread: the call is first, backed, and on the debate.
+      expect(find.byType(DebateScreen), findsOneWidget);
+      final mine = tester.widget<TakeItem>(find.byType(TakeItem).first).take;
+      expect(mine.body, 'Staking flows turned.');
+      expect(mine.backed, isTrue);
+      expect(mine.battle, debate.label);
+      expect(find.text('${before + 1} calls'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {

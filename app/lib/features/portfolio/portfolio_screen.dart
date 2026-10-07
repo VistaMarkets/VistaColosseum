@@ -67,8 +67,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       bottom: false,
       // Scrolls under the floating nav; the end clears it.
       child: ListView(
+        // The account bar sits where it does on Home, Explore and Arena.
         padding: EdgeInsets.only(
-          top: 9,
           bottom: VistaSpace.gutter + MediaQuery.paddingOf(context).bottom,
         ),
         children: [
