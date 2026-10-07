@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/trade/order_filled_sheet.dart';
 import 'package:vista_colosseum/features/notifications/notifications_screen.dart';
 import 'package:vista_colosseum/features/profile/edit_profile_screen.dart';
 import 'package:vista_colosseum/features/arena/trending_calls_screen.dart';
@@ -2645,7 +2646,16 @@ void main() {
       await tester.tap(find.text(r'Long $200 · 2x'));
       await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
-      expect(find.textContaining('in Positions'), findsOneWidget);
+      // The fill gets its own confirmation, burst on top.
+      expect(find.byType(OrderFilledSheet), findsOneWidget);
+      expect(find.byType(FillBurst), findsOneWidget);
+      expect(find.text('Order filled'), findsOneWidget);
+      expect(find.text('Filled at'), findsOneWidget);
+      expect(find.text(r'$200.00'), findsOneWidget); // you paid
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderFilledSheet), findsNothing);
       await tester.tap(find.bySemanticsLabel('Wallet'));
       await tester.pumpAndSettle();
       expect(PositionsState.open.value, hasLength(4));
@@ -2653,6 +2663,21 @@ void main() {
       final first = PositionsState.open.value.first;
       expect(first.tag, 'LONG 2x');
       expect(first.detail.opened, 'just now');
+    });
+
+    testWidgets('Post a call from the filled popup opens the composer', (
+      tester,
+    ) async {
+      await launch(tester);
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(r'Long $200 · 2x'));
+      await tester.pump(VistaMotion.confirmHold);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Post a call'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      expect(find.text('LONG 2x'), findsOneWidget); // the new position
     });
 
     testWidgets('Close removes the position; Undo puts it back', (

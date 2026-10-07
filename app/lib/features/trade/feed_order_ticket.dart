@@ -149,21 +149,21 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     HapticFeedback.mediumImpact();
     final side = widget.side.label.toLowerCase();
     final messenger = ScaffoldMessenger.of(context);
+    PortfolioPosition? filled;
     if (!_limit) {
       // A market order fills at once: it opens a position in Portfolio.
-      PositionsState.add(
-        PositionsState.fromFill(
-          symbol: widget.symbol,
-          name: _market.name,
-          traderMarket: TradeMock.quotes[widget.symbol] == null,
-          side: widget.side,
-          leverage: _leverage,
-          entry: _entry,
-          notional: _notional,
-          takeProfit: _exits ? _exitPrice(_tpPct, gain: true) : null,
-          stopLoss: _exits ? _exitPrice(_slPct, gain: false) : null,
-        ),
+      filled = PositionsState.fromFill(
+        symbol: widget.symbol,
+        name: _market.name,
+        traderMarket: TradeMock.quotes[widget.symbol] == null,
+        side: widget.side,
+        leverage: _leverage,
+        entry: _entry,
+        notional: _notional,
+        takeProfit: _exits ? _exitPrice(_tpPct, gain: true) : null,
+        stopLoss: _exits ? _exitPrice(_slPct, gain: false) : null,
       );
+      PositionsState.add(filled);
     } else {
       final units = _notional / _entry;
       OrdersState.add(
@@ -190,7 +190,18 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     final navigator = Navigator.of(context);
     Future.delayed(VistaMotion.confirmHold, () {
       if (!mounted) return;
+      final rootContext = navigator.context;
       navigator.pop();
+      // A fill gets its own confirmation; a resting order a note.
+      if (filled != null && rootContext.mounted) {
+        showOrderFilled(
+          rootContext,
+          position: filled,
+          paid: _margin,
+          liquidation: _entry * (_long ? 1 - _liqPct / 100 : 1 + _liqPct / 100),
+        );
+        return;
+      }
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(

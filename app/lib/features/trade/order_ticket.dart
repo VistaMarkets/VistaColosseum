@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
+import 'order_filled_sheet.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
@@ -234,21 +235,21 @@ class _OrderTicketState extends State<OrderTicket> {
     final kind = _kind.name;
     final side = _side.label.toLowerCase();
     final messenger = ScaffoldMessenger.of(context);
+    PortfolioPosition? filled;
     if (_kind == OrderKind.market) {
       // A market order fills at once: it opens a position in Portfolio.
-      PositionsState.add(
-        PositionsState.fromFill(
-          symbol: widget.symbol,
-          name: _market.name,
-          traderMarket: TradeMock.quotes[widget.symbol] == null,
-          side: _side,
-          leverage: _leverage,
-          entry: _entry,
-          notional: _notional,
-          takeProfit: _exits ? _parse(_tp.text) : null,
-          stopLoss: _exits ? _parse(_sl.text) : null,
-        ),
+      filled = PositionsState.fromFill(
+        symbol: widget.symbol,
+        name: _market.name,
+        traderMarket: TradeMock.quotes[widget.symbol] == null,
+        side: _side,
+        leverage: _leverage,
+        entry: _entry,
+        notional: _notional,
+        takeProfit: _exits ? _parse(_tp.text) : null,
+        stopLoss: _exits ? _parse(_sl.text) : null,
       );
+      PositionsState.add(filled);
     } else {
       OrdersState.add(
         OpenOrder(
@@ -274,7 +275,18 @@ class _OrderTicketState extends State<OrderTicket> {
     final navigator = Navigator.of(context);
     Future.delayed(VistaMotion.confirmHold, () {
       if (!mounted) return;
+      final rootContext = navigator.context;
       navigator.pop();
+      // A fill gets its own confirmation; a resting order a note.
+      if (filled != null && rootContext.mounted) {
+        showOrderFilled(
+          rootContext,
+          position: filled,
+          paid: _margin,
+          liquidation: _liquidation(_entry, _leverage),
+        );
+        return;
+      }
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
