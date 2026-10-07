@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vista_colosseum/features/arena/arena_feed_screen.dart';
+import 'package:vista_colosseum/features/arena/hub_call_card.dart';
+import 'package:vista_colosseum/features/arena/room_screen.dart';
 import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
@@ -982,11 +983,11 @@ void main() {
         // A market row opens that market's room in every call.
         await tester.tap(find.bySemanticsLabel(RegExp('^BTC room')).first);
         await tester.pumpAndSettle();
-        expect(find.byType(ArenaFeedScreen), findsOneWidget);
+        expect(find.byType(RoomScreen), findsOneWidget);
         expect(
           tester
-              .widgetList<TakeItem>(find.byType(TakeItem))
-              .every((t) => t.take.ticker == 'BTC'),
+              .widgetList<HubCallCard>(find.byType(HubCallCard))
+              .every((c) => c.take.ticker == 'BTC'),
           isTrue,
         );
         await tester.tap(find.bySemanticsLabel('Back').last);
@@ -998,6 +999,63 @@ void main() {
         expect(find.byType(TakeItem), findsWidgets);
       },
     );
+
+    testWidgets(
+      'a room: follow it, most right, debates, post from a position',
+      (tester) async {
+        tester.view
+          ..physicalSize = const Size(402, 874) * 3
+          ..devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: VistaTheme.dark(),
+            home: const RoomScreen(roomKey: 'ARB'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('ARB room'), findsOneWidget);
+        expect(find.text('Most right in ARB'), findsOneWidget);
+        // Follow room adds it to your markets (favourites).
+        expect(WatchlistState.isAsset('ARB'), isFalse);
+        await tester.tap(find.bySemanticsLabel('Follow room'));
+        await tester.pumpAndSettle();
+        expect(WatchlistState.isAsset('ARB'), isTrue);
+        // Its debates.
+        await tester.tap(find.textContaining('Debates ('));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widgetList<BattleTile>(find.byType(BattleTile))
+              .every((b) => b.battle.ticker == 'ARB'),
+          isTrue,
+        );
+        // Post a call: no ARB position yet, so open one first.
+        await tester.tap(find.text('Post a call on ARB'));
+        await tester.pumpAndSettle();
+        expect(find.text('No ARB position open'), findsOneWidget);
+        expect(find.text('Open a long'), findsOneWidget);
+      },
+    );
+
+    testWidgets('an ETH room posts from the ETH position', (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VistaTheme.dark(),
+          home: const RoomScreen(roomKey: 'ETH'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Post a call on ETH'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ethereum'), findsOneWidget);
+      expect(find.text('Solana'), findsNothing);
+    });
 
     testWidgets('room chips stay fixed while the feed scrolls', (tester) async {
       await openArena(tester);

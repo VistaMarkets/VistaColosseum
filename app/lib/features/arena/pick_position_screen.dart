@@ -16,7 +16,17 @@ import '../trade/order_ticket.dart';
 /// debate attached, and with none it offers to open one: a call always
 /// stands on a position.
 class PickPositionScreen extends StatelessWidget {
-  const PickPositionScreen({super.key, this.onExplore, this.debate, this.side});
+  const PickPositionScreen({
+    super.key,
+    this.onExplore,
+    this.debate,
+    this.side,
+    this.ticker,
+  });
+
+  /// A room's "Post a call on ETH": only positions on this market, either
+  /// side.
+  final String? ticker;
 
   /// Takes the viewer to Explore to open a position (the empty state).
   final VoidCallback? onExplore;
@@ -27,9 +37,14 @@ class PickPositionScreen extends StatelessWidget {
     VoidCallback? onExplore,
     LiveBattle? debate,
     TradeSide? side,
+    String? ticker,
   }) => MaterialPageRoute(
-    builder: (_) =>
-        PickPositionScreen(onExplore: onExplore, debate: debate, side: side),
+    builder: (_) => PickPositionScreen(
+      onExplore: onExplore,
+      debate: debate,
+      side: side,
+      ticker: ticker,
+    ),
   );
 
   @override
@@ -37,8 +52,9 @@ class PickPositionScreen extends StatelessWidget {
     valueListenable: PositionsState.open,
     builder: (context, positions, _) => _page(context, [
       for (final p in positions)
-        if (debate == null ||
-            (p.detail.symbol == debate!.ticker && p.side == side))
+        if (debate != null
+            ? p.detail.symbol == debate!.ticker && p.side == side
+            : ticker == null || p.detail.symbol == ticker)
           p,
     ]),
   );
@@ -132,6 +148,8 @@ class PickPositionScreen extends StatelessWidget {
                         side: side!,
                       ),
                     )
+                  else if (positions.isEmpty && ticker != null)
+                    _NoTickerPosition(ticker: ticker!)
                   else if (positions.isEmpty)
                     _NoPositions(
                       onExplore: onExplore == null
@@ -257,6 +275,67 @@ class _NoSidePosition extends StatelessWidget {
                 ? VistaPillVariant.long
                 : VistaPillVariant.short,
             onPressed: onOpen,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A room's post with no position on its market: open one either way (the
+/// order ticket, simulated); it shows in the list once it fills.
+class _NoTickerPosition extends StatelessWidget {
+  const _NoTickerPosition({required this.ticker});
+
+  final String ticker;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(VistaSpace.gutter + VistaSpace.xs),
+      decoration: BoxDecoration(
+        color: VistaColors.surface,
+        borderRadius: BorderRadius.circular(VistaRadius.card),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('No $ticker position open', style: VistaType.headline),
+          const SizedBox(height: VistaSpace.xs),
+          Text(
+            'A call on $ticker stands on a $ticker position. Open one and '
+            'it shows here to pick.',
+            style: VistaType.bodyMedium.copyWith(
+              color: VistaColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: VistaSpace.gutter),
+          Row(
+            children: [
+              Expanded(
+                child: VistaPillButton(
+                  label: 'Open a long',
+                  variant: VistaPillVariant.long,
+                  onPressed: () => showOrderTicket(
+                    context,
+                    symbol: ticker,
+                    side: TradeSide.long,
+                  ),
+                ),
+              ),
+              const SizedBox(width: VistaSpace.md),
+              Expanded(
+                child: VistaPillButton(
+                  label: 'Open a short',
+                  variant: VistaPillVariant.short,
+                  onPressed: () => showOrderTicket(
+                    context,
+                    symbol: ticker,
+                    side: TradeSide.short,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

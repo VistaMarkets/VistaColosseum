@@ -16,12 +16,13 @@ import 'arena_feed_screen.dart';
 import 'arena_mock.dart';
 import 'debate_screen.dart';
 import 'pick_position_screen.dart';
-import 'take_card.dart';
+import 'room_screen.dart';
+import 'hub_call_card.dart';
 
 /// Arena tab (Figma 551:205, ARENA-HUB-01): the account bar, search, your
 /// markets and what's trending as people-first rows (who is in, which way),
-/// then the top calls with their top reply. A market's row opens its room,
-/// and Calls › See all opens every call (`ArenaFeedScreen`). The + makes a
+/// then the top calls with their top reply. A market's row opens its room
+/// (`RoomScreen`), and See all opens every call (`ArenaFeedScreen`). The + makes a
 /// call from a position.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt, this.onExplore});
@@ -54,6 +55,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
   void _feed([String? room]) =>
       _push(ArenaFeedScreen.route(onExplore: widget.onExplore, room: room));
 
+  /// A market's room (a ticker or "@handle").
+  void _room(String key) =>
+      _push(RoomScreen.route(key, onExplore: widget.onExplore));
+
   /// The + : pick a position, write the call, post it. It leads Calls.
   Future<void> _newCall() async {
     final take = await Navigator.of(context)
@@ -66,12 +71,12 @@ class _ArenaScreenState extends State<ArenaScreen> {
     final s = q.trim().replaceFirst(RegExp(r'^[\$@]'), '').toLowerCase();
     if (s.isEmpty) return;
     for (final m in MarketsMock.assets) {
-      if (m.id.toLowerCase() == s) return _feed(m.id);
+      if (m.id.toLowerCase() == s) return _room(m.id);
     }
     for (final m in MarketsMock.traders) {
       final symbol = MarketsMock.traderCards[m.id]?.symbol.toLowerCase();
       if (m.id.toLowerCase().startsWith(s) || symbol == s) {
-        return _feed('@${m.id}');
+        return _room('@${m.id}');
       }
     }
     widget.onNotBuilt?.call('Search');
@@ -122,20 +127,20 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         ),
                         const _Head('Your markets'),
                         for (final r in _yourMarkets(calls, favs))
-                          _RoomRow(room: r, onTap: () => _feed(r.key)),
+                          _RoomRow(room: r, onTap: () => _room(r.key)),
                         _Head(
                           'Trending now',
                           trailing: 'See all',
                           onTrailing: _feed,
                         ),
                         for (final r in _trending(calls))
-                          _RoomRow(room: r, onTap: () => _feed(r.key)),
+                          _RoomRow(room: r, onTap: () => _room(r.key)),
                         _Head('Calls', trailing: 'See all', onTrailing: _feed),
                         for (final t in [
                           for (final t in HomeFeed.forYou(calls))
                             if (t.call != null) t,
                         ].take(2))
-                          _HubCall(
+                          HubCallCard(
                             take: t,
                             onCaller: () =>
                                 _push(ProfileScreen.route(t.handle)),
@@ -389,39 +394,6 @@ class _Head extends StatelessWidget {
   }
 }
 
-/// An initial in a filled circle (a person until avatars come from the
-/// backend).
-class _Initial extends StatelessWidget {
-  const _Initial(this.handle, {this.size = 22, this.ring});
-
-  final String handle;
-  final double size;
-  final Color? ring;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: VistaColors.surfaceRaised,
-      shape: BoxShape.circle,
-      border: Border.all(
-        color: ring ?? VistaColors.background,
-        width: size > 30 ? 2.5 : 2,
-      ),
-    ),
-    child: Text(
-      handle.isEmpty ? '' : handle[0].toUpperCase(),
-      style: VistaType.labelStrong.copyWith(
-        fontSize: size * 0.4,
-        color: VistaColors.textPrimary,
-        height: 1,
-      ),
-    ),
-  );
-}
-
 /// A market row (Figma room/ETH): icon, name (with why it's trending),
 /// a second line, live price and change, then who is in it.
 class _RoomRow extends StatelessWidget {
@@ -456,7 +428,7 @@ class _RoomRow extends StatelessWidget {
               Row(
                 children: [
                   if (r.trader != null)
-                    _Initial(r.trader!, size: 36)
+                    PersonInitial(r.trader!, size: 36)
                   else
                     VistaIcon(m.rowIcon, size: 36),
                   const SizedBox(width: VistaSpace.xl),
@@ -526,7 +498,10 @@ class _RoomRow extends StatelessWidget {
                         child: Stack(
                           children: [
                             for (final (i, h) in r.people.indexed)
-                              Positioned(left: i * 16.0, child: _Initial(h)),
+                              Positioned(
+                                left: i * 16.0,
+                                child: PersonInitial(h),
+                              ),
                           ],
                         ),
                       ),
@@ -546,329 +521,6 @@ class _RoomRow extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// A call on the hub (Figma call · @maya.eth): the caller and record, their
-/// market, the position and debate badges, the call, its live position, like
-/// / replies / counters / Join, then the top reply.
-class _HubCall extends StatelessWidget {
-  const _HubCall({
-    required this.take,
-    required this.onCaller,
-    required this.onMarket,
-    required this.onPosition,
-    required this.onJoin,
-    required this.onReplies,
-    this.onDebate,
-  });
-
-  final Take take;
-  final VoidCallback onCaller;
-  final VoidCallback onMarket;
-  final VoidCallback onPosition;
-  final VoidCallback onJoin;
-  final VoidCallback onReplies;
-  final VoidCallback? onDebate;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = take;
-    final c = t.call!;
-    final thread = ArenaMock.threadOf(t);
-    final record = t.accuracy.split(' ').first;
-    final good = (int.tryParse(record.replaceAll('%', '')) ?? 0) >= 55;
-    final muted = VistaType.bodyMedium.copyWith(color: VistaColors.textMuted);
-    final market = MarketsMock.traders.where((m) => m.id == t.handle);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        VistaSpace.gutter + VistaSpace.xs,
-        VistaSpace.gutter,
-        VistaSpace.gutter + VistaSpace.xs,
-        VistaSpace.lg,
-      ),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: VistaColors.hairline)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Semantics(
-            button: true,
-            label: "${t.handle}'s profile",
-            excludeSemantics: true,
-            child: GestureDetector(
-              onTap: onCaller,
-              child: _Initial(t.handle, size: 40, ring: t.side.color),
-            ),
-          ),
-          const SizedBox(width: VistaSpace.xl),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: GestureDetector(
-                        onTap: onCaller,
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(text: t.handle),
-                              TextSpan(
-                                text: '  $record right',
-                                style: TextStyle(
-                                  color: good
-                                      ? VistaColors.long
-                                      : VistaColors.textMuted,
-                                ),
-                              ),
-                              TextSpan(text: ' · ${t.age}', style: muted),
-                            ],
-                          ),
-                          style: VistaType.body.copyWith(fontSize: 14),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: VistaSpace.sm),
-                    FollowChip(handle: t.handle),
-                  ],
-                ),
-                if (market.isNotEmpty)
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onMarket,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: VistaSpace.xs),
-                      child: ValueListenableBuilder(
-                        valueListenable: MarketPrices.of(t.handle),
-                        builder: (context, price, _) {
-                          final ch = market.first.changePct;
-                          return Text.rich(
-                            TextSpan(
-                              children: [
-                                TextSpan(
-                                  text:
-                                      '${MarketsMock.traderCards[t.handle]?.symbol ?? t.handle} ',
-                                  style: muted,
-                                ),
-                                TextSpan(
-                                  text:
-                                      '${MarketPrices.format(price, compact: true)} ',
-                                ),
-                                TextSpan(
-                                  text:
-                                      '${ch >= 0 ? '▲' : '▼'}${ch.abs().toStringAsFixed(1)}% ›',
-                                  style: TextStyle(color: vistaChangeColor(ch)),
-                                ),
-                              ],
-                            ),
-                            style: VistaType.figures(VistaType.body),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: VistaSpace.sm),
-                Wrap(
-                  spacing: VistaSpace.sm,
-                  runSpacing: VistaSpace.xs,
-                  children: [
-                    _Badge(
-                      '${t.side.label.toUpperCase()} ${t.ticker} ${c.leverage}x',
-                      t.side.color,
-                    ),
-                    if (t.battle != null)
-                      GestureDetector(
-                        onTap: onDebate,
-                        child: _Badge('${t.battle!} ›', VistaColors.textMuted),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: VistaSpace.sm),
-                Text(
-                  t.body,
-                  style: VistaType.subheadMuted.copyWith(
-                    fontWeight: FontWeight.w400,
-                    color: VistaColors.textPrimary,
-                    height: 21 / 15,
-                  ),
-                ),
-                const SizedBox(height: VistaSpace.sm),
-                BackedPositionCard(
-                  post: c,
-                  ticker: t.ticker,
-                  onTap: onPosition,
-                ),
-                SizedBox(
-                  height: VistaSize.tapTarget,
-                  child: Row(
-                    children: [
-                      // Gives way (shrinks a little) before the Join pill.
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              children: [
-                                TakeAgreeButton(take: t),
-                                if (thread != null) ...[
-                                  const SizedBox(width: VistaSpace.md),
-                                  _Count(
-                                    Icons.chat_bubble_outline_rounded,
-                                    thread.replies,
-                                  ),
-                                  const SizedBox(width: VistaSpace.lg),
-                                  _Count(
-                                    Icons.swap_horiz_rounded,
-                                    thread.counters,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: VistaSpace.sm),
-                      VistaJoinPill(side: t.side, onTap: onJoin),
-                    ],
-                  ),
-                ),
-                if (thread?.top case final r?) _TopReply(reply: r),
-                if (thread != null && thread.replies > 0)
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onReplies,
-                    child: SizedBox(
-                      height: 36,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'View all ${thread.replies} replies ›',
-                          style: VistaType.body.copyWith(
-                            color: VistaColors.accent,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge(this.label, this.color);
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-    decoration: BoxDecoration(
-      color: color == VistaColors.textMuted
-          ? VistaColors.surfaceRaised
-          : color.withValues(alpha: 0.14),
-      borderRadius: BorderRadius.circular(VistaRadius.sm),
-    ),
-    child: Text(label, style: VistaType.labelStrong.copyWith(color: color)),
-  );
-}
-
-class _Count extends StatelessWidget {
-  const _Count(this.icon, this.count);
-
-  final IconData icon;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 18, color: VistaColors.textMuted),
-      const SizedBox(width: 5),
-      Text(
-        '$count',
-        style: VistaType.bodyMedium.copyWith(color: VistaColors.textMuted),
-      ),
-    ],
-  );
-}
-
-/// The top reply under a call: who, their record and badge, what they said.
-class _TopReply extends StatelessWidget {
-  const _TopReply({required this.reply});
-
-  final Reply reply;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = reply;
-    final counter = r.counter;
-    final side = counter == null
-        ? null
-        : (counter.startsWith('LONG') ? VistaColors.long : VistaColors.short);
-    final record = CallsStore.recordOf(r.handle)?.split(' ').first;
-    return Padding(
-      padding: const EdgeInsets.only(top: VistaSpace.xxs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Initial(r.handle, size: 26, ring: side ?? VistaColors.surfaceRaised),
-          const SizedBox(width: VistaSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: r.handle),
-                            if (record != null)
-                              TextSpan(
-                                text: '  $record right',
-                                style: const TextStyle(color: VistaColors.long),
-                              ),
-                          ],
-                        ),
-                        style: VistaType.body,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: VistaSpace.sm),
-                    _Badge(
-                      counter == null ? 'No position' : 'COUNTER · $counter',
-                      side ?? VistaColors.textMuted,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: VistaSpace.xs),
-                Text(
-                  r.body,
-                  style: VistaType.rowRegular.copyWith(
-                    color: VistaColors.textPrimary,
-                    height: 19 / 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
