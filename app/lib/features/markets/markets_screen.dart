@@ -8,8 +8,10 @@ import '../watchlist/edit_favorites_screen.dart';
 import '../watchlist/watchlist_state.dart';
 import '../live/market_prices.dart';
 import 'markets_mock.dart';
+import 'trader_chart_card.dart';
 
-/// Explore tab: Assets and Traders markets (Figma 185:110, 222:110).
+/// Explore tab: Assets and Traders markets (Figma 185:110, 222:110; the
+/// Traders rail uses the chart cards from 546:268).
 ///
 /// Search filters by name, the sort chips order the list (descending), and
 /// stars add or remove favourites (shared with the market pages' stars),
@@ -184,23 +186,36 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           children: [
                             for (final (i, m) in favItems.indexed) ...[
                               if (i > 0) const SizedBox(width: VistaSpace.lg),
-                              ValueListenableBuilder(
-                                valueListenable: MarketPrices.of(m.id),
-                                builder: (context, price, _) => VistaMarketCard(
-                                  icon: m.railIcon,
-                                  name: m.name,
-                                  badge: m.badge ?? '',
-                                  price: MarketPrices.format(
-                                    price,
-                                    compact: true,
-                                  ),
-                                  changePct: m.changePct,
-                                  sparkAsset: m.spark,
-                                  footLeft: m.footLeft,
-                                  footRight: m.footRight,
+                              // Traders get the chart card; the next one
+                              // peeks in at the edge.
+                              if (_traders)
+                                TraderChartCard(
+                                  market: m,
+                                  width:
+                                      MediaQuery.sizeOf(context).width -
+                                      VistaSpace.gutter * 2 -
+                                      40,
                                   onPressed: () => _open(m),
+                                )
+                              else
+                                ValueListenableBuilder(
+                                  valueListenable: MarketPrices.of(m.id),
+                                  builder: (context, price, _) =>
+                                      VistaMarketCard(
+                                        icon: m.railIcon,
+                                        name: m.name,
+                                        badge: m.badge ?? '',
+                                        price: MarketPrices.format(
+                                          price,
+                                          compact: true,
+                                        ),
+                                        changePct: m.changePct,
+                                        sparkAsset: m.spark,
+                                        footLeft: m.footLeft,
+                                        footRight: m.footRight,
+                                        onPressed: () => _open(m),
+                                      ),
                                 ),
-                              ),
                             ],
                           ],
                         ),

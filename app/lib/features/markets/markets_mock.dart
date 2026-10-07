@@ -39,9 +39,44 @@ class MarketItem {
   final String footRight;
 }
 
+/// A trader's record and holders for the Traders rail cards, with settled
+/// calls pinned on their 7-day chart (point index of 42, right or wrong).
+typedef TraderStats = ({int accuracy, int holders, List<(int, bool)> marks});
+
 /// Mock content from Figma 185:110 (Assets) and 222:110 (Traders).
 /// Simulated; not market data.
 abstract final class MarketsMock {
+  /// Figma 546:268 (TRADER-CARD-B).
+  static const traderStats = <String, TraderStats>{
+    'maya.eth': (
+      accuracy: 82,
+      holders: 214,
+      marks: [(6, true), (15, false), (24, true), (33, true)],
+    ),
+    '0xreal': (
+      accuracy: 68,
+      holders: 640,
+      marks: [(9, true), (20, false), (31, true)],
+    ),
+    'lunaq': (
+      accuracy: 64,
+      holders: 388,
+      marks: [(5, true), (14, false), (23, false), (34, true)],
+    ),
+    'deltaone': (
+      accuracy: 72,
+      holders: 1180,
+      marks: [(8, true), (19, true), (28, false), (36, true)],
+    ),
+    'kestrel': (
+      accuracy: 52,
+      holders: 132,
+      marks: [(10, false), (22, true), (35, false)],
+    ),
+    'kilo.sol': (accuracy: 69, holders: 96, marks: [(12, true), (27, true)]),
+    'nara': (accuracy: 49, holders: 58, marks: [(7, false), (25, true)]),
+  };
+
   static const assetSorts = ['Volume', 'Change', 'Funding'];
   static const traderSorts = ['Market cap', 'Change', 'Open calls', 'New'];
 
