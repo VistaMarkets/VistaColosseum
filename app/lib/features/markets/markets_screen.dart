@@ -128,7 +128,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                 ),
                 child: AccountTopBar(
                   onNotBuilt: widget.onNotBuilt,
-                  showSettings: true,
+                  showNotifications: true,
                 ),
               ),
               const SizedBox(height: VistaSpace.md),

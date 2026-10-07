@@ -100,7 +100,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 ),
                 child: AccountTopBar(
                   onNotBuilt: widget.onNotBuilt,
-                  showSettings: true,
+                  showNotifications: true,
                 ),
               ),
               Expanded(

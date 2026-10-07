@@ -995,8 +995,8 @@ void main() {
         await tester.tap(find.bySemanticsLabel('Arena'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        // The account bar (with settings), search, your markets, the +.
-        expect(find.bySemanticsLabel('Settings'), findsOneWidget);
+        // The account bar (with notifications), search, your markets, the +.
+        expect(find.bySemanticsLabel('Notifications'), findsOneWidget);
         expect(find.text(r'Search $tickers or @people'), findsOneWidget);
         expect(find.text('Your markets'), findsOneWidget);
         expect(find.bySemanticsLabel(RegExp('room')), findsWidgets);
@@ -1567,17 +1567,25 @@ void main() {
       expect(balance.top, greaterThanOrEqualTo(handle.bottom - 1));
       expect(balance.left, closeTo(handle.left, 1));
 
-      // The settings gear on every tab's bar, right of Deposit.
-      final settings = find.descendant(
+      // Right of Deposit: the settings gear on Wallet, the notifications
+      // bell on the other tabs.
+      final icon = find.descendant(
         of: bar,
         matching: find.byType(VistaIconButton),
       );
       final deposit = tester.getRect(inBar('Deposit'));
-      expect(settings, findsOneWidget);
-      expect(tester.getRect(settings).left, greaterThan(deposit.left));
-      await tester.tap(settings);
+      expect(icon, findsOneWidget);
+      expect(tester.getRect(icon).left, greaterThan(deposit.left));
+      expect(
+        tester.widget<VistaIconButton>(icon).semanticLabel,
+        wallet ? 'Settings' : 'Notifications',
+      );
+      await tester.tap(icon);
       await tester.pumpAndSettle();
-      expect(find.byType(SettingsScreen), findsOneWidget);
+      expect(
+        find.byType(SettingsScreen),
+        wallet ? findsOneWidget : findsNothing,
+      );
     });
   }
 
@@ -3267,6 +3275,8 @@ void main() {
       ..devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Settings').first);
     await tester.pumpAndSettle();

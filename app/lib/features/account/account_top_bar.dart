@@ -10,13 +10,22 @@ import '../settings/settings_screen.dart';
 /// (Portfolio).
 /// Shared by Home and Portfolio so the two stay identical (Figma 174:110).
 class AccountTopBar extends StatelessWidget {
-  const AccountTopBar({super.key, this.onNotBuilt, this.showSettings = false});
+  const AccountTopBar({
+    super.key,
+    this.onNotBuilt,
+    this.showSettings = false,
+    this.showNotifications = false,
+  });
 
   /// Called with a feature name when a control leads somewhere not built yet.
   final ValueChanged<String>? onNotBuilt;
 
   /// Adds the settings gear after Deposit (Portfolio only).
   final bool showSettings;
+
+  /// Adds the notifications bell after Deposit instead (Home, Explore,
+  /// Arena); settings stay on Wallet.
+  final bool showNotifications;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +69,15 @@ class AccountTopBar extends StatelessWidget {
             // Simulated only: the demo never moves funds.
             onPressed: () => onNotBuilt?.call('Deposit (simulated)'),
           ),
-          if (showSettings)
+          if (showNotifications)
+            VistaIconButton(
+              asset: VistaAssets.bell,
+              semanticLabel: 'Notifications',
+              iconSize: 22,
+              // No activity feed in the demo yet.
+              onPressed: () => onNotBuilt?.call('Notifications'),
+            )
+          else if (showSettings)
             VistaIconButton(
               asset: VistaAssets.settings,
               semanticLabel: 'Settings',

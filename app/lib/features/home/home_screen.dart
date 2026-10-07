@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
             child: AccountTopBar(
               onNotBuilt: widget.onNotBuilt,
-              showSettings: true,
+              showNotifications: true,
             ),
           ),
           const SizedBox(height: VistaSpace.md),
