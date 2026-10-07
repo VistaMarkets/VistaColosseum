@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/notifications/notifications_screen.dart';
 import 'package:vista_colosseum/features/profile/edit_profile_screen.dart';
 import 'package:vista_colosseum/features/arena/trending_calls_screen.dart';
 import 'package:vista_colosseum/features/arena/hub_call_card.dart';
@@ -161,6 +162,7 @@ void main() {
     WatchlistState.reset();
     OrdersState.reset();
     ProfileEdits.reset();
+    Notifications.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -996,7 +998,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         // The account bar (with notifications), search, your markets, the +.
-        expect(find.bySemanticsLabel('Notifications'), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('^Notifications')), findsOneWidget);
         expect(find.text(r'Search $tickers or @people'), findsOneWidget);
         expect(find.text('Your markets'), findsOneWidget);
         expect(find.bySemanticsLabel(RegExp('room')), findsWidgets);
@@ -1578,7 +1580,7 @@ void main() {
       expect(tester.getRect(icon).left, greaterThan(deposit.left));
       expect(
         tester.widget<VistaIconButton>(icon).semanticLabel,
-        wallet ? 'Settings' : 'Notifications',
+        startsWith(wallet ? 'Settings' : 'Notifications'),
       );
       await tester.tap(icon);
       await tester.pumpAndSettle();
@@ -3313,5 +3315,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Maya'), findsOneWidget);
     expect(find.text('Swing trades, receipts.'), findsOneWidget);
+  });
+
+  testWidgets('the bell: a dot while new, filters, a note opens, read after', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Notifications, 4 new'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Notifications, 4 new'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NotificationsScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(find.text('TODAY'), findsOneWidget);
+    expect(find.text('EARLIER'), findsOneWidget);
+    expect(Notifications.unread.value, 0);
+    // People: follows, with Follow back.
+    await tester.tap(find.widgetWithText(VistaFilterChip, 'People'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('started following you', findRichText: true),
+      findsWidgets,
+    );
+    expect(find.byType(VistaFollowButton), findsOneWidget);
+    await tester.tap(find.byType(VistaFollowButton));
+    await tester.pumpAndSettle();
+    expect(FollowState.isFollowing('sam.sol'), isTrue);
+    // Markets: your market's move opens it.
+    await tester.tap(find.widgetWithText(VistaFilterChip, 'Markets'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.textContaining('MAYA ▲4.3% today', findRichText: true),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(TraderMarketScreen), findsOneWidget);
+    // Back on Home: no dot.
+    await tester.tap(find.bySemanticsLabel('Back').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Back').last);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Notifications'), findsOneWidget);
   });
 }

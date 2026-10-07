@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
+import '../notifications/notifications_screen.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../settings/settings_screen.dart';
 
@@ -70,12 +71,41 @@ class AccountTopBar extends StatelessWidget {
             onPressed: () => onNotBuilt?.call('Deposit (simulated)'),
           ),
           if (showNotifications)
-            VistaIconButton(
-              asset: VistaAssets.bell,
-              semanticLabel: 'Notifications',
-              iconSize: 22,
-              // No activity feed in the demo yet.
-              onPressed: () => onNotBuilt?.call('Notifications'),
+            // The bell, with a dot while there's something new.
+            ValueListenableBuilder(
+              valueListenable: Notifications.unread,
+              builder: (context, unread, _) => Stack(
+                children: [
+                  VistaIconButton(
+                    asset: VistaAssets.bell,
+                    semanticLabel: unread > 0
+                        ? 'Notifications, $unread new'
+                        : 'Notifications',
+                    iconSize: 22,
+                    onPressed: () =>
+                        Navigator.of(context).push(NotificationsScreen.route()),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 11,
+                      top: 10,
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            color: VistaColors.short,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: VistaColors.background,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             )
           else if (showSettings)
             VistaIconButton(
