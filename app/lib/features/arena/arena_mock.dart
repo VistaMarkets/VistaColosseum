@@ -90,6 +90,14 @@ abstract final class ArenaMock {
     query: '',
   );
 
+  // Callers with a `MarketPrices` entry (maya.eth, 0xreal, kilo.sol, lunaq)
+  // quote its opening price and their Explore change. They are fixed, while
+  // other screens' prices walk every 3 s from that open. The user is
+  // maya.eth, so her $0.4400 (spec 12, Remaining risk) and +4.3% are the
+  // seeded market's: they show with no market listed (the default) and after
+  // a fresh listing, which Your market prices on its own. mirin and renatafx
+  // have no `MarketPrices` entry and no Explore row, so their price and
+  // change match nothing.
   static const _btc = Battle(
     id: 'btc-72k',
     asset: 'BTC',
@@ -104,8 +112,8 @@ abstract final class ArenaMock {
     question: r"Reclaims $72,000 before Friday's expiry",
     bull: VistaBattleSide(
       caller: 'maya.eth',
-      price: r'$0.2610',
-      change: '+0.7%',
+      price: r'$0.4400',
+      change: '+4.3%',
       thesis:
           'Breaks on ETF flows — spot bid has absorbed every wick since '
           'Tuesday.',
@@ -113,8 +121,8 @@ abstract final class ArenaMock {
     ),
     bear: VistaBattleSide(
       caller: '0xreal',
-      price: r'$0.2610',
-      change: '-0.7%',
+      price: r'$0.3820',
+      change: '+1.1%',
       thesis:
           "Supply wall at 71.8k. Funding is paying longs to hold a level "
           "they can't take.",
@@ -138,15 +146,15 @@ abstract final class ArenaMock {
     question: r"Tags $4,000 before the month's close",
     bull: VistaBattleSide(
       caller: 'kilo.sol',
-      price: r'$0.1840',
-      change: '+1.1%',
+      price: r'$0.1720',
+      change: '+2.2%',
       thesis: 'Staking outflows have flipped and the ETF bid is back.',
       result: '+2.6%',
     ),
     bear: VistaBattleSide(
       caller: 'lunaq',
-      price: r'$0.3120',
-      change: '-0.4%',
+      price: r'$0.3145',
+      change: '−2.4%',
       thesis: 'Spot is not following the perps and the ETF bid has stalled.',
       result: '+3.1%',
     ),
@@ -201,7 +209,7 @@ abstract final class ArenaMock {
     bear: VistaBattleSide(
       caller: 'renatafx',
       price: r'$0.2290',
-      change: '-1.2%',
+      change: '−1.2%',
       thesis: 'The unlock lands Saturday and the order book is thin.',
       result: '−2.2%',
     ),

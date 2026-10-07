@@ -5,6 +5,7 @@ import '../design_system/design_system.dart';
 import '../features/arena/arena_mock.dart';
 import '../features/live/live_feed.dart';
 import '../features/live/market_prices.dart';
+import '../features/make_market/make_market_mock.dart';
 import '../features/market/market_mock.dart';
 import '../features/markets/markets_mock.dart';
 import '../features/people/follow_mock.dart';
@@ -55,6 +56,46 @@ abstract final class Scenario {
   static final ticker = ValueNotifier<String>(PortfolioMock.marketSymbol);
   static final marketId = ValueNotifier<String?>(_seedMarketId);
   static final listedAt = ValueNotifier<DateTime?>(_seedListedAt);
+
+  /// The user's own market cap in int cents (VC-MKT-001), derived each
+  /// time it is read from [hasMarket], [listedAt] and [marketId]; nothing
+  /// stores it, so listing sets it and [reset] clears it. Null with no
+  /// market, or before [listedAt] is written. The `HAS_MARKET` seed
+  /// ([ownCapHasHistory]) keeps its fixture cap; any other listing starts
+  /// at [MakeMarketMock.startingCapCents].
+  static int? get ownCapCents {
+    if (!hasMarket.value || listedAt.value == null) return null;
+    return ownCapHasHistory
+        ? YourMarketMock.seededCapCents
+        : MakeMarketMock.startingCapCents;
+  }
+
+  /// Whether the listed market is the `HAS_MARKET` seed: listed at
+  /// [YourMarketMock.listedAt] under [PortfolioMock.marketSymbol]. Only the
+  /// seed has cap history. App code never writes [clock] (only [reset] and
+  /// tests do), so a fresh listing's [listedAt] never equals the seed's.
+  /// A test that lists the symbol at an equal [DateTime] reads as the
+  /// seed; `==` also compares the zone, so a UTC copy reads as fresh.
+  static bool get ownCapHasHistory =>
+      hasMarket.value &&
+      listedAt.value == YourMarketMock.listedAt &&
+      marketId.value == PortfolioMock.marketSymbol;
+
+  /// What the cap moved by over [span] (an index of [PortfolioMock.spans]),
+  /// in int cents: the seed's fixture moves, or 0 for a fresh listing or
+  /// no market. Throws a [RangeError] for an index out of range.
+  static int ownCapMoveCents(int span) {
+    RangeError.checkValidIndex(span, PortfolioMock.spans);
+    return ownCapHasHistory ? YourMarketMock.seededCapMovesCents[span] : 0;
+  }
+
+  /// Fires when any value [ownCapCents] derives from changes. One
+  /// instance, so a builder keeps its subscription across builds.
+  static final Listenable ownCap = Listenable.merge([
+    hasMarket,
+    listedAt,
+    marketId,
+  ]);
 
   /// Liked calls, keyed `callerHandle/ticker`.
   static final liked = ValueNotifier<Set<String>>(const {});

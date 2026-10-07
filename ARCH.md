@@ -439,6 +439,7 @@ VistaColosseum/
 │   │   ├── empty_states_test.dart
 │   │   ├── feed_order_ticket_test.dart
 │   │   ├── home_screen_test.dart
+│   │   ├── market_cap_test.dart
 │   │   ├── order_ticket_test.dart
 │   │   ├── receipts_test.dart
 │   │   ├── replay_live_test.dart

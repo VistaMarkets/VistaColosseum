@@ -938,6 +938,51 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    test('every Arena caller price is that trader\'s market price', () {
+      final sides = [
+        for (final b in ArenaMock.battles) ...[b.bull, b.bear],
+      ].where((s) => MarketPrices.base(s.caller) > 0).toList();
+      expect(
+        sides.map((s) => s.caller),
+        containsAll(['maya.eth', '0xreal', 'kilo.sol', 'lunaq']),
+      );
+      for (final side in sides) {
+        expect(
+          side.price,
+          MarketPrices.format(MarketPrices.base(side.caller), compact: true),
+          reason: side.caller,
+        );
+      }
+    });
+
+    test('every Arena caller change is that trader\'s Explore change', () {
+      final traders = {for (final m in MarketsMock.traders) m.id: m.changePct};
+      final sides = [
+        for (final b in ArenaMock.battles) ...[b.bull, b.bear],
+      ].where((s) => traders.containsKey(s.caller)).toList();
+      expect(
+        sides.map((s) => s.caller),
+        containsAll(['maya.eth', '0xreal', 'kilo.sol', 'lunaq']),
+      );
+      for (final s in sides) {
+        final c = traders[s.caller]!;
+        expect(
+          s.change,
+          '${c < 0 ? '−' : '+'}${c.abs().toStringAsFixed(1)}%',
+          reason: s.caller,
+        );
+      }
+    });
+
+    test('Arena caller changes and results start with + or U+2212', () {
+      for (final b in ArenaMock.battles) {
+        for (final s in [b.bull, b.bear]) {
+          expect(s.change, matches(RegExp(r'^[+−]\d')), reason: s.caller);
+          expect(s.result, matches(RegExp(r'^[+−]\d')), reason: s.caller);
+        }
+      }
+    });
+
     testWidgets('Arena tab shows the battles with the crowd filter', (
       tester,
     ) async {

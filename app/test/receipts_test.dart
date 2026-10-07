@@ -245,13 +245,16 @@ void main() {
     expect(Scenario.marketFeesCents, 0);
   });
 
-  testWidgets('the 40% share is labelled a demo assumption, with one worked '
-      'example, in the ledger and the listing flow', (tester) async {
+  testWidgets('the 40% share shows with one worked example and no '
+      'demo-assumption label, in the ledger and the listing flow', (
+    tester,
+  ) async {
     await pumpApp(tester, home: const LedgerScreen());
     expect(
-      find.text('Illustrative demo ledger · 40% share is a demo assumption'),
+      find.text('Illustrative demo ledger · 40% creator share'),
       findsOneWidget,
     );
+    expect(find.textContaining('demo assumption'), findsNothing);
     // The example works the newest credit back from its fee: fee × 40%.
     final first = Scenario.feeEntries.value.first;
     final fee = first.amountCents * 100 ~/ 40;
@@ -266,7 +269,10 @@ void main() {
     await pumpApp(tester, home: const MakeMarketFlow());
     await tapAndSettle(tester, find.text(r'Continue with $MAYA'));
     expect(find.text('You earn 40% of the fees from both'), findsOneWidget);
-    expect(find.text('40% share is a demo assumption'), findsOneWidget);
+    expect(find.textContaining('demo assumption'), findsNothing);
+    // The caption under it still shows YourMarketMock.shareLabel today.
+    // Phase 3 drops it (make_market_flow.dart:636-642) and must add
+    // expect(find.text(YourMarketMock.shareLabel), findsNothing) here.
   });
 
   test('the worked example prints the listed credit for an odd-cent '
@@ -319,20 +325,33 @@ void main() {
       );
       expect(onReceipt(find.text(Scenario.fixtureVersion)), findsOneWidget);
       expect(onReceipt(find.text(c.side!.label)), findsOneWidget);
-      expect(onReceipt(find.text(c.entryAt!)), findsOneWidget);
-      expect(onReceipt(find.text(c.odds!)), findsOneWidget);
-      // The record states no entry price or paper size, nor a settlement
-      // time for the settled calls: shown as unavailable, not blank.
+      // Today's receipt renders the raw result and settledAt, so the Oct 2
+      // call reads Wrong, Settled Oct 2 at the Sep 26 clock (its entry date
+      // is also Oct 2, so that date shows twice); an open one has none.
+      // When the Result and Settled rows (receipt_screens.dart:431-434)
+      // show Scenario.outcomeAt, derive `open` and the status check above
+      // from it, expect Open and 'Not settled yet' for Oct 2, and drop the
+      // settledAt == null check: Oct 2 has a date yet is open at the clock.
       final open = c.result == CallOutcome.open;
+      expect(c.settledAt == null, open);
+      final dates = [c.entryAt!, if (!open) c.settledAt!];
+      for (final d in dates.toSet()) {
+        expect(
+          onReceipt(find.text(d)),
+          findsNWidgets(dates.where((x) => x == d).length),
+        );
+      }
+      expect(onReceipt(find.text(c.odds!)), findsOneWidget);
+      // The record states no entry price or paper size: shown as
+      // unavailable, not blank.
       expect(c.entryPrice, isNull);
-      expect(c.settledAt, isNull);
       expect(
         onReceipt(find.text('Not settled yet')),
         open ? findsOneWidget : findsNothing,
       );
       expect(onReceipt(find.text('Paper size')), findsOneWidget);
       expect(c.sizeCents, isNull);
-      expect(onReceipt(find.text('unavailable')), findsNWidgets(open ? 2 : 3));
+      expect(onReceipt(find.text('unavailable')), findsNWidgets(2));
       await back(tester, CallReceiptScreen);
     }
 

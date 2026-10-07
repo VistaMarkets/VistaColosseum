@@ -196,15 +196,16 @@ void main() {
   test('a call settled after the clock is open at the clock; a verdict '
       'with no settlement date is unavailable', () {
     final asOf = Scenario.clock.value;
-    // maya.eth's Oct 2 call is Wrong in the fixture, but the clock is
-    // 26 Sep and neither of her verdicts states a settlement date.
+    // maya.eth's Friday call settled Sep 25, before the 26 Sep clock; her
+    // Oct 2 call is Wrong in the fixture but settles after the clock, so
+    // it is still open there. One settled call gives her 100%.
     expect(Scenario.record(PortfolioMock.handle), (
-      settled: 0,
-      right: 0,
+      settled: 1,
+      right: 1,
       wrong: 0,
-      open: 1,
-      unavailable: 2,
-      hitRatePct: null,
+      open: 2,
+      unavailable: 0,
+      hitRatePct: 100,
       asOf: asOf,
     ));
     CallReceipt wrongOn(String settledAt) => CallReceipt(
@@ -232,6 +233,18 @@ void main() {
     Scenario.clock.value = asOf.add(const Duration(days: 1));
     expect(Scenario.record('x').settled, 2);
     expect(Scenario.record('x').open, 0);
+  });
+
+  test('a call\'s detail follows the outcome it is shown with', () {
+    final oct2 = YourMarketMock.record.singleWhere(
+      (c) => c.id == 'maya-eth-4000-oct2',
+    );
+    final at = Scenario.outcomeAt(oct2, Scenario.clock.value);
+    expect(at, CallOutcome.open);
+    expect(outcomeDetail(at, oct2.odds), 'published · at 31%');
+    expect(outcomeDetail(CallOutcome.wrong, '31%'), 'at 31%');
+    expect(outcomeDetail(null, null), 'at unavailable');
+    expect(oct2.detail, 'at 31%');
   });
 
   testWidgets('both traders\' panels show the same sample size, hit rate and '
