@@ -88,9 +88,6 @@ class _TradeIdeaCardState extends State<TradeIdeaCard> {
                   variant: idea.side == TradeSide.long
                       ? VistaPillVariant.long
                       : VistaPillVariant.short,
-                  leadingAsset: idea.side == TradeSide.long
-                      ? VistaAssets.longArrow
-                      : null,
                   onPressed: onTrade,
                 ),
               ),
