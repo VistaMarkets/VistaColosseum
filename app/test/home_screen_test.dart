@@ -1958,14 +1958,19 @@ void main() {
     ) async {
       await openWallet(tester);
       expect(find.text(r'+$91 (0.73%)'), findsOneWidget);
-      // Both pages (balance and market cap) cover the chosen span.
+      // Both pages (balance and market cap) cover the chosen span. The
+      // first chart is the portfolio's; position rows have their own.
       expect(find.text('Last 24 hours'), findsNWidgets(2));
-      final day = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
+      final day = tester
+          .widget<SeriesChart>(find.byType(SeriesChart).first)
+          .focus;
       await tester.tap(find.text('1W'));
       await tester.pumpAndSettle();
       expect(find.text(r'+$412 (3.41%)'), findsOneWidget);
       expect(find.text('Past week'), findsNWidgets(2));
-      final week = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
+      final week = tester
+          .widget<SeriesChart>(find.byType(SeriesChart).first)
+          .focus;
       // A different window, ending at the same balance.
       expect(week.first, isNot(day.first));
       expect(week.last, closeTo(12480, 0.01));
@@ -1978,7 +1983,7 @@ void main() {
       expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
       expect(find.text('Your market'), findsNothing);
       // The chart has no muted market line behind the portfolio.
-      final chart = tester.widget<SeriesChart>(find.byType(SeriesChart));
+      final chart = tester.widget<SeriesChart>(find.byType(SeriesChart).first);
       expect(chart.muted, isNull);
       // No market-cap page to swipe to.
       final under = tester.getCenter(pagerBalance) + const Offset(0, 150);
