@@ -153,18 +153,9 @@ class _MarketChartCard extends StatelessWidget {
   final List<InlineSpan> Function(TextStyle strong) foot;
   final VoidCallback? onPressed;
 
-  static const double _chartHeight = 56;
-
   @override
   Widget build(BuildContext context) {
     final m = market;
-    final base = MarketPrices.base(m.id);
-    final history = bridgeSeries(
-      'explore/${m.id}',
-      base / (1 + m.changePct / 100),
-      base,
-      n: 42,
-    );
     final muted = VistaType.meta.copyWith(color: VistaColors.textMuted);
     final strong = VistaType.figures(VistaType.meta)
         .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
@@ -172,7 +163,6 @@ class _MarketChartCard extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: MarketPrices.of(m.id),
       builder: (context, price, _) {
-        final series = endAt(history, price);
         final up = m.changePct >= 0;
         return Semantics(
           button: true,
@@ -296,15 +286,11 @@ class _MarketChartCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: VistaSpace.md),
-                  SizedBox(
-                    height: _chartHeight,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned.fill(child: SeriesChart(focus: series)),
-                        _EndDot(series: series, up: price >= series.first),
-                      ],
-                    ),
+                  MarketLineChart(
+                    id: m.id,
+                    changePct: m.changePct,
+                    price: price,
+                    height: 56,
                   ),
                   const SizedBox(height: VistaSpace.md),
                   Text.rich(
@@ -323,41 +309,75 @@ class _MarketChartCard extends StatelessWidget {
   }
 }
 
-/// The live end of the line: a dark ring with the side colour inside, at
-/// the height [SeriesChart] draws the last point.
-class _EndDot extends StatelessWidget {
-  const _EndDot({required this.series, required this.up});
+/// A market's recent history in the app's line style ([SeriesChart]),
+/// ending at the live [price] with a ringed dot: the period [changePct]
+/// covers (24h for assets, 7 days for traders). Shared by the Explore cards
+/// and the Favorites rail, so a market's line looks the same in both.
+/// Simulated history; not market data.
+class MarketLineChart extends StatelessWidget {
+  const MarketLineChart({
+    super.key,
+    required this.id,
+    required this.changePct,
+    required this.price,
+    required this.height,
+  });
 
-  final List<double> series;
+  final String id;
+  final double changePct;
+  final double price;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = MarketPrices.base(id);
+    final series = endAt(
+      bridgeSeries('explore/$id', base / (1 + changePct / 100), base, n: 42),
+      price,
+    );
+    final lo = series.reduce(math.min);
+    final hi = series.reduce(math.max);
+    final pad = (hi - lo) * 0.12;
+    final endY = canvasY(series.last, lo - pad, hi + pad) / 403 * height;
+    return SizedBox(
+      height: height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(child: SeriesChart(focus: series)),
+          Positioned(
+            right: -6,
+            top: endY - 6,
+            child: _EndDot(up: price >= series.first),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The live end of the line: a dark ring with the side colour inside.
+class _EndDot extends StatelessWidget {
+  const _EndDot({required this.up});
+
   final bool up;
 
   @override
   Widget build(BuildContext context) {
-    final lo = series.reduce(math.min);
-    final hi = series.reduce(math.max);
-    final pad = (hi - lo) * 0.12;
-    final y =
-        canvasY(series.last, lo - pad, hi + pad) /
-        403 *
-        _MarketChartCard._chartHeight;
-    return Positioned(
-      right: -6,
-      top: y - 6,
+    return Container(
+      width: 12,
+      height: 12,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: VistaColors.background,
+        shape: BoxShape.circle,
+      ),
       child: Container(
-        width: 12,
-        height: 12,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: VistaColors.background,
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          color: up ? VistaColors.long : VistaColors.short,
           shape: BoxShape.circle,
-        ),
-        child: Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: up ? VistaColors.long : VistaColors.short,
-            shape: BoxShape.circle,
-          ),
         ),
       ),
     );

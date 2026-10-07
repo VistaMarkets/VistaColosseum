@@ -207,7 +207,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                     compact: true,
                                   ),
                                   changePct: m.changePct,
-                                  sparkAsset: m.spark,
+                                  chart: MarketLineChart(
+                                    id: m.id,
+                                    changePct: m.changePct,
+                                    price: price,
+                                    height: 28,
+                                  ),
                                   footLeft: m.footLeft,
                                   footRight: m.footRight,
                                   onPressed: () => _open(m),
@@ -256,12 +261,6 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 color: VistaColors.textMuted,
                                 letterSpacing: 0.6,
                               ),
-                            ),
-                          ),
-                          Text(
-                            'A–Z',
-                            style: VistaType.label.copyWith(
-                              color: VistaColors.textSecondary,
                             ),
                           ),
                         ],

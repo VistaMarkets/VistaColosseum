@@ -351,7 +351,7 @@ Color vistaChangeColor(double pct) =>
     pct >= 0 ? VistaColors.long : VistaColors.short;
 
 /// Favourite card in a horizontal rail: icon, name, badge and star; price
-/// with change; 24h spark; two footnotes.
+/// with change; a line chart; two footnotes.
 class VistaMarketCard extends StatelessWidget {
   const VistaMarketCard({
     super.key,
@@ -360,7 +360,7 @@ class VistaMarketCard extends StatelessWidget {
     required this.badge,
     required this.price,
     required this.changePct,
-    required this.sparkAsset,
+    required this.chart,
     required this.footLeft,
     required this.footRight,
     this.onPressed,
@@ -371,7 +371,9 @@ class VistaMarketCard extends StatelessWidget {
   final String badge;
   final String price;
   final double changePct;
-  final String sparkAsset;
+
+  /// The 152×28 chart under the price, in the app's line style.
+  final Widget chart;
   final String footLeft;
   final String footRight;
   final VoidCallback? onPressed;
@@ -443,15 +445,7 @@ class VistaMarketCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: VistaSpace.sm),
-              // The spark vector bleeds 0.66% past each side.
-              SizedBox(
-                width: 152,
-                height: 28,
-                child: OverflowBox(
-                  maxWidth: 154,
-                  child: VistaIcon(sparkAsset, size: 154, height: 28),
-                ),
-              ),
+              SizedBox(width: 152, height: 28, child: chart),
               const SizedBox(height: VistaSpace.sm),
               Row(
                 children: [
