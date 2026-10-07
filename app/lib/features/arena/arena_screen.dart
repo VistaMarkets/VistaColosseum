@@ -11,7 +11,8 @@ import '../people/follow_state.dart';
 import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
-import '../watchlist/watchlist_state.dart';
+import '../portfolio/portfolio_mock.dart';
+import '../portfolio/positions_state.dart';
 import 'arena_feed_screen.dart';
 import 'arena_mock.dart';
 import 'debate_screen.dart';
@@ -105,8 +106,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 child: ValueListenableBuilder(
                   valueListenable: CallsStore.all,
                   builder: (context, calls, _) => ValueListenableBuilder(
-                    valueListenable: WatchlistState.assets,
-                    builder: (context, favs, _) => ListView(
+                    // Your markets are the ones you hold (Portfolio).
+                    valueListenable: PositionsState.open,
+                    builder: (context, positions, _) => ListView(
                       padding: EdgeInsets.only(
                         bottom: VistaSpace.gutter + _plusSpace + navSpace,
                       ),
@@ -126,7 +128,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
                           ),
                         ),
                         const _Head('Your markets'),
-                        for (final r in _yourMarkets(calls, favs))
+                        if (_yourMarkets(calls, positions).isEmpty)
+                          _NoMarkets(onExplore: widget.onExplore),
+                        for (final r in _yourMarkets(calls, positions))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
                         const _Head('Trending now'),
                         for (final r in _trending(calls))
@@ -176,18 +180,22 @@ class _ArenaScreenState extends State<ArenaScreen> {
     );
   }
 
-  /// Your favourite assets (busiest first, two) and your first favourite
-  /// trader market.
-  static List<_Room> _yourMarkets(List<Take> calls, List<String> favs) {
-    final assets = [
-      for (final m in MarketsMock.assets)
-        if (favs.contains(m.id)) _Room.asset(m, calls),
-    ]..sort((a, b) => b.calls.compareTo(a.calls));
-    final traders = [
-      for (final m in MarketsMock.traders)
-        if (WatchlistState.isTrader(m.id)) _Room.trader(m, calls),
+  /// Every market you hold a position in (Portfolio), in Portfolio's
+  /// order, once each, with your position on it.
+  static List<_Room> _yourMarkets(
+    List<Take> calls,
+    List<PortfolioPosition> positions,
+  ) {
+    final seen = <String>{};
+    return [
+      for (final p in positions)
+        if (seen.add(p.detail.symbol))
+          for (final m in [...MarketsMock.assets, ...MarketsMock.traders])
+            if (m.id == p.detail.symbol)
+              MarketsMock.traders.contains(m)
+                  ? _Room.trader(m, calls, held: p)
+                  : _Room.asset(m, calls, held: p),
     ];
-    return [...assets.take(2), ...traders.take(1)];
   }
 
   static List<_Room> _trending(List<Take> calls) => [
@@ -215,7 +223,12 @@ class _Room {
   });
 
   /// An asset's room: its calls today and debates, and who is in which way.
-  factory _Room.asset(MarketItem m, List<Take> calls, {Trend? trend}) {
+  factory _Room.asset(
+    MarketItem m,
+    List<Take> calls, {
+    Trend? trend,
+    PortfolioPosition? held,
+  }) {
     final on = calls.where((t) => t.ticker == m.id).toList();
     final debates = BattlesStore.all.value
         .where((b) => b.ticker == m.id)
@@ -268,6 +281,7 @@ class _Room {
       sub:
           trend?.note ??
           [
+            ?_yours(held),
             '$n call${n == 1 ? '' : 's'} today',
             if (debates > 0) '$debates debate${debates == 1 ? '' : 's'}',
           ].join(' · '),
@@ -279,7 +293,12 @@ class _Room {
   }
 
   /// A trader market's room: its owner and record, and who holds it.
-  factory _Room.trader(MarketItem m, List<Take> calls, {Trend? trend}) {
+  factory _Room.trader(
+    MarketItem m,
+    List<Take> calls, {
+    Trend? trend,
+    PortfolioPosition? held,
+  }) {
     final symbol = MarketsMock.traderCards[m.id]?.symbol ?? m.name;
     final record = CallsStore.recordOf(m.id);
     final holders = ArenaMock.holders[m.id];
@@ -295,6 +314,9 @@ class _Room {
         _strong(holders.names.first),
         _muted(' and ${holders.count - 1} others hold $symbol'),
       ];
+    } else if (held != null) {
+      people = [PortfolioMock.handle];
+      line = [_strong('You'), _muted(' hold $symbol')];
     } else {
       people = const [];
       line = [_muted('Be the first to hold $symbol')];
@@ -304,7 +326,7 @@ class _Room {
       market: m,
       trader: m.id,
       title: symbol,
-      sub: [m.id, ?record].join(' · '),
+      sub: [?_yours(held), m.id, ?record].join(' · '),
       calls: calls.where((t) => t.handle == m.id).length,
       people: people,
       line: line,
@@ -322,6 +344,10 @@ class _Room {
   final List<InlineSpan> line;
   final String? reason;
 
+  /// "You: LONG 5x", for a market you hold.
+  static String? _yours(PortfolioPosition? p) =>
+      p == null ? null : 'You: ${p.side.label.toUpperCase()} ${p.leverage}x';
+
   static TextSpan _strong(String s) => TextSpan(
     text: s,
     style: const TextStyle(color: VistaColors.textPrimary),
@@ -337,6 +363,53 @@ class _Room {
     text: s.label.toLowerCase(),
     style: TextStyle(color: s.color),
   );
+}
+
+/// Your markets with nothing held: they come from your positions.
+class _NoMarkets extends StatelessWidget {
+  const _NoMarkets({this.onExplore});
+
+  final VoidCallback? onExplore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        VistaSpace.gutter + VistaSpace.xs,
+        VistaSpace.xs,
+        VistaSpace.gutter + VistaSpace.xs,
+        VistaSpace.md,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Markets you hold show here.',
+              style: VistaType.bodyMedium.copyWith(
+                color: VistaColors.textMuted,
+              ),
+            ),
+          ),
+          if (onExplore != null)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onExplore,
+              child: SizedBox(
+                height: VistaSize.tapTarget,
+                child: Center(
+                  child: Text(
+                    'Find a market ›',
+                    style: VistaType.subhead.copyWith(
+                      color: VistaColors.accent,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Section title with an optional link on the right.

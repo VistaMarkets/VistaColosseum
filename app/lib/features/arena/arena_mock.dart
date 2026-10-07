@@ -288,6 +288,17 @@ abstract final class ArenaMock {
     Settlement.debate(debate: settledDebates.first),
   ];
 
+  /// Most right on each asset over 30 days: who, % right on their settled
+  /// calls on it, how many calls. Every asset room shows three. Mock: the
+  /// backend's per-asset trader stats replace it.
+  static const mostRightIn = {
+    'ETH': [('maya.eth', 82, 14), ('deltaone', 72, 22), ('lunaq', 64, 9)],
+    'BTC': [('renatafx', 84, 11), ('voskov', 71, 8), ('0xreal', 68, 15)],
+    'SOL': [('kilo.sol', 69, 12), ('nara', 64, 7), ('kestrel', 57, 10)],
+    'ARB': [('kilo.sol', 66, 6), ('orbit.eth', 61, 4), ('sam.sol', 55, 5)],
+    'AVAX': [('deltaone', 70, 5), ('mirin', 63, 3), ('vega', 58, 2)],
+  };
+
   /// Trending on the Arena hub, hottest first.
   static const trending = [
     Trend('ARB', '↑ 31 calls this hour', note: 'Unlock tomorrow'),

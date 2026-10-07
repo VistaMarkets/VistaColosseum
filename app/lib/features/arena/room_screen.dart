@@ -79,8 +79,18 @@ class _RoomScreenState extends State<RoomScreen> {
     setState(() => _tab = 1);
   }
 
+  /// The three most right on this market: from the asset's 30-day
+  /// records (always three); for a trader's market, from its calls.
+  List<(String, int?, int)> _mostRight(List<Take> calls) {
+    final known = ArenaMock.mostRightIn[_id];
+    if (!_trader && known != null) {
+      return [for (final (h, pct, n) in known) (h, pct, n)];
+    }
+    return [for (final (h, n) in _fromCalls(calls)) (h, null, n)];
+  }
+
   /// Who has called this market, most often right first.
-  List<(String, int)> _mostRight(List<Take> calls) {
+  List<(String, int)> _fromCalls(List<Take> calls) {
     final counts = <String, int>{};
     for (final t in calls.where(_inRoom)) {
       counts[t.handle] = (counts[t.handle] ?? 0) + 1;
@@ -122,9 +132,10 @@ class _RoomScreenState extends State<RoomScreen> {
                   children: [
                     _header(m),
                     _MostRightHead(title: _title),
-                    for (final (h, n) in _mostRight(calls))
+                    for (final (h, pct, n) in _mostRight(calls))
                       _PersonRow(
                         handle: h,
+                        percentRight: pct,
                         calls: n,
                         title: _title,
                         onTap: () => _push(ProfileScreen.route(h)),
@@ -400,6 +411,7 @@ class _MostRightHead extends StatelessWidget {
 class _PersonRow extends StatelessWidget {
   const _PersonRow({
     required this.handle,
+    this.percentRight,
     required this.calls,
     required this.title,
     required this.onTap,
@@ -407,6 +419,9 @@ class _PersonRow extends StatelessWidget {
   });
 
   final String handle;
+
+  /// % right on this market; their overall record when null.
+  final int? percentRight;
   final int calls;
   final String title;
   final VoidCallback onTap;
@@ -414,7 +429,9 @@ class _PersonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final record = CallsStore.recordOf(handle)?.split(' ').first;
+    final record = percentRight != null
+        ? '$percentRight%'
+        : CallsStore.recordOf(handle)?.split(' ').first;
     final market = MarketsMock.traders.where((m) => m.id == handle);
     final mine = handle == PortfolioMock.handle;
     return GestureDetector(

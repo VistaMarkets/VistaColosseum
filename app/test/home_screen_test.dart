@@ -981,13 +981,21 @@ void main() {
         expect(find.bySemanticsLabel(RegExp('room')), findsWidgets);
         expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
         // A market row opens that market's room in every call.
-        await tester.tap(find.bySemanticsLabel(RegExp('^BTC room')).first);
+        // Your markets are the ones you hold: ETH, SOL and 0xreal's market.
+        expect(find.bySemanticsLabel(RegExp('^ETH room')), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('^SOL room')), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('^REAL room')), findsOneWidget);
+        expect(
+          find.text('You: LONG 5x · 6 calls today · 1 debate'),
+          findsOneWidget,
+        );
+        await tester.tap(find.bySemanticsLabel(RegExp('^ETH room')).first);
         await tester.pumpAndSettle();
         expect(find.byType(RoomScreen), findsOneWidget);
         expect(
           tester
               .widgetList<HubCallCard>(find.byType(HubCallCard))
-              .every((c) => c.take.ticker == 'BTC'),
+              .every((c) => c.take.ticker == 'ETH'),
           isTrue,
         );
         await tester.tap(find.bySemanticsLabel('Back').last);
@@ -1017,6 +1025,11 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(find.text('ARB room'), findsOneWidget);
         expect(find.text('Most right in ARB'), findsOneWidget);
+        // Always the three most right on it.
+        expect(
+          find.textContaining(RegExp(r'· \d+ ARB call')),
+          findsNWidgets(3),
+        );
         // Follow room adds it to your markets (favourites).
         expect(WatchlistState.isAsset('ARB'), isFalse);
         await tester.tap(find.bySemanticsLabel('Follow room'));
@@ -1038,6 +1051,27 @@ void main() {
         expect(find.text('Open a long'), findsOneWidget);
       },
     );
+
+    testWidgets('Your markets follow Portfolio: close a position, it goes', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(RegExp('^SOL room')), findsOneWidget);
+      final sol = PositionsState.open.value.firstWhere(
+        (p) => p.detail.symbol == 'SOL',
+      );
+      PositionsState.remove(sol);
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(RegExp('^SOL room')), findsNothing);
+      expect(find.bySemanticsLabel(RegExp('^ETH room')), findsOneWidget);
+    });
 
     testWidgets('an ETH room posts from the ETH position', (tester) async {
       tester.view
