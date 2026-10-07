@@ -104,6 +104,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _say('Wallet address copied');
                       },
                     ),
+                    const SizedBox(height: VistaSpace.md),
+                    // Money in and out, by the wallet. Simulated: neither
+                    // flow is built, and the demo never moves funds.
+                    Row(
+                      children: [
+                        Expanded(
+                          child: VistaPillButton(
+                            label: 'Deposit',
+                            variant: VistaPillVariant.accent,
+                            foreground: VistaColors.onAccent,
+                            onPressed: () => _notBuilt('Deposit'),
+                          ),
+                        ),
+                        const SizedBox(width: VistaSpace.md),
+                        Expanded(
+                          child: VistaPillButton(
+                            label: 'Withdraw',
+                            onPressed: () => _notBuilt('Withdraw'),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: VistaSpace.section),
                     _notifications(),
                     const VistaSettingsDivider(),

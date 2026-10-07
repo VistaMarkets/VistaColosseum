@@ -2127,6 +2127,18 @@ void main() {
       expect(SettingsState.notifyFrom.value['0xreal'], isFalse);
     });
 
+    testWidgets('Deposit and Withdraw sit under the wallet (simulated)', (
+      tester,
+    ) async {
+      await openSettings(tester);
+      for (final label in ['Deposit', 'Withdraw']) {
+        expect(find.widgetWithText(VistaPillButton, label), findsOneWidget);
+      }
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Withdraw'));
+      await tester.pump();
+      expect(find.text('Withdraw — not in the demo yet'), findsOneWidget);
+    });
+
     testWidgets('Display settings change the charts and the Long side', (
       tester,
     ) async {
