@@ -128,11 +128,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         const _Head('Your markets'),
                         for (final r in _yourMarkets(calls, favs))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
-                        _Head(
-                          'Trending now',
-                          trailing: 'See all',
-                          onTrailing: _feed,
-                        ),
+                        const _Head('Trending now'),
                         for (final r in _trending(calls))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
                         _Head('Calls', trailing: 'See all', onTrailing: _feed),
@@ -142,6 +138,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         ].take(2))
                           HubCallCard(
                             take: t,
+                            showReply: false,
                             onCaller: () =>
                                 _push(ProfileScreen.route(t.handle)),
                             onMarket: () =>
