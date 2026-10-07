@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
-import '../market/trader_market_screen.dart';
+import '../profile/profile_screen.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../trade/asset_trade_screen.dart';
 import '../watchlist/edit_favorites_screen.dart';
@@ -94,7 +94,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
   void _open(MarketItem m) {
     if (_traders) {
-      Navigator.of(context).push(TraderMarketScreen.route(m.name));
+      // The board is about people: a card opens the trader's profile (their
+      // market is a tap away from there).
+      Navigator.of(context).push(ProfileScreen.route(m.name));
     } else {
       Navigator.of(context).push(AssetTradeScreen.route(m.id));
     }

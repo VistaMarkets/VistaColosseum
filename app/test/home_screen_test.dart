@@ -49,6 +49,7 @@ import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+import 'package:vista_colosseum/features/markets/markets_screen.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
@@ -848,7 +849,31 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(xreal);
       await tester.pumpAndSettle();
-      expect(find.byType(VistaIntervalSelector), findsOneWidget);
+      // A card opens the trader's profile, not their market.
+      final profile = tester.widget<ProfileScreen>(find.byType(ProfileScreen));
+      expect(profile.handle, '0xreal');
+      expect(find.byType(TraderMarketScreen), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a new trader on the board opens their profile', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(VistaFilterChip, 'Up and coming'),
+      );
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(LeaderboardCard).first);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ProfileScreen>(find.byType(ProfileScreen)).handle,
+        'vexa',
+      );
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('Change reranks the Leaderboard; no Top P&L', (tester) async {
@@ -954,18 +979,9 @@ void main() {
       await openMarkets(tester);
       await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('REAL  0xreal', findRichText: true),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      final xreal = find.ancestor(
-        of: find.text('REAL  0xreal', findRichText: true),
-        matching: find.byType(LeaderboardCard),
-      );
-      await tester.ensureVisible(xreal);
-      await tester.pumpAndSettle();
-      await tester.tap(xreal);
+      // The board opens profiles; the market page is a step further.
+      Navigator.of(tester.element(find.byType(MarketsScreen)))
+          .push(TraderMarketScreen.route('0xreal'));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(VistaWatchButton));
       await tester.pump();
