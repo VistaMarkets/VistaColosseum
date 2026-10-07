@@ -6,7 +6,6 @@ import '../live/market_prices.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../trade/trade_mock.dart';
 import '../calls/calls_store.dart';
-import '../markets/markets_mock.dart';
 import 'arena_mock.dart';
 import 'battle_builder.dart';
 import 'take_card.dart';
@@ -55,10 +54,7 @@ class ComposeTakeScreen extends StatefulWidget {
 class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
   final _text = TextEditingController();
 
-  /// Set while the call is also starting a battle.
-  BattleSpec? _battle;
-
-  /// Set instead when the call goes on a battle that's already live.
+  /// The live debate the call goes on (from a debate's Argue).
   late LiveBattle? _joined = widget.debate;
 
   @override
@@ -73,42 +69,15 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
     super.dispose();
   }
 
-  /// Opens the battle page; set up there, the battle rides on this call.
-  Future<void> _editBattle() async {
-    final p = widget.position;
-    final choice = await Navigator.of(context).push(
-      BattleSetupScreen.route(
-        ticker: p.detail.symbol,
-        side: p.side,
-        initial: _battle,
-      ),
-    );
-    if (choice == null || !mounted) return;
-    setState(() {
-      _battle = choice.spec;
-      _joined = choice.live;
-    });
-  }
-
-  bool get _canPost => _text.text.trim().isNotEmpty && (_battle?.valid ?? true);
+  bool get _canPost => _text.text.trim().isNotEmpty;
 
   void _post() {
     final p = widget.position;
-    final battle = _battle;
     final joined = _joined;
     HapticFeedback.lightImpact();
     // Joining a live battle: one more call on it, on this side.
     if (joined != null) {
       BattlesStore.join(joined, long: p.side == TradeSide.long);
-    }
-    // Starting a battle: it goes live with this call as its first.
-    if (battle != null) {
-      BattlesStore.add(
-        battle.start(
-          change: _changeOf(p.detail.symbol),
-          long: p.side == TradeSide.long,
-        ),
-      );
     }
     Navigator.of(context).pop(
       Take(
@@ -120,20 +89,9 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
         body: _text.text.trim(),
         likes: 0,
         call: ComposeTakeScreen.backing(p),
-        battle: battle?.question ?? joined?.label,
+        battle: joined?.label,
       ),
     );
-  }
-
-  /// The market's day change as the battle tiles show it ("+1.2%").
-  static String _changeOf(String ticker) {
-    for (final m in MarketsMock.assets) {
-      if (m.id == ticker) {
-        final c = m.changePct;
-        return '${c >= 0 ? '+' : '−'}${c.abs().toStringAsFixed(1)}%';
-      }
-    }
-    return '+0.0%';
   }
 
   @override
@@ -177,7 +135,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                     Semantics(
                       button: true,
                       enabled: _canPost,
-                      label: _battle == null ? 'Post' : 'Start debate',
+                      label: 'Post',
                       excludeSemantics: true,
                       child: VistaPressable(
                         onTap: _canPost ? _post : null,
@@ -199,7 +157,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  _battle == null ? 'Post' : 'Start debate',
+                                  'Post',
                                   style: VistaType.subhead.copyWith(
                                     color: VistaColors.onAccent,
                                   ),
@@ -290,27 +248,17 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                             ticker: p.detail.symbol,
                           ),
                           const SizedBox(height: VistaSpace.xl),
-                          // A call by default; this turns it into a battle.
-                          if (_battle case final b?)
-                            BattleSummaryCard(
-                              label: 'DEBATE',
-                              question: b.question,
-                              detail: b.settles,
-                              onEdit: _editBattle,
-                              onRemove: () => setState(() => _battle = null),
-                            )
-                          else if (_joined case final j?)
+                          // From a debate's Argue: the call goes on it.
+                          if (_joined case final j?) ...[
                             BattleSummaryCard(
                               label: 'LIVE DEBATE',
                               question: j.question,
                               detail:
                                   'Your call joins it · ${j.takes} calls · '
                                   '${j.timeLeft}',
-                              onEdit: _editBattle,
                               onRemove: () => setState(() => _joined = null),
-                            )
-                          else
-                            MakeBattleButton(onTap: _editBattle),
+                            ),
+                          ],
                           const SizedBox(height: VistaSpace.md),
                           Align(
                             alignment: Alignment.centerRight,

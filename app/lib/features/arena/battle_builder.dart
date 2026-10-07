@@ -714,7 +714,7 @@ class BattleSummaryCard extends StatelessWidget {
     required this.label,
     required this.question,
     required this.detail,
-    required this.onEdit,
+    this.onEdit,
     required this.onRemove,
   });
 
@@ -724,7 +724,9 @@ class BattleSummaryCard extends StatelessWidget {
 
   /// How it settles, or what joining it means.
   final String detail;
-  final VoidCallback onEdit;
+
+  /// Edit is left out when null.
+  final VoidCallback? onEdit;
   final VoidCallback onRemove;
 
   @override
@@ -765,8 +767,10 @@ class BattleSummaryCard extends StatelessWidget {
                   ),
                 ),
               ),
-              action('Edit', onEdit, VistaColors.accent),
-              const SizedBox(width: VistaSpace.gutter),
+              if (onEdit case final edit?) ...[
+                action('Edit', edit, VistaColors.accent),
+                const SizedBox(width: VistaSpace.gutter),
+              ],
               action('Remove', onRemove, VistaColors.textMuted),
             ],
           ),
