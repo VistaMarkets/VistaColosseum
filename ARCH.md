@@ -409,7 +409,8 @@ VistaColosseum/
 │   │   │   │   └── your_market_screen.dart
 │   │   │   ├── markets/  — Explore tab: Assets / Traders market lists with search, sort chips and favourites (mock data)
 │   │   │   │   ├── markets_mock.dart
-│   │   │   │   └── markets_screen.dart
+│   │   │   │   ├── markets_screen.dart
+│   │   │   │   └── trader_market_card.dart
 │   │   │   ├── people/  — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 │   │   │   │   ├── follow_list_screen.dart
 │   │   │   │   ├── follow_mock.dart

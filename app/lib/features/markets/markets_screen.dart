@@ -8,8 +8,10 @@ import '../watchlist/edit_favorites_screen.dart';
 import '../watchlist/watchlist_state.dart';
 import '../live/market_prices.dart';
 import 'markets_mock.dart';
+import 'trader_market_card.dart';
 
-/// Explore tab: Assets and Traders markets (Figma 185:110, 222:110).
+/// Explore tab: Assets and Traders markets (Figma 185:110, 222:110; each
+/// trader market in the list is a chart card, 546:300).
 ///
 /// Search filters by name, the sort chips order the list (descending), and
 /// stars add or remove favourites (shared with the market pages' stars),
@@ -266,29 +268,45 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         ),
                       ),
                     for (final m in rows)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          6,
-                          0,
-                          6,
-                          VistaSpace.sm,
-                        ),
-                        child: ValueListenableBuilder(
-                          valueListenable: MarketPrices.of(m.id),
-                          builder: (context, price, _) => VistaMarketRow(
+                      if (_traders)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            VistaSpace.gutter,
+                            0,
+                            VistaSpace.gutter,
+                            VistaSpace.md,
+                          ),
+                          child: TraderMarketCard(
+                            market: m,
                             starred: favs.contains(m.id),
                             onStar: () => _toggleFavorite(m.id),
-                            icon: m.rowIcon,
-                            name: m.name,
-                            badge: m.badge,
-                            subline: m.subline,
-                            price: MarketPrices.format(price, compact: true),
-                            changePct: m.changePct,
-                            third: m.third,
                             onPressed: () => _open(m),
                           ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            6,
+                            0,
+                            6,
+                            VistaSpace.sm,
+                          ),
+                          child: ValueListenableBuilder(
+                            valueListenable: MarketPrices.of(m.id),
+                            builder: (context, price, _) => VistaMarketRow(
+                              starred: favs.contains(m.id),
+                              onStar: () => _toggleFavorite(m.id),
+                              icon: m.rowIcon,
+                              name: m.name,
+                              badge: m.badge,
+                              subline: m.subline,
+                              price: MarketPrices.format(price, compact: true),
+                              changePct: m.changePct,
+                              third: m.third,
+                              onPressed: () => _open(m),
+                            ),
+                          ),
                         ),
-                      ),
                   ],
                 ),
               ),

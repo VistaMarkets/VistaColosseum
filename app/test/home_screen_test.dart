@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/markets/trader_market_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
@@ -738,14 +739,34 @@ void main() {
       await tester.tap(find.text('Traders'));
       await tester.pumpAndSettle();
       expect(find.text('ALL TRADER MARKETS'), findsOneWidget);
-      expect(rowNames(tester).first, 'maya.eth');
-
-      await tester.tap(
-        find.descendant(
-          of: find.byType(VistaMarketRow),
-          matching: find.text('0xreal'),
-        ),
+      // Each trader market is a chart card; the Favorites rail is unchanged.
+      expect(find.byType(VistaMarketRow), findsNothing);
+      expect(find.byType(VistaMarketCard), findsNWidgets(3));
+      final maya = find.byType(TraderMarketCard).first;
+      expect(tester.widget<TraderMarketCard>(maya).name, 'maya.eth');
+      expect(
+        find.descendant(of: maya, matching: find.byType(SeriesChart)),
+        findsOneWidget,
       );
+      expect(
+        find.descendant(
+          of: maya,
+          matching: find.text('Market cap: 44,000,000'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: maya, matching: find.text('3 calls')),
+        findsOneWidget,
+      );
+
+      final xreal = find.ancestor(
+        of: find.text('0xreal'),
+        matching: find.byType(TraderMarketCard),
+      );
+      await tester.ensureVisible(xreal);
+      await tester.pumpAndSettle();
+      await tester.tap(xreal);
       await tester.pumpAndSettle();
       expect(find.byType(VistaIntervalSelector), findsOneWidget);
     });
@@ -816,12 +837,13 @@ void main() {
       await tester.tap(find.text('Traders'));
       await tester.pumpAndSettle();
       expect(railNames(tester), ['maya.eth', 'lunaq', 'deltaone']);
-      await tester.tap(
-        find.descendant(
-          of: find.byType(VistaMarketRow),
-          matching: find.text('0xreal'),
-        ),
+      final xreal = find.ancestor(
+        of: find.text('0xreal'),
+        matching: find.byType(TraderMarketCard),
       );
+      await tester.ensureVisible(xreal);
+      await tester.pumpAndSettle();
+      await tester.tap(xreal);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(VistaWatchButton));
       await tester.pump();
@@ -829,6 +851,9 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back').last);
       await tester.pumpAndSettle();
       expect(WatchlistState.traders.value.last, '0xreal');
+      // Back to the top, where the rail is.
+      await tester.drag(find.byType(ListView).first, const Offset(0, 2000));
+      await tester.pumpAndSettle();
       await railShows(tester, '0xreal');
     });
 
