@@ -795,27 +795,34 @@ void main() {
       await openMarkets(tester);
       await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      expect(find.text('RANKED THIS WEEK'), findsOneWidget);
-      // Most right first: maya.eth (82%) is #1, and it's you.
-      expect(find.textContaining('#1', findRichText: true), findsOneWidget);
-      // Each trader is a flush row with no chart; the Favorites rail is
-      // unchanged.
-      expect(find.byType(VistaMarketRow), findsNothing);
-      expect(find.byType(VistaMarketCard), findsNWidgets(3));
+      // Most right over 7d by default: deltaone first, you (maya.eth) #2.
+      expect(find.textContaining('#2', findRichText: true), findsOneWidget);
+      // Each trader is a flush row with no chart, and no Favorites rail.
+      expect(find.text('Favorites'), findsNothing);
+      expect(find.byType(VistaMarketCard), findsNothing);
       expect(find.byType(AssetMarketCard), findsNothing);
-      final maya = find.byType(LeaderboardRow).first;
-      expect(tester.widget<LeaderboardRow>(maya).name, 'maya.eth');
-      expect(tester.widget<LeaderboardRow>(maya).rank, 1);
+      final rows = find.byType(LeaderboardRow);
+      expect(tester.widget<LeaderboardRow>(rows.first).name, 'deltaone');
+      final maya = rows.at(1);
+      expect(tester.widget<LeaderboardRow>(maya).rank, 2);
       expect(
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
         findsNothing,
       );
-      for (final text in ['MAYA', 'maya.eth · You', '82%', 'right']) {
+      for (final text in ['MAYA', 'maya.eth · You', '76%', 'right']) {
         expect(
           find.descendant(of: maya, matching: find.text(text)),
           findsOneWidget,
         );
       }
+
+      // All time is the record shown everywhere else: 82%, and you're #1.
+      await tester.tap(find.bySemanticsLabel('All'));
+      await tester.pumpAndSettle();
+      final top = tester.widget<LeaderboardRow>(rows.first);
+      expect((top.name, top.rank, top.window), ('maya.eth', 1, 3));
+      expect(find.text('82%'), findsOneWidget);
+      expect(find.textContaining('#1', findRichText: true), findsOneWidget);
 
       await tester.scrollUntilVisible(
         find.text('0xreal'),
@@ -856,7 +863,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
       await tester.pumpAndSettle();
-      expect(find.text('OPENED IN THE LAST 30 DAYS'), findsOneWidget);
+      expect(find.text('UNDER 30 DAYS OLD'), findsOneWidget);
       final rows = tester
           .widgetList<LeaderboardRow>(find.byType(LeaderboardRow))
           .toList();
@@ -934,7 +941,6 @@ void main() {
       await openMarkets(tester);
       await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      expect(railNames(tester), ['maya.eth', 'lunaq', 'deltaone']);
       await tester.scrollUntilVisible(
         find.text('0xreal'),
         200,
@@ -954,10 +960,8 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back').last);
       await tester.pumpAndSettle();
       expect(WatchlistState.traders.value.last, '0xreal');
-      // Back to the top, where the rail is.
-      await tester.drag(find.byType(ListView).first, const Offset(0, 2000));
-      await tester.pumpAndSettle();
-      await railShows(tester, '0xreal');
+      // The Leaderboard has no Favorites rail.
+      expect(find.text('Favorites'), findsNothing);
     });
 
     testWidgets('Edit favorites removes with undo, and order drives the rail', (

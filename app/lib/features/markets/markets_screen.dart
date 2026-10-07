@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../account/account_top_bar.dart';
-import '../calls/calls_store.dart';
 import '../market/trader_market_screen.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../trade/asset_trade_screen.dart';
@@ -44,6 +43,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
   String _query = '';
   final _sort = [0, 0];
 
+  /// Leaderboard time window, an index into [leaderboardWindows] (7d).
+  int _window = 1;
+
   @override
   void dispose() {
     _search.dispose();
@@ -71,17 +73,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
         ];
 
   /// What a chip orders by (descending); null keeps designed order.
-  static double? _sortValue(MarketItem m, String key) {
-    final c = MarketsMock.traderCards[m.id];
-    return switch (key) {
-      'Most right' => double.tryParse(
-        (CallsStore.recordOf(m.id) ?? '').split('%').first,
-      ),
-      'Top P&L' => c?.weekPnl,
-      'Up and coming' => c?.newHolders.toDouble(),
-      _ => m.sortValues[key],
-    };
-  }
+  double? _sortValue(MarketItem m, String key) =>
+      _traders ? LeaderboardRow.value(m, key, _window) : m.sortValues[key];
 
   void _selectTab(int i) {
     if (i == _tab) return;
@@ -124,6 +117,50 @@ class _MarketsScreenState extends State<MarketsScreen> {
       (MarketsMock.traderCards[m.id]?.symbol.toLowerCase().contains(q) ??
           false);
 
+  /// 24h · 7d · 30d · All: small text pills, the picked one filled.
+  Widget _windowSelector() => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (final (i, w) in leaderboardWindows.indexed)
+        Semantics(
+          button: true,
+          selected: i == _window,
+          label: w,
+          excludeSemantics: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _window = i),
+            child: SizedBox(
+              height: VistaSize.tapTarget,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: VistaMotion.state,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: VistaSpace.lg,
+                    vertical: VistaSpace.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: i == _window
+                        ? VistaColors.surfaceRaised
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(VistaRadius.pill),
+                  ),
+                  child: Text(
+                    w,
+                    style: VistaType.figures(VistaType.label).copyWith(
+                      color: i == _window
+                          ? VistaColors.textPrimary
+                          : VistaColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -151,6 +188,10 @@ class _MarketsScreenState extends State<MarketsScreen> {
         .firstOrNull
         ?.$1;
     const gutter = EdgeInsets.symmetric(horizontal: VistaSpace.gutter);
+    final label = VistaType.label.copyWith(
+      color: VistaColors.textMuted,
+      letterSpacing: 0.6,
+    );
 
     // The list runs to the bottom of the screen and scrolls under the
     // floating search and nav, which sit over it with nothing behind them.
@@ -189,7 +230,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         onChanged: _selectTab,
                       ),
                     ),
-                    if (favItems.isNotEmpty) ...[
+                    // Favorites sit on Assets only; the board is the board.
+                    if (!_traders && favItems.isNotEmpty) ...[
                       const SizedBox(height: VistaSpace.xl),
                       Padding(
                         padding: gutter,
@@ -291,22 +333,29 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              !_traders
-                                  ? 'ALL MARKETS'
-                                  : _upAndComing
-                                  ? 'OPENED IN THE LAST '
-                                        '${MarketsMock.newMarketDays} DAYS'
-                                  : 'RANKED THIS WEEK',
-                              style: VistaType.label.copyWith(
-                                color: VistaColors.textMuted,
-                                letterSpacing: 0.6,
+                          // Market cap is a snapshot; every other chip has a
+                          // time window.
+                          if (_traders && _sortKey != 'Market cap')
+                            _windowSelector()
+                          else
+                            SizedBox(
+                              height: VistaSize.tapTarget,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _traders ? 'RIGHT NOW' : 'ALL MARKETS',
+                                  style: label,
+                                ),
                               ),
                             ),
-                          ),
+                          const Spacer(),
+                          if (_upAndComing)
+                            Text(
+                              'UNDER ${MarketsMock.newMarketDays} DAYS OLD',
+                              style: label,
+                            )
                           // Your place, whatever the search shows.
-                          if (_traders && youRank != null)
+                          else if (_traders && youRank != null)
                             Text.rich(
                               TextSpan(
                                 children: [
@@ -351,6 +400,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           rank: rank,
                           market: m,
                           metric: _sortKey,
+                          window: _window,
                           isYou: m.id == PortfolioMock.handle,
                           onPressed: () => _open(m),
                         ),
