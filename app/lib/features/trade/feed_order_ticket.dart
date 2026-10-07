@@ -73,9 +73,6 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   /// maintenance buffer.
   double get _liqPct => (1 / _leverage - 0.005) * 100;
 
-  double get _liquidation =>
-      _entry * (_long ? 1 - _liqPct / 100 : 1 + _liqPct / 100);
-
   /// The stop stays short of liquidation and inside the track.
   double get _slMax => math.min(_TpSlTrack.maxStop, _liqPct - 0.1);
 
@@ -323,15 +320,6 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                   style: muted12,
                 ),
                 gap,
-                _WorstCase(
-                  symbol: widget.symbol,
-                  long: _long,
-                  entry: _entry,
-                  liquidation: _liquidation,
-                  margin: _margin,
-                  notional: _notional,
-                  stop: _exits ? _exitPrice(_slPct, gain: false) : null,
-                ),
                 _exitsCheck(muted12),
                 if (_exits) ...[
                   _TpSlTrack(

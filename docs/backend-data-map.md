@@ -154,6 +154,57 @@ Field mapping:
 join path (contract, "Taking a Call"). A short call joined as a buy is a
 wrong-way trade at leverage.
 
+### Home card field map (checked 2026-10-07)
+
+Every data point on a Home trade card (`trade_idea_card.dart`) against the
+VMBE client contract (`docs/specs/2026-09-16-client-gateway-openapi.yaml`).
+"Built" means the gateway serves it today; "staged" means the contract
+defines it but the gateway doesn't serve it yet. Served today: accounts,
+orders, prices (snapshot, latest, history, `/v1/ws`), suggestions, terms.
+
+| Card shows | Contract field | Ease | Status |
+| --- | --- | --- | --- |
+| Avatar, handle, Follow | `Call.author.handle`, `avatarUrl`, `isFollowedByMe` | Easy | Staged (`/v1/feed`) |
+| Age ("· 5h") | `Call.createdAt`, formatted on device | Easy | Staged |
+| Long / Short | `Call.direction` | Easy | Staged |
+| Ticker, name, icon | `Call.asset` (`symbol`, `name`, `iconUrl`) | Easy | Staged |
+| Live price | `prices` channel on `/v1/ws`; `Call.markPrice` for a cold load | Easy | **Built** |
+| "% since call" | `performanceSincePostedPct`, or from `entryPrice` and the live price | Easy | Staged |
+| Headline text | `Call.thesis` (280 chars) | Easy | Staged |
+| "Called $X · 5h ago" | `entryPrice` + `createdAt` | Easy | Staged |
+| Chart since the call | `/v1/prices/history` (ticks; bucket into candles on device) or `/v1/assets/{id}/candles` | Medium | History **built**; candles staged |
+| "Funding flipped" | `CallEvent` `FUNDING_FLIPPED` {ratePct, intervalHours, payer} | Easy | Staged |
+| "Broke $2,950" | `BROKE_24H_HIGH` / `BROKE_7D_HIGH` {price, previousPrice} | Easy (copy follows the codes) | Staged |
+| "Whale long $4.2M" | None for clients; `/v1/trades/whales` is internal | **Gap** | — |
+| "0xreal shorted $1.2k" | `CallEvent` `WENT_LONG` / `WENT_SHORT` {actor, notionalUsd, leverage} | Easy | Staged (`calls` stream) |
+| "3 people joined", "1.2k in" | `participantCount` (`openParticipantCount` for "still in") | Easy | Staged |
+| Like count | `likeCount`, `likedByMe` | Easy | Staged |
+| Share | `shareUrl` | Easy | Staged |
+| Long / Short button | `POST /v1/orders`, then `POST /v1/calls/{id}/participation` | Easy | Orders **built**; participation staged |
+
+**Gaps to close with the backend:**
+
+1. **Trader-market calls.** The contract excludes trader-token prices and
+   TPX is still being specified (#885) and delivered (#886). Calls on
+   MAYA, REAL and other trader markets (7 of the 12 demo Home cards)
+   have no price, history or call data until then.
+2. **Replay chart.** `entryPrice` notes that Signal Replay (#883) still
+   needs source-venue/time linkage and historical candle coverage. Until
+   candles ship, bucket `/v1/prices/history` ticks on device.
+3. **Whale marker.** Add a client `CallEvent` code (e.g. `WHALE_LONG` /
+   `WHALE_SHORT` {notionalUsd}; the vocabulary is additive) or drop the
+   marker from the card.
+4. **Event copy.** Events are codes plus params; the app composes the
+   sentence, so the card's labels follow the contract's codes.
+5. **Ranking.** For You is ranked server-side and its inputs aren't in the
+   contract. The demo's popularity, follow and new-caller boosts
+   (`home_feed.dart`) are a stand-in the backend would adopt.
+
+**App work:** one adapter from `Call` to `TradeIdea`, and a builder that
+turns price history plus timestamped `CallEvent`s into the card's replay
+path and markers. The card widget itself doesn't change. Money arrives as
+strings; parse once at the edge.
+
 ## 4. Position
 
 | Model | File | Page |

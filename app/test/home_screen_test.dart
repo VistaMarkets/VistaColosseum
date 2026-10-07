@@ -3090,21 +3090,8 @@ void main() {
         inTicket(find.text(r'You pay $200 → $400 position (2x) · 0.1348 ETH')),
         findsOneWidget,
       );
-      // The worst case, in words: liquidation, what's lost, and the stop.
-      expect(
-        inTicket(
-          find.textContaining(
-            r'If ETH falls to $1,499, the position is closed and you lose '
-            r'the $200 you put in.',
-            findRichText: true,
-          ),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        inTicket(find.textContaining(r'Your stop-loss at $2,906')),
-        findsOneWidget,
-      );
+      // No worst-case box: the margin and liquidation line covers the risk.
+      expect(inTicket(find.text('WORST CASE')), findsNothing);
       // TP/SL opens on, with the track at the design's defaults.
       expect(inTicket(find.text('STOP LOSS')), findsOneWidget);
       expect(inTicket(find.text('ENTRY')), findsOneWidget);
