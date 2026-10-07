@@ -2532,29 +2532,46 @@ void main() {
       );
     });
 
-    testWidgets('Home + makes a call and shows it first', (tester) async {
+    testWidgets('cards show the record before the age; calls come from Arena', (
+      tester,
+    ) async {
       tester.view
         ..physicalSize = const Size(402, 874) * 3
         ..devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
+      // No + on Home.
+      expect(find.bySemanticsLabel('Make a call'), findsNothing);
+      // "kaito.eth › · 74% right · 5h"
+      final card = find.byType(TradeIdeaCard).first;
+      final handle = tester.widget<TradeIdeaCard>(card).idea.callerHandle;
+      final record = CallsStore.recordOf(handle)!;
+      final rec = find.descendant(of: card, matching: find.text('· $record'));
+      final age = find.descendant(
+        of: card,
+        matching: find.text('· ${tester.widget<TradeIdeaCard>(card).idea.age}'),
+      );
+      expect(rec, findsOneWidget);
+      expect(tester.getTopLeft(rec).dx, lessThan(tester.getTopLeft(age).dx));
+
+      // A call made from Arena's + leads Home.
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Make a call'));
       await tester.pumpAndSettle();
-      expect(find.byType(PickPositionScreen), findsOneWidget);
       await tester.tap(find.text('Solana'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Fading the unlock.');
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.bySemanticsLabel('Post'));
       await tester.pumpAndSettle();
-      // Back on Home, with the new call first.
-      expect(find.byType(PickPositionScreen), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
       final first = tester.widget<TradeIdeaCard>(
         find.byType(TradeIdeaCard).first,
       );
       expect(first.idea.callerHandle, 'maya.eth');
-      expect(first.idea.ticker, 'SOL');
       expect(first.idea.question, 'Fading the unlock.');
     });
 

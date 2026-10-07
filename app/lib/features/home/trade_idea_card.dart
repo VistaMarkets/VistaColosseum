@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
+import '../calls/calls_store.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../share/share_call_sheet.dart';
@@ -145,6 +146,22 @@ class _CallHeader extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: VistaSpace.md),
+                        // How often they're right, then when they called it.
+                        if (CallsStore.recordOf(idea.callerHandle)
+                            case final record?) ...[
+                          Text(
+                            '· $record',
+                            style: VistaType.meta.copyWith(
+                              color:
+                                  (int.tryParse(record.split('%').first) ??
+                                          0) >=
+                                      55
+                                  ? VistaColors.long
+                                  : VistaColors.textMuted,
+                            ),
+                          ),
+                          const SizedBox(width: VistaSpace.sm),
+                        ],
                         Text('· ${idea.age}', style: VistaType.meta),
                         const SizedBox(width: VistaSpace.md),
                         FollowChip(handle: idea.callerHandle),

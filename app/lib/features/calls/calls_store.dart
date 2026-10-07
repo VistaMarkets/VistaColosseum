@@ -47,6 +47,15 @@ abstract final class CallsStore {
     return (k ? n * 1000 : n).round();
   }
 
+  /// A caller's record ("74% right"), from their calls; null if they have
+  /// none. The backend's `TraderStats.winRatePct` replaces it.
+  static String? recordOf(String handle) {
+    for (final t in all.value) {
+      if (t.handle == handle) return t.accuracy;
+    }
+    return _records[handle];
+  }
+
   /// Adds a newly posted take.
   static void add(Take t) => all.value = _ordered([t, ...all.value]);
 
