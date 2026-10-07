@@ -157,6 +157,7 @@ class OrderFilledSheet extends StatelessWidget {
                 child: VistaPillButton(
                   label: 'Post a call',
                   variant: VistaPillVariant.accent,
+                  foreground: VistaColors.onAccent,
                   onPressed: () async {
                     navigator.pop();
                     final take = await navigator.push(

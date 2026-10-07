@@ -17,10 +17,14 @@ class VistaPillButton extends StatelessWidget {
     this.variant = VistaPillVariant.neutral,
     this.leadingAsset,
     this.onPressed,
+    this.foreground,
   });
 
   final String label;
   final VistaPillVariant variant;
+
+  /// Overrides the variant's label colour.
+  final Color? foreground;
 
   /// Optional small glyph before the label (e.g. the Long arrow, 9×4.6).
   final String? leadingAsset;
@@ -37,6 +41,7 @@ class VistaPillButton extends StatelessWidget {
       VistaPillVariant.short => (VistaColors.short, VistaColors.onAccent),
       VistaPillVariant.accent => (VistaColors.accent, VistaColors.ink),
     };
+    final fgColor = foreground ?? fg;
     return Semantics(
       button: true,
       label: label,
@@ -61,7 +66,7 @@ class VistaPillButton extends StatelessWidget {
               Flexible(
                 child: Text(
                   label,
-                  style: VistaType.headline.copyWith(color: fg),
+                  style: VistaType.headline.copyWith(color: fgColor),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
