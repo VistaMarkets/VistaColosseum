@@ -506,52 +506,18 @@ class _PersonRow extends StatelessWidget {
             ),
             if (!mine) ...[
               const SizedBox(width: VistaSpace.md),
-              _FollowPill(handle: handle),
+              // The app's Follow button, shared with profiles and lists.
+              ValueListenableBuilder(
+                valueListenable: FollowState.following,
+                builder: (context, following, _) => VistaFollowButton(
+                  following: following.contains(handle),
+                  onPressed: () => FollowState.toggle(handle),
+                ),
+              ),
             ],
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Follow / Following as a pill.
-class _FollowPill extends StatelessWidget {
-  const _FollowPill({required this.handle});
-
-  final String handle;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: FollowState.following,
-      builder: (context, following, _) {
-        final on = following.contains(handle);
-        final color = on ? VistaColors.textMuted : VistaColors.accent;
-        return Semantics(
-          button: true,
-          toggled: on,
-          label: on ? 'Following $handle' : 'Follow $handle',
-          excludeSemantics: true,
-          child: VistaPressable(
-            scale: 0.96,
-            onTap: () => FollowState.toggle(handle),
-            child: Container(
-              height: 34,
-              padding: const EdgeInsets.symmetric(horizontal: VistaSpace.xxl),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-              ),
-              child: Text(
-                on ? 'Following' : 'Follow',
-                style: VistaType.body.copyWith(fontSize: 14, color: color),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
