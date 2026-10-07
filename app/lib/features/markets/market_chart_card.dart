@@ -9,12 +9,12 @@ import '../portfolio/series_chart.dart';
 import 'leaderboard.dart';
 import 'markets_mock.dart';
 
-/// A trader market on the Explore Leaderboard, in the same chart card as
-/// Assets: its place before the avatar (the top three in medal colours,
-/// the avatar ringed to match), ticker over handle, live price with its
-/// change over the selected [window], the chart over that window, then the
-/// figure the [metric] chip ranks by, market cap and holders. Your own
-/// market is outlined. Simulated history.
+/// A trader market on the Explore Leaderboard: a slim row card in the
+/// Portfolio positions style ([VistaListRow]), so more fit on screen. Its
+/// place (the top three in medal colours, the avatar ringed to match),
+/// ticker and handle over two figures, a small line chart of the selected
+/// [window], and on the right the figure the [metric] chip ranks by. Your
+/// own market is outlined. Simulated history.
 class LeaderboardCard extends StatelessWidget {
   const LeaderboardCard({
     super.key,
@@ -22,8 +22,6 @@ class LeaderboardCard extends StatelessWidget {
     required this.market,
     required this.metric,
     required this.window,
-    required this.starred,
-    required this.onStar,
     this.isYou = false,
     this.onPressed,
   });
@@ -36,8 +34,6 @@ class LeaderboardCard extends StatelessWidget {
 
   /// Index into [Leaderboard.windows].
   final int window;
-  final bool starred;
-  final VoidCallback onStar;
   final bool isYou;
   final VoidCallback? onPressed;
 
@@ -55,85 +51,185 @@ class LeaderboardCard extends StatelessWidget {
     final card = MarketsMock.traderCards[m.id];
     final medal = rank <= 3 ? medals[rank - 1] : null;
     final v = Leaderboard.value(m, metric, window) ?? 0;
-    final record = (CallsStore.recordOf(m.id) ?? '').split(' ').first;
-    final holders = card?.holders ?? 0;
-    return _MarketChartCard(
-      market: m,
-      leading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 26,
-            child: Text(
-              '$rank',
-              style: VistaType.figures(VistaType.headline).copyWith(
-                fontWeight: FontWeight.w700,
-                color: medal ?? VistaColors.textMuted,
-              ),
-            ),
-          ),
-          Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Color(
-                card?.avatar ?? VistaColors.surfaceRaised.toARGB32(),
-              ),
-              shape: BoxShape.circle,
-              border: medal == null ? null : Border.all(color: medal, width: 2),
-            ),
-            child: Text(m.name[0].toUpperCase(), style: VistaType.subhead),
-          ),
-        ],
+    final change = Leaderboard.value(m, 'Change', window) ?? m.changePct;
+    final w = Leaderboard.windows[window].toLowerCase();
+    final (figure, caption, color) = switch (metric) {
+      'Top P&L' => (
+        Leaderboard.money(v),
+        Leaderboard.periods[window],
+        vistaChangeColor(v),
       ),
-      title: card?.symbol ?? m.name,
-      subtitle: [
-        m.name,
-        if (isYou) 'You',
-        if (metric == 'Up and coming') '${card?.days ?? 0}d old',
-      ].join(' · '),
-      period: Leaderboard.windows[window].toLowerCase(),
-      changePct: Leaderboard.value(m, 'Change', window),
-      chartKey: 'explore/${m.id}/$window',
-      highlight: isYou,
-      starred: starred,
-      onStar: onStar,
-      onPressed: onPressed,
-      // The ranked figure first, then cap and holders.
-      foot: (strong) => [
-        ...switch (metric) {
-          'Most right' => [
-            TextSpan(text: '${v.toInt()}%', style: strong),
-            const TextSpan(text: ' right  ·  '),
-          ],
-          'Top P&L' => [
-            TextSpan(
-              text: Leaderboard.money(v),
-              style: strong.copyWith(color: vistaChangeColor(v)),
+      'Up and coming' => (
+        '+${v.toInt()}',
+        window == 3 ? 'holders' : 'new holders',
+        VistaColors.long,
+      ),
+      'Market cap' => (m.third, 'market cap', VistaColors.textPrimary),
+      'Change' => (
+        '${change >= 0 ? '▲' : '▼'}${change.abs().toStringAsFixed(1)}%',
+        w,
+        vistaChangeColor(change),
+      ),
+      _ => ('${v.toInt()}%', 'right · $w', VistaColors.textPrimary),
+    };
+    final handle = [
+      m.name,
+      if (isYou) 'You',
+      if (metric == 'Up and coming') '${card?.days ?? 0}d',
+    ].join(' · ');
+    final muted = VistaType.label.copyWith(color: VistaColors.textMuted);
+    final strong = VistaType.figures(VistaType.label)
+        .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
+
+    return ValueListenableBuilder(
+      valueListenable: MarketPrices.of(m.id),
+      builder: (context, price, _) {
+        final changeSpan = TextSpan(
+          text: '${change >= 0 ? '▲' : '▼'}${change.abs().toStringAsFixed(1)}%',
+          style: strong.copyWith(color: vistaChangeColor(change)),
+        );
+        final priceSpan = TextSpan(
+          text: MarketPrices.format(price, compact: true),
+          style: strong,
+        );
+        final capSpans = [
+          TextSpan(text: m.third, style: strong),
+          const TextSpan(text: ' cap'),
+        ];
+        const dot = TextSpan(text: ' · ');
+        // Two figures under the name, never the one on the right; the
+        // second never truncates, the first gives way on small phones.
+        final (first, second) = switch (metric) {
+          'Market cap' => (<InlineSpan>[priceSpan], changeSpan),
+          'Change' => (capSpans, priceSpan),
+          _ => (capSpans, changeSpan),
+        };
+        final narrow = MediaQuery.sizeOf(context).width < 390;
+        return Semantics(
+          button: true,
+          label: '#$rank ${card?.symbol ?? m.name}, $handle, $figure $caption',
+          excludeSemantics: true,
+          child: VistaPressable(
+            scale: 0.98,
+            onTap: onPressed,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 59),
+              padding: const EdgeInsets.fromLTRB(
+                VistaSpace.lg,
+                VistaSpace.lg,
+                VistaSpace.gutter,
+                VistaSpace.lg,
+              ),
+              decoration: BoxDecoration(
+                color: VistaColors.surface,
+                borderRadius: BorderRadius.circular(VistaRadius.card),
+                border: isYou
+                    ? Border.all(color: VistaColors.accent, width: 1.5)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 18,
+                    child: Text(
+                      '$rank',
+                      textAlign: TextAlign.center,
+                      style: VistaType.figures(VistaType.body).copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: medal ?? VistaColors.textMuted,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: VistaSpace.xs),
+                  Container(
+                    width: VistaSize.listLeading,
+                    height: VistaSize.listLeading,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Color(
+                        card?.avatar ?? VistaColors.surfaceRaised.toARGB32(),
+                      ),
+                      shape: BoxShape.circle,
+                      border: medal == null
+                          ? null
+                          : Border.all(color: medal, width: 1.5),
+                    ),
+                    child: Text(m.name[0].toUpperCase(), style: VistaType.body),
+                  ),
+                  const SizedBox(width: VistaSpace.lg),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: card?.symbol ?? m.name,
+                                style: VistaType.subhead.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextSpan(text: '  $handle', style: muted),
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: VistaSpace.xxs),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text.rich(
+                                TextSpan(children: [...first, dot]),
+                                style: muted,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text.rich(second, style: muted, maxLines: 1),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: VistaSpace.md),
+                  // The window, small, in the app's line style.
+                  SizedBox(
+                    // Narrower on small phones so the figures keep room.
+                    width: narrow ? 40 : 56,
+                    child: MarketLineChart(
+                      id: m.id,
+                      changePct: change,
+                      price: price,
+                      height: 26,
+                      seriesKey: 'explore/${m.id}/$window',
+                      endDot: false,
+                    ),
+                  ),
+                  const SizedBox(width: VistaSpace.lg),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 56),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          figure,
+                          style: VistaType.figures(
+                            narrow ? VistaType.subhead : VistaType.headline,
+                          ).copyWith(color: color),
+                        ),
+                        const SizedBox(height: VistaSpace.xxs),
+                        Text(caption, style: muted),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            TextSpan(text: ' ${Leaderboard.periods[window]}  ·  '),
-          ],
-          'Up and coming' => [
-            TextSpan(
-              text: '+${v.toInt()}',
-              style: strong.copyWith(color: VistaColors.long),
-            ),
-            TextSpan(text: window == 3 ? ' holders  ·  ' : ' new holders  ·  '),
-          ],
-          _ => [
-            TextSpan(text: record, style: strong),
-            const TextSpan(text: ' right  ·  '),
-          ],
-        },
-        TextSpan(text: m.third, style: strong),
-        const TextSpan(text: ' cap'),
-        if (metric != 'Up and coming') ...[
-          const TextSpan(text: '  ·  '),
-          TextSpan(text: '$holders', style: strong),
-          const TextSpan(text: ' holders'),
-        ],
-      ],
+          ),
+        );
+      },
     );
   }
 }
@@ -209,23 +305,10 @@ class _MarketChartCard extends StatelessWidget {
     required this.foot,
     this.badge,
     this.onPressed,
-    this.changePct,
-    this.chartKey,
-    this.highlight = false,
   });
 
   final MarketItem market;
   final Widget leading;
-
-  /// The change over [period] when it isn't the market's own (a
-  /// Leaderboard window); the chart follows it.
-  final double? changePct;
-
-  /// Seeds the chart's shape, so each window draws its own history.
-  final String? chartKey;
-
-  /// Outlines the card (your own market on the Leaderboard).
-  final bool highlight;
   final String title;
   final String subtitle;
   final String? badge;
@@ -247,13 +330,12 @@ class _MarketChartCard extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: MarketPrices.of(m.id),
       builder: (context, price, _) {
-        final change = changePct ?? m.changePct;
-        final up = change >= 0;
+        final up = m.changePct >= 0;
         return Semantics(
           button: true,
           label:
               '$title, $subtitle, ${MarketPrices.format(price, compact: true)}, '
-              '${vistaChangeLabel(change)} over $period',
+              '${vistaChangeLabel(m.changePct)} over $period',
           child: VistaPressable(
             scale: 0.98,
             onTap: onPressed,
@@ -267,9 +349,6 @@ class _MarketChartCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: VistaColors.surface,
                 borderRadius: BorderRadius.circular(VistaRadius.card),
-                border: highlight
-                    ? Border.all(color: VistaColors.accent, width: 1.5)
-                    : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,9 +426,9 @@ class _MarketChartCard extends StatelessWidget {
                                   TextSpan(
                                     text:
                                         '${up ? '▲' : '▼'}'
-                                        '${change.abs().toStringAsFixed(1)}%',
+                                        '${m.changePct.abs().toStringAsFixed(1)}%',
                                     style: TextStyle(
-                                      color: vistaChangeColor(change),
+                                      color: vistaChangeColor(m.changePct),
                                     ),
                                   ),
                                   TextSpan(
@@ -376,10 +455,9 @@ class _MarketChartCard extends StatelessWidget {
                   const SizedBox(height: VistaSpace.md),
                   MarketLineChart(
                     id: m.id,
-                    changePct: change,
+                    changePct: m.changePct,
                     price: price,
                     height: 56,
-                    seriesKey: chartKey,
                   ),
                   const SizedBox(height: VistaSpace.md),
                   Text.rich(
@@ -411,9 +489,13 @@ class MarketLineChart extends StatelessWidget {
     required this.price,
     required this.height,
     this.seriesKey,
+    this.endDot = true,
   });
 
   final String id;
+
+  /// The ringed live dot at the end; off where the chart is tiny.
+  final bool endDot;
 
   /// Seeds the line's shape; defaults to the market's own.
   final String? seriesKey;
@@ -443,11 +525,12 @@ class MarketLineChart extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(child: SeriesChart(focus: series)),
-          Positioned(
-            right: -6,
-            top: endY - 6,
-            child: _EndDot(up: price >= series.first),
-          ),
+          if (endDot)
+            Positioned(
+              right: -6,
+              top: endY - 6,
+              child: _EndDot(up: price >= series.first),
+            ),
         ],
       ),
     );

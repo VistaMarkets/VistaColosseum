@@ -796,7 +796,8 @@ void main() {
       await tester.pumpAndSettle();
       // Most right over 7d by default: deltaone first, you (maya.eth) #2.
       expect(find.textContaining('#2', findRichText: true), findsOneWidget);
-      // Each trader is the shared chart card, and there's no Favorites rail.
+      // Each trader is a slim card with a small chart, unlike the Assets
+      // cards, and there's no Favorites rail.
       expect(find.text('Favorites'), findsNothing);
       expect(find.byType(VistaMarketCard), findsNothing);
       expect(find.byType(AssetMarketCard), findsNothing);
@@ -808,50 +809,39 @@ void main() {
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
         findsOneWidget,
       );
-      for (final text in ['MAYA', 'maya.eth · You']) {
+      for (final text in ['MAYA  maya.eth · You', r'$44.0M cap · ', '▲4.3%']) {
+        expect(
+          find.descendant(
+            of: maya,
+            matching: find.text(text, findRichText: true),
+          ),
+          findsOneWidget,
+        );
+      }
+      for (final text in ['76%', 'right · 7d']) {
         expect(
           find.descendant(of: maya, matching: find.text(text)),
           findsOneWidget,
         );
       }
-      expect(
-        find.descendant(
-          of: maya,
-          matching: find.textContaining('76% right', findRichText: true),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: maya,
-          matching: find.textContaining('4.3% 7d', findRichText: true),
-        ),
-        findsOneWidget,
-      );
 
       // All time is the record shown everywhere else: 82%, and you're #1.
       await tester.tap(find.bySemanticsLabel('All'));
       await tester.pumpAndSettle();
       final top = tester.widget<LeaderboardCard>(rows.first);
       expect((top.name, top.rank, top.window), ('maya.eth', 1, 3));
-      expect(
-        find.textContaining('82% right', findRichText: true),
-        findsOneWidget,
-      );
+      expect(find.text('82%'), findsOneWidget);
       // The cards' change follows the window.
-      expect(
-        find.textContaining('4.3% 7d', findRichText: true),
-        findsNothing,
-      );
+      expect(find.textContaining('▲4.3%', findRichText: true), findsNothing);
       expect(find.textContaining('#1', findRichText: true), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.text('0xreal'),
+        find.text('REAL  0xreal', findRichText: true),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       final xreal = find.ancestor(
-        of: find.text('0xreal'),
+        of: find.text('REAL  0xreal', findRichText: true),
         matching: find.byType(LeaderboardCard),
       );
       await tester.ensureVisible(xreal);
@@ -871,10 +861,7 @@ void main() {
         find.byType(LeaderboardCard).first,
       );
       expect((first.name, first.rank), ('deltaone', 1));
-      expect(
-        find.textContaining(r'+$15.8K this week', findRichText: true),
-        findsOneWidget,
-      );
+      expect(find.text(r'+$15.8K'), findsOneWidget);
       // maya.eth is second by P&L.
       expect(find.textContaining('#2', findRichText: true), findsOneWidget);
     });
@@ -895,11 +882,8 @@ void main() {
       // than 30 days, so you (maya.eth) aren't on it.
       expect(rows.map((r) => r.name).take(2), ['vexa', 'pip.eth']);
       expect(rows.map((r) => r.name), isNot(contains('maya.eth')));
-      expect(find.text('vexa · 6d old'), findsOneWidget);
-      expect(
-        find.textContaining('+52 new holders', findRichText: true),
-        findsOneWidget,
-      );
+      expect(find.text('VEXA  vexa · 6d', findRichText: true), findsOneWidget);
+      expect(find.text('+52'), findsOneWidget);
       expect(find.textContaining('You', findRichText: true), findsNothing);
     });
 
@@ -969,12 +953,12 @@ void main() {
       await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('0xreal'),
+        find.text('REAL  0xreal', findRichText: true),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       final xreal = find.ancestor(
-        of: find.text('0xreal'),
+        of: find.text('REAL  0xreal', findRichText: true),
         matching: find.byType(LeaderboardCard),
       );
       await tester.ensureVisible(xreal);
@@ -1032,9 +1016,7 @@ void main() {
         await tester.tap(find.text('Leaderboard'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await tester.tap(
-          find.widgetWithText(VistaFilterChip, 'Up and coming'),
-        );
+        await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });

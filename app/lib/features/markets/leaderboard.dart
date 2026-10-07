@@ -55,7 +55,9 @@ abstract final class Leaderboard {
     }
   }
 
-  /// "+$12.4K" / "−$900.0".
-  static String money(double v) =>
-      '${v < 0 ? '−' : '+'}\$${(v.abs() / 1000).toStringAsFixed(1)}K';
+  /// "+$12.4K" / "−$0.9K"; whole thousands from $100K ("+$214K").
+  static String money(double v) {
+    final k = v.abs() / 1000;
+    return '${v < 0 ? '−' : '+'}\$${k.toStringAsFixed(k >= 100 ? 0 : 1)}K';
+  }
 }

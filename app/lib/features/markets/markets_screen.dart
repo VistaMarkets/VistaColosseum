@@ -383,11 +383,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ),
                     for (final (rank, m) in rows)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(
+                        // Slim board rows sit closer, as Portfolio's do.
+                        padding: EdgeInsets.fromLTRB(
                           VistaSpace.gutter,
                           0,
                           VistaSpace.gutter,
-                          VistaSpace.md,
+                          _traders ? VistaSpace.sm : VistaSpace.md,
                         ),
                         child: _traders
                             ? LeaderboardCard(
@@ -396,8 +397,6 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 metric: _sortKey,
                                 window: _window,
                                 isYou: m.id == PortfolioMock.handle,
-                                starred: favs.contains(m.id),
-                                onStar: () => _toggleFavorite(m.id),
                                 onPressed: () => _open(m),
                               )
                             : AssetMarketCard(
