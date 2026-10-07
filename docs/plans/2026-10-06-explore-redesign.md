@@ -59,8 +59,12 @@ sort chips, list, bottom search. What changes:
 ### Traders tab
 - **Row second line:** `58% right · 62 calls` instead of `62 calls`. Accuracy
   is coloured: green ≥ 55%, muted below. The "N open" badge stays.
-- **New sort chip "Accuracy"**, second, after Market cap.
-- **"You" tag** on your own market's row and Favorites card.
+- **New sort chip "Accuracy"**, second, after Market cap. Five chips no
+  longer fit at 402, so the chip row scrolls sideways on one line instead
+  of wrapping.
+- **"You" tag** on your own market's row and Favorites card. It replaces
+  the star (you can't favourite yourself) and the "N open" badge, which
+  would otherwise clip.
 - **Explainer card** above the list on first visit: *"Trader markets move
   with a trader's record: right calls push them up, wrong ones down. Long or
   short anyone."* With a "Got it" button. Session-only for the demo.
@@ -84,8 +88,8 @@ sort chips, list, bottom search. What changes:
 
 ## Build order
 
-1. **Figma**: mock both tabs at 402×874 in the "final" section, matching the
-   app as built. Get sign-off.
+1. **Figma**: done. Section "Explore redesign · EXPLORE-REDESIGN" (540:204):
+   Assets 540:433, Traders 540:205. Get sign-off.
 2. **Traders**: record line, Accuracy sort, "You" tag. The highest-value
    change.
 3. **Assets**: call and debate counts, "Most called" sort, counts → Callers.
