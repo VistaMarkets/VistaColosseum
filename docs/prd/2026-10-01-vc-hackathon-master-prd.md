@@ -2,7 +2,7 @@
 
 **Version:** 0.5 · **Planning date:** October 1, 2026 · **Updated:** October 4, 2026 · **Status:** demo scope decided; O-01 to O-10 resolved by the user on October 4 ([decision record, October 4](2026-10-04-open-decisions-recommendations.md)), O-11 open with an interim default; Figma frame export and VC coverage audit pending.
 
-**Deadline:** confirmed by the user on October 4 as **October 11, 2026, 23:00** (timezone not stated; America/Los_Angeles is assumed until corrected). Submission channel and format are still unconfirmed. This document proposes priorities and acceptance criteria, not delivery commitments.
+**Deadline:** corrected by the user on October 5 to **October 12, 2026, 23:59 America/Los_Angeles** (was October 11, 23:00; see [spec 11, DR-2](../specs/11-verification-and-packaging.md)). Submission channel and format are still unconfirmed. This document proposes priorities and acceptance criteria, not delivery commitments.
 
 Read with the [product roadmap](2026-10-01-vc-hackathon-roadmap.md) and [evidence register](2026-10-01-vc-hackathon-evidence.md). Requirement IDs are stable: retain them when moving requirements into specs; mark removed requirements deferred or superseded rather than renumbering them.
 
