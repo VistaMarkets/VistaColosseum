@@ -48,9 +48,13 @@ The structure stays the same: account bar, Assets | Traders, Favorites rail,
 sort chips, list, bottom search. What changes:
 
 ### Assets tab
-- **Row second line:** `OI $412M · 12 calls · 1 debate`. Counts come from
-  `CallsStore` (calls on that ticker) and `BattlesStore` (live debates on it).
-  Zero counts are left out.
+- **Row second line:** `14 calls · 2 debates` in place of `OI $412M`, in
+  accent to show it can be tapped. OI and counts together don't fit the
+  name column at 402. OI stays on the Favorites card and the trade page.
+  Counts come from `CallsStore` (calls on that ticker) and `BattlesStore`
+  (live debates on it). Zero counts are left out, and a market with neither
+  falls back to `OI $30M`. At 360 the line truncates, so the debate count
+  goes first.
 - **Tapping the counts** opens the trade page on its Callers panel. Tapping
   the rest of the row still opens the Market panel.
 - **New sort chip "Most called"** after Funding.
