@@ -53,8 +53,8 @@ sort chips, list, bottom search. What changes:
   name column at 402. OI stays on the Favorites card and the trade page.
   Counts come from `CallsStore` (calls on that ticker) and `BattlesStore`
   (live debates on it). Zero counts are left out, and a market with neither
-  falls back to `OI $30M`. At 360 the line truncates, so the debate count
-  goes first.
+  falls back to `OI $30M`. At 360 the debate count may truncate; the
+  calls count always shows.
 - **Tapping the counts** opens the trade page on its Callers panel. Tapping
   the rest of the row still opens the Market panel.
 - **New sort chip "Most called"** after Funding.
