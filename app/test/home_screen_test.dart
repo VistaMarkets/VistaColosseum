@@ -749,10 +749,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.descendant(
-          of: maya,
-          matching: find.text('Market cap: 44,000,000'),
-        ),
+        find.descendant(of: maya, matching: find.text('MAYA')),
         findsOneWidget,
       );
       expect(

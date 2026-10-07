@@ -8,7 +8,7 @@ import '../portfolio/series_chart.dart';
 import 'markets_mock.dart';
 
 /// A trader market in the Traders list (Figma 546:300, compacted): avatar,
-/// name and market cap, live price with its 7-day change, favourite star;
+/// ticker over the trader's handle, live price with its 7-day change, favourite star;
 /// the week as a short chart in the app's line style; then holders, market
 /// cap and open calls on one line.
 /// Simulated history; not market data.
@@ -30,22 +30,10 @@ class TraderMarketCard extends StatelessWidget {
 
   String get name => market.name;
 
-  /// "26,100,000" from a cap in millions.
-  static String _grouped(double millions) {
-    final digits = (millions * 1000000).round().toString();
-    final out = StringBuffer();
-    for (var i = 0; i < digits.length; i++) {
-      if (i > 0 && (digits.length - i) % 3 == 0) out.write(',');
-      out.write(digits[i]);
-    }
-    return out.toString();
-  }
-
   @override
   Widget build(BuildContext context) {
     final m = market;
     final card = MarketsMock.traderCards[m.id];
-    final capM = m.sortValues['Market cap'] ?? 0;
     final open = m.sortValues['Open calls']?.toInt() ?? 0;
     final base = MarketPrices.base(m.id);
     final history = bridgeSeries(
@@ -66,7 +54,7 @@ class TraderMarketCard extends StatelessWidget {
         return Semantics(
           button: true,
           label:
-              '${m.name}, ${MarketPrices.format(price, compact: true)}, '
+              '${card?.symbol ?? m.name}, ${m.name}, ${MarketPrices.format(price, compact: true)}, '
               '${vistaChangeLabel(m.changePct)} over 7 days',
           child: VistaPressable(
             scale: 0.98,
@@ -112,7 +100,7 @@ class TraderMarketCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                m.name,
+                                card?.symbol ?? m.name,
                                 style: VistaType.subhead.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -120,17 +108,13 @@ class TraderMarketCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 1),
-                              // Shrinks a little before it would cut off on small phones.
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Market cap: ${_grouped(capM)}',
-                                  style: VistaType.chip.copyWith(
-                                    color: VistaColors.textMuted,
-                                  ),
-                                  maxLines: 1,
+                              Text(
+                                m.name,
+                                style: VistaType.chip.copyWith(
+                                  color: VistaColors.textMuted,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),

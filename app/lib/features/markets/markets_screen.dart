@@ -76,7 +76,17 @@ class _MarketsScreenState extends State<MarketsScreen> {
   List<MarketItem> _sorted() {
     final key = _sorts[_sort[_tab]];
     final q = _query.toLowerCase();
-    final list = _all.where((m) => m.name.toLowerCase().contains(q)).toList();
+    // Trader markets also match their ticker ("maya" or "MAYA").
+    final list = _all
+        .where(
+          (m) =>
+              m.name.toLowerCase().contains(q) ||
+              (MarketsMock.traderCards[m.id]?.symbol.toLowerCase().contains(
+                    q,
+                  ) ??
+                  false),
+        )
+        .toList();
     // Items without a value for this chip (e.g. "New") keep designed order.
     if (list.every((m) => m.sortValues.containsKey(key))) {
       list.sort((a, b) => b.sortValues[key]!.compareTo(a.sortValues[key]!));

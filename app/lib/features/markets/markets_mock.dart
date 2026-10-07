@@ -42,16 +42,18 @@ class MarketItem {
 /// Mock content from Figma 185:110 (Assets) and 222:110 (Traders).
 /// Simulated; not market data.
 abstract final class MarketsMock {
-  /// Holders and avatar colour for the trader market cards (Figma 546:300).
-  static const traderCards = <String, ({int holders, int avatar})>{
-    'maya.eth': (holders: 214, avatar: 0xFF3A3550),
-    '0xreal': (holders: 640, avatar: 0xFF2B4A3F),
-    'lunaq': (holders: 388, avatar: 0xFF4A3B2B),
-    'deltaone': (holders: 1180, avatar: 0xFF2B3D4A),
-    'kestrel': (holders: 132, avatar: 0xFF333333),
-    'kilo.sol': (holders: 96, avatar: 0xFF4A2B36),
-    'nara': (holders: 58, avatar: 0xFF33363D),
-  };
+  /// Ticker, holders and avatar colour for the trader market cards (Figma
+  /// 546:300). maya.eth's ticker matches the one picked in Make a market.
+  static const traderCards =
+      <String, ({String symbol, int holders, int avatar})>{
+        'maya.eth': (symbol: 'MAYA', holders: 214, avatar: 0xFF3A3550),
+        '0xreal': (symbol: 'REAL', holders: 640, avatar: 0xFF2B4A3F),
+        'lunaq': (symbol: 'LUNQ', holders: 388, avatar: 0xFF4A3B2B),
+        'deltaone': (symbol: 'DELTA', holders: 1180, avatar: 0xFF2B3D4A),
+        'kestrel': (symbol: 'KSTRL', holders: 132, avatar: 0xFF333333),
+        'kilo.sol': (symbol: 'KILO', holders: 96, avatar: 0xFF4A2B36),
+        'nara': (symbol: 'NARA', holders: 58, avatar: 0xFF33363D),
+      };
 
   static const assetSorts = ['Volume', 'Change', 'Funding'];
   static const traderSorts = ['Market cap', 'Change', 'Open calls', 'New'];
