@@ -7,9 +7,10 @@ import '../live/market_prices.dart';
 import '../portfolio/series_chart.dart';
 import 'markets_mock.dart';
 
-/// A trader market in the Traders list (Figma 546:300): avatar, name and
-/// market cap, favourite star; live price with its 7-day change; the week
-/// as a chart in the app's line style; holders, market cap and open calls.
+/// A trader market in the Traders list (Figma 546:300, compacted): avatar,
+/// name and market cap, live price with its 7-day change, favourite star;
+/// the week as a short chart in the app's line style; then holders, market
+/// cap and open calls on one line.
 /// Simulated history; not market data.
 class TraderMarketCard extends StatelessWidget {
   const TraderMarketCard({
@@ -25,7 +26,7 @@ class TraderMarketCard extends StatelessWidget {
   final VoidCallback onStar;
   final VoidCallback? onPressed;
 
-  static const double _chartHeight = 96;
+  static const double _chartHeight = 56;
 
   String get name => market.name;
 
@@ -53,19 +54,9 @@ class TraderMarketCard extends StatelessWidget {
       base,
       n: 42,
     );
-    final label = VistaType.meta.copyWith(color: VistaColors.textMuted);
-    final value = VistaType.figures(VistaType.row);
-
-    Widget stat(String name, String text) => Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(name, style: label),
-          const SizedBox(height: VistaSpace.xxs),
-          Text(text, style: value),
-        ],
-      ),
-    );
+    final muted = VistaType.meta.copyWith(color: VistaColors.textMuted);
+    final strong = VistaType.figures(VistaType.meta)
+        .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
 
     return ValueListenableBuilder(
       valueListenable: MarketPrices.of(m.id),
@@ -83,9 +74,9 @@ class TraderMarketCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.fromLTRB(
                 VistaSpace.gutter,
-                VistaSpace.xxl,
+                VistaSpace.xl,
                 VistaSpace.gutter,
-                VistaSpace.xxl,
+                VistaSpace.xl,
               ),
               decoration: BoxDecoration(
                 color: VistaColors.surface,
@@ -129,16 +120,53 @@ class TraderMarketCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 1),
-                              Text(
-                                'Market cap: ${_grouped(capM)}',
-                                style: VistaType.chip.copyWith(
-                                  color: VistaColors.textMuted,
+                              // Shrinks a little before it would cut off on small phones.
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Market cap: ${_grouped(capM)}',
+                                  style: VistaType.chip.copyWith(
+                                    color: VistaColors.textMuted,
+                                  ),
+                                  maxLines: 1,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
+                        ),
+                        const SizedBox(width: VistaSpace.md),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              MarketPrices.format(price, compact: true),
+                              style: VistaType.figures(VistaType.headline),
+                            ),
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        '${up ? '▲' : '▼'}'
+                                        '${m.changePct.abs().toStringAsFixed(1)}%',
+                                    style: TextStyle(
+                                      color: vistaChangeColor(m.changePct),
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: ' 7d',
+                                    style: TextStyle(
+                                      color: VistaColors.textMuted,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              style: VistaType.figures(VistaType.label),
+                            ),
+                          ],
                         ),
                         VistaStarButton(
                           starred: starred,
@@ -148,39 +176,7 @@ class TraderMarketCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        MarketPrices.format(price, compact: true),
-                        style: VistaType.figures(VistaType.displayMedium),
-                      ),
-                      const SizedBox(width: VistaSpace.md),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text:
-                                  '${up ? '▲' : '▼'}'
-                                  '${m.changePct.abs().toStringAsFixed(1)}%',
-                              style: TextStyle(
-                                color: vistaChangeColor(m.changePct),
-                              ),
-                            ),
-                            TextSpan(
-                              text: ' 7d',
-                              style: TextStyle(
-                                color: VistaColors.textMuted,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        style: VistaType.figures(VistaType.row),
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: VistaSpace.md),
                   SizedBox(
                     height: _chartHeight,
                     child: Stack(
@@ -191,18 +187,25 @@ class TraderMarketCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      stat('Holders', '${card?.holders ?? 0}'),
-                      stat('Market cap', m.third),
-                      stat(
-                        'Open now',
-                        open == 0
-                            ? 'None'
-                            : '$open call${open == 1 ? '' : 's'}',
-                      ),
-                    ],
+                  const SizedBox(height: VistaSpace.md),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: '${card?.holders ?? 0}', style: strong),
+                        const TextSpan(text: ' holders  ·  '),
+                        TextSpan(text: m.third, style: strong),
+                        const TextSpan(text: ' cap  ·  '),
+                        if (open == 0)
+                          const TextSpan(text: 'No open calls')
+                        else ...[
+                          TextSpan(text: '$open', style: strong),
+                          TextSpan(text: ' open call${open == 1 ? '' : 's'}'),
+                        ],
+                      ],
+                    ),
+                    style: muted,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

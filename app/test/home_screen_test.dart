@@ -756,7 +756,10 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.descendant(of: maya, matching: find.text('3 calls')),
+        find.descendant(
+          of: maya,
+          matching: find.textContaining('3 open calls', findRichText: true),
+        ),
         findsOneWidget,
       );
 
