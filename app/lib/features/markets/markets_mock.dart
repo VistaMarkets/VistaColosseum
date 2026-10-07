@@ -42,6 +42,15 @@ class MarketItem {
 /// Mock content from Figma 185:110 (Assets) and 222:110 (Traders).
 /// Simulated; not market data.
 abstract final class MarketsMock {
+  /// Full names under the tickers on the asset cards.
+  static const assetNames = {
+    'BTC': 'Bitcoin',
+    'ETH': 'Ethereum',
+    'SOL': 'Solana',
+    'ARB': 'Arbitrum',
+    'AVAX': 'Avalanche',
+  };
+
   /// Ticker, holders and avatar colour for the trader market cards (Figma
   /// 546:300). maya.eth's ticker matches the one picked in Make a market.
   static const traderCards =

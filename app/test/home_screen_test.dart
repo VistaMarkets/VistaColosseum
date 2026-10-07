@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vista_colosseum/features/markets/trader_market_card.dart';
+import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
@@ -694,14 +694,17 @@ void main() {
     }
 
     List<String> rowNames(WidgetTester tester) => tester
-        .widgetList<VistaMarketRow>(find.byType(VistaMarketRow))
+        .widgetList<AssetMarketCard>(find.byType(AssetMarketCard))
         .map((r) => r.name)
         .toList();
+
+    // Tall enough that every asset card is built (the list is lazy).
+    const tall = Size(402, 1600);
 
     testWidgets('Explore shows markets; sort, search and favourites work', (
       tester,
     ) async {
-      await openMarkets(tester);
+      await openMarkets(tester, tall);
       expect(find.text('ALL MARKETS'), findsOneWidget);
       expect(rowNames(tester), ['BTC', 'ETH', 'SOL', 'ARB', 'AVAX']);
 
@@ -719,7 +722,7 @@ void main() {
       expect(find.byType(VistaMarketCard), findsNWidgets(3));
       final arb = find.ancestor(
         of: find.text('ARB'),
-        matching: find.byType(VistaMarketRow),
+        matching: find.byType(AssetMarketCard),
       );
       await tester.tap(
         find.descendant(of: arb, matching: find.byType(VistaStarButton)),
@@ -729,7 +732,7 @@ void main() {
         tester.widgetList(find.byType(VistaMarketCard)).length,
         greaterThanOrEqualTo(3),
       );
-      expect(tester.widget<VistaMarketRow>(arb).starred, isTrue);
+      expect(tester.widget<AssetMarketCard>(arb).starred, isTrue);
     });
 
     testWidgets('Traders tab lists trader markets and opens one', (
@@ -794,13 +797,13 @@ void main() {
     testWidgets('asset page star and Explore stars share one watchlist', (
       tester,
     ) async {
-      await openMarkets(tester);
+      await openMarkets(tester, tall);
       expect(railNames(tester), ['BTC', 'ETH', 'SOL']);
 
       // Star ARB from its trade page; it joins the end of the rail.
       await tester.tap(
         find.descendant(
-          of: find.byType(VistaMarketRow),
+          of: find.byType(AssetMarketCard),
           matching: find.text('ARB'),
         ),
       );
@@ -819,7 +822,7 @@ void main() {
       // Unstar BTC in Explore; its trade page shows it unwatched.
       final btc = find.ancestor(
         of: find.text('BTC').last,
-        matching: find.byType(VistaMarketRow),
+        matching: find.byType(AssetMarketCard),
       );
       await tester.tap(
         find.descendant(of: btc, matching: find.byType(VistaStarButton)),
@@ -1608,7 +1611,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(
         find.descendant(
-          of: find.byType(VistaMarketRow),
+          of: find.byType(AssetMarketCard),
           matching: find.text('SOL'),
         ),
       );
@@ -2174,7 +2177,7 @@ void main() {
       expect(find.text(r'$3,001'), findsWidgets); // compact, in the list
       await tester.tap(
         find.descendant(
-          of: find.byType(VistaMarketRow),
+          of: find.byType(AssetMarketCard),
           matching: find.text('ETH'),
         ),
       );
