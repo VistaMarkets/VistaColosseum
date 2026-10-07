@@ -13,7 +13,7 @@ import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../portfolio/positions_state.dart';
-import 'arena_feed_screen.dart';
+import 'trending_calls_screen.dart';
 import 'arena_mock.dart';
 import 'debate_screen.dart';
 import 'pick_position_screen.dart';
@@ -23,7 +23,8 @@ import 'hub_call_card.dart';
 /// Arena tab (Figma 551:205, ARENA-HUB-01): the account bar, search, your
 /// markets and what's trending as people-first rows (who is in, which way),
 /// then the top calls. A market's row opens its room
-/// (`RoomScreen`), and See all opens every call (`ArenaFeedScreen`). The + makes a
+/// (`RoomScreen`), and Trending calls › See all opens every call
+/// (`TrendingCallsScreen`). The + makes a
 /// call from a position.
 class ArenaScreen extends StatefulWidget {
   const ArenaScreen({super.key, this.onNotBuilt, this.onExplore});
@@ -52,9 +53,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   void _push(Route<void> route) => Navigator.of(context).push(route);
 
-  /// Every call, opened on [room] (a ticker or "@handle") or All.
-  void _feed([String? room]) =>
-      _push(ArenaFeedScreen.route(onExplore: widget.onExplore, room: room));
+  /// Trending calls: every call, calls only.
+  void _allCalls() =>
+      _push(TrendingCallsScreen.route(onExplore: widget.onExplore));
 
   /// A market's room (a ticker or "@handle").
   void _room(String key) =>
@@ -135,7 +136,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         const _Head('Trending now'),
                         for (final r in _trending(calls))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
-                        _Head('Calls', trailing: 'See all', onTrailing: _feed),
+                        _Head(
+                          'Trending calls',
+                          trailing: 'See all',
+                          onTrailing: _allCalls,
+                        ),
                         for (final t in [
                           for (final t in HomeFeed.forYou(calls))
                             if (t.call != null) t,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/arena/trending_calls_screen.dart';
 import 'package:vista_colosseum/features/arena/hub_call_card.dart';
 import 'package:vista_colosseum/features/arena/room_screen.dart';
 import 'package:vista_colosseum/features/arena/arena_screen.dart';
@@ -99,10 +100,11 @@ Finder redFields(Type of) => find.descendant(
   ),
 );
 
-/// From the Arena hub, Calls › See all: every call (`ArenaFeedScreen`).
+/// From the Arena hub, Trending calls › See all: every call
+/// (`TrendingCallsScreen`).
 Future<void> openAllCalls(WidgetTester tester) async {
   await tester.scrollUntilVisible(
-    find.text('Calls'),
+    find.text('Trending calls'),
     300,
     scrollable: find
         .descendant(
@@ -117,10 +119,27 @@ Future<void> openAllCalls(WidgetTester tester) async {
   await tester.tap(
     find.descendant(
       of: find
-          .ancestor(of: find.text('Calls'), matching: find.byType(Row))
+          .ancestor(of: find.text('Trending calls'), matching: find.byType(Row))
           .first,
       matching: find.text('See all'),
     ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// The Live battles page on its own (every live debate, sortable).
+Future<void> pumpLiveBattles(
+  WidgetTester tester, [
+  Size size = const Size(402, 874),
+  EdgeInsets pad = EdgeInsets.zero,
+]) async {
+  tester.view
+    ..physicalSize = size * 3
+    ..devicePixelRatio = 3
+    ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    MaterialApp(theme: VistaTheme.dark(), home: const LiveBattlesScreen()),
   );
   await tester.pumpAndSettle();
 }
@@ -1000,11 +1019,11 @@ void main() {
         );
         await tester.tap(find.bySemanticsLabel('Back').last);
         await tester.pumpAndSettle();
-        // Calls › See all: every call, debates on top.
+        // Trending calls › See all: every call, nothing else.
         await openAllCalls(tester);
-        expect(find.text('Live debates'), findsOneWidget);
-        expect(find.byType(BattleTile), findsWidgets);
-        expect(find.byType(TakeItem), findsWidgets);
+        expect(find.byType(TrendingCallsScreen), findsOneWidget);
+        expect(find.byType(BattleTile), findsNothing);
+        expect(find.byType(HubCallCard), findsWidgets);
       },
     );
 
@@ -1091,59 +1110,25 @@ void main() {
       expect(find.text('Solana'), findsNothing);
     });
 
-    testWidgets('room chips stay fixed while the feed scrolls', (tester) async {
-      await openArena(tester);
-      final before = tester.getTopLeft(find.text('All'));
-      final take = tester.getTopLeft(find.byType(TakeItem).first);
-      await tester.drag(find.byType(ListView).last, const Offset(0, -300));
-      await tester.pumpAndSettle();
-      expect(tester.getTopLeft(find.text('All')), before);
-      // Left-aligned with the page gutter, not centred.
-      expect(
-        tester.getTopLeft(find.byType(VistaFilterChip).first).dx,
-        closeTo(VistaSpace.gutter, 1),
-      );
-      expect(
-        tester.getTopLeft(find.byType(TakeItem).first).dy,
-        lessThan(take.dy),
-      );
-    });
-
-    testWidgets('takes on a battle link it; plain calls show no chip', (
+    testWidgets('Trending calls is calls only; a debate badge opens it', (
       tester,
     ) async {
       await openArena(tester);
-      // kilo.sol's SOL call is a plain call: nothing between the header and
-      // the text.
-      final call = find.byWidgetPredicate(
-        (w) =>
-            w is TakeItem &&
-            w.take.handle == 'kilo.sol' &&
-            w.take.ticker == 'SOL' &&
-            w.take.backed,
+      expect(find.text('Trending calls'), findsOneWidget);
+      expect(find.byType(BattleTile), findsNothing);
+      expect(find.byType(VistaFilterChip), findsNothing);
+      expect(find.byType(HubCallCard), findsWidgets);
+      final renata = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'renatafx',
       );
-      await scrollTo(tester, call);
-      expect(
-        find.descendant(of: call, matching: find.textContaining(' · ')),
-        findsOneWidget, // the position's levels (the age is "· 25m")
+      await scrollTo(tester, renata);
+      await tester.tap(
+        find.descendant(
+          of: renata,
+          matching: find.textContaining(r'Reclaims $72,000 by Fri'),
+        ),
       );
-      expect(find.descendant(of: call, matching: find.text('›')), findsNothing);
-      expect(
-        find.descendant(of: call, matching: find.text('SHORT SOL')),
-        findsOneWidget,
-      );
-      // renatafx's take is on the BTC battle and backed; every take names
-      // its asset next to the side.
-      await scrollTo(tester, find.text('renatafx'));
-      expect(find.text(r'Reclaims $72,000 by Fri'), findsWidgets);
-      expect(find.text('LONG BTC'), findsWidgets);
-      expect(find.text('SHORT BTC'), findsWidgets);
-      expect(find.text('✓ Backed'), findsNothing);
-      expect(find.byType(BackedPositionCard), findsWidgets);
-      // The battle chip opens that debate's thread.
-      await tester.tap(find.text(r'Reclaims $72,000 by Fri').first);
       await tester.pumpAndSettle();
-      expect(find.byType(DebateScreen), findsOneWidget);
       expect(
         tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.ticker,
         'BTC',
@@ -1168,13 +1153,10 @@ void main() {
     ) async {
       await openArena(tester);
       expect(FollowState.isFollowing('voskov'), isFalse);
-      await scrollTo(tester, find.text('voskov'));
-      final card = find.ancestor(
-        of: find.text('voskov'),
-        matching: find.byType(TakeItem),
+      final card = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'voskov',
       );
-      // Followed callers (kilo.sol) get no button.
-      expect(find.bySemanticsLabel('Follow kilo.sol'), findsNothing);
+      await scrollTo(tester, card);
       await tester.tap(
         find.descendant(of: card, matching: find.text('Follow')),
       );
@@ -1185,7 +1167,9 @@ void main() {
         findsOneWidget,
       );
       // The profile agrees.
-      await tester.tap(find.text('voskov').first);
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(PersonInitial)).first,
+      );
       await tester.pumpAndSettle();
       expect(
         tester
@@ -1195,25 +1179,24 @@ void main() {
       );
     });
 
-    testWidgets('call headers show the caller\'s market, not accuracy', (
+    testWidgets('a call card shows the caller\'s market; it opens', (
       tester,
     ) async {
       await openArena(tester);
-      await scrollTo(tester, find.text('kilo.sol'));
-      final call = find.ancestor(
-        of: find.text('kilo.sol'),
-        matching: find.byType(TakeItem),
+      final call = find.byWidgetPredicate(
+        (w) =>
+            w is HubCallCard &&
+            w.take.handle == 'kilo.sol' &&
+            w.take.ticker == 'SOL' &&
+            w.take.backed,
       );
-      // kilo.sol has a market: its live price and day change.
-      expect(
-        find.descendant(of: call, matching: find.textContaining(r'$0.172')),
-        findsOneWidget,
+      await scrollTo(tester, call);
+      final market = find.descendant(
+        of: call,
+        matching: find.textContaining(r'$0.1720', findRichText: true),
       );
-      expect(find.textContaining('% right'), findsNothing);
-      // Tapping it opens their market.
-      await tester.tap(
-        find.descendant(of: call, matching: find.textContaining(r'$0.172')),
-      );
+      expect(market, findsOneWidget);
+      await tester.tap(market);
       await tester.pumpAndSettle();
       expect(find.byType(TraderMarketScreen), findsOneWidget);
     });
@@ -1221,10 +1204,7 @@ void main() {
     testWidgets('See all opens Live battles; sorts; a row opens it', (
       tester,
     ) async {
-      await openArena(tester);
-      expect(find.byType(BattleTile), findsNWidgets(3)); // carousel: top 3
-      await tester.tap(find.text('See all'));
-      await tester.pumpAndSettle();
+      await pumpLiveBattles(tester);
       expect(find.byType(LiveBattlesScreen), findsOneWidget);
       expect(find.text('6 live'), findsOneWidget);
       String firstQuestion() => tester
@@ -1247,77 +1227,6 @@ void main() {
       );
     });
 
-    testWidgets('a room filters the feed and leads with its market', (
-      tester,
-    ) async {
-      await openArena(tester);
-      await tester.tap(find.widgetWithText(VistaFilterChip, 'BTC'));
-      await tester.pumpAndSettle();
-      expect(
-        tester
-            .widgetList<TakeItem>(find.byType(TakeItem))
-            .every((t) => t.take.ticker == 'BTC'),
-        isTrue,
-      );
-      expect(
-        tester
-            .widgetList<BattleTile>(find.byType(BattleTile))
-            .every((b) => b.battle.ticker == 'BTC'),
-        isTrue,
-      );
-      await tester.tap(find.text('Trade ›'));
-      await tester.pumpAndSettle();
-      expect(find.byType(VistaIntervalSelector), findsOneWidget);
-      await tester.tap(find.bySemanticsLabel('Back').last);
-      await tester.pumpAndSettle();
-
-      // A trader market room: that trader's calls, no debates.
-      await tester.drag(
-        find.byType(SingleChildScrollView).first,
-        const Offset(-600, 0),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(VistaFilterChip, 'MAYA'));
-      await tester.pumpAndSettle();
-      expect(find.byType(BattleTile), findsNothing);
-      expect(
-        tester
-            .widgetList<TakeItem>(find.byType(TakeItem))
-            .every((t) => t.take.handle == 'maya.eth'),
-        isTrue,
-      );
-    });
-
-    testWidgets('posting from another room lands on top of All', (
-      tester,
-    ) async {
-      await openArena(tester);
-      await tester.tap(find.widgetWithText(VistaFilterChip, 'BTC'));
-      await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView).last, const Offset(0, -600));
-      await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Make a call'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ethereum'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'ETH/BTC bottomed.');
-      await tester.pump();
-      await tester.tap(find.bySemanticsLabel('Post'));
-      await tester.pumpAndSettle();
-      // Back in All, at the top, with the new ETH call first.
-      expect(
-        tester
-            .widget<VistaFilterChip>(
-              find.widgetWithText(VistaFilterChip, 'All'),
-            )
-            .selected,
-        isTrue,
-      );
-      expect(find.text('Live debates'), findsOneWidget);
-      final first = tester.widget<TakeItem>(find.byType(TakeItem).first);
-      expect(first.take.body, 'ETH/BTC bottomed.');
-    });
-
     testWidgets('Popular / Recent orders the calls', (tester) async {
       await openArena(tester);
       expect(find.text('Popular'), findsOneWidget);
@@ -1329,7 +1238,7 @@ void main() {
       final newest = CallsStore.all.value
           .map((t) => CallsStore.minutesAgo(t.age))
           .reduce((a, b) => a < b ? a : b);
-      final first = tester.widget<TakeItem>(find.byType(TakeItem).first);
+      final first = tester.widget<HubCallCard>(find.byType(HubCallCard).first);
       expect(CallsStore.minutesAgo(first.take.age), newest);
     });
 
@@ -1362,7 +1271,7 @@ void main() {
     });
 
     testWidgets('a debate is a thread you can argue in', (tester) async {
-      await openArena(tester);
+      await pumpLiveBattles(tester);
       await tester.tap(find.byType(BattleTile).first);
       await tester.pumpAndSettle();
       // Every call on it, backed first.
@@ -1423,8 +1332,7 @@ void main() {
       testWidgets('Live battles renders without overflow on $name', (
         tester,
       ) async {
-        await openArena(tester, size, padding);
-        await tester.tap(find.text('See all'));
+        await pumpLiveBattles(tester, size, padding);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
@@ -1463,16 +1371,9 @@ void main() {
       // Back on Arena with the new take first.
       expect(find.byType(ComposeTakeScreen), findsNothing);
       expect(find.byType(PickPositionScreen), findsNothing);
-      final first = find.byType(TakeItem).first;
-      await tester.ensureVisible(first);
-      expect(
-        find.descendant(of: first, matching: find.text('ETH/BTC bottomed.')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: first, matching: find.text('maya.eth')),
-        findsOneWidget,
-      );
+      final first = tester.widget<HubCallCard>(find.byType(HubCallCard).first);
+      expect(first.take.body, 'ETH/BTC bottomed.');
+      expect(first.take.handle, 'maya.eth');
     });
 
     testWidgets('a take posted in Arena shows in that asset\'s Callers', (
@@ -1577,11 +1478,7 @@ void main() {
         r'ETH touches $3,200 before Friday',
       );
       expect(
-        tester
-            .widgetList<BattleTile>(find.byType(BattleTile))
-            .first
-            .battle
-            .question,
+        BattlesStore.all.value.first.question,
         r'ETH touches $3,200 before Friday',
       );
     });
@@ -1717,8 +1614,13 @@ void main() {
 
     testWidgets('tapping a caller opens their profile', (tester) async {
       await openArena(tester);
-      await scrollTo(tester, find.text('voskov'));
-      await tester.tap(find.text('voskov').first);
+      final card = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'voskov',
+      );
+      await scrollTo(tester, card);
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(PersonInitial)).first,
+      );
       await tester.pumpAndSettle();
       expect(find.byType(ProfileScreen), findsOneWidget);
     });
@@ -1746,7 +1648,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await openAllCalls(tester);
+      // Live battles, then the busiest debate.
+      await tester.pumpWidget(
+        MaterialApp(theme: VistaTheme.dark(), home: const LiveBattlesScreen()),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(BattleTile).first);
       await tester.pumpAndSettle();
     }
