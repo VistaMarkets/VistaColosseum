@@ -969,7 +969,8 @@ VistaColosseum/
 │   │   ├── 07-trader-record-panel.md
 │   │   ├── 08-list-empty-failed-states.md
 │   │   ├── 09-copy-story.md
-│   │   └── 11-verification-and-packaging.md
+│   │   ├── 11-verification-and-packaging.md
+│   │   └── 12-own-market-cap.md
 │   └── verification/
 │       ├── 2026-10-05-m1-shell-and-scenario.md
 │       ├── 2026-10-05-m2-home-and-listing.md
