@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../calls/calls_store.dart';
 import 'arena_mock.dart';
-import 'opinions_screen.dart';
+import 'debate_screen.dart';
 import 'take_card.dart';
 
 /// Every live battle, opened from "See all" on the Arena tab: the carousel's
@@ -98,7 +98,7 @@ class _LiveBattlesScreenState extends State<LiveBattlesScreen> {
                       key: ValueKey(b.question),
                       battle: b,
                       onTap: () =>
-                          Navigator.of(context).push(OpinionsScreen.route()),
+                          Navigator.of(context).push(DebateScreen.route(b)),
                     ),
                 ],
               ),

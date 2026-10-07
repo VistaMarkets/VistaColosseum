@@ -340,20 +340,37 @@ class TakeItem extends StatelessWidget {
                     _AgreeButton(take: t),
                     if (t.joined case final joined?) ...[
                       const SizedBox(width: VistaSpace.gutter),
-                      Semantics(
-                        label: '$joined joined from this call',
-                        excludeSemantics: true,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const VistaIcon(VistaAssets.takePeople, size: 18),
-                            const SizedBox(width: 5),
-                            Text('$joined joined', style: _actionCount),
-                          ],
+                      // Takes the room up to the Join pill; shortens only when
+                      // it truly doesn't fit (small phones).
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Semantics(
+                            label: '$joined joined from this call',
+                            excludeSemantics: true,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const VistaIcon(
+                                  VistaAssets.takePeople,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    '${compactCount(joined)} joined',
+                                    style: _actionCount,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                    const Spacer(),
+                    ] else
+                      const Spacer(),
                     VistaJoinPill(side: t.side, onTap: onJoin),
                   ],
                 ),
@@ -365,6 +382,10 @@ class TakeItem extends StatelessWidget {
     );
   }
 }
+
+/// 4400 → "4.4k", 48 → "48", for counts in a call's action row.
+String compactCount(int n) =>
+    n >= 1000 ? '${(n / 1000).toStringAsFixed(1)}k' : '$n';
 
 final _actionCount = VistaType.bodyMedium.copyWith(
   color: VistaColors.textMuted,
@@ -575,7 +596,7 @@ class _AgreeButton extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: VistaSpace.xxs),
-                  Text('$count', style: _actionCount),
+                  Text(compactCount(count), style: _actionCount),
                 ],
               ),
             ),

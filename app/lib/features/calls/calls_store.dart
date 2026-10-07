@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../arena/arena_mock.dart';
 import '../home/mock_trade_idea.dart';
+import '../portfolio/portfolio_mock.dart';
 import '../trade/trade_mock.dart';
 
 /// Every published call, in one list for every page: Arena shows all of
@@ -120,6 +121,7 @@ abstract final class BattlesStore {
       ticker: b.ticker,
       change: b.change,
       question: b.question,
+      chip: b.chip,
       longShare: (b.longShare * b.takes + (long ? 1 : 0)) / n,
       minutesLeft: b.minutesLeft,
       takes: n,
@@ -128,5 +130,42 @@ abstract final class BattlesStore {
       for (final x in all.value) identical(x, b) ? joined : x,
     ]);
     return joined;
+  }
+}
+
+/// Finds a debate and its calls: live ones from [BattlesStore], settled
+/// ones from the mock.
+abstract final class Debates {
+  static List<LiveBattle> get all => [
+    ...BattlesStore.all.value,
+    ...ArenaMock.settledDebates,
+  ];
+
+  /// The debate [t] is on, if it can be found.
+  static LiveBattle? of(Take t) {
+    if (t.battle == null) return null;
+    for (final b in all) {
+      if (b.has(t)) return b;
+    }
+    return null;
+  }
+
+  /// Every call on [b] from [calls]: one you have just posted first (as on
+  /// X), then backed ones, then most liked.
+  static List<Take> callsOn(LiveBattle b, List<Take> calls) {
+    final list = [
+      for (final t in calls)
+        if (b.has(t)) t,
+    ];
+    bool fresh(Take t) => t.handle == PortfolioMock.handle && t.age == 'now';
+    mergeSort(
+      list,
+      compare: (x, y) {
+        if (fresh(x) != fresh(y)) return fresh(x) ? -1 : 1;
+        if (x.backed != y.backed) return x.backed ? -1 : 1;
+        return y.likes.compareTo(x.likes);
+      },
+    );
+    return list;
   }
 }

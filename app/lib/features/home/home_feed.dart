@@ -24,6 +24,9 @@ import 'mock_trade_idea.dart';
 ///   day or so instead of dropping off a cliff.
 /// - ×1.5 when you follow the caller (For You only), ×1.2 when the call is
 ///   backed by a position.
+/// - ×1.5 for a backed call from a new caller (fewer than
+///   `ArenaMock.newCallerUnder` settled calls), and the best such call is
+///   lifted to at least third, so a new trader's first calls get seen.
 /// - score = popularity × freshness × boosts. A call you have just posted
 ///   shows first, as on X.
 abstract final class HomeFeed {
@@ -52,8 +55,18 @@ abstract final class HomeFeed {
     var boost = 1.0;
     if (followBoost && followed.contains(t.handle)) boost *= 1.5;
     if (t.backed) boost *= 1.2;
+    if (t.backed && isNewCaller(t.handle)) boost *= 1.5;
     return popularity * freshness * boost;
   }
+
+  /// Still building a record (see the class comment).
+  static bool isNewCaller(String handle) =>
+      (ArenaMock.settledCalls[handle] ?? ArenaMock.newCallerUnder) <
+      ArenaMock.newCallerUnder;
+
+  /// Where the best new caller's backed call is guaranteed to show, at the
+  /// latest.
+  static const newCallerSlot = 2;
 
   static List<Take> _rank(List<Take> calls, {required bool followBoost}) {
     final scored = [
@@ -64,7 +77,11 @@ abstract final class HomeFeed {
       if (pa != pb) return pa ? -1 : 1;
       return b.$2.compareTo(a.$2);
     });
-    return [for (final (t, _) in scored) t];
+    final ranked = [for (final (t, _) in scored) t];
+    // The new-caller slot: lift the best new caller's backed call.
+    final i = ranked.indexWhere((t) => t.backed && isNewCaller(t.handle));
+    if (i > newCallerSlot) ranked.insert(newCallerSlot, ranked.removeAt(i));
+    return ranked;
   }
 
   static final _cards = <String, TradeIdea>{};

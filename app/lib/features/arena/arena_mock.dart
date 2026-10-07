@@ -12,9 +12,26 @@ class LiveBattle {
     required this.longShare,
     required this.minutesLeft,
     required this.takes,
+    this.chip,
+    this.result,
   });
 
   final String ticker;
+
+  /// The short form calls carry in their debate chip ("Reclaims $72,000 by
+  /// Fri"); the question itself when not set.
+  final String? chip;
+  String get label => chip ?? question;
+
+  /// How it ended, once settled; null while live.
+  final DebateResult? result;
+  bool get settled => result != null;
+
+  /// Identifies the debate (mock: no server id yet).
+  String get id => '$ticker/$label';
+
+  /// Whether [t] is a call on this debate.
+  bool has(Take t) => t.ticker == ticker && t.battle == label;
 
   /// The market's day change, e.g. "+1.2%".
   final String change;
@@ -27,12 +44,79 @@ class LiveBattle {
   final int minutesLeft;
   final int takes;
 
-  /// "45m left", "4h left", "2d left".
-  String get timeLeft => minutesLeft < 60
+  /// "45m left", "4h left", "2d left"; "Settled" once it has.
+  String get timeLeft => settled
+      ? 'Settled'
+      : minutesLeft < 60
       ? '${minutesLeft}m left'
       : minutesLeft < 1440
       ? '${minutesLeft ~/ 60}h left'
       : '${minutesLeft ~/ 1440}d left';
+}
+
+/// How a debate settled: which side was right and the price it settled at.
+class DebateResult {
+  const DebateResult({
+    required this.longRight,
+    required this.settledAt,
+    required this.age,
+  });
+
+  final bool longRight;
+
+  /// "$184.20".
+  final String settledAt;
+
+  /// How long ago it settled ("3h").
+  final String age;
+}
+
+/// A settled call or debate as a post in the Arena feed: the receipt, and
+/// for a call the caller's own market move as it settled.
+class Settlement {
+  const Settlement.call({
+    required String this.handle,
+    required this.ticker,
+    required TradeSide this.side,
+    required int this.leverage,
+    required bool this.right,
+    required String this.entry,
+    required String this.close,
+    required double this.pnlPct,
+    required double this.marketMovePct,
+    required this.age,
+  }) : debate = null;
+
+  const Settlement.debate({required LiveBattle this.debate})
+    : handle = null,
+      ticker = '',
+      side = null,
+      leverage = null,
+      right = null,
+      entry = null,
+      close = null,
+      pnlPct = null,
+      marketMovePct = null,
+      age = '';
+
+  final String? handle;
+  final String ticker;
+  final TradeSide? side;
+  final int? leverage;
+  final bool? right;
+  final String? entry;
+  final String? close;
+
+  /// The position's result, levered.
+  final double? pnlPct;
+
+  /// The caller's own market (e.g. MAYA) as the call settled.
+  final double? marketMovePct;
+  final String age;
+  final LiveBattle? debate;
+
+  String get marketTicker => debate?.ticker ?? ticker;
+  String get when => debate?.result?.age ?? age;
 }
 
 /// One person's take in the feed. A take on a battle carries [battle]; a
@@ -85,13 +169,23 @@ class Take {
 
 /// Mock content from Figma 505:204 ("Arena — takes feed"). Simulated.
 abstract final class ArenaMock {
-  static const sorts = ['Popular', 'Recent', 'Volume', 'Change', 'Funding'];
+  /// How the Calls list is ordered (the dropdown by its heading).
+  static const sorts = ['Popular', 'Recent'];
+
+  /// Callers still building a record: fewer settled calls than this and
+  /// their backed calls get the new-caller boost (`HomeFeed`).
+  static const newCallerUnder = 5;
+
+  /// Settled calls per caller, for the new-caller boost. Anyone not listed
+  /// has a long record. Mock.
+  static const settledCalls = {'vega': 2};
 
   static const battles = [
     LiveBattle(
       ticker: 'BTC',
       change: '+1.2%',
       question: r"Reclaims $72,000 before Friday's expiry",
+      chip: r'Reclaims $72,000 by Fri',
       longShare: 0.63,
       minutesLeft: 252,
       takes: 41,
@@ -100,6 +194,7 @@ abstract final class ArenaMock {
       ticker: 'ETH',
       change: '−0.4%',
       question: r'Flips $3,200 before the weekly close',
+      chip: r'Flips $3,200 before weekly close',
       longShare: 0.41,
       minutesLeft: 1530,
       takes: 28,
@@ -136,6 +231,49 @@ abstract final class ArenaMock {
       minutesLeft: 610,
       takes: 14,
     ),
+  ];
+
+  /// Debates that have settled; their threads stay open to read.
+  static const settledDebates = [
+    LiveBattle(
+      ticker: 'SOL',
+      change: '+3.8%',
+      question: r'Holds $180 through CPI',
+      longShare: 0.58,
+      minutesLeft: 0,
+      takes: 24,
+      result: DebateResult(longRight: true, settledAt: r'$184.20', age: '3h'),
+    ),
+  ];
+
+  /// Settled calls and debates for the feed, newest first. In the demo
+  /// nothing settles on a clock, so these are seeded.
+  static final settlements = [
+    const Settlement.call(
+      handle: 'maya.eth',
+      ticker: 'ETH',
+      side: TradeSide.long,
+      leverage: 5,
+      right: true,
+      entry: r'$2,948',
+      close: r'$3,050',
+      pnlPct: 17.3,
+      marketMovePct: 2.1,
+      age: '1h',
+    ),
+    const Settlement.call(
+      handle: 'kestrel',
+      ticker: 'BTC',
+      side: TradeSide.short,
+      leverage: 3,
+      right: false,
+      entry: r'$66,900',
+      close: r'$68,000',
+      pnlPct: -4.9,
+      marketMovePct: -1.4,
+      age: '2h',
+    ),
+    Settlement.debate(debate: settledDebates.first),
   ];
 
   /// Ways to order the Live battles page.
@@ -429,6 +567,52 @@ abstract final class ArenaMock {
         following: false,
       ),
       likes: 14,
+    ),
+    // Arguments on debates: a side and a case, no position behind them.
+    Take(
+      handle: 'orbit.eth',
+      side: TradeSide.short,
+      accuracy: '66% right',
+      age: '1h',
+      ticker: 'BTC',
+      battle: r'Reclaims $72,000 by Fri',
+      body:
+          "Every push into 71k this week came on rising funding and falling "
+          "spot volume. That's not a reclaim, that's a squeeze looking for "
+          'exits.',
+      likes: 21,
+    ),
+    Take(
+      handle: 'deltaone',
+      side: TradeSide.long,
+      accuracy: '72% right',
+      age: '50m',
+      ticker: 'BTC',
+      battle: r'Reclaims $72,000 by Fri',
+      body:
+          'ETF inflows have been positive four days running. Expiry pins '
+          'price near the big strikes, and 72k is the biggest one.',
+      likes: 16,
+    ),
+    Take(
+      handle: 'nara',
+      side: TradeSide.long,
+      accuracy: '64% right',
+      age: '5h',
+      ticker: 'SOL',
+      battle: r'Holds $180 through CPI',
+      body: 'Spot bid at 180 has absorbed every dip since Monday.',
+      likes: 12,
+    ),
+    Take(
+      handle: 'kestrel',
+      side: TradeSide.short,
+      accuracy: '57% right',
+      age: '6h',
+      ticker: 'SOL',
+      battle: r'Holds $180 through CPI',
+      body: 'A hot print takes out 180 in the first minute. Too much leverage.',
+      likes: 7,
     ),
   ];
 }

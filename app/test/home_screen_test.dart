@@ -13,7 +13,8 @@ import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
-import 'package:vista_colosseum/features/arena/opinions_screen.dart';
+import 'package:vista_colosseum/features/arena/debate_screen.dart';
+import 'package:vista_colosseum/features/arena/settlement_item.dart';
 import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/arena/arena_mock.dart';
 import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
@@ -22,7 +23,6 @@ import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
 import 'package:vista_colosseum/features/arena/battle_builder.dart';
 import 'package:vista_colosseum/features/calls/calls_store.dart';
 import 'package:vista_colosseum/features/home/home_feed.dart';
-import 'package:vista_colosseum/features/trade/caller_thread.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
@@ -945,13 +945,13 @@ void main() {
       expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
     });
 
-    testWidgets('sort chips stay fixed while the feed scrolls', (tester) async {
+    testWidgets('room chips stay fixed while the feed scrolls', (tester) async {
       await openArena(tester);
-      final before = tester.getTopLeft(find.text('Volume'));
+      final before = tester.getTopLeft(find.text('All'));
       final take = tester.getTopLeft(find.byType(TakeItem).first);
       await tester.drag(find.byType(ListView).last, const Offset(0, -300));
       await tester.pumpAndSettle();
-      expect(tester.getTopLeft(find.text('Volume')), before);
+      expect(tester.getTopLeft(find.text('All')), before);
       // Left-aligned with the page gutter, not centred.
       expect(
         tester.getTopLeft(find.byType(VistaFilterChip).first).dx,
@@ -967,12 +967,16 @@ void main() {
       tester,
     ) async {
       await openArena(tester);
-      // kilo.sol's is a plain call: nothing between the header and the text.
-      await scrollTo(tester, find.text('kilo.sol'));
-      final call = find.ancestor(
-        of: find.text('kilo.sol'),
-        matching: find.byType(TakeItem),
+      // kilo.sol's SOL call is a plain call: nothing between the header and
+      // the text.
+      final call = find.byWidgetPredicate(
+        (w) =>
+            w is TakeItem &&
+            w.take.handle == 'kilo.sol' &&
+            w.take.ticker == 'SOL' &&
+            w.take.backed,
       );
+      await scrollTo(tester, call);
       expect(
         find.descendant(of: call, matching: find.textContaining(' · ')),
         findsOneWidget, // the position's levels (the age is "· 25m")
@@ -990,10 +994,14 @@ void main() {
       expect(find.text('SHORT BTC'), findsWidgets);
       expect(find.text('✓ Backed'), findsNothing);
       expect(find.byType(BackedPositionCard), findsWidgets);
-      // The battle chip opens the battle.
+      // The battle chip opens that debate's thread.
       await tester.tap(find.text(r'Reclaims $72,000 by Fri').first);
       await tester.pumpAndSettle();
-      expect(find.byType(OpinionsScreen), findsOneWidget);
+      expect(find.byType(DebateScreen), findsOneWidget);
+      expect(
+        tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.ticker,
+        'BTC',
+      );
     });
 
     testWidgets('agree toggles; Join opens the ticket on the take\'s side', (
@@ -1087,7 +1095,128 @@ void main() {
       expect(firstQuestion(), r'Breaks $1.20 this week'); // 48 / 52
       await tester.tap(find.byType(BattleTile).first);
       await tester.pumpAndSettle();
-      expect(find.byType(OpinionsScreen), findsOneWidget);
+      expect(
+        tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.question,
+        r'Breaks $1.20 this week',
+      );
+    });
+
+    testWidgets('a room filters the feed and leads with its market', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'BTC'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<TakeItem>(find.byType(TakeItem))
+            .every((t) => t.take.ticker == 'BTC'),
+        isTrue,
+      );
+      expect(
+        tester
+            .widgetList<BattleTile>(find.byType(BattleTile))
+            .every((b) => b.battle.ticker == 'BTC'),
+        isTrue,
+      );
+      await tester.tap(find.text('Trade ›'));
+      await tester.pumpAndSettle();
+      expect(find.byType(VistaIntervalSelector), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back').last);
+      await tester.pumpAndSettle();
+
+      // A trader market room: that trader's calls, no debates.
+      await tester.drag(
+        find.byType(SingleChildScrollView).first,
+        const Offset(-600, 0),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'MAYA'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BattleTile), findsNothing);
+      expect(
+        tester
+            .widgetList<TakeItem>(find.byType(TakeItem))
+            .every((t) => t.take.handle == 'maya.eth'),
+        isTrue,
+      );
+    });
+
+    testWidgets('Popular / Recent orders the calls', (tester) async {
+      await openArena(tester);
+      expect(find.text('Popular'), findsOneWidget);
+      await tester.tap(find.text('Popular'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Recent').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Recent'), findsOneWidget); // the menu has closed
+      final newest = CallsStore.all.value
+          .map((t) => CallsStore.minutesAgo(t.age))
+          .reduce((a, b) => a < b ? a : b);
+      final first = tester.widget<TakeItem>(find.byType(TakeItem).first);
+      expect(CallsStore.minutesAgo(first.take.age), newest);
+    });
+
+    testWidgets('settled calls and debates post to the feed', (tester) async {
+      await openArena(tester);
+      await scrollTo(tester, find.text('SETTLED RIGHT'));
+      final maya = find.ancestor(
+        of: find.text('SETTLED RIGHT'),
+        matching: find.byType(SettlementItem),
+      );
+      // The caller's own market as it settled.
+      expect(
+        find.descendant(of: maya, matching: find.textContaining('MAYA ▲2.1%')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.descendant(of: maya, matching: find.text('maya.eth')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ReceiptSheet), findsOneWidget);
+      await tester.tapAt(const Offset(200, 60));
+      await tester.pumpAndSettle();
+
+      await scrollTo(tester, find.text('Debate settled'));
+      await tester.tap(find.text('Read the thread ›'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DebateScreen), findsOneWidget);
+      expect(find.text('SETTLED · LONG SIDE RIGHT'), findsOneWidget);
+      expect(find.text('Argue long'), findsNothing); // settled: no new cases
+    });
+
+    testWidgets('a debate is a thread you can argue in', (tester) async {
+      await openArena(tester);
+      await tester.tap(find.byType(BattleTile).first);
+      await tester.pumpAndSettle();
+      final b = tester.widget<DebateScreen>(find.byType(DebateScreen)).debate;
+      // Backed calls and arguments on it, backed first.
+      expect(find.byType(BackedPositionCard), findsWidgets);
+      expect(find.text('orbit.eth'), findsOneWidget);
+      await tester.tap(find.text('Short'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<TakeItem>(find.byType(TakeItem))
+            .every((t) => t.take.side == TradeSide.short),
+        isTrue,
+      );
+
+      final split = b.takes;
+      await tester.tap(find.text('Argue short'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Funding says no.');
+      await tester.pump(); // Post enables once there's text
+      await tester.tap(find.text('Post'));
+      await tester.pumpAndSettle();
+      final mine = CallsStore.all.value.firstWhere(
+        (t) => t.body == 'Funding says no.',
+      );
+      expect(mine.battle, b.label);
+      expect(mine.backed, isFalse);
+      expect(find.text('Funding says no.'), findsOneWidget);
+      // An argument doesn't move the split.
+      expect(BattlesStore.all.value.first.takes, split);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1288,7 +1417,8 @@ void main() {
       );
       expect(after.takes, live.takes + 1);
       expect(after.longShare, greaterThan(live.longShare));
-      expect(CallsStore.all.value.first.battle, live.question);
+      // It carries the debate's chip, which links it to the thread.
+      expect(CallsStore.all.value.first.battle, live.label);
     });
 
     testWidgets('a short gets the downside statements; Remove undoes it', (
@@ -1401,8 +1531,8 @@ void main() {
     }
   });
 
-  group('opinions', () {
-    Future<void> openOpinions(
+  group('debate thread', () {
+    Future<void> openDebate(
       WidgetTester tester, [
       Size size = const Size(402, 874),
       EdgeInsets pad = EdgeInsets.zero,
@@ -1420,36 +1550,25 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    List<String> handles(WidgetTester tester) => tester
-        .widgetList<VistaSideDetail>(find.byType(VistaSideDetail))
-        .map((d) => d.handle)
-        .toList();
-
-    testWidgets('a battle tile opens the clash detail; filters and back', (
-      tester,
-    ) async {
-      await openOpinions(tester);
-      expect(find.text('23 opinions'), findsOneWidget);
-      expect(find.text('Join longs'), findsOneWidget);
-      expect(handles(tester).first, '@renatafx');
-
-      await tester.tap(find.text('Bull thesis'));
-      await tester.pumpAndSettle();
-      expect(handles(tester), ['@renatafx']);
-
-      await tester.tap(find.text('Bear thesis'));
-      await tester.pumpAndSettle();
-      expect(handles(tester), isNot(contains('@renatafx')));
-      expect(handles(tester).first, '@voskov');
-
-      await tester.tap(find.bySemanticsLabel('Back'));
+    testWidgets('a debate tile opens its thread; back returns', (tester) async {
+      await openDebate(tester);
+      expect(
+        find.text(r"Reclaims $72,000 before Friday's expiry"),
+        findsOneWidget,
+      );
+      expect(find.text('63% long'), findsOneWidget);
+      expect(find.text('Argue long'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back').last);
       await tester.pumpAndSettle();
       expect(find.byType(BattleTile), findsWidgets);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('renders without overflow on $name', (tester) async {
-        await openOpinions(tester, size, padding);
+        await openDebate(tester, size, padding);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('Argue short'));
+        await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
     }
@@ -3142,21 +3261,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('each Arena opinion carries its call, like a trade page caller', (
-    tester,
-  ) async {
+  testWidgets('each backed call in a debate opens its play', (tester) async {
     tester.view
       ..physicalSize = const Size(402, 874) * 3
       ..devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      MaterialApp(theme: VistaTheme.dark(), home: const OpinionsScreen()),
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: DebateScreen(debate: BattlesStore.all.value.first),
+      ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(CallOrderCard), findsWidgets);
     expect(find.text('LONG 10x'), findsOneWidget); // @renatafx's call
-    await tester.tap(find.byType(CallOrderCard).first);
+    await tester.tap(find.byType(BackedPositionCard).first);
     await tester.pumpAndSettle();
     expect(find.byType(CallerPlayScreen), findsOneWidget);
+  });
+
+  test('a new caller\'s backed call is boosted and seen early', () {
+    expect(HomeFeed.isNewCaller('vega'), isTrue);
+    expect(HomeFeed.isNewCaller('maya.eth'), isFalse);
+    final ranked = HomeFeed.forYou(CallsStore.all.value);
+    final i = ranked.indexWhere((t) => t.handle == 'vega' && t.backed);
+    expect(i, lessThanOrEqualTo(HomeFeed.newCallerSlot));
   });
 }

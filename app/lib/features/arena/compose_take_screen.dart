@@ -114,7 +114,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
         body: _text.text.trim(),
         likes: 0,
         call: ComposeTakeScreen.backing(p),
-        battle: battle?.question ?? joined?.question,
+        battle: battle?.question ?? joined?.label,
       ),
     );
   }
