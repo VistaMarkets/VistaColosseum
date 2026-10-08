@@ -853,7 +853,12 @@ void main() {
           findsOneWidget,
         );
       }
-      for (final text in [r'$44.0M', 'market cap']) {
+      // Every chip: market cap over its 24h change; no star.
+      expect(
+        find.descendant(of: maya, matching: find.byType(VistaStarButton)),
+        findsNothing,
+      );
+      for (final text in [r'$44.0M']) {
         expect(
           find.descendant(of: maya, matching: find.text(text)),
           findsOneWidget,
@@ -915,7 +920,7 @@ void main() {
         find.byType(LeaderboardCard).first,
       );
       expect((first.name, first.rank), ('pip.eth', 1));
-      expect(find.text('▲18.4%'), findsOneWidget);
+      expect(find.text(r'$6.2M'), findsOneWidget); // same card, cap
     });
 
     testWidgets('Up and coming narrows the board to new markets', (
@@ -934,8 +939,8 @@ void main() {
       // than 30 days, so you (maya.eth) aren't on it.
       expect(rows.map((r) => r.name).take(2), ['vexa', 'pip.eth']);
       expect(rows.map((r) => r.name), isNot(contains('maya.eth')));
-      expect(find.text('vexa   6d'), findsOneWidget);
-      expect(find.text('+52'), findsOneWidget);
+      expect(find.text('vexa'), findsOneWidget);
+      expect(find.text(r'$8.8M'), findsOneWidget);
       expect(find.textContaining('You', findRichText: true), findsNothing);
     });
 
@@ -1282,15 +1287,15 @@ void main() {
     await tester.tap(find.widgetWithText(VistaFilterChip, 'Brand new'));
     await tester.pumpAndSettle();
     expect(find.text('JUST OPENED'), findsOneWidget);
-    // Launches, not a ranking: NEW tags, no 24h / 7d / 30d / All.
-    expect(find.text('NEW'), findsNWidgets(3));
+    // No time window; the same card as every other chip.
+    expect(find.text('NEW'), findsNothing);
     expect(find.bySemanticsLabel('7d'), findsNothing);
     final rows = tester
         .widgetList<LeaderboardCard>(find.byType(LeaderboardCard))
         .map((c) => c.name)
         .toList();
     expect(rows, ['pip.eth', 'vexa', 'orca.sol']); // 3, 6, 11 days
-    expect(find.text('3d ago'), findsOneWidget);
+    expect(find.text(r'$6.2M'), findsOneWidget);
   });
 
   group('challenge', () {

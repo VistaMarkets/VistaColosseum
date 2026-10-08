@@ -10,11 +10,11 @@ import 'leaderboard.dart';
 import 'markets_mock.dart';
 
 /// A trader market on the Explore Leaderboard, laid out like the Assets
-/// All markets rows ([AssetMarketCard]): its place (the top three in medal
-/// colours, the avatar ringed to match; Brand new shows a NEW tag
-/// instead), avatar, ticker over handle, a small line chart of the
-/// selected [window], the figure the [metric] chip ranks by, and the
-/// favourite star. Your own market is outlined. Simulated history.
+/// All markets rows ([AssetMarketCard]) and the same for every chip: its
+/// place (the top three in medal colours, the avatar ringed to match),
+/// avatar, ticker over handle, a small line chart of the selected
+/// [window], then market cap over its 24h change. Your own market is
+/// outlined. Simulated history.
 class LeaderboardCard extends StatelessWidget {
   const LeaderboardCard({
     super.key,
@@ -23,8 +23,6 @@ class LeaderboardCard extends StatelessWidget {
     required this.metric,
     required this.window,
     this.isYou = false,
-    this.starred = false,
-    this.onStar,
     this.onPressed,
   });
 
@@ -37,8 +35,6 @@ class LeaderboardCard extends StatelessWidget {
   /// Index into [Leaderboard.windows].
   final int window;
   final bool isYou;
-  final bool starred;
-  final VoidCallback? onStar;
   final VoidCallback? onPressed;
 
   String get name => market.name;
@@ -53,35 +49,12 @@ class LeaderboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = market;
     final card = MarketsMock.traderCards[m.id];
-    // Brand new is a list of launches, not a ranking.
-    final fresh = metric == 'Brand new';
-    final medal = !fresh && rank <= 3 ? medals[rank - 1] : null;
-    final v = Leaderboard.value(m, metric, window) ?? 0;
+    final medal = rank <= 3 ? medals[rank - 1] : null;
+    // One card for every chip: market cap and its 24h change on the right.
+    final day = Leaderboard.value(m, 'Change', 0) ?? m.changePct;
     final change = Leaderboard.value(m, 'Change', window) ?? m.changePct;
-    final w = const ['24h', '7d', '30d', 'all time'][window];
-    final (figure, caption, color) = switch (metric) {
-      'Up and coming' => (
-        '+${v.toInt()}',
-        window == 3 ? 'holders' : 'new holders',
-        VistaColors.long,
-      ),
-      'Brand new' => (
-        (card?.days ?? 0) == 0 ? 'Today' : '${card?.days ?? 0}d ago',
-        'opened',
-        VistaColors.accent,
-      ),
-      'Change' => (
-        '${change >= 0 ? '▲' : '▼'}${change.abs().toStringAsFixed(1)}%',
-        w,
-        vistaChangeColor(change),
-      ),
-      _ => (m.third, 'market cap', VistaColors.textPrimary),
-    };
-    final handle = [
-      // Your own market just says so; the handle is yours.
-      isYou ? 'You' : m.name,
-      if (metric == 'Up and coming') '${card?.days ?? 0}d',
-    ].join('   ');
+    // Your own market just says so; the handle is yours.
+    final handle = isYou ? 'You' : m.name;
     final narrow = MediaQuery.sizeOf(context).width < 390;
 
     return ValueListenableBuilder(
@@ -89,8 +62,8 @@ class LeaderboardCard extends StatelessWidget {
       builder: (context, price, _) => Semantics(
         button: true,
         label:
-            '${fresh ? 'New' : '#$rank'} ${card?.symbol ?? m.name}, '
-            '$handle, $figure $caption',
+            '#$rank ${card?.symbol ?? m.name}, $handle, ${m.third} cap, '
+            '${vistaChangeLabel(day)} over 24h',
         child: VistaPressable(
           scale: 0.98,
           onTap: onPressed,
@@ -99,7 +72,7 @@ class LeaderboardCard extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(
               VistaSpace.lg,
               VistaSpace.lg,
-              onStar == null ? VistaSpace.xl : VistaSpace.xs,
+              VistaSpace.xl,
               VistaSpace.lg,
             ),
             decoration: BoxDecoration(
@@ -111,37 +84,17 @@ class LeaderboardCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                if (fresh)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: VistaColors.accentTint,
-                      borderRadius: BorderRadius.circular(VistaRadius.sm),
-                    ),
-                    child: Text(
-                      'NEW',
-                      style: VistaType.label.copyWith(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: VistaColors.accent,
-                      ),
-                    ),
-                  )
-                else
-                  SizedBox(
-                    width: 18,
-                    child: Text(
-                      '$rank',
-                      textAlign: TextAlign.center,
-                      style: VistaType.figures(VistaType.body).copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: medal ?? VistaColors.textMuted,
-                      ),
+                SizedBox(
+                  width: 18,
+                  child: Text(
+                    '$rank',
+                    textAlign: TextAlign.center,
+                    style: VistaType.figures(VistaType.body).copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: medal ?? VistaColors.textMuted,
                     ),
                   ),
+                ),
                 const SizedBox(width: VistaSpace.sm),
                 Container(
                   width: VistaSize.listLeading,
@@ -199,25 +152,19 @@ class LeaderboardCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        figure,
-                        style: VistaType.figures(VistaType.subhead)
-                            .copyWith(color: color),
+                        m.third,
+                        style: VistaType.figures(VistaType.body)
+                            .copyWith(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        caption,
-                        style: VistaType.label.copyWith(
-                          color: VistaColors.textMuted,
-                        ),
+                        '${day >= 0 ? '▲' : '▼'}'
+                        '${day.abs().toStringAsFixed(1)}% 24h',
+                        style: VistaType.figures(VistaType.label)
+                            .copyWith(color: vistaChangeColor(day)),
                       ),
                     ],
                   ),
                 ),
-                if (onStar != null)
-                  VistaStarButton(
-                    starred: starred,
-                    onPressed: onStar!,
-                    size: 16,
-                  ),
               ],
             ),
           ),

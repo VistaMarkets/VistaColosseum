@@ -486,8 +486,6 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 metric: _sortKey,
                                 window: _window,
                                 isYou: m.id == PortfolioMock.handle,
-                                starred: favs.contains(m.id),
-                                onStar: () => _toggleFavorite(m.id),
                                 onPressed: () => _open(m),
                               )
                             : AssetMarketCard(
