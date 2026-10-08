@@ -118,40 +118,6 @@ class ExploreSections extends StatelessWidget {
   }
 }
 
-/// The Leaderboard's Brand new row: trader markets opened in the last
-/// two weeks, newest first, each saying when it opened.
-class BrandNewMarkets extends StatelessWidget {
-  const BrandNewMarkets({super.key, required this.onTrader});
-
-  final ValueChanged<MarketItem> onTrader;
-
-  /// "Brand new": opened within this many days.
-  static const days = 14;
-
-  @override
-  Widget build(BuildContext context) {
-    int age(MarketItem m) => MarketsMock.traderCards[m.id]?.days ?? 999;
-    final fresh = [
-      for (final m in MarketsMock.traders)
-        if (age(m) <= days) m,
-    ]..sort((a, b) => age(a).compareTo(age(b)));
-    if (fresh.isEmpty) return const SizedBox.shrink();
-    return _Section(
-      title: 'Brand new',
-      cards: [
-        for (final m in fresh)
-          SlimMarketCard(
-            market: m,
-            trader: true,
-            note: age(m) == 0 ? 'Opened today' : 'Opened ${age(m)}d ago',
-            noteColor: VistaColors.accent,
-            onTap: () => onTrader(m),
-          ),
-      ],
-    );
-  }
-}
-
 /// A section title and its sideways row of cards.
 class _Section extends StatelessWidget {
   const _Section({required this.title, required this.cards});

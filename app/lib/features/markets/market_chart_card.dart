@@ -60,6 +60,11 @@ class LeaderboardCard extends StatelessWidget {
         VistaColors.long,
       ),
       'Market cap' => (m.third, 'market cap', VistaColors.textPrimary),
+      'Brand new' => (
+        (card?.days ?? 0) == 0 ? 'Today' : '${card?.days ?? 0}d',
+        'opened',
+        VistaColors.accent,
+      ),
       'Change' => (
         '${change >= 0 ? '▲' : '▼'}${change.abs().toStringAsFixed(1)}%',
         w,

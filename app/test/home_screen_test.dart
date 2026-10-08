@@ -1267,7 +1267,9 @@ void main() {
     expect(find.text('Cancel'), findsNothing);
   });
 
-  testWidgets('Leaderboard: a Brand new row, newest first', (tester) async {
+  testWidgets('Leaderboard: Brand new chip lists new markets, newest first', (
+    tester,
+  ) async {
     tester.view
       ..physicalSize = const Size(402, 874) * 3
       ..devicePixelRatio = 3;
@@ -1278,14 +1280,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Leaderboard'));
     await tester.pumpAndSettle();
-    expect(find.text('Brand new'), findsOneWidget);
-    final cards = tester
-        .widgetList<SlimMarketCard>(find.byType(SlimMarketCard))
-        .map((c) => c.market.id)
+    await tester.tap(find.widgetWithText(VistaFilterChip, 'Brand new'));
+    await tester.pumpAndSettle();
+    expect(find.text('OPENED IN THE LAST 14 DAYS'), findsOneWidget);
+    final rows = tester
+        .widgetList<LeaderboardCard>(find.byType(LeaderboardCard))
+        .map((c) => c.name)
         .toList();
-    expect(cards.take(2), ['pip.eth', 'vexa']); // 3 days, then 6
-    expect(find.text('Opened 3d ago'), findsOneWidget);
-    expect(cards, isNot(contains('maya.eth')));
+    expect(rows, ['pip.eth', 'vexa', 'orca.sol']); // 3, 6, 11 days
+    expect(find.text('3d'), findsOneWidget);
   });
 
   group('challenge', () {

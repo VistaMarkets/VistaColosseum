@@ -25,6 +25,9 @@ abstract final class Leaderboard {
     final c = MarketsMock.traderCards[m.id];
     final j = _jitter(m.id, window);
     switch (metric) {
+      // Newest first: fewer days open ranks higher.
+      case 'Brand new':
+        return c == null ? null : -c.days.toDouble();
       case 'Up and coming':
         if (c == null) return null;
         return switch (window) {

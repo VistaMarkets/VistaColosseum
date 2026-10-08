@@ -60,6 +60,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
       _traders ? MarketsMock.traderSorts : MarketsMock.assetSorts;
   String get _sortKey => _sorts[_sort[_tab]];
   bool get _upAndComing => _traders && _sortKey == 'Up and coming';
+  bool get _brandNew => _traders && _sortKey == 'Brand new';
 
   /// Every market on the tab, for the Favorites rail.
   List<MarketItem> get _railSource =>
@@ -71,9 +72,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
           for (final m in MarketsMock.traders)
             // Yours is on the board once you've made it.
             if (m.id != PortfolioMock.handle || AccountState.hasMarket.value)
-              if (!_upAndComing ||
-                  (MarketsMock.traderCards[m.id]?.days ?? 999) <=
-                      MarketsMock.newMarketDays)
+              if ((!_upAndComing ||
+                      (MarketsMock.traderCards[m.id]?.days ?? 999) <=
+                          MarketsMock.newMarketDays) &&
+                  (!_brandNew ||
+                      (MarketsMock.traderCards[m.id]?.days ?? 999) <=
+                          MarketsMock.brandNewDays))
                 m,
         ];
 
@@ -372,13 +376,6 @@ class _MarketsScreenState extends State<MarketsScreen> {
                             Navigator.of(context)
                                 .push(ProfileScreen.route(m.name)),
                       ),
-                    // Leaderboard: brand new markets first, then the board.
-                    if (_traders && !_searching)
-                      BrandNewMarkets(
-                        onTrader: (m) =>
-                            Navigator.of(context)
-                                .push(ProfileScreen.route(m.name)),
-                      ),
                     const SizedBox(height: VistaSpace.xl),
                     // The Leaderboard's chips; All markets has no sort (it
                     // lists by volume). One line that scrolls sideways.
@@ -415,7 +412,20 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         child: Row(
                           children: [
                             // The window every card's change and chart follow.
-                            if (_traders)
+                            // Brand new has no window: it's about age.
+                            if (_brandNew)
+                              SizedBox(
+                                height: VistaSize.tapTarget,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'OPENED IN THE LAST '
+                                    '${MarketsMock.brandNewDays} DAYS',
+                                    style: label,
+                                  ),
+                                ),
+                              )
+                            else if (_traders)
                               _windowSelector()
                             else
                               SizedBox(
@@ -426,7 +436,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 ),
                               ),
                             const Spacer(),
-                            if (_upAndComing)
+                            if (_brandNew)
+                              const SizedBox.shrink()
+                            else if (_upAndComing)
                               Text(
                                 'UNDER ${MarketsMock.newMarketDays} DAYS OLD',
                                 style: label,
