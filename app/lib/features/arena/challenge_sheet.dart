@@ -301,32 +301,10 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
                       style: label,
                     ),
                     const SizedBox(height: VistaSpace.xxl),
-                    // Your position on that side, picked.
-                    Container(
-                      padding: const EdgeInsets.only(right: VistaSpace.xxl),
-                      decoration: BoxDecoration(
-                        color: VistaColors.surface,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: BackedPositionCard(
-                              post: ComposeTakeScreen.backing(p),
-                              ticker: _ticker,
-                            ),
-                          ),
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: const BoxDecoration(
-                              color: VistaColors.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
-                      ),
+                    // Your position on that side.
+                    BackedPositionCard(
+                      post: ComposeTakeScreen.backing(p),
+                      ticker: _ticker,
                     ),
                     const SizedBox(height: VistaSpace.xxl),
                     VistaPillButton(
