@@ -418,11 +418,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 height: VistaSize.tapTarget,
                                 child: Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'OPENED IN THE LAST '
-                                    '${MarketsMock.brandNewDays} DAYS',
-                                    style: label,
-                                  ),
+                                  child: Text('JUST OPENED', style: label),
                                 ),
                               )
                             else if (_traders)

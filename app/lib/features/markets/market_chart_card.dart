@@ -49,7 +49,10 @@ class LeaderboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = market;
     final card = MarketsMock.traderCards[m.id];
-    final medal = rank <= 3 ? medals[rank - 1] : null;
+    // Brand new is a list of launches, not a ranking: a NEW tag in place
+    // of the place, and no medals.
+    final fresh = metric == 'Brand new';
+    final medal = !fresh && rank <= 3 ? medals[rank - 1] : null;
     final v = Leaderboard.value(m, metric, window) ?? 0;
     final change = Leaderboard.value(m, 'Change', window) ?? m.changePct;
     final w = const ['24h', '7d', '30d', 'all time'][window];
@@ -61,7 +64,7 @@ class LeaderboardCard extends StatelessWidget {
       ),
       'Market cap' => (m.third, 'market cap', VistaColors.textPrimary),
       'Brand new' => (
-        (card?.days ?? 0) == 0 ? 'Today' : '${card?.days ?? 0}d',
+        (card?.days ?? 0) == 0 ? 'Today' : '${card?.days ?? 0}d ago',
         'opened',
         VistaColors.accent,
       ),
@@ -109,7 +112,9 @@ class LeaderboardCard extends StatelessWidget {
         final narrow = MediaQuery.sizeOf(context).width < 390;
         return Semantics(
           button: true,
-          label: '#$rank ${card?.symbol ?? m.name}, $handle, $figure $caption',
+          label:
+              '${fresh ? 'New' : '#$rank'} ${card?.symbol ?? m.name}, '
+              '$handle, $figure $caption',
           excludeSemantics: true,
           child: VistaPressable(
             scale: 0.98,
@@ -131,17 +136,37 @@ class LeaderboardCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  SizedBox(
-                    width: 18,
-                    child: Text(
-                      '$rank',
-                      textAlign: TextAlign.center,
-                      style: VistaType.figures(VistaType.body).copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: medal ?? VistaColors.textMuted,
+                  if (fresh)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VistaColors.accentTint,
+                        borderRadius: BorderRadius.circular(VistaRadius.sm),
+                      ),
+                      child: Text(
+                        'NEW',
+                        style: VistaType.label.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: VistaColors.accent,
+                        ),
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: 18,
+                      child: Text(
+                        '$rank',
+                        textAlign: TextAlign.center,
+                        style: VistaType.figures(VistaType.body).copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: medal ?? VistaColors.textMuted,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: VistaSpace.xs),
                   Container(
                     width: VistaSize.listLeading,

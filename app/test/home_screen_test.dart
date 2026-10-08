@@ -1282,13 +1282,16 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(VistaFilterChip, 'Brand new'));
     await tester.pumpAndSettle();
-    expect(find.text('OPENED IN THE LAST 14 DAYS'), findsOneWidget);
+    expect(find.text('JUST OPENED'), findsOneWidget);
+    // Launches, not a ranking: NEW tags, no 24h / 7d / 30d / All.
+    expect(find.text('NEW'), findsNWidgets(3));
+    expect(find.bySemanticsLabel('7d'), findsNothing);
     final rows = tester
         .widgetList<LeaderboardCard>(find.byType(LeaderboardCard))
         .map((c) => c.name)
         .toList();
     expect(rows, ['pip.eth', 'vexa', 'orca.sol']); // 3, 6, 11 days
-    expect(find.text('3d'), findsOneWidget);
+    expect(find.text('3d ago'), findsOneWidget);
   });
 
   group('challenge', () {
