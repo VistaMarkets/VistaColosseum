@@ -6,6 +6,9 @@ import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'holdings_table.dart';
+import 'trader_profile.dart';
+import '../live/market_prices.dart';
+import '../markets/market_chart_card.dart';
 import 'private_profile_screen.dart';
 import '../people/follow_state.dart';
 import 'edit_profile_screen.dart';
@@ -39,6 +42,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Your own profile (shows your edits).
   bool get _mine => widget.handle == PortfolioMock.handle;
+
+  /// This trader's own figures (yours are the designed ones).
+  TraderProfile get _p => TraderProfile.of(widget.handle);
   int _filter = 0; // 0 All, 1 Calls, 2 Arena
 
   final _scroll = ScrollController();
@@ -74,7 +80,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final row = _priceKey.currentContext?.findRenderObject() as RenderBox?;
     final list = _listKey.currentContext?.findRenderObject() as RenderBox?;
     bool pinned;
-    if (row == null || !row.attached || list == null) {
+    // No market, no price to pin.
+    if (_p.market == null) {
+      pinned = false;
+    } else if (row == null || !row.attached || list == null) {
       // Built lazily: once it's been dropped it's well off the top.
       pinned = _scroll.offset > 0;
     } else {
@@ -132,8 +141,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Padding(padding: gutter, child: _header()),
                       const SizedBox(height: VistaSpace.sectionLg),
-                      _market(),
-                      const SizedBox(height: VistaSpace.sectionLg),
+                      if (_p.market != null) ...[
+                        _market(),
+                        const SizedBox(height: VistaSpace.sectionLg),
+                      ],
                       const Padding(
                         padding: gutter,
                         child: VistaSectionHead(
@@ -145,6 +156,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Padding(
                         padding: gutter,
                         child: HoldingsTable(
+                          holdings: _p.holdings,
+                          cashShare: _p.cashShare,
                           onRowTap: (h) =>
                               showReceiptSheet(context, holdingReceipt(h)),
                         ),
@@ -189,8 +202,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Semantics(
       button: true,
       label:
-          '${widget.handle} market, ${ProfileMock.price}, '
-          '${ProfileMock.change}',
+          '${widget.handle} market, '
+          '${MarketPrices.format(MarketPrices.of(widget.handle).value, compact: true)}, '
+          '${_changeText(_p)}',
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -205,8 +219,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                ProfileMock.price,
+              _LivePrice(
+                handle: widget.handle,
                 style: VistaType.figures(VistaType.headline),
               ),
               const SizedBox(width: VistaSpace.sm),
@@ -219,9 +233,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               Text(
-                ProfileMock.change,
+                _changeText(_p),
                 style: VistaType.figures(VistaType.body)
-                    .copyWith(color: VistaColors.long),
+                    .copyWith(color: vistaChangeColor(_p.change ?? 0)),
               ),
               const SizedBox(width: VistaSpace.xs),
               Text(
@@ -282,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         gap,
         Text(
-          ProfileMock.recordSince,
+          _p.recordSince,
           style: VistaType.caption.copyWith(color: VistaColors.textMuted),
         ),
         gap,
@@ -295,29 +309,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         gap,
         Row(
           children: [
-            const Expanded(
-              child: VistaCountStat(
-                value: ProfileMock.settled,
-                label: 'Settled',
-              ),
+            Expanded(
+              child: VistaCountStat(value: '${_p.settled}', label: 'Settled'),
             ),
-            const Expanded(
-              child: VistaCountStat(value: ProfileMock.right, label: 'Right'),
+            Expanded(
+              child: VistaCountStat(value: '${_p.right}', label: 'Right'),
             ),
             Expanded(
               child: VistaCountStat(
-                value: ProfileMock.followers,
+                value: _p.followers,
                 label: 'Followers',
                 onPressed: () =>
                     Navigator.of(context).push(FollowListScreen.route()),
               ),
             ),
+            // Their market's cap; a dash without one.
             Expanded(
               child: VistaCountStat(
-                value: ProfileMock.market,
+                value: _p.market?.cap ?? '—',
                 label: 'Market',
-                valueColor: VistaColors.accent,
-                onPressed: _openMarket,
+                valueColor: _p.market == null
+                    ? VistaColors.textMuted
+                    : VistaColors.accent,
+                onPressed: _p.market == null ? null : _openMarket,
               ),
             ),
           ],
@@ -326,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ValueListenableBuilder(
           valueListenable: ProfileEdits.bio,
           builder: (context, bio, _) => Text(
-            _mine ? bio : ProfileMock.bio,
+            _mine ? bio : _p.bio,
             textAlign: TextAlign.center,
             style: VistaType.bodyRegular.copyWith(height: 1.35),
           ),
@@ -345,13 +359,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: VistaSpace.lg),
-            VistaChevronPill(
-              label: 'market',
-              chevron: false,
-              large: true,
-              onPressed: _openMarket,
-            ),
+            if (_p.market != null) ...[
+              const SizedBox(width: VistaSpace.lg),
+              VistaChevronPill(
+                label: 'market',
+                chevron: false,
+                large: true,
+                onPressed: _openMarket,
+              ),
+            ],
           ],
         ),
       ],
@@ -369,25 +385,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(ProfileMock.price, style: VistaType.displaySmall),
+              _LivePrice(handle: widget.handle, style: VistaType.displaySmall),
               const SizedBox(width: VistaSpace.sm),
               Expanded(
                 child: Text(
-                  ProfileMock.cap,
+                  '${_p.market!.cap} cap',
                   style: VistaType.body.copyWith(color: VistaColors.textMuted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
-                ProfileMock.change,
-                style: VistaType.headline.copyWith(color: VistaColors.long),
+                _changeText(_p),
+                style: VistaType.headline.copyWith(
+                  color: vistaChangeColor(_p.change ?? 0),
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: VistaSpace.lg),
-        const _ProfileChart(),
+        // Yours is the designed chart; everyone else's, the app's line.
+        if (_mine)
+          const _ProfileChart()
+        else
+          ValueListenableBuilder(
+            valueListenable: MarketPrices.of(widget.handle),
+            builder: (context, price, _) => Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: VistaSpace.gutter,
+              ),
+              child: MarketLineChart(
+                id: widget.handle,
+                changePct: _p.change ?? 0,
+                price: price,
+                height: 160,
+              ),
+            ),
+          ),
         const SizedBox(height: VistaSpace.lg),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.md),
@@ -402,7 +437,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _calls() {
-    final receipts = ProfileMock.receipts.where(
+    final p = _p;
+    final receipts = p.receipts.where(
       (r) => switch (_filter) {
         1 => r.kind == ReceiptKind.call,
         2 => r.kind == ReceiptKind.arena,
@@ -422,7 +458,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Wrap(
           spacing: VistaSpace.xl,
           children: [
-            for (final (text, color) in ProfileMock.summary)
+            for (final (text, color) in p.summary)
               Text(text, style: VistaType.body.copyWith(color: color)),
           ],
         ),
@@ -430,10 +466,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Wrap(
           spacing: VistaSpace.md,
           children: [
-            for (var i = 0; i < ProfileMock.filters.length; i++)
+            for (var i = 0; i < p.filters.length; i++)
               VistaFilterChip(
-                label:
-                    '${ProfileMock.filters[i].$1} ${ProfileMock.filters[i].$2}',
+                label: '${p.filters[i].$1} ${p.filters[i].$2}',
                 selected: i == _filter,
                 onPressed: () => setState(() => _filter = i),
               ),
@@ -453,6 +488,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ],
     );
   }
+}
+
+/// "+4.27%" for the market's 7d change; empty without a market.
+String _changeText(TraderProfile p) {
+  final c = p.change;
+  if (c == null) return '';
+  return '${c >= 0 ? '+' : '−'}${c.abs().toStringAsFixed(2)}%';
+}
+
+/// The market's live price.
+class _LivePrice extends StatelessWidget {
+  const _LivePrice({required this.handle, required this.style});
+
+  final String handle;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder(
+    valueListenable: MarketPrices.of(handle),
+    builder: (context, price, _) =>
+        Text(MarketPrices.format(price, compact: true), style: style),
+  );
 }
 
 /// Market price chart, edge to edge (static Figma vectors on a 402×180 box;

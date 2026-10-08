@@ -7,7 +7,15 @@ import 'profile_mock.dart';
 /// "Holding now" table: asset, side, entry, current and P/L per position,
 /// then the cash share. Shared by the profile and the trader market panel.
 class HoldingsTable extends StatelessWidget {
-  const HoldingsTable({super.key, this.onRowTap});
+  const HoldingsTable({
+    super.key,
+    this.onRowTap,
+    this.holdings = ProfileMock.holdings,
+    this.cashShare = ProfileMock.cashShare,
+  });
+
+  final List<Holding> holdings;
+  final String cashShare;
 
   /// Tapping a position row: opens the call it backs.
   final ValueChanged<Holding>? onRowTap;
@@ -29,7 +37,7 @@ class HoldingsTable extends StatelessWidget {
           current: Text('Current', style: head),
           pnl: Text('P/L', style: head),
         ),
-        for (final h in ProfileMock.holdings) ...[
+        for (final h in holdings) ...[
           const SizedBox(height: VistaSpace.md),
           hairline,
           const SizedBox(height: VistaSpace.md),
@@ -77,7 +85,7 @@ class HoldingsTable extends StatelessWidget {
               _coin('Cash'),
               const SizedBox(width: VistaSpace.md),
               Text(
-                ProfileMock.cashShare,
+                cashShare,
                 style: VistaType.row.copyWith(color: VistaColors.textMuted),
               ),
             ],

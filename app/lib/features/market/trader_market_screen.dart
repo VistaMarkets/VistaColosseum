@@ -6,6 +6,7 @@ import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../live/market_prices.dart';
 import '../profile/holdings_table.dart';
+import '../profile/trader_profile.dart';
 import '../settings/settings_state.dart';
 import '../trade/trade_mock.dart';
 import '../trade/order_ticket.dart';
@@ -262,6 +263,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
         ),
         const SizedBox(height: VistaSpace.md),
         HoldingsTable(
+          holdings: TraderProfile.of(widget.handle).holdings,
+          cashShare: TraderProfile.of(widget.handle).cashShare,
           onRowTap: (h) => showReceiptSheet(context, holdingReceipt(h)),
         ),
       ],

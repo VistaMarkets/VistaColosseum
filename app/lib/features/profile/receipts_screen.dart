@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import 'profile_mock.dart';
+import 'trader_profile.dart';
 
 /// A trader's full record ("All receipts"), from their profile, trader
 /// market or your own market: right / wrong / open counts, filters, and
@@ -27,8 +28,9 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = TraderProfile.of(widget.handle);
     final receipts = [
-      for (final r in ProfileMock.receipts)
+      for (final r in profile.receipts)
         if (switch (_filter) {
           1 => r.kind == ReceiptKind.call,
           2 => r.kind == ReceiptKind.arena,
@@ -37,8 +39,8 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
         })
           r,
     ];
-    final settled = int.parse(ProfileMock.settled);
-    final right = int.parse(ProfileMock.right);
+    final settled = profile.settled;
+    final right = profile.right;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -89,7 +91,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
                   const SizedBox(height: VistaSpace.xs),
                   Text(
                     '$right of $settled settled calls and debates   '
-                    '${ProfileMock.recordSince}',
+                    '${profile.recordSince}',
                     style: VistaType.bodyMedium.copyWith(
                       color: VistaColors.textMuted,
                     ),
@@ -98,7 +100,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
                   Wrap(
                     spacing: VistaSpace.xl,
                     children: [
-                      for (final (text, color) in ProfileMock.summary)
+                      for (final (text, color) in profile.summary)
                         Text(
                           text,
                           style: VistaType.body.copyWith(color: color),

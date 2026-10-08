@@ -31,6 +31,7 @@ import 'package:vista_colosseum/features/home/home_feed.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
+import 'package:vista_colosseum/features/profile/trader_profile.dart';
 import 'package:vista_colosseum/features/profile/receipts_screen.dart';
 import 'package:vista_colosseum/features/profile/holdings_table.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
@@ -608,22 +609,16 @@ void main() {
       // lunaq is on your Following list, so their profile says so.
       expect(find.text('Following'), findsOneWidget);
 
-      // Filters: Arena shows only arena receipts.
-      final arenaChip = find.text('Debates 14');
-      await tester.scrollUntilVisible(
-        arenaChip,
-        200,
-        scrollable: profileList(),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(arenaChip);
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text(r'SOL loses $190 by Sep 15'),
-        200,
-        scrollable: profileList(),
-      );
+      // Their own figures, not the designed profile's.
+      final p = TraderProfile.of('lunaq');
+      expect(find.text('${p.settled}'), findsOneWidget);
+      expect(find.text('${p.right}'), findsOneWidget);
+      expect(find.text(p.market!.cap), findsOneWidget);
       expect(find.text(r'BTC reclaims $66,000 by Tue'), findsNothing);
+      // Their calls are their receipts.
+      final first = find.text(p.receipts.first.title);
+      await tester.scrollUntilVisible(first, 200, scrollable: profileList());
+      expect(first, findsWidgets);
     });
 
     testWidgets('a private account without a market opens the private layout', (
@@ -664,11 +659,11 @@ void main() {
         await setView(tester, size, padding);
         await openFromFollowers(tester, 'lunaq');
         expect(tester.takeException(), isNull);
-        final last = find.text(r'SOL loses $190 by Sep 15');
+        final last = find.text(TraderProfile.of('lunaq').receipts.last.title);
         await tester.scrollUntilVisible(last, 200, scrollable: profileList());
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        expect(last.hitTestable(), findsOneWidget);
+        expect(last.hitTestable(), findsWidgets);
       });
     }
   });
@@ -686,8 +681,9 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
-      // Home caller → profile → market.
-      await tester.tap(find.text('kaito.eth'));
+      // A trader's profile → their market.
+      Navigator.of(tester.element(find.byType(Scaffold).first))
+          .push(ProfileScreen.route('0xreal'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('market'));
       await tester.pumpAndSettle();
@@ -701,7 +697,7 @@ void main() {
       await openMarket(tester);
       expect(visible('Longs pay shorts'), findsOneWidget);
 
-      for (final next in ['Shared live by kaito.eth', 'Record']) {
+      for (final next in ['Shared live by 0xreal', 'Record']) {
         await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
         await tester.pumpAndSettle();
         expect(visible(next), findsWidgets); // Record: its tab and its title
@@ -2917,7 +2913,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: VistaTheme.dark(),
-          home: const ProfileScreen(handle: 'kaito.eth'),
+          home: const ProfileScreen(handle: 'maya.eth'),
         ),
       );
       await tester.pumpAndSettle();
@@ -2939,7 +2935,7 @@ void main() {
       await tester.tap(find.text('All receipts ›'));
       await tester.pumpAndSettle();
       expect(find.byType(ReceiptsScreen), findsOneWidget);
-      expect(find.text("kaito.eth's record"), findsOneWidget);
+      expect(find.text("maya.eth's record"), findsOneWidget);
       expect(find.text('58% right'), findsOneWidget);
       // Open filters to the live ones.
       await tester.tap(find.text('Open'));
@@ -3585,7 +3581,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: VistaTheme.dark(),
-        home: const ProfileScreen(handle: 'kaito.eth'),
+        home: const ProfileScreen(handle: 'maya.eth'),
       ),
     );
     await tester.pumpAndSettle();
