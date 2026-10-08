@@ -9,6 +9,7 @@ import '../trade/asset_trade_screen.dart';
 import '../watchlist/edit_favorites_screen.dart';
 import '../watchlist/watchlist_state.dart';
 import '../live/market_prices.dart';
+import 'explore_sections.dart';
 import 'leaderboard.dart';
 import 'markets_mock.dart';
 import 'market_chart_card.dart';
@@ -320,6 +321,17 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         ),
                       ),
                     ],
+                    // Sideways sections: why a market is worth a look. Off
+                    // while searching, so results sit under the search.
+                    if (!_traders && _query.isEmpty)
+                      ExploreSections(
+                        onAsset: (m) =>
+                            Navigator.of(context)
+                                .push(AssetTradeScreen.route(m.id)),
+                        onTrader: (m) =>
+                            Navigator.of(context)
+                                .push(ProfileScreen.route(m.name)),
+                      ),
                     const SizedBox(height: VistaSpace.xl),
                     // One line that scrolls sideways when the chips don't fit.
                     SingleChildScrollView(

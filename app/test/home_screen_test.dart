@@ -49,6 +49,7 @@ import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/markets/markets_screen.dart';
 import 'package:vista_colosseum/features/arena/battle_screen.dart';
+import 'package:vista_colosseum/features/markets/explore_sections.dart';
 import 'package:vista_colosseum/features/markets/trader_standing.dart';
 import 'package:vista_colosseum/features/trade/trade_mock.dart';
 import 'package:vista_colosseum/features/arena/challenge_sheet.dart';
@@ -135,6 +136,37 @@ Future<void> openAllCalls(WidgetTester tester) async {
 }
 
 /// The Live battles page on its own (every live debate, sortable).
+/// Explore's full list sits under the sideways sections: scroll to it.
+Future<void> scrollToAllMarkets(WidgetTester tester) async {
+  final list = find
+      .descendant(
+        of: find.byType(MarketsScreen),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  await tester.scrollUntilVisible(
+    find.text('ALL MARKETS'),
+    300,
+    scrollable: list,
+  );
+  await tester.ensureVisible(find.text('ALL MARKETS'));
+  await tester.pumpAndSettle();
+}
+
+/// Back to the top of Explore (search, tabs, Favorites).
+Future<void> scrollExploreToTop(WidgetTester tester) async {
+  await tester.drag(
+    find
+        .descendant(
+          of: find.byType(MarketsScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+    const Offset(0, 4000),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   setUpAll(_loadFonts);
   // Most screens assume the user already has a market; the make-a-market
@@ -746,6 +778,7 @@ void main() {
       tester,
     ) async {
       await openMarkets(tester, tall);
+      await scrollToAllMarkets(tester);
       expect(find.text('ALL MARKETS'), findsOneWidget);
       expect(rowNames(tester), ['BTC', 'ETH', 'SOL', 'ARB', 'AVAX']);
 
@@ -753,6 +786,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(rowNames(tester).first, 'SOL'); // ▲ 3.8% is the biggest move
 
+      await scrollExploreToTop(tester);
       await tester.enterText(find.byType(TextField), 'av');
       await tester.pumpAndSettle();
       expect(rowNames(tester), ['AVAX']);
@@ -761,18 +795,26 @@ void main() {
 
       // Starring ARB adds it to the favourites rail.
       expect(find.byType(VistaMarketCard), findsNWidgets(3));
+      await scrollToAllMarkets(tester);
       final arb = find.ancestor(
         of: find.text('ARB'),
         matching: find.byType(AssetMarketCard),
+      );
+      await tester.scrollUntilVisible(
+        arb,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(MarketsScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(
         find.descendant(of: arb, matching: find.byType(VistaStarButton)),
       );
       await tester.pumpAndSettle();
-      expect(
-        tester.widgetList(find.byType(VistaMarketCard)).length,
-        greaterThanOrEqualTo(3),
-      );
+      expect(WatchlistState.isAsset('ARB'), isTrue);
       expect(tester.widget<AssetMarketCard>(arb).starred, isTrue);
     });
 
@@ -897,20 +939,22 @@ void main() {
       expect(find.textContaining('You', findRichText: true), findsNothing);
     });
 
-    Future<void> railShows(WidgetTester tester, String name) =>
-        tester.scrollUntilVisible(
-          find.descendant(
-            of: find.byType(VistaMarketCard),
-            matching: find.text(name),
-          ),
-          150,
-          scrollable: find
-              .ancestor(
-                of: find.byType(VistaMarketCard).first,
-                matching: find.byType(Scrollable),
-              )
-              .first,
-        );
+    Future<void> railShows(WidgetTester tester, String name) async {
+      await scrollExploreToTop(tester);
+      await tester.scrollUntilVisible(
+        find.descendant(
+          of: find.byType(VistaMarketCard),
+          matching: find.text(name),
+        ),
+        150,
+        scrollable: find
+            .ancestor(
+              of: find.byType(VistaMarketCard).first,
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+    }
 
     List<String> railNames(WidgetTester tester) => tester
         .widgetList<VistaMarketCard>(find.byType(VistaMarketCard))
@@ -924,6 +968,7 @@ void main() {
       expect(railNames(tester), ['BTC', 'ETH', 'SOL']);
 
       // Star ARB from its trade page; it joins the end of the rail.
+      await scrollToAllMarkets(tester);
       await tester.tap(
         find.descendant(
           of: find.byType(AssetMarketCard),
@@ -943,6 +988,7 @@ void main() {
       await railShows(tester, 'ARB');
 
       // Unstar BTC in Explore; its trade page shows it unwatched.
+      await scrollToAllMarkets(tester);
       final btc = find.ancestor(
         of: find.text('BTC').last,
         matching: find.byType(AssetMarketCard),
@@ -951,6 +997,7 @@ void main() {
         find.descendant(of: btc, matching: find.byType(VistaStarButton)),
       );
       await tester.pumpAndSettle();
+      await scrollExploreToTop(tester);
       expect(railNames(tester).first, 'ETH');
       expect(WatchlistState.assets.value, ['ETH', 'SOL', 'ARB']);
       expect(WatchlistState.isAsset('BTC'), isFalse);
@@ -1153,6 +1200,47 @@ void main() {
     expect(find.text('Exited +10.0%'), findsOneWidget);
     expect(find.textContaining('   Exit '), findsOneWidget);
     expect(find.textContaining('TP'), findsNothing);
+  });
+
+  testWidgets('Explore Assets: Favorites, then four sideways sections', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Explore'));
+    await tester.pumpAndSettle();
+    expect(find.text('Favorites'), findsOneWidget);
+    for (final title in [
+      'Moving now',
+      'Most called',
+      'Most battles',
+      'Rising traders',
+    ]) {
+      await tester.scrollUntilVisible(
+        find.text(title),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text(title), findsOneWidget);
+    }
+    // Rising traders: most new holders first; a card opens their profile.
+    final vexa = find.ancestor(
+      of: find.text('+52 holders'),
+      matching: find.byType(SlimMarketCard),
+    );
+    await tester.ensureVisible(vexa);
+    await tester.pumpAndSettle();
+    await tester.tap(vexa);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<ProfileScreen>(find.byType(ProfileScreen)).handle,
+      'vexa',
+    );
+    expect(tester.takeException(), isNull);
   });
 
   group('challenge', () {
@@ -1890,6 +1978,7 @@ void main() {
       await launch(tester);
       await tester.tap(find.bySemanticsLabel('Explore'));
       await tester.pumpAndSettle();
+      await scrollToAllMarkets(tester);
       await tester.tap(
         find.descendant(
           of: find.byType(AssetMarketCard),
@@ -2202,7 +2291,12 @@ void main() {
       await tester.scrollUntilVisible(
         row,
         120,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: find
+            .descendant(
+              of: find.byType(SettingsScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(row);
       await tester.pumpAndSettle();
@@ -2472,6 +2566,7 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Explore'));
       await tester.pumpAndSettle();
+      await scrollToAllMarkets(tester);
       expect(find.text(r'$3,001'), findsWidgets); // compact, in the list
       await tester.tap(
         find.descendant(
@@ -2917,6 +3012,8 @@ void main() {
       expect(find.text('No open positions yet'), findsOneWidget);
       await tester.tap(find.text('Find a market'));
       await tester.pumpAndSettle();
+      expect(find.byType(MarketsScreen), findsOneWidget);
+      await scrollToAllMarkets(tester);
       expect(find.text('ALL MARKETS'), findsOneWidget);
     });
   });
