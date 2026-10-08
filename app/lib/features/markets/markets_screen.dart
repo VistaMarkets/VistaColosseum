@@ -373,27 +373,30 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 .push(ProfileScreen.route(m.name)),
                       ),
                     const SizedBox(height: VistaSpace.xl),
-                    // One line that scrolls sideways when the chips don't fit.
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: gutter,
-                      child: Row(
-                        children: [
-                          for (var i = 0; i < _sorts.length; i++) ...[
-                            if (i > 0) const SizedBox(width: VistaSpace.md),
-                            VistaFilterChip(
-                              label: _sorts[i],
-                              accent: true,
-                              selected: i == _sort[_tab],
-                              onPressed: () => setState(() => _sort[_tab] = i),
-                            ),
+                    // The Leaderboard's chips; All markets has no sort (it
+                    // lists by volume). One line that scrolls sideways.
+                    if (_traders)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: gutter,
+                        child: Row(
+                          children: [
+                            for (var i = 0; i < _sorts.length; i++) ...[
+                              if (i > 0) const SizedBox(width: VistaSpace.md),
+                              VistaFilterChip(
+                                label: _sorts[i],
+                                accent: true,
+                                selected: i == _sort[_tab],
+                                onPressed: () =>
+                                    setState(() => _sort[_tab] = i),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                    // Searching assets: no label, just a gap under the chips.
+                    // Searching assets: no label, the list right under the tabs.
                     if (!_traders && _searching)
-                      const SizedBox(height: VistaSpace.xl)
+                      const SizedBox.shrink()
                     else
                       Padding(
                         padding: const EdgeInsets.fromLTRB(

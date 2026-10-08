@@ -774,17 +774,15 @@ void main() {
     // Tall enough that every asset card is built (the list is lazy).
     const tall = Size(402, 1600);
 
-    testWidgets('Explore shows markets; sort, search and favourites work', (
+    testWidgets('Explore shows markets; search and favourites work', (
       tester,
     ) async {
       await openMarkets(tester, tall);
       await scrollToAllMarkets(tester);
       expect(find.text('ALL MARKETS'), findsOneWidget);
+      // By volume; no sort chips on All markets.
       expect(rowNames(tester), ['BTC', 'ETH', 'SOL', 'ARB', 'AVAX']);
-
-      await tester.tap(find.text('Change'));
-      await tester.pumpAndSettle();
-      expect(rowNames(tester).first, 'SOL'); // ▲ 3.8% is the biggest move
+      expect(find.widgetWithText(VistaFilterChip, 'Change'), findsNothing);
 
       await scrollExploreToTop(tester);
       await tester.enterText(find.byType(TextField), 'av');
