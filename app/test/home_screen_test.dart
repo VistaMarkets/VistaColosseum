@@ -49,6 +49,7 @@ import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/markets/markets_screen.dart';
 import 'package:vista_colosseum/features/arena/battle_screen.dart';
+import 'package:vista_colosseum/features/markets/trader_standing.dart';
 import 'package:vista_colosseum/features/trade/trade_mock.dart';
 import 'package:vista_colosseum/features/arena/challenge_sheet.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
@@ -781,46 +782,42 @@ void main() {
       await openMarkets(tester);
       await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      // Most right over 7d by default: deltaone first, you (maya.eth) #2.
-      expect(find.textContaining('#2', findRichText: true), findsOneWidget);
+      // By market cap: you (maya.eth, $44.0M) first, then 0xreal.
+      expect(find.textContaining('#1', findRichText: true), findsOneWidget);
+      expect(find.widgetWithText(VistaFilterChip, 'Most right'), findsNothing);
       // Each trader is a slim card with a small chart, unlike the Assets
       // cards, and there's no Favorites rail.
       expect(find.text('Favorites'), findsNothing);
       expect(find.byType(VistaMarketCard), findsNothing);
       expect(find.byType(AssetMarketCard), findsNothing);
       final rows = find.byType(LeaderboardCard);
-      expect(tester.widget<LeaderboardCard>(rows.first).name, 'deltaone');
-      final maya = rows.at(1);
-      expect(tester.widget<LeaderboardCard>(maya).rank, 2);
+      final maya = rows.first;
+      expect(
+        (
+          tester.widget<LeaderboardCard>(maya).name,
+          tester.widget<LeaderboardCard>(maya).rank,
+        ),
+        ('maya.eth', 1),
+      );
+      expect(tester.widget<LeaderboardCard>(rows.at(1)).name, '0xreal');
       expect(
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
         findsOneWidget,
       );
-      for (final text in ['MAYA  You', r'$44.0M cap · ', '▲4.3%']) {
-        expect(
-          find.descendant(
-            of: maya,
-            matching: find.text(text, findRichText: true),
-          ),
-          findsOneWidget,
-        );
-      }
-      for (final text in ['76%', 'right']) {
+      expect(
+        find.descendant(
+          of: maya,
+          matching: find.text('MAYA  You', findRichText: true),
+        ),
+        findsOneWidget,
+      );
+      for (final text in [r'$44.0M', 'market cap']) {
         expect(
           find.descendant(of: maya, matching: find.text(text)),
           findsOneWidget,
         );
       }
-
-      // All time is the record shown everywhere else: 82%, and you're #1.
-      await tester.tap(find.bySemanticsLabel('All'));
-      await tester.pumpAndSettle();
-      final top = tester.widget<LeaderboardCard>(rows.first);
-      expect((top.name, top.rank, top.window), ('maya.eth', 1, 3));
-      expect(find.text('82%'), findsOneWidget);
-      // The cards' change follows the window.
-      expect(find.textContaining('▲4.3%', findRichText: true), findsNothing);
-      expect(find.textContaining('#1', findRichText: true), findsOneWidget);
+      expect(find.textContaining('% right'), findsNothing);
 
       await tester.scrollUntilVisible(
         find.text('REAL  0xreal', findRichText: true),
@@ -1058,7 +1055,8 @@ void main() {
       tester.widget<BattleScreen>(find.byType(BattleScreen)).battle.id,
       busiest.id,
     );
-    expect(find.text('Most right in this battle'), findsOneWidget);
+    expect(find.text('Top traders in this battle'), findsOneWidget);
+    expect(find.textContaining('% right'), findsNothing);
     expect(find.byType(VistaFollowButton), findsWidgets);
     expect(find.text('All ${busiest.takes}'), findsOneWidget);
     expect(find.text('Join longs'), findsOneWidget);
@@ -1313,7 +1311,7 @@ void main() {
     );
 
     testWidgets(
-      'a room: follow it, most right, debates, post from a position',
+      'a room: follow it, top traders, debates, post from a position',
       (tester) async {
         tester.view
           ..physicalSize = const Size(402, 874) * 3
@@ -1328,8 +1326,9 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.text('ARB room'), findsOneWidget);
-        expect(find.text('Most right in ARB'), findsOneWidget);
-        // Always the three most right on it.
+        expect(find.text('Top traders in ARB'), findsOneWidget);
+        expect(find.textContaining('% right'), findsNothing);
+        // Always three, by the cap of their own market.
         expect(
           find.textContaining(RegExp(r'· \d+ ARB call')),
           findsNWidgets(3),
@@ -2663,7 +2662,7 @@ void main() {
       );
     });
 
-    testWidgets('cards show the record before the age; calls come from Arena', (
+    testWidgets('cards show the market cap (or nothing) before the age', (
       tester,
     ) async {
       tester.view
@@ -2674,17 +2673,16 @@ void main() {
       await tester.pumpAndSettle();
       // No + on Home.
       expect(find.bySemanticsLabel('Make a call'), findsNothing);
-      // "kaito.eth › · 74% right · 5h"
+      // kaito.eth has no market: no measure, just "kaito.eth › · 5h".
       final card = find.byType(TradeIdeaCard).first;
       final handle = tester.widget<TradeIdeaCard>(card).idea.callerHandle;
-      final record = CallsStore.recordOf(handle)!;
-      final rec = find.descendant(of: card, matching: find.text('· $record'));
-      final age = find.descendant(
-        of: card,
-        matching: find.text('· ${tester.widget<TradeIdeaCard>(card).idea.age}'),
+      expect(TraderStanding.of(handle), isNull);
+      expect(
+        find.descendant(of: card, matching: find.textContaining('% right')),
+        findsNothing,
       );
-      expect(rec, findsOneWidget);
-      expect(tester.getTopLeft(rec).dx, lessThan(tester.getTopLeft(age).dx));
+      // A trader with a market shows its cap: "MAYA $44.0M".
+      expect(TraderStanding.of('maya.eth')?.cap, r'$44.0M');
 
       // A call made from Arena's + leads Home.
       await tester.tap(find.bySemanticsLabel('Arena'));

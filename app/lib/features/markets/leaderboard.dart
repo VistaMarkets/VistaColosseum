@@ -1,9 +1,8 @@
-import '../calls/calls_store.dart';
 import 'markets_mock.dart';
 
 /// The Explore Leaderboard's figures: what each chip ranks by over each
 /// time window. The mock's own figures are the 7d ones (and the all-time
-/// record for Most right); other windows are derived. Mock.
+/// cap); other windows are derived. Mock.
 abstract final class Leaderboard {
   /// Time windows; 7d (index 1) is the default.
   static const windows = ['24h', '7d', '30d', 'All'];
@@ -26,12 +25,6 @@ abstract final class Leaderboard {
     final c = MarketsMock.traderCards[m.id];
     final j = _jitter(m.id, window);
     switch (metric) {
-      case 'Most right':
-        final pct = double.tryParse(
-          (CallsStore.recordOf(m.id) ?? '').split('%').first,
-        );
-        if (pct == null || window == 3) return pct;
-        return (pct + (j - 1) * 20).roundToDouble().clamp(35, 95);
       case 'Up and coming':
         if (c == null) return null;
         return switch (window) {

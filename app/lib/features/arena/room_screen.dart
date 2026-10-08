@@ -13,6 +13,7 @@ import '../trade/asset_trade_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import '../watchlist/watchlist_state.dart';
+import '../markets/trader_standing.dart';
 import 'arena_mock.dart';
 import 'battle_screen.dart';
 import 'hub_call_card.dart';
@@ -79,27 +80,24 @@ class _RoomScreenState extends State<RoomScreen> {
     setState(() => _tab = 1);
   }
 
-  /// The three most right on this market: from the asset's 30-day
-  /// records (always three); for a trader's market, from its calls.
-  List<(String, int?, int)> _mostRight(List<Take> calls) {
+  /// The top three traders on this market by their own market's cap
+  /// (no market last): from the asset's 30-day callers (always three); for
+  /// a trader's market, from its calls. Each with their calls here.
+  List<(String, int)> _top(List<Take> calls) {
     final known = ArenaMock.mostRightIn[_id];
+    final List<(String, int)> people;
     if (!_trader && known != null) {
-      return [for (final (h, pct, n) in known) (h, pct, n)];
+      people = [for (final (h, _, n) in known) (h, n)];
+    } else {
+      final counts = <String, int>{};
+      for (final t in calls.where(_inRoom)) {
+        counts[t.handle] = (counts[t.handle] ?? 0) + 1;
+      }
+      people = counts.entries.map((e) => (e.key, e.value)).toList();
     }
-    return [for (final (h, n) in _fromCalls(calls)) (h, null, n)];
-  }
-
-  /// Who has called this market, most often right first.
-  List<(String, int)> _fromCalls(List<Take> calls) {
-    final counts = <String, int>{};
-    for (final t in calls.where(_inRoom)) {
-      counts[t.handle] = (counts[t.handle] ?? 0) + 1;
-    }
-    int pct(String h) =>
-        int.tryParse((CallsStore.recordOf(h) ?? '').split('%').first) ?? 0;
-    final list = counts.entries.map((e) => (e.key, e.value)).toList()
-      ..sort((a, b) => pct(b.$1).compareTo(pct(a.$1)));
-    return list.take(3).toList();
+    return (people..sort((a, b) => TraderStanding.compare(a.$1, b.$1)))
+        .take(3)
+        .toList();
   }
 
   @override
@@ -133,10 +131,9 @@ class _RoomScreenState extends State<RoomScreen> {
                   children: [
                     _header(m),
                     _MostRightHead(title: _title),
-                    for (final (h, pct, n) in _mostRight(calls))
+                    for (final (h, n) in _top(calls))
                       _PersonRow(
                         handle: h,
-                        percentRight: pct,
                         calls: n,
                         title: _title,
                         onTap: () => _push(ProfileScreen.route(h)),
@@ -150,8 +147,7 @@ class _RoomScreenState extends State<RoomScreen> {
                         0,
                       ),
                       child: Text(
-                        'By % right on settled $_title calls. '
-                        'No ranks or badges.',
+                        'By the cap of their own market.',
                         style: VistaType.chip.copyWith(
                           color: VistaColors.textMuted,
                           fontWeight: FontWeight.w400,
@@ -393,7 +389,7 @@ class _MostRightHead extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Most right in $title',
+              'Top traders in $title',
               style: VistaType.title.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
@@ -407,12 +403,11 @@ class _MostRightHead extends StatelessWidget {
   }
 }
 
-/// One of the most right: who, their record and calls here, their own
-/// market, Follow.
+/// One of the top traders: who and their calls here, their market (cap
+/// first; nothing without one), Follow.
 class _PersonRow extends StatelessWidget {
   const _PersonRow({
     required this.handle,
-    this.percentRight,
     required this.calls,
     required this.title,
     required this.onTap,
@@ -421,8 +416,6 @@ class _PersonRow extends StatelessWidget {
 
   final String handle;
 
-  /// % right on this market; their overall record when null.
-  final int? percentRight;
   final int calls;
   final String title;
   final VoidCallback onTap;
@@ -430,10 +423,8 @@ class _PersonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final record = percentRight != null
-        ? '$percentRight%'
-        : CallsStore.recordOf(handle)?.split(' ').first;
     final market = MarketsMock.traders.where((m) => m.id == handle);
+    final standing = TraderStanding.of(handle);
     final mine = handle == PortfolioMock.handle;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -458,11 +449,6 @@ class _PersonRow extends StatelessWidget {
                     TextSpan(
                       children: [
                         TextSpan(text: handle),
-                        if (record != null)
-                          TextSpan(
-                            text: '  $record right',
-                            style: const TextStyle(color: VistaColors.long),
-                          ),
                         TextSpan(
                           text: ' · $calls $title call${calls == 1 ? '' : 's'}',
                           style: const TextStyle(
@@ -476,7 +462,7 @@ class _PersonRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (market.isNotEmpty)
+                  if (standing != null && market.isNotEmpty)
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: onMarket,
@@ -490,12 +476,12 @@ class _PersonRow extends StatelessWidget {
                               TextSpan(
                                 children: [
                                   TextSpan(
-                                    text:
-                                        '${MarketsMock.traderCards[handle]?.symbol ?? handle} ',
+                                    text: '${standing.symbol} ',
                                     style: const TextStyle(
                                       color: VistaColors.textMuted,
                                     ),
                                   ),
+                                  TextSpan(text: '${standing.cap} cap · '),
                                   TextSpan(
                                     text:
                                         '${MarketPrices.format(price, compact: true)} ',

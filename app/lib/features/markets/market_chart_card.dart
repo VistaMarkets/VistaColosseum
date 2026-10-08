@@ -67,7 +67,7 @@ class LeaderboardCard extends StatelessWidget {
         vistaChangeColor(change),
       ),
       // The window is in the selector above, so just "right".
-      _ => ('${v.toInt()}%', 'right', VistaColors.textPrimary),
+      _ => (m.third, 'market cap', VistaColors.textPrimary),
     };
     final handle = [
       // Your own market just says so; the handle is yours.

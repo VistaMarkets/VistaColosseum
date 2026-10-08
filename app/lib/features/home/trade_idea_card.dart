@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
-import '../calls/calls_store.dart';
+import '../markets/trader_standing.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../share/share_call_sheet.dart';
@@ -143,18 +143,14 @@ class _CallHeader extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: VistaSpace.md),
-                        // How often they're right, then when they called it.
-                        if (CallsStore.recordOf(idea.callerHandle)
-                            case final record?) ...[
+                        // Their market's cap (blank without one), then when
+                        // they called it.
+                        if (TraderStanding.of(idea.callerHandle)
+                            case final s?) ...[
                           Text(
-                            '· $record',
+                            '· ${s.symbol} ${s.cap}',
                             style: VistaType.meta.copyWith(
-                              color:
-                                  (int.tryParse(record.split('%').first) ??
-                                          0) >=
-                                      55
-                                  ? VistaColors.long
-                                  : VistaColors.textMuted,
+                              color: VistaColors.textSecondary,
                             ),
                           ),
                           const SizedBox(width: VistaSpace.sm),

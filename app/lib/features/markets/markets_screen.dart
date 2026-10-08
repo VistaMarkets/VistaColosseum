@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../account/account_state.dart';
 import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
 import '../portfolio/portfolio_mock.dart';
@@ -63,10 +64,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
       ? MarketsMock.assets
       : [
           for (final m in MarketsMock.traders)
-            if (!_upAndComing ||
-                (MarketsMock.traderCards[m.id]?.days ?? 999) <=
-                    MarketsMock.newMarketDays)
-              m,
+            // Yours is on the board once you've made it.
+            if (m.id != PortfolioMock.handle || AccountState.hasMarket.value)
+              if (!_upAndComing ||
+                  (MarketsMock.traderCards[m.id]?.days ?? 999) <=
+                      MarketsMock.newMarketDays)
+                m,
         ];
 
   /// What a chip orders by (descending); null keeps designed order.

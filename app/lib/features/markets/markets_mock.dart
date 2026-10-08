@@ -138,12 +138,7 @@ abstract final class MarketsMock {
   static const assetSorts = ['Volume', 'Change', 'Funding'];
 
   /// Leaderboard chips; Up and coming narrows the board to new markets.
-  static const traderSorts = [
-    'Most right',
-    'Up and coming',
-    'Market cap',
-    'Change',
-  ];
+  static const traderSorts = ['Market cap', 'Up and coming', 'Change'];
 
   /// Favourites as designed. The Assets rail shows SOL although its row is
   /// unstarred in Figma; favourites here are one list, so SOL is starred.

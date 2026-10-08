@@ -11,6 +11,7 @@ import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
+import '../markets/trader_standing.dart';
 import 'arena_mock.dart';
 import 'hub_call_card.dart';
 import 'compose_take_screen.dart';
@@ -57,8 +58,6 @@ class _BattleScreenState extends State<BattleScreen> {
     setState(() => _filter = 0);
   }
 
-  static int _pct(Take t) => int.tryParse(t.accuracy.split('%').first) ?? 0;
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -77,10 +76,12 @@ class _BattleScreenState extends State<BattleScreen> {
   Widget _page(LiveBattle b, List<Take> calls) {
     final on = Debates.callsOn(b, calls);
     final longs = (b.takes * b.longShare).round();
-    // One row per person, best record first.
+    // One row per person, biggest market first (no market last).
     final seen = <String>{};
     final mostRight = [
-      for (final t in [...on]..sort((x, y) => _pct(y).compareTo(_pct(x))))
+      for (final t in [
+        ...on,
+      ]..sort((x, y) => TraderStanding.compare(x.handle, y.handle)))
         if (seen.add(t.handle)) t,
     ].take(3).toList();
     final thread = [
@@ -127,7 +128,7 @@ class _BattleScreenState extends State<BattleScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              'Most right in this battle',
+                              'Top traders in this battle',
                               style: VistaType.title.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -156,8 +157,8 @@ class _BattleScreenState extends State<BattleScreen> {
                         0,
                       ),
                       child: Text(
-                        'By % right on settled calls. Their call in this '
-                        'battle is below.',
+                        'By the cap of their own market. Their call in '
+                        'this battle is below.',
                         style: VistaType.caption.copyWith(
                           color: VistaColors.textMuted,
                         ),
@@ -300,8 +301,9 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// One of the most right in the battle: who and their record, how many
-/// calls they've made on this market, their side here, and Follow.
+/// One of the top traders in the battle: who, their market's cap (blank
+/// without one), how many calls they've made on this market, their side
+/// here, and Follow.
 class _MostRightRow extends StatelessWidget {
   const _MostRightRow({
     required this.take,
@@ -349,10 +351,13 @@ class _MostRightRow extends StatelessWidget {
                             color: VistaColors.textPrimary,
                           ),
                         ),
-                        TextSpan(
-                          text: '  ${t.accuracy}',
-                          style: const TextStyle(color: VistaColors.long),
-                        ),
+                        if (TraderStanding.of(t.handle) case final st?)
+                          TextSpan(
+                            text: '  ${st.symbol} ${st.cap}',
+                            style: const TextStyle(
+                              color: VistaColors.textSecondary,
+                            ),
+                          ),
                         TextSpan(
                           text:
                               ' · $count ${t.ticker} call'

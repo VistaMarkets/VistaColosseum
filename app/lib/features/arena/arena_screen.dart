@@ -14,6 +14,7 @@ import '../trade/order_ticket.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../portfolio/positions_state.dart';
 import 'trending_calls_screen.dart';
+import '../markets/trader_standing.dart';
 import 'arena_mock.dart';
 import 'battle_screen.dart';
 import 'pick_position_screen.dart';
@@ -310,7 +311,7 @@ class _Room {
     );
   }
 
-  /// A trader market's room: its owner and record, and who holds it.
+  /// A trader market's room: its owner and cap, and who holds it.
   factory _Room.trader(
     MarketItem m,
     List<Take> calls, {
@@ -318,7 +319,7 @@ class _Room {
     PortfolioPosition? held,
   }) {
     final symbol = MarketsMock.traderCards[m.id]?.symbol ?? m.name;
-    final record = CallsStore.recordOf(m.id);
+    final cap = TraderStanding.of(m.id)?.cap;
     final holders = ArenaMock.holders[m.id];
     final bought = ArenaMock.boughtToday[m.id];
     final List<InlineSpan> line;
@@ -344,7 +345,7 @@ class _Room {
       market: m,
       trader: m.id,
       title: symbol,
-      sub: [?_yours(held), m.id, ?record].join(' · '),
+      sub: [?_yours(held), m.id, if (cap != null) '$cap cap'].join(' · '),
       calls: calls.where((t) => t.handle == m.id).length,
       people: people,
       line: line,

@@ -5,6 +5,7 @@ import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
 import '../people/follow_state.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../markets/trader_standing.dart';
 import 'arena_mock.dart';
 import 'challenge_sheet.dart';
 import 'take_card.dart';
@@ -72,10 +73,10 @@ class HubCallCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = take;
     final c = t.call;
-    final record = t.accuracy.split(' ').first;
-    final good = (int.tryParse(record.replaceAll('%', '')) ?? 0) >= 55;
     final muted = VistaType.bodyMedium.copyWith(color: VistaColors.textMuted);
     final market = MarketsMock.traders.where((m) => m.id == t.handle);
+    // How good they are: their market's cap; blank without a market.
+    final standing = TraderStanding.of(t.handle);
     return Container(
       padding: const EdgeInsets.fromLTRB(
         VistaSpace.gutter + VistaSpace.xs,
@@ -112,14 +113,6 @@ class HubCallCard extends StatelessWidget {
                           TextSpan(
                             children: [
                               TextSpan(text: t.handle),
-                              TextSpan(
-                                text: '  $record right',
-                                style: TextStyle(
-                                  color: good
-                                      ? VistaColors.long
-                                      : VistaColors.textMuted,
-                                ),
-                              ),
                               TextSpan(text: ' · ${t.age}', style: muted),
                             ],
                           ),
@@ -133,7 +126,7 @@ class HubCallCard extends StatelessWidget {
                     FollowChip(handle: t.handle),
                   ],
                 ),
-                if (market.isNotEmpty)
+                if (standing != null && market.isNotEmpty)
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: onMarket,
@@ -147,13 +140,14 @@ class HubCallCard extends StatelessWidget {
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      '${MarketsMock.traderCards[t.handle]?.symbol ?? t.handle} ',
+                                  text: '${standing.symbol} ',
                                   style: muted,
                                 ),
+                                TextSpan(text: '${standing.cap} cap'),
                                 TextSpan(
                                   text:
-                                      '${MarketPrices.format(price, compact: true)} ',
+                                      ' · ${MarketPrices.format(price, compact: true)} ',
+                                  style: muted,
                                 ),
                                 TextSpan(
                                   text:
