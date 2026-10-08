@@ -14,7 +14,7 @@ import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import '../watchlist/watchlist_state.dart';
 import 'arena_mock.dart';
-import 'debate_screen.dart';
+import 'battle_screen.dart';
 import 'hub_call_card.dart';
 import 'pick_position_screen.dart';
 import 'take_card.dart';
@@ -171,7 +171,7 @@ class _RoomScreenState extends State<RoomScreen> {
                       for (final b in debates)
                         BattleTile.row(
                           battle: b,
-                          onTap: () => _push(DebateScreen.route(b)),
+                          onTap: () => _push(BattleScreen.route(b)),
                         )
                     else ...[
                       if ((_tab == 0 ? top : fresh).isEmpty)
@@ -193,7 +193,7 @@ class _RoomScreenState extends State<RoomScreen> {
                               _push(TraderMarketScreen.route(t.handle)),
                           onDebate: Debates.of(t) == null
                               ? null
-                              : () => _push(DebateScreen.route(Debates.of(t)!)),
+                              : () => _push(BattleScreen.route(Debates.of(t)!)),
                           onPosition: () {
                             if (t.call == null) return;
                             _push(

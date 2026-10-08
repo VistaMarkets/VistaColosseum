@@ -16,8 +16,6 @@ import '../portfolio/positions_state.dart';
 import 'trending_calls_screen.dart';
 import 'arena_mock.dart';
 import 'battle_screen.dart';
-import 'debate_screen.dart';
-import 'live_battles_screen.dart';
 import 'pick_position_screen.dart';
 import 'room_screen.dart';
 import 'hub_call_card.dart';
@@ -136,11 +134,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         for (final r in _yourMarkets(calls, positions))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
                         // Figma 591:222: live battles, swiped sideways.
-                        _Head(
-                          'Live battles',
-                          trailing: 'See all',
-                          onTrailing: () => _push(LiveBattlesScreen.route()),
-                        ),
+                        const _Head('Live battles'),
                         ValueListenableBuilder(
                           valueListenable: BattlesStore.all,
                           builder: (context, battles, _) => _LiveBattles(
@@ -173,7 +167,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                             onDebate: Debates.of(t) == null
                                 ? null
                                 : () =>
-                                      _push(DebateScreen.route(Debates.of(t)!)),
+                                      _push(BattleScreen.route(Debates.of(t)!)),
                             onPosition: () => _push(
                               CallerPlayScreen.route(
                                 CallsStore.postOf(t),

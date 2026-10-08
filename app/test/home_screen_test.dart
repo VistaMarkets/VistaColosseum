@@ -20,11 +20,9 @@ import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
-import 'package:vista_colosseum/features/arena/debate_screen.dart';
 import 'package:vista_colosseum/features/arena/settlement_item.dart';
 import 'package:vista_colosseum/features/arena/take_card.dart';
 import 'package:vista_colosseum/features/arena/arena_mock.dart';
-import 'package:vista_colosseum/features/arena/live_battles_screen.dart';
 import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
 import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
 import 'package:vista_colosseum/features/arena/battle_builder.dart';
@@ -136,22 +134,6 @@ Future<void> openAllCalls(WidgetTester tester) async {
 }
 
 /// The Live battles page on its own (every live debate, sortable).
-Future<void> pumpLiveBattles(
-  WidgetTester tester, [
-  Size size = const Size(402, 874),
-  EdgeInsets pad = EdgeInsets.zero,
-]) async {
-  tester.view
-    ..physicalSize = size * 3
-    ..devicePixelRatio = 3
-    ..padding = FakeViewPadding(top: pad.top * 3, bottom: pad.bottom * 3);
-  addTearDown(tester.view.reset);
-  await tester.pumpWidget(
-    MaterialApp(theme: VistaTheme.dark(), home: const LiveBattlesScreen()),
-  );
-  await tester.pumpAndSettle();
-}
-
 void main() {
   setUpAll(_loadFonts);
   // Most screens assume the user already has a market; the make-a-market
@@ -1082,9 +1064,10 @@ void main() {
     expect(find.text('Join longs'), findsOneWidget);
     expect(find.text('Join shorts'), findsOneWidget);
     expect(tester.takeException(), isNull);
+    // The old Live battles list is gone: no See all on the section.
     Navigator.of(tester.element(find.byType(BattleScreen))).pop();
     await tester.pumpAndSettle();
-    await tester.tap(
+    expect(
       find.descendant(
         of: find.ancestor(
           of: find.text('Live battles'),
@@ -1092,9 +1075,8 @@ void main() {
         ),
         matching: find.text('See all'),
       ),
+      findsNothing,
     );
-    await tester.pumpAndSettle();
-    expect(find.byType(LiveBattlesScreen), findsOneWidget);
   });
 
   testWidgets('Join on a battle: ticket without that side, post page with it', (
@@ -1439,7 +1421,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.ticker,
+        tester.widget<BattleScreen>(find.byType(BattleScreen)).battle.ticker,
         'BTC',
       );
     });
@@ -1510,32 +1492,6 @@ void main() {
       expect(find.byType(TraderMarketScreen), findsOneWidget);
     });
 
-    testWidgets('See all opens Live battles; sorts; a row opens it', (
-      tester,
-    ) async {
-      await pumpLiveBattles(tester);
-      expect(find.byType(LiveBattlesScreen), findsOneWidget);
-      expect(find.text('6 live'), findsOneWidget);
-      String firstQuestion() => tester
-          .widgetList<BattleTile>(find.byType(BattleTile))
-          .first
-          .battle
-          .question;
-      expect(firstQuestion(), r"Reclaims $72,000 before Friday's expiry");
-      await tester.tap(find.text('Closing soon'));
-      await tester.pumpAndSettle();
-      expect(firstQuestion(), r'Breaks $1.20 this week'); // 45m left
-      await tester.tap(find.text('Closest split'));
-      await tester.pumpAndSettle();
-      expect(firstQuestion(), r'Breaks $1.20 this week'); // 48 / 52
-      await tester.tap(find.byType(BattleTile).first);
-      await tester.pumpAndSettle();
-      expect(
-        tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.question,
-        r'Breaks $1.20 this week',
-      );
-    });
-
     testWidgets('Following / Trending / New order the calls', (tester) async {
       await openArena(tester);
       // Sideways chips like Explore's sorts; Trending is on.
@@ -1588,78 +1544,10 @@ void main() {
       await scrollTo(tester, find.text('Debate settled'));
       await tester.tap(find.text('Read the thread ›'));
       await tester.pumpAndSettle();
-      expect(find.byType(DebateScreen), findsOneWidget);
+      expect(find.byType(BattleScreen), findsOneWidget);
       expect(find.text('SETTLED · LONG SIDE RIGHT'), findsOneWidget);
-      expect(find.text('Argue long'), findsNothing); // settled: no new cases
+      expect(find.text('Join longs'), findsNothing); // settled: closed
     });
-
-    testWidgets('a debate is a thread you can argue in', (tester) async {
-      await pumpLiveBattles(tester);
-      await tester.tap(find.byType(BattleTile).first);
-      await tester.pumpAndSettle();
-      // Every call on it, backed first.
-      expect(find.byType(BackedPositionCard), findsWidgets);
-      expect(find.text('orbit.eth'), findsOneWidget);
-      await tester.tap(find.text('Short'));
-      await tester.pumpAndSettle();
-      expect(
-        tester
-            .widgetList<TakeItem>(find.byType(TakeItem))
-            .every((t) => t.take.side == TradeSide.short),
-        isTrue,
-      );
-
-      // No BTC position: arguing a side means opening one first.
-      await tester.tap(find.text('Argue short'));
-      await tester.pumpAndSettle();
-      expect(find.byType(PickPositionScreen), findsOneWidget);
-      expect(find.text('No BTC short open'), findsOneWidget);
-      expect(find.text('Open a short'), findsOneWidget);
-      await tester.tap(find.bySemanticsLabel('Back').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Back').last);
-      await tester.pumpAndSettle();
-
-      // ETH: argue long with the ETH long, the debate already attached.
-      final eth = find.byWidgetPredicate(
-        (w) => w is BattleTile && w.battle.ticker == 'ETH',
-      );
-      await tester.tap(eth.first);
-      await tester.pumpAndSettle();
-      final debate = tester
-          .widget<DebateScreen>(find.byType(DebateScreen))
-          .debate;
-      final before = debate.takes;
-      await tester.tap(find.text('Argue long'));
-      await tester.pumpAndSettle();
-      expect(find.text('Back your long case'), findsOneWidget);
-      expect(find.text('Ethereum'), findsOneWidget); // only ETH longs
-      expect(find.text('Solana'), findsNothing);
-      await tester.tap(find.text('Ethereum'));
-      await tester.pumpAndSettle();
-      expect(find.text('LIVE DEBATE'), findsOneWidget);
-      await tester.enterText(find.byType(TextField), 'Staking flows turned.');
-      await tester.pump();
-      await tester.tap(find.bySemanticsLabel('Post'));
-      await tester.pumpAndSettle();
-      // Back on the thread: the call is first, backed, and on the debate.
-      expect(find.byType(DebateScreen), findsOneWidget);
-      final mine = tester.widget<TakeItem>(find.byType(TakeItem).first).take;
-      expect(mine.body, 'Staking flows turned.');
-      expect(mine.backed, isTrue);
-      expect(mine.battle, debate.label);
-      expect(find.text('${before + 1} calls'), findsOneWidget);
-    });
-
-    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
-      testWidgets('Live battles renders without overflow on $name', (
-        tester,
-      ) async {
-        await pumpLiveBattles(tester, size, padding);
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-      });
-    }
 
     testWidgets('+ → pick a position → write → post: it tops the feed', (
       tester,
@@ -1796,7 +1684,7 @@ void main() {
     }
   });
 
-  group('debate thread', () {
+  group('battle page', () {
     Future<void> openDebate(
       WidgetTester tester, [
       Size size = const Size(402, 874),
@@ -1811,33 +1699,33 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      // Live battles, then the busiest debate.
-      await tester.pumpWidget(
-        MaterialApp(theme: VistaTheme.dark(), home: const LiveBattlesScreen()),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(BattleTile).first);
+      // The busiest live battle's page.
+      final busiest = ([
+        for (final b in BattlesStore.all.value)
+          if (!b.settled) b,
+      ]..sort((a, b) => b.takes.compareTo(a.takes))).first;
+      Navigator.of(tester.element(find.byType(Scaffold).first))
+          .push(BattleScreen.route(busiest));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a debate tile opens its thread; back returns', (tester) async {
+    testWidgets('a battle page: the question, its calls, and join', (
+      tester,
+    ) async {
       await openDebate(tester);
       expect(
         find.text(r"Reclaims $72,000 before Friday's expiry"),
         findsOneWidget,
       );
-      expect(find.text('63% long'), findsOneWidget);
-      expect(find.text('Argue long'), findsOneWidget);
-      await tester.tap(find.bySemanticsLabel('Back').last);
-      await tester.pumpAndSettle();
-      expect(find.byType(BattleTile), findsWidgets);
+      expect(find.byType(HubCallCard), findsWidgets);
+      expect(find.text('Join longs'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('renders without overflow on $name', (tester) async {
         await openDebate(tester, size, padding);
         expect(tester.takeException(), isNull);
-        await tester.tap(find.text('Argue short'));
+        await tester.tap(find.text('Join shorts'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
@@ -3599,11 +3487,12 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: VistaTheme.dark(),
-        home: DebateScreen(debate: BattlesStore.all.value.first),
+        home: BattleScreen(battle: BattlesStore.all.value.first),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('LONG 10x'), findsOneWidget); // @renatafx's call
+    // @renatafx: in Most right and on their call.
+    expect(find.text('LONG 10x'), findsWidgets);
     await tester.tap(find.byType(BackedPositionCard).first);
     await tester.pumpAndSettle();
     expect(find.byType(CallerPlayScreen), findsOneWidget);

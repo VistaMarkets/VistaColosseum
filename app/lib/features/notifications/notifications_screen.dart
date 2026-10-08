@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
 import '../arena/arena_mock.dart';
-import '../arena/debate_screen.dart';
+import '../arena/battle_screen.dart';
 import '../arena/hub_call_card.dart';
 import '../calls/calls_store.dart';
 import '../trade/caller_play_screen.dart';
@@ -221,7 +221,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onMarket: () => _push(TraderMarketScreen.route(item.handle)),
           onDebate: Debates.of(item) == null
               ? null
-              : () => _push(DebateScreen.route(Debates.of(item)!)),
+              : () => _push(BattleScreen.route(Debates.of(item)!)),
           onPosition: () {
             if (item.call == null) return;
             _push(CallerPlayScreen.route(CallsStore.postOf(item), item.ticker));

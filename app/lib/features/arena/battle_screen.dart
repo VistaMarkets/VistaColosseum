@@ -19,7 +19,9 @@ import 'compose_take_screen.dart';
 /// the people in it. The question and time left, the most right callers
 /// in it to follow (with their side), then every call (All / Long /
 /// Short) as call cards, and Join longs / Join shorts: the post page when
-/// you hold that side, else the order ticket on it.
+/// you hold that side, else the order ticket on it. Once settled, the
+/// result shows under the header and joining closes. Every link to a
+/// battle (cards, debate badges, rooms, notifications) opens this page.
 class BattleScreen extends StatefulWidget {
   const BattleScreen({super.key, required this.battle});
 
@@ -103,6 +105,16 @@ class _BattleScreenState extends State<BattleScreen> {
                 padding: const EdgeInsets.only(bottom: VistaSpace.gutter),
                 children: [
                   _Header(battle: b),
+                  if (b.result != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        side,
+                        VistaSpace.lg,
+                        side,
+                        0,
+                      ),
+                      child: _SettledBanner(debate: b, result: b.result!),
+                    ),
                   if (mostRight.isNotEmpty) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
@@ -206,7 +218,7 @@ class _BattleScreenState extends State<BattleScreen> {
                 ],
               ),
             ),
-            _JoinDock(onJoin: (s) => _join(b, s)),
+            if (!b.settled) _JoinDock(onJoin: (s) => _join(b, s)),
           ],
         ),
       ),
@@ -267,7 +279,11 @@ class _Header extends StatelessWidget {
                           ),
                           TextSpan(
                             text: b.timeLeft,
-                            style: const TextStyle(color: VistaColors.short),
+                            style: TextStyle(
+                              color: b.settled
+                                  ? VistaColors.textMuted
+                                  : VistaColors.short,
+                            ),
                           ),
                         ],
                       ),
@@ -372,6 +388,45 @@ class _MostRightRow extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// How a settled debate ended, above its thread.
+class _SettledBanner extends StatelessWidget {
+  const _SettledBanner({required this.debate, required this.result});
+
+  final LiveBattle debate;
+  final DebateResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = result.longRight ? VistaColors.long : VistaColors.short;
+    final share = result.longRight ? debate.longShare : 1 - debate.longShare;
+    return Container(
+      padding: const EdgeInsets.all(VistaSpace.xl),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(VistaRadius.md * 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SETTLED · ${result.longRight ? 'LONG' : 'SHORT'} SIDE RIGHT',
+            style: VistaType.labelStrong.copyWith(color: color),
+          ),
+          const SizedBox(height: VistaSpace.xs),
+          Text(
+            '${debate.ticker} settled at ${result.settledAt} · '
+            '${(share * 100).round()}% of ${debate.takes} calls had it right · '
+            '${result.age} ago',
+            style: VistaType.bodyMedium.copyWith(
+              color: VistaColors.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }

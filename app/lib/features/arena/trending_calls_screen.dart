@@ -10,7 +10,7 @@ import '../profile/profile_screen.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
-import 'debate_screen.dart';
+import 'battle_screen.dart';
 import 'pick_position_screen.dart';
 import 'settlement_item.dart';
 import 'hub_call_card.dart';
@@ -65,7 +65,7 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
       take: t,
       onCaller: () => _push(ProfileScreen.route(t.handle)),
       onMarket: () => _push(TraderMarketScreen.route(t.handle)),
-      onDebate: debate == null ? null : () => _push(DebateScreen.route(debate)),
+      onDebate: debate == null ? null : () => _push(BattleScreen.route(debate)),
       onPosition: () {
         if (t.call == null) return;
         _push(CallerPlayScreen.route(CallsStore.postOf(t), t.ticker));
@@ -224,7 +224,7 @@ class _TrendingCallsScreenState extends State<TrendingCallsScreen> {
                                 onDebate: item.debate == null
                                     ? null
                                     : () => _push(
-                                        DebateScreen.route(item.debate!),
+                                        BattleScreen.route(item.debate!),
                                       ),
                               )
                             else if (item is Take)
