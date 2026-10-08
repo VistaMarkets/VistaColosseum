@@ -391,53 +391,57 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        VistaSpace.gutter,
-                        VistaSpace.xs,
-                        VistaSpace.gutter,
-                        VistaSpace.sm,
-                      ),
-                      child: Row(
-                        children: [
-                          // The window every card's change and chart follow.
-                          if (_traders)
-                            _windowSelector()
-                          else
-                            SizedBox(
-                              height: VistaSize.tapTarget,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text('ALL MARKETS', style: label),
+                    // Searching assets: no label, just a gap under the chips.
+                    if (!_traders && _searching)
+                      const SizedBox(height: VistaSpace.xl)
+                    else
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          VistaSpace.gutter,
+                          VistaSpace.xs,
+                          VistaSpace.gutter,
+                          VistaSpace.sm,
+                        ),
+                        child: Row(
+                          children: [
+                            // The window every card's change and chart follow.
+                            if (_traders)
+                              _windowSelector()
+                            else
+                              SizedBox(
+                                height: VistaSize.tapTarget,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text('ALL MARKETS', style: label),
+                                ),
                               ),
-                            ),
-                          const Spacer(),
-                          if (_upAndComing)
-                            Text(
-                              'UNDER ${MarketsMock.newMarketDays} DAYS OLD',
-                              style: label,
-                            )
-                          // Your place, whatever the search shows.
-                          else if (_traders && youRank != null)
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  const TextSpan(text: 'You  '),
-                                  TextSpan(
-                                    text: '#$youRank',
-                                    style: const TextStyle(
-                                      color: VistaColors.textPrimary,
+                            const Spacer(),
+                            if (_upAndComing)
+                              Text(
+                                'UNDER ${MarketsMock.newMarketDays} DAYS OLD',
+                                style: label,
+                              )
+                            // Your place, whatever the search shows.
+                            else if (_traders && youRank != null)
+                              Text.rich(
+                                TextSpan(
+                                  children: [
+                                    const TextSpan(text: 'You  '),
+                                    TextSpan(
+                                      text: '#$youRank',
+                                      style: const TextStyle(
+                                        color: VistaColors.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                                style: VistaType.label.copyWith(
+                                  color: VistaColors.textMuted,
+                                ),
                               ),
-                              style: VistaType.label.copyWith(
-                                color: VistaColors.textMuted,
-                              ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                     if (rows.isEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: VistaSpace.section),

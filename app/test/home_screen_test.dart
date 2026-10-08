@@ -1261,7 +1261,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Favorites'), findsNothing);
     expect(find.text('Moving now'), findsNothing);
-    expect(find.text('ALL MARKETS'), findsOneWidget);
+    expect(find.text('ALL MARKETS'), findsNothing);
     expect(find.byType(AssetMarketCard), findsNWidgets(5));
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
