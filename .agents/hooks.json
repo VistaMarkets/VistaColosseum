@@ -1,0 +1,12 @@
+[
+  {
+    "event": "user_prompt",
+    "command": "python3 \"/home/alex/JevDev/skill_router.py\" --host agy hook",
+    "timeout": 90
+  },
+  {
+    "event": "user_prompt",
+    "command": "python3 \"/home/alex/JevDev/.worktrees/feature-update-agents-rule/cloud_router_sentinel.py\" --host agy hook",
+    "timeout": 90
+  }
+]

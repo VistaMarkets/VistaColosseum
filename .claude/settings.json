@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"/home/alex/JevDev/skill_router.py\" --host claude hook",
+            "timeout": 90
+          },
+          {
+            "type": "command",
+            "command": "python3 \"/home/alex/JevDev/.worktrees/feature-update-agents-rule/cloud_router_sentinel.py\" --host claude hook",
+            "timeout": 90
+          }
+        ]
+      }
+    ]
+  }
+}
