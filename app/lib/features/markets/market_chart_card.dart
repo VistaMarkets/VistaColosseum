@@ -73,7 +73,7 @@ class LeaderboardCard extends StatelessWidget {
       // Your own market just says so; the handle is yours.
       isYou ? 'You' : m.name,
       if (metric == 'Up and coming') '${card?.days ?? 0}d',
-    ].join(' · ');
+    ].join('   ');
     final muted = VistaType.label.copyWith(color: VistaColors.textMuted);
     final strong = VistaType.figures(VistaType.label)
         .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
@@ -93,7 +93,7 @@ class LeaderboardCard extends StatelessWidget {
           TextSpan(text: m.third, style: strong),
           const TextSpan(text: ' cap'),
         ];
-        const dot = TextSpan(text: ' · ');
+        const dot = TextSpan(text: '   ');
         // Figures under the name, never the one on the right; the second
         // never truncates, the first gives way on small phones. Change
         // (on the right) leaves just the cap.
@@ -276,9 +276,9 @@ class AssetMarketCard extends StatelessWidget {
           foot: (strong) => [
             const TextSpan(text: 'OI '),
             TextSpan(text: m.subline.replaceFirst('OI ', ''), style: strong),
-            const TextSpan(text: '  ·  Funding '),
+            const TextSpan(text: '   Funding '),
             TextSpan(text: m.third, style: strong),
-            const TextSpan(text: '  ·  '),
+            const TextSpan(text: '   '),
             if (calls == 0)
               const TextSpan(text: 'No calls')
             else ...[

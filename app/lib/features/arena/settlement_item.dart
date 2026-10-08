@@ -57,7 +57,7 @@ class SettlementItem extends StatelessWidget {
             const SizedBox(width: VistaSpace.sm),
             Expanded(
               child: Text(
-                '· ${r.age}',
+                r.age,
                 style: muted,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -69,7 +69,7 @@ class SettlementItem extends StatelessWidget {
         Text(debate.question, style: _body),
         const SizedBox(height: VistaSpace.xs),
         Text(
-          '${debate.ticker} settled at ${r.settledAt} · '
+          '${debate.ticker} settled at ${r.settledAt}   '
           '${(share * 100).round()}% of ${debate.takes} calls had it right',
           style: muted,
         ),
@@ -101,7 +101,7 @@ class SettlementItem extends StatelessWidget {
               style: VistaType.labelStrong.copyWith(color: color),
             ),
             const SizedBox(width: VistaSpace.sm),
-            Text('· ${s.age}', style: muted),
+            Text(s.age, style: muted),
           ],
         ),
         const SizedBox(height: VistaSpace.sm),
@@ -127,7 +127,7 @@ class SettlementItem extends StatelessWidget {
         if (symbol != null)
           _Link(
             '$symbol ${move >= 0 ? '▲' : '▼'}${move.abs().toStringAsFixed(1)}%'
-            ' as it settled · Open market ›',
+            ' as it settled   Open market ›',
             color: move >= 0 ? VistaColors.long : VistaColors.short,
             onTap: onMarket,
           ),
@@ -192,10 +192,10 @@ class SettlementItem extends StatelessWidget {
       kind: ReceiptKind.call,
       rail: right ? VistaAssets.railCallRight : VistaAssets.railArenaWrong,
       title:
-          '${s.ticker} ${s.side!.label.toLowerCase()} ${s.leverage}x · '
+          '${s.ticker} ${s.side!.label.toLowerCase()} ${s.leverage}x   '
           '${s.handle}',
       lead:
-          '${right ? 'Right' : 'Wrong'} · '
+          '${right ? 'Right' : 'Wrong'}   '
           '${pnl >= 0 ? '+' : '−'}${pnl.abs().toStringAsFixed(1)}%',
       leadColor: right ? VistaColors.long : VistaColors.short,
       detail: right

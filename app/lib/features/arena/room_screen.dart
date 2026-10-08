@@ -314,7 +314,7 @@ class _RoomScreenState extends State<RoomScreen> {
                               ),
                             ),
                             const TextSpan(
-                              text: '  · Trade ›',
+                              text: '   Trade ›',
                               style: TextStyle(color: VistaColors.accent),
                             ),
                           ],
@@ -450,7 +450,7 @@ class _PersonRow extends StatelessWidget {
                       children: [
                         TextSpan(text: handle),
                         TextSpan(
-                          text: ' · $calls $title call${calls == 1 ? '' : 's'}',
+                          text: '   $calls $title call${calls == 1 ? '' : 's'}',
                           style: const TextStyle(
                             color: VistaColors.textMuted,
                             fontWeight: FontWeight.w500,
@@ -481,14 +481,14 @@ class _PersonRow extends StatelessWidget {
                                       color: VistaColors.textMuted,
                                     ),
                                   ),
-                                  TextSpan(text: '${standing.cap} cap · '),
+                                  TextSpan(text: '${standing.cap} cap   '),
                                   TextSpan(
                                     text:
                                         '${MarketPrices.format(price, compact: true)} ',
                                   ),
                                   TextSpan(
                                     text:
-                                        '${ch >= 0 ? '▲' : '▼'}${ch.abs().toStringAsFixed(1)}% · Open market ›',
+                                        '${ch >= 0 ? '▲' : '▼'}${ch.abs().toStringAsFixed(1)}%   Open market ›',
                                     style: TextStyle(
                                       color: vistaChangeColor(ch),
                                     ),

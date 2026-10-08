@@ -32,7 +32,7 @@ abstract final class FollowMock {
   static const followers = [
     FollowPerson(
       handle: 'lunaq',
-      stats: '118 calls · 1 open',
+      stats: '118 calls   1 open',
       market: r'Market $31.5M',
       followsYou: true,
       following: true,
@@ -45,20 +45,20 @@ abstract final class FollowMock {
     ),
     FollowPerson(
       handle: 'nara',
-      stats: 'Private account · 31 calls',
+      stats: 'Private account   31 calls',
       private: true,
       followsYou: true,
       following: false,
     ),
     FollowPerson(
       handle: 'kilo.sol',
-      stats: '54 calls · 1 open',
+      stats: '54 calls   1 open',
       market: r'Market $17.2M',
       following: true,
     ),
     FollowPerson(
       handle: 'deltaone',
-      stats: '402 calls · 2 open',
+      stats: '402 calls   2 open',
       market: r'Market $26.1M',
       following: false,
     ),
@@ -68,10 +68,10 @@ abstract final class FollowMock {
       market: r'Market $19.8M',
       following: false,
     ),
-    FollowPerson(handle: 'mirin', stats: '92 calls · 2 open', following: true),
+    FollowPerson(handle: 'mirin', stats: '92 calls   2 open', following: true),
     FollowPerson(
       handle: 'kaito.eth',
-      stats: '184 calls · 1 open',
+      stats: '184 calls   1 open',
       following: false,
     ),
     FollowPerson(handle: 'sam.sol', stats: 'No calls yet', following: false),
@@ -80,26 +80,26 @@ abstract final class FollowMock {
   static const following = [
     FollowPerson(
       handle: 'kaito.eth',
-      stats: '184 calls · 1 open',
+      stats: '184 calls   1 open',
       following: false,
     ),
-    FollowPerson(handle: 'mirin', stats: '92 calls · 2 open', following: true),
+    FollowPerson(handle: 'mirin', stats: '92 calls   2 open', following: true),
     FollowPerson(
       handle: 'deltaone',
-      stats: '402 calls · 2 open',
+      stats: '402 calls   2 open',
       market: r'Market $26.1M',
       following: false,
     ),
     FollowPerson(
       handle: 'lunaq',
-      stats: '118 calls · 1 open',
+      stats: '118 calls   1 open',
       market: r'Market $31.5M',
       followsYou: true,
       following: true,
     ),
     FollowPerson(
       handle: 'nara',
-      stats: 'Private account · 31 calls',
+      stats: 'Private account   31 calls',
       private: true,
       followsYou: true,
       following: false,
@@ -113,13 +113,13 @@ abstract final class FollowMock {
     FollowPerson(handle: 'vega', stats: '12 calls', following: false),
     FollowPerson(
       handle: 'kilo.sol',
-      stats: '54 calls · 1 open',
+      stats: '54 calls   1 open',
       market: r'Market $17.2M',
       following: true,
     ),
     FollowPerson(
       handle: 'orbit.eth',
-      stats: '7 calls · 1 open',
+      stats: '7 calls   1 open',
       following: false,
     ),
   ];

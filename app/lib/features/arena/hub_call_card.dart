@@ -113,7 +113,7 @@ class HubCallCard extends StatelessWidget {
                           TextSpan(
                             children: [
                               TextSpan(text: t.handle),
-                              TextSpan(text: ' · ${t.age}', style: muted),
+                              TextSpan(text: '   ${t.age}', style: muted),
                             ],
                           ),
                           style: VistaType.body.copyWith(fontSize: 14),
@@ -146,7 +146,7 @@ class HubCallCard extends StatelessWidget {
                                 TextSpan(text: '${standing.cap} cap'),
                                 TextSpan(
                                   text:
-                                      ' · ${MarketPrices.format(price, compact: true)} ',
+                                      '   ${MarketPrices.format(price, compact: true)} ',
                                   style: muted,
                                 ),
                                 TextSpan(

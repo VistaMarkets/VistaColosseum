@@ -119,7 +119,7 @@ class _OpenOrderCardState extends State<OpenOrderCard>
                             ),
                             TextSpan(
                               text:
-                                  ' · ${(o.distance * 100).toStringAsFixed(1)}% '
+                                  '   ${(o.distance * 100).toStringAsFixed(1)}% '
                                   '${o.limitBelowMark ? 'below' : 'above'} mark',
                             ),
                           ],
@@ -142,7 +142,7 @@ class _OpenOrderCardState extends State<OpenOrderCard>
               runSpacing: VistaSpace.sm,
               children: [
                 VistaTag(
-                  label: 'Size ${_usd(o.notional, 0)} · ${_units(o.quantity)}',
+                  label: 'Size ${_usd(o.notional, 0)}   ${_units(o.quantity)}',
                   dense: true,
                 ),
                 if (o.partlyFilled)

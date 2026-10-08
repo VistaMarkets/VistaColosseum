@@ -50,21 +50,21 @@ abstract final class TraderMarketMock {
       r'SOL reaches $300 by Fri',
       '2d left',
       VistaColors.textMuted,
-      'Market said 22% · 39.6% away',
+      'Market said 22%   39.6% away',
     ),
     RecordCall(
       VistaAssets.railRecordOpen,
       r'ETH holds $3,000 to Oct 1',
       '6d left',
       VistaColors.textMuted,
-      'Market said 64% · 5.7% cushion',
+      'Market said 64%   5.7% cushion',
     ),
     RecordCall(
       VistaAssets.railRecordOpen,
       r'ARB reaches $1.40 by Oct 15',
       '20d left',
       VistaColors.textMuted,
-      'Market said 18% · 34.6% away',
+      'Market said 18%   34.6% away',
     ),
     RecordCall(
       VistaAssets.railRecordRight,
@@ -94,7 +94,7 @@ abstract final class TraderMarketMock {
     [('24h volume', r'$1,880'), ('7d volume', r'$14,200')],
     [('Trades today', '214'), ('Traders this week', '96')],
     [
-      ('All-time high', r'$0.5120 · Aug 30'),
+      ('All-time high', r'$0.5120   Aug 30'),
       ('Since listing Mar 12', '+46.7%'),
     ],
   ];

@@ -294,7 +294,7 @@ class VistaPersonRow extends StatelessWidget {
                         children: [
                           if (emphasis != null)
                             TextSpan(
-                              text: ' · $emphasis',
+                              text: '   $emphasis',
                               style: meta.copyWith(
                                 color: VistaColors.textMuted,
                               ),

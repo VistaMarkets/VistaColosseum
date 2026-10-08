@@ -303,7 +303,7 @@ class _Room {
             ?_yours(held),
             '$n call${n == 1 ? '' : 's'} today',
             if (debates > 0) '$debates debate${debates == 1 ? '' : 's'}',
-          ].join(' · '),
+          ].join('   '),
       calls: n,
       people: people,
       line: line,
@@ -345,7 +345,7 @@ class _Room {
       market: m,
       trader: m.id,
       title: symbol,
-      sub: [?_yours(held), m.id, if (cap != null) '$cap cap'].join(' · '),
+      sub: [?_yours(held), m.id, if (cap != null) '$cap cap'].join('   '),
       calls: calls.where((t) => t.handle == m.id).length,
       people: people,
       line: line,
@@ -523,7 +523,7 @@ class _BattleCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'BATTLE · ${b.ticker}',
+                      'BATTLE   ${b.ticker}',
                       style: strong.copyWith(
                         fontSize: 11,
                         color: VistaColors.textMuted,
@@ -614,7 +614,7 @@ class _BattleCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       '${b.takes} call${b.takes == 1 ? '' : 's'}'
-                      ' · read both sides ›',
+                      '   read both sides ›',
                       style: VistaType.meta.copyWith(
                         color: VistaColors.textMuted,
                       ),

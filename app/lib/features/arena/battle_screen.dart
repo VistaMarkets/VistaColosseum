@@ -276,7 +276,7 @@ class _Header extends StatelessWidget {
                             text:
                                 '${b.ticker} '
                                 '${MarketPrices.format(price, compact: true)}'
-                                ' · ',
+                                '   ',
                           ),
                           TextSpan(
                             text: b.timeLeft,
@@ -360,7 +360,7 @@ class _MostRightRow extends StatelessWidget {
                           ),
                         TextSpan(
                           text:
-                              ' · $count ${t.ticker} call'
+                              '   $count ${t.ticker} call'
                               '${count == 1 ? '' : 's'}',
                         ),
                       ],
@@ -419,13 +419,13 @@ class _SettledBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SETTLED · ${result.longRight ? 'LONG' : 'SHORT'} SIDE RIGHT',
+            'SETTLED   ${result.longRight ? 'LONG' : 'SHORT'} SIDE RIGHT',
             style: VistaType.labelStrong.copyWith(color: color),
           ),
           const SizedBox(height: VistaSpace.xs),
           Text(
-            '${debate.ticker} settled at ${result.settledAt} · '
-            '${(share * 100).round()}% of ${debate.takes} calls had it right · '
+            '${debate.ticker} settled at ${result.settledAt}   '
+            '${(share * 100).round()}% of ${debate.takes} calls had it right   '
             '${result.age} ago',
             style: VistaType.bodyMedium.copyWith(
               color: VistaColors.textPrimary,

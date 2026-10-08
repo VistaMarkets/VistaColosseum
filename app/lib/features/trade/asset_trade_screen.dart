@@ -330,7 +330,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         gap,
         Row(
           children: [
-            Expanded(child: Text('Funding · last 3 days', style: _rowLabel)),
+            Expanded(child: Text('Funding   last 3 days', style: _rowLabel)),
             Text(TradeMock.fundingSummary, style: _rowValue),
           ],
         ),

@@ -39,7 +39,7 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
             VistaDetailHeader(
               avatarAsset: VistaAssets.portfolioAvatar,
               title: YourMarketMock.symbol,
-              subtitle: '${YourMarketMock.owner} · your market',
+              subtitle: '${YourMarketMock.owner}   your market',
               onBack: () => Navigator.of(context).maybePop(),
               actionGlyph: '↗',
               actionLabel: 'Share',

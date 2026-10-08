@@ -111,7 +111,7 @@ class OrderFilledSheet extends StatelessWidget {
                   style: TextStyle(color: p.side.color),
                 ),
                 const TextSpan(
-                  text: ' · market order',
+                  text: '   market order',
                   style: TextStyle(color: VistaColors.textMuted),
                 ),
               ],
@@ -171,7 +171,7 @@ class OrderFilledSheet extends StatelessWidget {
           ),
           const SizedBox(height: VistaSpace.md),
           Text(
-            'Simulated · nothing was sent',
+            'Simulated   nothing was sent',
             textAlign: TextAlign.center,
             style: VistaType.caption.copyWith(color: VistaColors.textMuted),
           ),

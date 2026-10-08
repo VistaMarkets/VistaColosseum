@@ -61,7 +61,7 @@ class ProfileReceipt {
 /// Sample profile content from Figma 303:102 (maya.eth). Every profile in the
 /// demo shows this content under its own handle. Simulated.
 abstract final class ProfileMock {
-  static const recordSince = 'Record since Jun 2026 · 14 mo';
+  static const recordSince = 'Record since Jun 2026   14 mo';
   static const settled = '62';
   static const right = '36';
   static const followers = FollowMock.followerCount;
@@ -101,7 +101,7 @@ abstract final class ProfileMock {
       pnl: '−1.2%',
     ),
   ];
-  static const cashShare = 'Cash · 9%';
+  static const cashShare = 'Cash   9%';
 
   static const summary = [
     ('62 settled', VistaColors.textPrimary),
@@ -120,7 +120,7 @@ abstract final class ProfileMock {
       close: r'Now $214.90',
       lead: '2d left',
       leadColor: VistaColors.textMuted,
-      detail: 'Market said 22% · 39.6% away',
+      detail: 'Market said 22%   39.6% away',
     ),
     ProfileReceipt(
       kind: ReceiptKind.arena,
@@ -135,7 +135,7 @@ abstract final class ProfileMock {
       ),
       lead: '10d left',
       leadColor: VistaColors.textMuted,
-      detail: 'took the other side of lunaq · market said 71%',
+      detail: 'took the other side of lunaq   market said 71%',
     ),
     ProfileReceipt(
       kind: ReceiptKind.call,
@@ -146,7 +146,7 @@ abstract final class ProfileMock {
       close: r'Now $2,968',
       lead: '6d left',
       leadColor: VistaColors.textMuted,
-      detail: 'Market said 64% · 5.7% cushion',
+      detail: 'Market said 64%   5.7% cushion',
     ),
     ProfileReceipt(
       kind: ReceiptKind.arena,
@@ -161,7 +161,7 @@ abstract final class ProfileMock {
       ),
       lead: 'Right at 34%',
       leadColor: VistaColors.long,
-      detail: 'beat 0xreal · settled Sep 18',
+      detail: 'beat 0xreal   settled Sep 18',
     ),
     ProfileReceipt(
       kind: ReceiptKind.call,
@@ -187,7 +187,7 @@ abstract final class ProfileMock {
       ),
       lead: 'Wrong at 41%',
       leadColor: VistaColors.short,
-      detail: 'kilo.sol was right · settled Sep 15',
+      detail: 'kilo.sol was right   settled Sep 15',
     ),
   ];
 
@@ -240,14 +240,14 @@ const privateProfiles = {
         r'BTC holds $64,000 to Oct 3',
         '8d left',
         VistaColors.textMuted,
-        'Market said 71% · 5.1% cushion',
+        'Market said 71%   5.1% cushion',
       ),
       (
         VistaAssets.railRecordOpen,
         r'SOL loses $200 by Oct 10',
         '15d left',
         VistaColors.textMuted,
-        'Market said 34% · 6.9% away',
+        'Market said 34%   6.9% away',
       ),
       (
         VistaAssets.railRecordRight,

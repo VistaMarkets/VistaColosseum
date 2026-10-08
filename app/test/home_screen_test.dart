@@ -892,7 +892,7 @@ void main() {
       // than 30 days, so you (maya.eth) aren't on it.
       expect(rows.map((r) => r.name).take(2), ['vexa', 'pip.eth']);
       expect(rows.map((r) => r.name), isNot(contains('maya.eth')));
-      expect(find.text('VEXA  vexa · 6d', findRichText: true), findsOneWidget);
+      expect(find.text('VEXA  vexa   6d', findRichText: true), findsOneWidget);
       expect(find.text('+52'), findsOneWidget);
       expect(find.textContaining('You', findRichText: true), findsNothing);
     });
@@ -1046,7 +1046,7 @@ void main() {
       for (final b in BattlesStore.all.value)
         if (!b.settled) b,
     ]..sort((a, b) => b.takes.compareTo(a.takes))).first;
-    expect(find.text('BATTLE · ${busiest.ticker}'), findsWidgets);
+    expect(find.text('BATTLE   ${busiest.ticker}'), findsWidgets);
     expect(find.textContaining('read both sides'), findsWidgets);
     await tester.tap(find.text(busiest.question).first);
     await tester.pumpAndSettle();
@@ -1151,7 +1151,7 @@ void main() {
     // Closed 1% up at 10x: +10.0%, fixed, with the exit price.
     await pump(post(exit: 1.01));
     expect(find.text('Exited +10.0%'), findsOneWidget);
-    expect(find.textContaining(' · Exit '), findsOneWidget);
+    expect(find.textContaining('   Exit '), findsOneWidget);
     expect(find.textContaining('TP'), findsNothing);
   });
 
@@ -1183,7 +1183,7 @@ void main() {
       expect(find.byType(ChallengeSheet), findsOneWidget);
       expect(find.text('Challenge vega'), findsOneWidget);
       expect(find.text('24 hours'), findsOneWidget);
-      expect(find.text('YOUR SIDE · LONG ETH'), findsOneWidget);
+      expect(find.text('YOUR SIDE   LONG ETH'), findsOneWidget);
       expect(
         find.textContaining('ETH closes above', findRichText: true),
         findsOneWidget,
@@ -1288,7 +1288,7 @@ void main() {
         expect(find.bySemanticsLabel(RegExp('^SOL room')), findsOneWidget);
         expect(find.bySemanticsLabel(RegExp('^REAL room')), findsOneWidget);
         expect(
-          find.text('You: LONG 5x · 6 calls today · 1 debate'),
+          find.text('You: LONG 5x   6 calls today   1 debate'),
           findsOneWidget,
         );
         await tester.tap(find.bySemanticsLabel(RegExp('^ETH room')).first);
@@ -1329,10 +1329,7 @@ void main() {
         expect(find.text('Top traders in ARB'), findsOneWidget);
         expect(find.textContaining('% right'), findsNothing);
         // Always three, by the cap of their own market.
-        expect(
-          find.textContaining(RegExp(r'· \d+ ARB call')),
-          findsNWidgets(3),
-        );
+        expect(find.textContaining(RegExp(r'\d+ ARB call')), findsNWidgets(3));
         // Follow room adds it to your markets (favourites).
         expect(WatchlistState.isAsset('ARB'), isFalse);
         await tester.tap(find.bySemanticsLabel('Follow room'));
@@ -1544,7 +1541,7 @@ void main() {
       await tester.tap(find.text('Read the thread ›'));
       await tester.pumpAndSettle();
       expect(find.byType(BattleScreen), findsOneWidget);
-      expect(find.text('SETTLED · LONG SIDE RIGHT'), findsOneWidget);
+      expect(find.text('SETTLED   LONG SIDE RIGHT'), findsOneWidget);
       expect(find.text('Join longs'), findsNothing); // settled: closed
     });
 
@@ -1556,7 +1553,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PickPositionScreen), findsOneWidget);
       expect(find.text('What are you calling?'), findsOneWidget);
-      expect(find.text('YOUR POSITIONS · 3'), findsOneWidget);
+      expect(find.text('YOUR POSITIONS   3'), findsOneWidget);
       await tester.tap(find.text('Ethereum'));
       await tester.pumpAndSettle();
 
@@ -2413,22 +2410,22 @@ void main() {
       tester,
     ) async {
       await openOrders(tester);
-      expect(find.text('Open orders · 3'), findsOneWidget);
+      expect(find.text('Open orders   3'), findsOneWidget);
       Finder rich(String text) => find.textContaining(text, findRichText: true);
-      expect(rich(r'Fills at $2,850.00 · 4.0% below mark'), findsOneWidget);
-      expect(find.text(r'Size $2,138 · 0.75 ETH'), findsOneWidget);
+      expect(rich(r'Fills at $2,850.00   4.0% below mark'), findsOneWidget);
+      expect(find.text(r'Size $2,138   0.75 ETH'), findsOneWidget);
       expect(find.text(r'TP $3,060.00'), findsOneWidget);
       // Only what the order needs: no venue, age or source call.
       expect(find.textContaining('Jupiter'), findsNothing);
       expect(find.textContaining("'s call"), findsNothing);
 
       await reveal(tester, find.text('1.2 / 4.5 SOL filled'));
-      expect(rich(r'Fills at $222.50 · 3.5% above mark'), findsOneWidget);
+      expect(rich(r'Fills at $222.50   3.5% above mark'), findsOneWidget);
       await reveal(tester, find.text('Reduce only'));
 
       await tester.tap(find.bySemanticsLabel('Cancel SOL order'));
       await tester.pumpAndSettle();
-      expect(find.text('Open orders · 2'), findsOneWidget);
+      expect(find.text('Open orders   2'), findsOneWidget);
       expect(find.text('1.2 / 4.5 SOL filled'), findsNothing);
       expect(
         find.text('SOL limit order cancelled (simulated)'),
@@ -2437,7 +2434,7 @@ void main() {
 
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle();
-      expect(find.text('Open orders · 3'), findsOneWidget);
+      expect(find.text('Open orders   3'), findsOneWidget);
       expect(find.text('1.2 / 4.5 SOL filled'), findsOneWidget);
     });
 
@@ -2846,7 +2843,7 @@ void main() {
       await launch(tester);
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text(r'Long $200 · 2x'));
+      await tester.tap(find.text(r'Long $200   2x'));
       await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
       // The fill gets its own confirmation, burst on top.
@@ -2874,7 +2871,7 @@ void main() {
       await launch(tester);
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text(r'Long $200 · 2x'));
+      await tester.tap(find.text(r'Long $200   2x'));
       await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Post a call'));
@@ -2954,7 +2951,7 @@ void main() {
       // Opens as a market order with take profit / stop loss off.
       expect(find.text('Place market long'), findsOneWidget);
       expect(find.text('Take profit'), findsNothing);
-      expect(find.text('Cross · 10x'), findsOneWidget);
+      expect(find.text('Cross   10x'), findsOneWidget);
       expect(find.text('Fee (taker 0.05%)'), findsOneWidget);
 
       // Ticking TP/SL shows the exits.
@@ -2987,7 +2984,7 @@ void main() {
       expect(placed.side, TradeSide.long);
       expect(placed.leverage, 10);
       expect(
-        find.text('Limit long placed · in Open orders (simulated)'),
+        find.text('Limit long placed   in Open orders (simulated)'),
         findsOneWidget,
       );
     });
@@ -3029,7 +3026,7 @@ void main() {
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
       expect(find.byType(FeedOrderTicket), findsOneWidget);
-      expect(find.text(r'Long $200 · 2x'), findsOneWidget);
+      expect(find.text(r'Long $200   2x'), findsOneWidget);
       Navigator.of(tester.element(find.byType(FeedOrderTicket))).pop();
       await tester.pumpAndSettle();
 
@@ -3052,7 +3049,7 @@ void main() {
       await pumpBtc(tester);
       await tester.tap(find.text('Long').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cross · 10x'));
+      await tester.tap(find.text('Cross   10x'));
       await tester.pumpAndSettle();
       expect(find.text('Leverage'), findsOneWidget);
       expect(find.text('Set 10x'), findsOneWidget);
@@ -3076,7 +3073,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Set ${cap - 1}x'));
       await tester.pumpAndSettle();
-      expect(find.text('Cross · ${cap - 1}x'), findsOneWidget);
+      expect(find.text('Cross   ${cap - 1}x'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -3085,7 +3082,7 @@ void main() {
         await tester.tap(find.text('Long').last);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await tester.tap(find.text('Cross · 10x'));
+        await tester.tap(find.text('Cross   10x'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
@@ -3262,7 +3259,7 @@ void main() {
         expect(inTicket(find.text(l)), findsOneWidget);
       }
       expect(
-        inTicket(find.text(r'You pay $200 → $400 position (2x) · 0.1348 ETH')),
+        inTicket(find.text(r'You pay $200 → $400 position (2x)   0.1348 ETH')),
         findsOneWidget,
       );
       // No worst-case box: the margin and liquidation line covers the risk.
@@ -3272,8 +3269,8 @@ void main() {
       expect(inTicket(find.text('ENTRY')), findsOneWidget);
       expect(inTicket(find.text(r'$2,906')), findsOneWidget);
       expect(inTicket(find.text(r'$3,176')), findsOneWidget);
-      expect(inTicket(find.text(r'−2.1% · −$8.40')), findsOneWidget);
-      expect(inTicket(find.text(r'+7.0% · +$28.00')), findsOneWidget);
+      expect(inTicket(find.text(r'−2.1%   −$8.40')), findsOneWidget);
+      expect(inTicket(find.text(r'+7.0%   +$28.00')), findsOneWidget);
 
       // Dragging the stop's thumb left widens the stop.
       await tester.drag(
@@ -3281,15 +3278,15 @@ void main() {
         const Offset(-30, 0),
       );
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'−2.1% · −$8.40')), findsNothing);
+      expect(inTicket(find.text(r'−2.1%   −$8.40')), findsNothing);
 
       // 5x updates what it buys and where it liquidates.
       await tester.tap(inTicket(find.text('5x')));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $200 · 5x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $200   5x')), findsOneWidget);
       expect(
         inTicket(
-          find.text(r'You pay $200 → $1,000 position (5x) · 0.3369 ETH'),
+          find.text(r'You pay $200 → $1,000 position (5x)   0.3369 ETH'),
         ),
         findsOneWidget,
       );
@@ -3308,7 +3305,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Set 3x'));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $200 · 3x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $200   3x')), findsOneWidget);
     });
 
     testWidgets('a limit order lands in Open orders', (tester) async {
@@ -3317,7 +3314,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(inTicket(find.text('Limit price')), findsOneWidget);
       final before = OrdersState.open.value.length;
-      await tester.tap(inTicket(find.text(r'Long $200 · 2x')));
+      await tester.tap(inTicket(find.text(r'Long $200   2x')));
       await tester.pump();
       expect(inTicket(find.text('Placed ✓')), findsOneWidget);
       await tester.pump(VistaMotion.confirmHold);
@@ -3326,7 +3323,7 @@ void main() {
       expect(OrdersState.open.value.length, before + 1);
       expect(OrdersState.open.value.first.leverage, 2);
       expect(
-        find.text('Limit long placed · in Open orders (simulated)'),
+        find.text('Limit long placed   in Open orders (simulated)'),
         findsOneWidget,
       );
     });
@@ -3340,11 +3337,11 @@ void main() {
         Offset(box.left + 12 + (box.width - 24) * 0.43, box.center.dy),
       );
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $400 · 2x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $400   2x')), findsOneWidget);
       // Dragging to the far right snaps to Max.
       await tester.drag(slider, const Offset(600, 0));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $1,000 · 2x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $1,000   2x')), findsOneWidget);
     });
 
     testWidgets('an amount over the balance blocks the order', (tester) async {

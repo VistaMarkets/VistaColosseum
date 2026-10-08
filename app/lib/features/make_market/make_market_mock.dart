@@ -23,7 +23,7 @@ abstract final class MakeMarketMock {
     'KILO',
   };
 
-  static const supply = '100M · nothing minted';
+  static const supply = '100M   nothing minted';
   static const startingCap = r'$10,000';
 
   static const consents = [

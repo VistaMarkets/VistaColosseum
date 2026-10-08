@@ -70,8 +70,8 @@ abstract final class Notifications {
     Note(
       kind: NoteKind.markets,
       lead: 'MAYA ▲4.3% today',
-      rest: ' · 26 new holders of your market',
-      detail: r'$0.4400 · cap $44.0M',
+      rest: '   26 new holders of your market',
+      detail: r'$0.4400   cap $44.0M',
       detailColor: VistaColors.long,
       age: '40m',
       open: () => TraderMarketScreen.route(PortfolioMock.handle),
@@ -87,8 +87,8 @@ abstract final class Notifications {
     Note(
       kind: NoteKind.calls,
       lead: 'Your ETH long settled right',
-      rest: r' · $2,948 → $3,050',
-      detail: '+17.3% · MAYA ▲2.1% as it settled',
+      rest: r'   $2,948 → $3,050',
+      detail: '+17.3%   MAYA ▲2.1% as it settled',
       detailColor: VistaColors.long,
       age: '1h',
       open: () => ReceiptsScreen.route(PortfolioMock.handle),
@@ -96,8 +96,8 @@ abstract final class Notifications {
     Note(
       kind: NoteKind.markets,
       lead: 'SOL ▲3.8%',
-      rest: ' · against your 10x short',
-      detail: r'$214.90 · your position −2.1%',
+      rest: '   against your 10x short',
+      detail: r'$214.90   your position −2.1%',
       detailColor: VistaColors.short,
       age: '3h',
       open: () => AssetTradeScreen.route('SOL'),
@@ -113,8 +113,8 @@ abstract final class Notifications {
     Note(
       kind: NoteKind.calls,
       lead: 'Your SOL short settled wrong',
-      rest: r' · $201 → $209',
-      detail: '−6.0% · MAYA ▼0.8% as it settled',
+      rest: r'   $201 → $209',
+      detail: '−6.0%   MAYA ▼0.8% as it settled',
       detailColor: VistaColors.short,
       age: '2d',
       open: () => ReceiptsScreen.route(PortfolioMock.handle),

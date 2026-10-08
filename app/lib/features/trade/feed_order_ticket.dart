@@ -208,8 +208,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
           SnackBar(
             content: Text(
               _limit
-                  ? 'Limit $side placed · in Open orders (simulated)'
-                  : 'Market $side filled · in Positions (simulated)',
+                  ? 'Limit $side placed   in Open orders (simulated)'
+                  : 'Market $side filled   in Positions (simulated)',
             ),
           ),
         );
@@ -294,7 +294,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                 gap,
                 _field(
                   label:
-                      'Amount · you have '
+                      'Amount   you have '
                       '\$${_fmtUsd(OrderTicket.available)}',
                   controller: _amount,
                   prefix: r'$',
@@ -326,7 +326,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                 // What you pay versus what you control, spelled out.
                 Text(
                   'You pay \$${_fmtUsd(_margin)} → '
-                  '\$${_fmtUsd(_notional)} position (${_leverage}x) · '
+                  '\$${_fmtUsd(_notional)} position (${_leverage}x)   '
                   '$_units',
                   style: muted12,
                 ),
@@ -600,7 +600,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
             ),
             const SizedBox(height: 2),
             Text(
-              '−${_slPct.toStringAsFixed(1)}% · '
+              '−${_slPct.toStringAsFixed(1)}%   '
               '${_signedUsd(-_notional * _slPct / 100)}',
               style: value,
             ),
@@ -610,7 +610,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              'Risk / reward · 1 : ${rr.toStringAsFixed(1)}',
+              'Risk / reward   1 : ${rr.toStringAsFixed(1)}',
               style: VistaType.meta.copyWith(color: VistaColors.textMuted),
             ),
           ),
@@ -627,7 +627,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
             ),
             const SizedBox(height: 2),
             Text(
-              '+${_tpPct.toStringAsFixed(1)}% · '
+              '+${_tpPct.toStringAsFixed(1)}%   '
               '${_signedUsd(_notional * _tpPct / 100)}',
               style: value,
             ),
@@ -642,7 +642,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     final label = _placed
         ? 'Placed ✓'
         : problem ??
-              '${widget.side.label} \$${_fmtUsd(_margin)} · ${_leverage}x';
+              '${widget.side.label} \$${_fmtUsd(_margin)}   ${_leverage}x';
     Widget button(String text, Color bg, Color fg, VoidCallback? onTap) =>
         Expanded(
           child: Semantics(

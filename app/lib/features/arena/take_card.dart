@@ -301,7 +301,7 @@ class TakeItem extends StatelessWidget {
                     const SizedBox(width: VistaSpace.sm),
                     Expanded(
                       child: Text(
-                        '· ${t.age}',
+                        t.age,
                         style: VistaType.bodyMedium.copyWith(
                           color: VistaColors.textMuted,
                         ),
@@ -460,8 +460,8 @@ class BackedPositionCard extends StatelessWidget {
               ),
               const SizedBox(height: VistaSpace.xs),
               Text(
-                'Entry ${level(1)} · ${formatUsd(p.size)}'
-                '${p.exited ? ' · Exit ${level(p.exitRatio!)}' : ''}',
+                'Entry ${level(1)}   ${formatUsd(p.size)}'
+                '${p.exited ? '   Exit ${level(p.exitRatio!)}' : ''}',
                 style: VistaType.figures(VistaType.chip).copyWith(
                   fontWeight: FontWeight.w500,
                   color: VistaColors.textMuted,

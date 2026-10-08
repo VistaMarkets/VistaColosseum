@@ -130,7 +130,7 @@ class _PositionSheetState extends State<PositionSheet> {
                     children: [
                       Text(p.title, style: VistaType.tab),
                       Text(
-                        '${p.side.label} ${p.leverage}x · opened ${_d.opened}',
+                        '${p.side.label} ${p.leverage}x   opened ${_d.opened}',
                         style: VistaType.bodyRegular.copyWith(
                           color: VistaColors.textSecondary,
                         ),
@@ -169,14 +169,14 @@ class _PositionSheetState extends State<PositionSheet> {
                   ),
                 ),
                 const SizedBox(width: VistaSpace.sm),
-                Text('· entry ${_usd(_d.entry)}', style: VistaType.bodyRegular),
+                Text('entry ${_usd(_d.entry)}', style: VistaType.bodyRegular),
               ],
             ),
             const SizedBox(height: VistaSpace.xs),
             // Where it would be liquidated, and what that costs: shown at
             // entry on the tickets, so shown here too.
             Text(
-              'Liquidation ${_usd(_liquidation)} · you\'d lose the '
+              'Liquidation ${_usd(_liquidation)}   you\'d lose the '
               '${formatUsd(_margin)} margin',
               style: VistaType.bodyRegular.copyWith(
                 color: VistaColors.textMuted,
@@ -299,7 +299,7 @@ class _PositionSheetState extends State<PositionSheet> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            'Closed ${p.title} ${p.tag} · realised ${p.detail.pnl} '
+            'Closed ${p.title} ${p.tag}   realised ${p.detail.pnl} '
             '(simulated)',
           ),
           action: SnackBarAction(

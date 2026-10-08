@@ -321,9 +321,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           VistaSettingRow(
             title: 'Trading permission',
             subtitle: permitted
-                ? 'Places the trades you confirm · until '
+                ? 'Places the trades you confirm   until '
                       '${SettingsMock.permissionUntil}'
-                : 'Off · you will be asked again before your next trade',
+                : 'Off   you will be asked again before your next trade',
             trailing: permitted
                 ? const VistaSettingValue('Revoke', color: VistaColors.short)
                 : const VistaSettingValue('Off'),
@@ -364,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const VistaSettingsDivider(),
           VistaSettingRow(
             title: 'Terms of service',
-            subtitle: 'Accepted · version ${SettingsMock.termsVersion}',
+            subtitle: 'Accepted   version ${SettingsMock.termsVersion}',
             trailing: const VistaSettingChevron(),
             onTap: () => _notBuilt('Terms of service'),
           ),

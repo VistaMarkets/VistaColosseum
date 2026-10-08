@@ -148,14 +148,14 @@ class _CallHeader extends StatelessWidget {
                         if (TraderStanding.of(idea.callerHandle)
                             case final s?) ...[
                           Text(
-                            '· ${s.symbol} ${s.cap}',
+                            '${s.symbol} ${s.cap}',
                             style: VistaType.meta.copyWith(
                               color: VistaColors.textSecondary,
                             ),
                           ),
                           const SizedBox(width: VistaSpace.sm),
                         ],
-                        Text('· ${idea.age}', style: VistaType.meta),
+                        Text(idea.age, style: VistaType.meta),
                         const SizedBox(width: VistaSpace.md),
                         FollowChip(handle: idea.callerHandle),
                       ],
@@ -248,7 +248,7 @@ class _PriceBlock extends StatelessWidget {
                   style: VistaType.figures(change).copyWith(color: colour),
                 ),
                 TextSpan(
-                  text: ' · replaying ${idea.age}',
+                  text: '   replaying ${idea.age}',
                   style: change.copyWith(color: VistaColors.textSecondary),
                 ),
               ],

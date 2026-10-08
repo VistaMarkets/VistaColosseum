@@ -75,7 +75,7 @@ class ReplayScript {
       Offset(337.2, 62.3), Offset(344.6, 38.5), Offset(352, 24),
     ],
     entryY: 232.04,
-    callTag: r'Called $2,801.10 · 5h ago',
+    callTag: r'Called $2,801.10   5h ago',
     events: [
       ReplayEvent(ReplayEventKind.funding, 'Funding flipped +'),
       ReplayEvent(ReplayEventKind.whale, r'Whale long $4.2M'),
@@ -171,7 +171,7 @@ class ReplayScript {
       path: path,
       entryY: entryY,
       callTag:
-          'Called ${MarketPrices.format(callPrice, compact: true)} · '
+          'Called ${MarketPrices.format(callPrice, compact: true)}   '
           '${age == 'now' ? 'just now' : '$age ago'}',
       events: [
         ReplayEvent(ReplayEventKind.funding, 'Funding flipped $funding'),

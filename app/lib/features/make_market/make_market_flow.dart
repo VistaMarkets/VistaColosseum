@@ -214,7 +214,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
           ),
           _footer([
             Text(
-              'Free to create · nothing is minted',
+              'Free to create   nothing is minted',
               textAlign: TextAlign.center,
               style: VistaType.chip.copyWith(
                 fontWeight: FontWeight.w500,

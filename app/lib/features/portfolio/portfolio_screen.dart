@@ -285,7 +285,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         Padding(
           padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
           child: Text(
-            'Positions · ${positions.length}',
+            'Positions   ${positions.length}',
             style: VistaType.body.copyWith(color: VistaColors.textMuted),
           ),
         ),
@@ -324,7 +324,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         Padding(
           padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
           child: Text(
-            'Open orders · ${orders.length}',
+            'Open orders   ${orders.length}',
             style: VistaType.body.copyWith(color: VistaColors.textMuted),
           ),
         ),

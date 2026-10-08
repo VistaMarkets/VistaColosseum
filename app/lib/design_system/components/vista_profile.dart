@@ -276,7 +276,7 @@ class VistaReceipt extends StatelessWidget {
                           color: leadColor,
                         ),
                       ),
-                      TextSpan(text: ' · $detail'),
+                      TextSpan(text: '   $detail'),
                     ],
                   ),
                   style: meta.copyWith(color: VistaColors.textSecondary),

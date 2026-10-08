@@ -131,7 +131,7 @@ class PickPositionScreen extends StatelessWidget {
                       bottom: VistaSpace.md,
                     ),
                     child: Text(
-                      'YOUR POSITIONS · ${positions.length}',
+                      'YOUR POSITIONS   ${positions.length}',
                       style: VistaType.label.copyWith(
                         color: VistaColors.textMuted,
                         letterSpacing: 0.6,

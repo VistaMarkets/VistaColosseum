@@ -297,7 +297,7 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'YOUR SIDE · ${p.side.label.toUpperCase()} $_ticker',
+                      'YOUR SIDE   ${p.side.label.toUpperCase()} $_ticker',
                       style: label,
                     ),
                     const SizedBox(height: VistaSpace.xxl),

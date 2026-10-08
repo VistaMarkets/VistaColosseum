@@ -88,7 +88,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
                   ),
                   const SizedBox(height: VistaSpace.xs),
                   Text(
-                    '$right of $settled settled calls and debates · '
+                    '$right of $settled settled calls and debates   '
                     '${ProfileMock.recordSince}',
                     style: VistaType.bodyMedium.copyWith(
                       color: VistaColors.textMuted,
@@ -206,7 +206,7 @@ class ReceiptSheet extends StatelessWidget {
         children: [
           Text(
             r.kind == ReceiptKind.arena
-                ? 'DEBATE${r.versus == null ? '' : ' · vs ${r.versus!.name}'}'
+                ? 'DEBATE${r.versus == null ? '' : '   vs ${r.versus!.name}'}'
                 : 'CALL',
             style: VistaType.label.copyWith(
               color: VistaColors.textMuted,
@@ -229,7 +229,7 @@ class ReceiptSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
               child: Text(
-                r.open ? 'Open · ${r.lead}' : r.lead,
+                r.open ? 'Open   ${r.lead}' : r.lead,
                 style: VistaType.subhead.copyWith(color: r.leadColor),
               ),
             ),

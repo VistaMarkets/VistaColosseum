@@ -293,8 +293,8 @@ class _OrderTicketState extends State<OrderTicket> {
           SnackBar(
             content: Text(
               _kind == OrderKind.market
-                  ? 'Market $side filled · in Positions (simulated)'
-                  : '${kind[0].toUpperCase()}${kind.substring(1)} $side placed · '
+                  ? 'Market $side filled   in Positions (simulated)'
+                  : '${kind[0].toUpperCase()}${kind.substring(1)} $side placed   '
                         'in Open orders (simulated)',
             ),
           ),
@@ -398,7 +398,7 @@ class _OrderTicketState extends State<OrderTicket> {
         ],
         _field(
           label: _kind == OrderKind.market
-              ? 'Size · at ${MarketPrices.format(_live)}'
+              ? 'Size   at ${MarketPrices.format(_live)}'
               : 'Size',
           controller: _size,
           fault: _fault == 'size',
@@ -479,8 +479,8 @@ class _OrderTicketState extends State<OrderTicket> {
         ],
         gap,
         _summary(
-          'Margin · Liquidation',
-          '${formatUsd(_margin)} · ${MarketPrices.format(math.max(0, liquidation), compact: true)}',
+          'Margin   Liquidation',
+          '${formatUsd(_margin)}   ${MarketPrices.format(math.max(0, liquidation), compact: true)}',
         ),
         gap,
         _summary(
@@ -638,7 +638,7 @@ class _OrderTicketState extends State<OrderTicket> {
         PopupMenuItem(
           enabled: false,
           child: Text(
-            'Scale · coming soon',
+            'Scale   coming soon',
             style: VistaType.body.copyWith(color: VistaColors.textMuted),
           ),
         ),
@@ -683,7 +683,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 color: VistaColors.surfaceRaised,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
-              child: Text('Cross · ${_leverage}x', style: VistaType.row),
+              child: Text('Cross   ${_leverage}x', style: VistaType.row),
             ),
           ),
         ),

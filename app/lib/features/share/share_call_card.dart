@@ -97,7 +97,7 @@ class ShareCallCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '· $right of $settled right',
+                    '$right of $settled right',
                     style: VistaType.meta.copyWith(
                       color: VistaColors.textMuted,
                     ),

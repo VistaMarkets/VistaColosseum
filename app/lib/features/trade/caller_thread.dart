@@ -144,7 +144,7 @@ class _Post extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: VistaSpace.sm),
-                        Text('· ${p.age}', style: VistaType.meta),
+                        Text(p.age, style: VistaType.meta),
                       ],
                     ),
                   ),
@@ -257,7 +257,7 @@ class CallOrderCard extends StatelessWidget {
               const SizedBox(height: VistaSpace.xs),
               Text(
                 'Size ${formatUsd(p.size)}'
-                '${p.exited ? ' · Exit ${level(p.exitRatio!)}' : ''}',
+                '${p.exited ? '   Exit ${level(p.exitRatio!)}' : ''}',
                 style: VistaType.figures(VistaType.caption)
                     .copyWith(color: VistaColors.textMuted),
               ),

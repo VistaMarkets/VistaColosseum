@@ -418,7 +418,7 @@ class _BattleSetupScreenState extends State<BattleSetupScreen> {
                         final lv = spec.level;
                         final away = lv == null || price == 0
                             ? ''
-                            : ' · ${lv >= price ? '+' : '−'}'
+                            : '   ${lv >= price ? '+' : '−'}'
                                   '${((lv - price) / price * 100).abs().toStringAsFixed(1)}%'
                                   ' away';
                         return Column(
