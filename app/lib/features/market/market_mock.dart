@@ -152,9 +152,6 @@ enum FeeKind { credit, copyFee }
 
 /// Mock content from the Figma frame (168:110). Simulated; not market data.
 abstract final class YourMarketMock {
-  static const change24h = r'+$1.8M (4.27%)';
-  static const unitLine = r'$0.4400 / unit · 100M supply';
-  static const price = r'$0.4400';
   static const skew = '58% long';
   static const openInterest = r'$3,140';
   static const funding = 'Longs pay shorts 0.01% in 3h 12m';

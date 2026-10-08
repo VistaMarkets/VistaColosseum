@@ -24,7 +24,6 @@ abstract final class MakeMarketMock {
   };
 
   static const supply = '100M · nothing minted';
-  static const startingCap = r'$10,000';
 
   /// A fresh listing's market cap: $10,000 in int cents
   /// (`Scenario.ownCapCents`).

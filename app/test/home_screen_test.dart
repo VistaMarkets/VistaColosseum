@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,7 @@ import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
+import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/features/simulation/simulation_indicator.dart';
@@ -29,6 +31,7 @@ import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+import 'package:vista_colosseum/features/market/your_market_screen.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
@@ -281,6 +284,193 @@ void main() {
     });
   });
 
+  group('home tabs', () {
+    Future<void> openHome(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    /// Home's feed pager and the number of pages it holds.
+    PageView feed(WidgetTester tester) => tester.widget<PageView>(
+      find
+          .descendant(
+            of: find.byType(HomeScreen),
+            matching: find.byType(PageView),
+          )
+          .first,
+    );
+    int? pages(WidgetTester tester) =>
+        (feed(tester).childrenDelegate as SliverChildBuilderDelegate)
+            .childCount;
+
+    /// Home's calls by the handles in [followed], in feed order.
+    List<TradeIdea> callsBy(Set<String> followed) => [
+      for (final i in homeFeed)
+        if (i is TradeIdea && followed.contains(i.callerHandle)) i,
+    ];
+
+    /// Every call card built on Home.
+    Iterable<String> builtCallers(WidgetTester tester) => tester
+        .widgetList<TradeIdeaCard>(
+          find.descendant(
+            of: find.byType(HomeScreen),
+            matching: find.byType(TradeIdeaCard),
+          ),
+        )
+        .map((c) => c.idea.callerHandle);
+
+    /// The call card on screen; the pager builds only the settled page.
+    TradeIdeaCard onScreen(WidgetTester tester) => tester.widget<TradeIdeaCard>(
+      find.descendant(
+        of: find.byType(HomeScreen),
+        matching: find.byType(TradeIdeaCard),
+      ),
+    );
+
+    testWidgets('Following shows only calls from followed traders; For You '
+        'shows the full feed', (tester) async {
+      await openHome(tester);
+      // Home opens on For You, the full feed.
+      expect(
+        tester
+            .widget<VistaSegmentedTabs>(find.byType(VistaSegmentedTabs))
+            .selectedIndex,
+        1,
+      );
+      expect(pages(tester), homeFeed.length);
+      // Leave For You scrolled, so the switch has a page to reset.
+      feed(tester).controller!.jumpToPage(3);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      final followed = Scenario.followed.value;
+      final calls = callsBy(followed);
+      // The seed follows kilo.sol and lunaq, who each have Home calls.
+      expect(calls.map((c) => c.callerHandle), [
+        'kilo.sol',
+        'lunaq',
+        'lunaq',
+        'kilo.sol',
+      ]);
+      expect(pages(tester), calls.length);
+      expect(find.byType(MakerSuggestionCard), findsNothing);
+      expect(builtCallers(tester), isNotEmpty);
+      expect(builtCallers(tester).every(followed.contains), isTrue);
+      expect(feed(tester).controller!.page, 0);
+      expect(onScreen(tester).idea, calls.first);
+      expect(onScreen(tester).active, isTrue);
+
+      feed(tester).controller!.jumpToPage(2);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('For You'));
+      await tester.pumpAndSettle();
+      expect(pages(tester), homeFeed.length);
+      expect(feed(tester).controller!.page, 0);
+      expect(onScreen(tester).idea, homeFeed.first);
+      expect(onScreen(tester).active, isTrue);
+    });
+
+    testWidgets('unfollowing everyone empties Following into the empty '
+        'state', (tester) async {
+      await openHome(tester);
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      for (final h in Scenario.followed.value.toList()) {
+        Scenario.toggleFollow(h);
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('No calls to show'), findsOneWidget);
+      expect(find.text('Explore markets'), findsOneWidget);
+
+      await tester.tap(find.text('For You'));
+      await tester.pumpAndSettle();
+      expect(find.text('No calls to show'), findsNothing);
+      expect(pages(tester), homeFeed.length);
+    });
+
+    testWidgets('unfollowing the caller on screen leaves a live card in '
+        'Following', (tester) async {
+      await openHome(tester);
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      // The last call is kilo.sol's; unfollow them from their profile.
+      final last = callsBy(Scenario.followed.value).length - 1;
+      feed(tester).controller!.jumpToPage(last);
+      await tester.pumpAndSettle();
+      expect(onScreen(tester).idea.callerHandle, 'kilo.sol');
+      await tester.tap(find.text('kilo.sol').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(VistaFollowButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      final calls = callsBy(Scenario.followed.value);
+      expect(calls.map((c) => c.callerHandle), isNot(contains('kilo.sol')));
+      expect(pages(tester), calls.length);
+      expect(feed(tester).controller!.page, 0);
+      expect(onScreen(tester).idea, calls.first);
+      expect(onScreen(tester).active, isTrue);
+    });
+
+    testWidgets('a follow made elsewhere appears in Following', (tester) async {
+      await openHome(tester);
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      expect(builtCallers(tester), isNot(contains('kaito.eth')));
+      feed(tester).controller!.jumpToPage(1);
+      await tester.pumpAndSettle();
+
+      // Follow kaito.eth from their profile, the page a caller name opens.
+      Navigator.of(tester.element(find.byType(HomeScreen)))
+          .push(ProfileScreen.route('kaito.eth'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(VistaFollowButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      final calls = callsBy(Scenario.followed.value);
+      expect(calls.map((c) => c.callerHandle), contains('kaito.eth'));
+      expect(pages(tester), calls.length);
+      // Following starts again at its first card, kaito.eth's, and plays it.
+      expect(calls.first.callerHandle, 'kaito.eth');
+      expect(feed(tester).controller!.page, 0);
+      expect(onScreen(tester).idea, calls.first);
+      expect(onScreen(tester).active, isTrue);
+    });
+
+    testWidgets('a follow made from For You leaves its card playing', (
+      tester,
+    ) async {
+      await openHome(tester);
+      // For You, on the second card: 0xreal's, whom the seed does not follow.
+      feed(tester).controller!.jumpToPage(1);
+      await tester.pumpAndSettle();
+      expect(onScreen(tester).idea, homeFeed[1]);
+      expect(Scenario.followed.value, isNot(contains('0xreal')));
+
+      // Follow 0xreal from their profile, the page the caller name opens.
+      await tester.tap(find.text('0xreal').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(VistaFollowButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(Scenario.followed.value, contains('0xreal'));
+      // For You ignores follows: the same card stays on screen and plays.
+      expect(feed(tester).controller!.page, 1);
+      expect(onScreen(tester).idea, homeFeed[1]);
+      expect(onScreen(tester).active, isTrue);
+    });
+  });
+
   group('portfolio pager', () {
     Future<void> openWallet(WidgetTester tester) async {
       tester.view
@@ -302,7 +492,8 @@ void main() {
         .opacity;
 
     const portfolio = r'$12,480.00';
-    const market = r'$44.0M';
+    // The setup's listMarket('MAYA') is a fresh listing: the starting cap.
+    const market = r'$10,000';
 
     testWidgets('swiping the chart moves to the market cap and back', (
       tester,
@@ -1744,13 +1935,13 @@ void main() {
     ) async {
       await openWallet(tester);
       expect(find.text(r'+$91 (0.73%)'), findsOneWidget);
-      // Both pages (balance and market cap) cover the chosen span.
-      expect(find.text('Last 24 hours'), findsNWidgets(2));
+      // The balance page covers the chosen span (no market, no cap page).
+      expect(find.text('Last 24 hours'), findsOneWidget);
       final day = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
       await tester.tap(find.text('1W'));
       await tester.pumpAndSettle();
       expect(find.text(r'+$412 (3.41%)'), findsOneWidget);
-      expect(find.text('Past week'), findsNWidgets(2));
+      expect(find.text('Past week'), findsOneWidget);
       final week = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
       // A different window, ending at the same balance.
       expect(week.first, isNot(day.first));
@@ -1828,6 +2019,109 @@ void main() {
       expect(find.bySemanticsLabel('Make a market'), findsNothing);
       expect(find.text('Your market'), findsOneWidget);
       expect(find.text(r'$MACRO market cap'), findsOneWidget);
+      // The cap page holds the listed cap (at opacity 0 until swiped).
+      expect(find.text(r'$10,000'), findsOneWidget);
+    });
+
+    testWidgets('the listing success step opens Your market for the new '
+        'listing', (tester) async {
+      await openWallet(tester);
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'zed');
+      await tester.pump();
+      await tester.tap(find.text(r'Continue with $ZED'));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 4; i++) {
+        final box = find.byType(VistaCheckRow).at(i);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+        await tester.pump();
+      }
+      await tester.tap(find.text(r'Create $ZED'));
+      await tester.pumpAndSettle();
+
+      // The other two controls keep their toasts.
+      await tester.tap(find.text('Make your first call'));
+      await tester.pump();
+      expect(find.text('Make a call — not in the demo yet'), findsOneWidget);
+      // Through the semantics tap action, as a screen reader would.
+      tester.semantics.tap(find.semantics.byLabel(r'Share $ZED'));
+      await tester.pump();
+      expect(find.text('Share — not in the demo yet'), findsOneWidget);
+
+      tester.semantics.tap(find.semantics.byLabel(r'Open $ZED'));
+      await tester.pumpAndSettle();
+      expect(find.byType(YourMarketScreen), findsOneWidget);
+      expect(find.text('ZED'), findsOneWidget); // the header's ticker
+      expect(find.text(r'$10,000'), findsOneWidget);
+      expect(find.text('Your market is open'), findsNothing);
+
+      // Back returns to the Wallet, not the finished flow.
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      expect(find.byType(YourMarketScreen), findsNothing);
+      expect(find.text('Your market is open'), findsNothing);
+      expect(pagerBalance, findsOneWidget);
+    });
+
+    testWidgets('the fading consent step can neither list twice nor leave '
+        'the live step', (tester) async {
+      await openWallet(tester);
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+      // The create step stays mounted through its own fade.
+      await tester.tap(find.text(r'Continue with $MAYA'));
+      await tester.pump(const Duration(milliseconds: 16));
+      for (var i = 0; i < 4; i++) {
+        final box = find.byType(VistaCheckRow).at(i);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+        await tester.pump();
+      }
+      // The consent step's controls stay tappable through the 250 ms fade.
+      await tester.tap(find.text(r'Create $MAYA'));
+      await tester.pump(const Duration(milliseconds: 16));
+      // The live step covers it, so call the fading Create directly.
+      final create = find.widgetWithText(VistaPrimaryButton, r'Create $MAYA');
+      tester.widget<VistaPrimaryButton>(create).onPressed();
+      await tester.pump(const Duration(milliseconds: 16));
+      // Likewise the fading Back, so the call cannot miss.
+      final back = find.byWidgetPredicate(
+        (w) => w is VistaIconButton && w.semanticLabel == 'Back',
+      );
+      tester.widget<VistaIconButton>(back).onPressed!();
+      await tester.pump(const Duration(milliseconds: 16));
+      // And the fading create step's Continue.
+      final next = find.widgetWithText(
+        VistaPrimaryButton,
+        r'Continue with $MAYA',
+      );
+      tester.widget<VistaPrimaryButton>(next).onPressed();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Your market is open'), findsOneWidget);
+    });
+
+    testWidgets('a system back in the same frame as Create keeps the live '
+        'step', (tester) async {
+      await openWallet(tester);
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(r'Continue with $MAYA'));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 4; i++) {
+        final box = find.byType(VistaCheckRow).at(i);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+        await tester.pump();
+      }
+      // No pump between: PopScope still holds the consent step's canPop.
+      await tester.tap(find.text(r'Create $MAYA'));
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Your market is open'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1851,6 +2145,71 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+
+    testWidgets('the live step survives 1.3x text scaling on the smallest '
+        'phone', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0; // clamped
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await openWallet(
+        tester,
+        const Size(360, 640),
+        const EdgeInsets.only(top: 24),
+      );
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+      // The create step already overflows at this scale (unchanged here).
+      expect(tester.takeException().toString(), contains('overflowed'));
+      await tester.tap(find.text(r'Continue with $MAYA'));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 4; i++) {
+        final box = find.byType(VistaCheckRow).at(i);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+        await tester.pump();
+      }
+      await tester.tap(find.text(r'Create $MAYA'));
+      await tester.pumpAndSettle();
+      expect(find.text('Your market is open'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the live step keeps an 8-character ticker on one line per '
+        'pill at 1.3x on the smallest phone', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0; // clamped
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await openWallet(
+        tester,
+        const Size(360, 640),
+        const EdgeInsets.only(top: 24),
+      );
+      await tester.tap(find.bySemanticsLabel('Make a market'));
+      await tester.pumpAndSettle();
+      // The create step already overflows at this scale (unchanged here).
+      expect(tester.takeException().toString(), contains('overflowed'));
+      // The longest ticker, in the widest letter.
+      await tester.enterText(find.byType(TextField).first, 'wwwwwwww');
+      await tester.pump();
+      await tester.tap(find.text(r'Continue with $WWWWWWWW'));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 4; i++) {
+        final box = find.byType(VistaCheckRow).at(i);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+        await tester.pump();
+      }
+      await tester.tap(find.text(r'Create $WWWWWWWW'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      for (final label in [r'Open $WWWWWWWW', r'Share $WWWWWWWW']) {
+        final text = tester.renderObject<RenderParagraph>(find.text(label));
+        // The label's last character sits on its first line.
+        final end = text.getOffsetForCaret(
+          TextPosition(offset: label.length),
+          Rect.zero,
+        );
+        expect(end.dy, 0, reason: label);
+      }
+    });
   });
 
   group('settings', () {
