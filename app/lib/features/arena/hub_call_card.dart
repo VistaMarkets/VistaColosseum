@@ -4,6 +4,7 @@ import '../../design_system/design_system.dart';
 import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
 import '../people/follow_state.dart';
+import '../portfolio/portfolio_mock.dart';
 import 'arena_mock.dart';
 import 'take_card.dart';
 
@@ -203,6 +204,13 @@ class HubCallCard extends StatelessWidget {
                     children: [
                       TakeAgreeButton(take: t),
                       const Spacer(),
+                      // Someone else's call with no live debate can be
+                      // challenged (Figma 577:240).
+                      if (t.handle != PortfolioMock.handle &&
+                          t.battle == null) ...[
+                        const _ChallengePill(),
+                        const SizedBox(width: VistaSpace.md),
+                      ],
                       VistaJoinPill(side: t.side, onTap: onJoin),
                     ],
                   ),
@@ -211,6 +219,47 @@ class HubCallCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Challenge, beside Join: the same pill in the neutral raised colour. The
+/// challenge flow isn't built yet, so it says so.
+class _ChallengePill extends StatelessWidget {
+  const _ChallengePill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Challenge',
+      excludeSemantics: true,
+      child: VistaPressable(
+        onTap: () => ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Challenge — not in the demo yet')),
+          ),
+        child: SizedBox(
+          height: VistaSize.tapTarget,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: VistaSpace.xxl,
+                vertical: 7,
+              ),
+              decoration: BoxDecoration(
+                color: VistaColors.surfaceRaised,
+                borderRadius: BorderRadius.circular(VistaRadius.pill),
+              ),
+              child: Text(
+                'Challenge',
+                style: VistaType.body.copyWith(color: VistaColors.textPrimary),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
