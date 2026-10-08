@@ -13,6 +13,10 @@ import '../people/follow_mock.dart';
 import 'open_order_card.dart';
 import 'orders_state.dart';
 import 'positions_state.dart';
+import 'trade_history.dart';
+import '../profile/profile_mock.dart';
+import '../profile/receipts_screen.dart';
+import '../live/market_prices.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
@@ -94,7 +98,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           Padding(
             padding: gutter,
             child: VistaUnderlineTabs(
-              labels: const ['Positions', 'Open orders'],
+              labels: const ['Positions', 'Orders', 'History'],
               selectedIndex: _list,
               onChanged: (i) => setState(() => _list = i),
             ),
@@ -102,7 +106,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           gap,
           Padding(
             padding: gutter,
-            child: _list == 0 ? _positions() : _openOrders(),
+            child: switch (_list) {
+              0 => _positions(),
+              1 => _openOrders(),
+              _ => _history(),
+            },
           ),
         ],
       ),
@@ -308,6 +316,68 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       ],
     );
   }
+
+  /// Closed trades, newest first: what, side, exit and realised P/L. A row
+  /// opens its receipt (entry, exit, result).
+  Widget _history() => ValueListenableBuilder(
+    valueListenable: TradeHistory.closed,
+    builder: (context, trades, _) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
+          child: Text(
+            'Closed   ${trades.length}',
+            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+          ),
+        ),
+        if (trades.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: VistaSpace.section),
+            child: Text(
+              'Closed trades show up here with what they made.',
+              textAlign: TextAlign.center,
+              style: VistaType.body.copyWith(color: VistaColors.textMuted),
+            ),
+          ),
+        for (final t in trades) ...[
+          const SizedBox(height: VistaSpace.sm),
+          VistaListRow(
+            leading: t.coinAsset != null
+                ? VistaListRow.coin(t.coinAsset!)
+                : VistaListRow.initial(t.initial ?? t.title[0].toUpperCase()),
+            title: t.title,
+            tag: t.tag,
+            tagNote: t.closed == 'now'
+                ? 'closed now'
+                : 'closed ${t.closed} ago',
+            tagColor: t.side.color,
+            value: t.pnl,
+            change: t.pnlPercent,
+            valueColor: t.pnlColor,
+            onPressed: () => showReceiptSheet(
+              context,
+              ProfileReceipt(
+                kind: ReceiptKind.call,
+                rail: t.inProfit
+                    ? VistaAssets.railRecordRight
+                    : VistaAssets.railRecordWrong,
+                title: '${t.title} ${t.tag}',
+                side: t.side,
+                entry: MarketPrices.format(t.entry, compact: true),
+                close: 'Closed ${MarketPrices.format(t.exit, compact: true)}',
+                lead: '${t.pnl}   ${t.pnlPercent}',
+                leadColor: t.pnlColor,
+                detail: t.closed == 'now'
+                    ? 'Closed just now'
+                    : 'Closed ${t.closed} ago',
+              ),
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
 
   // Open orders has no Figma design; cards follow the backend's order model.
   Widget _openOrders() {

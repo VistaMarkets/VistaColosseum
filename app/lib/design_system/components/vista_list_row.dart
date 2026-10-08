@@ -17,6 +17,7 @@ class VistaListRow extends StatelessWidget {
     required this.tagColor,
     this.sparkAsset,
     this.chart,
+    this.tagNote,
     required this.value,
     required this.change,
     required this.valueColor,
@@ -28,6 +29,9 @@ class VistaListRow extends StatelessWidget {
   final String title;
   final String tag;
   final Color tagColor;
+
+  /// Muted words after the tag, e.g. "closed 2d ago".
+  final String? tagNote;
 
   /// Spark chart vector (88×30), unless a live [chart] is given.
   final String? sparkAsset;
@@ -92,9 +96,26 @@ class VistaListRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: VistaSpace.xxs),
-                    Text(
-                      tag,
-                      style: VistaType.labelStrong.copyWith(color: tagColor),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: tag,
+                            style: TextStyle(color: tagColor),
+                          ),
+                          if (tagNote != null)
+                            TextSpan(
+                              text: '   $tagNote',
+                              style: const TextStyle(
+                                color: VistaColors.textMuted,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                      style: VistaType.labelStrong,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

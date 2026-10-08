@@ -32,6 +32,7 @@ import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/profile/trader_profile.dart';
+import 'package:vista_colosseum/features/portfolio/trade_history.dart';
 import 'package:vista_colosseum/features/profile/receipts_screen.dart';
 import 'package:vista_colosseum/features/profile/holdings_table.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
@@ -185,6 +186,7 @@ void main() {
     OrdersState.reset();
     ProfileEdits.reset();
     Notifications.reset();
+    TradeHistory.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1292,6 +1294,46 @@ void main() {
         .toList();
     expect(rows, ['pip.eth', 'vexa', 'orca.sol']); // 3, 6, 11 days
     expect(find.text(r'$6.2M'), findsOneWidget);
+  });
+
+  testWidgets('Wallet History: closing a position lists it with its P/L', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    final wallet = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('History'),
+      200,
+      scrollable: wallet,
+    );
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    expect(find.text('Closed   3'), findsOneWidget);
+    // Close the ETH long from Positions; it heads History.
+    final eth = PositionsState.open.value.firstWhere(
+      (p) => p.detail.symbol == 'ETH',
+    );
+    PositionsState.remove(eth);
+    TradeHistory.add(ClosedTrade.from(eth));
+    await tester.pumpAndSettle();
+    expect(find.text('Closed   4'), findsOneWidget);
+    expect(TradeHistory.closed.value.first.symbol, 'ETH');
+    await tester.scrollUntilVisible(
+      find.text('Ethereum'),
+      200,
+      scrollable: wallet,
+    );
+    await tester.tap(find.text('Ethereum'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReceiptSheet), findsOneWidget);
+    expect(find.text('Closed at'), findsOneWidget);
   });
 
   group('challenge', () {
@@ -2524,7 +2566,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Wallet'));
       await tester.pumpAndSettle();
-      final tab = find.text('Open orders');
+      final tab = find.text('Orders');
       await tester.scrollUntilVisible(
         tab,
         120,

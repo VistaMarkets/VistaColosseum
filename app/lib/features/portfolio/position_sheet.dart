@@ -10,6 +10,7 @@ import '../live/market_prices.dart';
 import '../home/signal_replay_chart.dart';
 import 'portfolio_mock.dart';
 import 'positions_state.dart';
+import 'trade_history.dart';
 import 'series_chart.dart';
 
 /// Slides the position sheet up from the bottom (Figma 104:110, "Position
@@ -294,6 +295,9 @@ class _PositionSheetState extends State<PositionSheet> {
     HapticFeedback.mediumImpact();
     Navigator.of(context).pop();
     final at = PositionsState.remove(p);
+    // It goes to History with its exit and realised P/L.
+    final trade = ClosedTrade.from(p);
+    TradeHistory.add(trade);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -304,7 +308,10 @@ class _PositionSheetState extends State<PositionSheet> {
           ),
           action: SnackBarAction(
             label: 'Undo',
-            onPressed: () => PositionsState.insert(at, p),
+            onPressed: () {
+              PositionsState.insert(at, p);
+              TradeHistory.remove(trade);
+            },
           ),
         ),
       );

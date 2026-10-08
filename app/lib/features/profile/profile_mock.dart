@@ -49,7 +49,10 @@ class ProfileReceipt {
   final String entry;
   final String close;
 
-  bool get open => !lead.startsWith('Right') && !lead.startsWith('Wrong');
+  bool get open =>
+      !lead.startsWith('Right') &&
+      !lead.startsWith('Wrong') &&
+      !close.startsWith('Closed');
   final String rail;
   final String title;
   final String lead;

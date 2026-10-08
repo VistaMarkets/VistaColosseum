@@ -251,9 +251,13 @@ class ReceiptSheet extends StatelessWidget {
           ),
           const VistaHairline(),
           row(
-            r.open ? 'Now' : 'Settled at',
+            r.open
+                ? 'Now'
+                : r.close.startsWith('Closed')
+                ? 'Closed at'
+                : 'Settled at',
             Text(
-              r.close.replaceFirst(RegExp(r'^(Now|Settled) '), ''),
+              r.close.replaceFirst(RegExp(r'^(Now|Settled|Closed) '), ''),
               style: VistaType.figures(VistaType.subhead),
             ),
           ),
