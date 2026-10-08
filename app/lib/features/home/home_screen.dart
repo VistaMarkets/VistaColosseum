@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
 import '../market/trader_market_screen.dart';
@@ -44,8 +45,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _feed = 0;
+  /// 0 = Following, 1 = For You (where Home opens).
+  int _feed = 1;
 
+  /// Home's feed pager. The pager's key, not the controller, starts each
+  /// tab at its first card.
   final _pages = PageController();
 
   /// The card settled on screen. Updated only when a swipe comes to rest, so
@@ -53,9 +57,23 @@ class _HomeScreenState extends State<HomeScreen> {
   int _settledPage = 0;
 
   @override
+  void initState() {
+    super.initState();
+    Scenario.followed.addListener(_onFollowedChanged);
+  }
+
+  @override
   void dispose() {
+    Scenario.followed.removeListener(_onFollowedChanged);
     _pages.dispose();
     super.dispose();
+  }
+
+  /// A follow or unfollow rebuilds Following and restarts it at its first
+  /// card (the pager is keyed by the follows), so the card on screen is the
+  /// one that plays, even when its cards are unchanged.
+  void _onFollowedChanged() {
+    if (_feed == 0) setState(() => _settledPage = 0);
   }
 
   bool _onScrollEnd(ScrollEndNotification n) {
@@ -64,7 +82,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
-  List<Object> get _feedItems => widget.feed ?? homeFeed;
+  /// For You: every page. Following: only the calls of traders the user
+  /// follows (`Scenario.followed`, which every Follow button writes), no
+  /// Maker suggestions. The follows are not in a persona's books, so both
+  /// personas see one Following feed; the Following list's people
+  /// (`Scenario.following`) do not feed it.
+  List<Object> get _feedItems {
+    final all = widget.feed ?? homeFeed;
+    if (_feed == 1) return all;
+    final followed = Scenario.followed.value;
+    return [
+      for (final i in all)
+        if (i is TradeIdea && followed.contains(i.callerHandle)) i,
+    ];
+  }
+
+  void _switchTab(int i) {
+    if (i == _feed) return;
+    setState(() {
+      _feed = i;
+      _settledPage = 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,78 +119,85 @@ class _HomeScreenState extends State<HomeScreen> {
           VistaSegmentedTabs(
             labels: const ['Following', 'For You'],
             selectedIndex: _feed,
-            onChanged: (i) => setState(() => _feed = i),
+            onChanged: _switchTab,
           ),
           const SizedBox(height: VistaSpace.md),
-          Expanded(
-            child: _feedItems.isEmpty
-                ? ListView(
-                    children: [
-                      VistaEmptyState(
-                        message: 'No calls to show',
-                        actionLabel: 'Explore markets',
-                        onAction: () => AppShell.showExplore(context),
-                      ),
-                    ],
-                  )
-                : NotificationListener<ScrollEndNotification>(
-                    onNotification: _onScrollEnd,
-                    child: PageView.builder(
-                      controller: _pages,
-                      scrollDirection: Axis.vertical,
-                      itemCount: _feedItems.length,
-                      itemBuilder: (context, i) {
-                        final item = _feedItems[i];
-                        if (item is Suggestion) {
-                          return Center(
-                            child: MakerSuggestionCard(
-                              suggestion: item,
-                              // The same first-time ticket an idea card opens.
-                              onTrade: () => showFeedOrderTicket(
-                                context,
-                                symbol: item.asset,
-                                side: item.direction,
-                                onDetails: () => Navigator.of(context)
-                                    .push(AssetTradeScreen.route(item.asset)),
-                              ),
-                            ),
-                          );
-                        }
-                        final idea = item as TradeIdea;
-                        return TradeIdeaCard(
-                          idea: idea,
-                          active: widget.visible && i == _settledPage,
-                          // An asset opens its trade page; a trader market, the
-                          // trader's market page.
-                          onDetails: () => Navigator.of(context).push(
-                            idea.traderMarket
-                                ? TraderMarketScreen.route(idea.ticker)
-                                : AssetTradeScreen.route(idea.ticker),
-                          ),
-                          onCaller: () =>
-                              Navigator.of(context)
-                                  .push(ProfileScreen.route(idea.callerHandle)),
-                          // The first-time ticket, on the call's side (simulated);
-                          // its Details is the card's.
-                          onTrade: () => showFeedOrderTicket(
-                            context,
-                            symbol: idea.ticker,
-                            side: idea.side,
-                            sourceCallId: '${idea.callerHandle}/${idea.ticker}',
-                            sourceAuthorHandle: idea.callerHandle,
-                            onDetails: () => Navigator.of(context).push(
-                              idea.traderMarket
-                                  ? TraderMarketScreen.route(idea.ticker)
-                                  : AssetTradeScreen.route(idea.ticker),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-          ),
+          Expanded(child: _feedView()),
         ],
       ),
     );
+  }
+
+  Widget _feedView() {
+    final items = _feedItems;
+    return items.isEmpty
+        ? ListView(
+            children: [
+              VistaEmptyState(
+                message: 'No calls to show',
+                actionLabel: 'Explore markets',
+                onAction: () => AppShell.showExplore(context),
+              ),
+            ],
+          )
+        : NotificationListener<ScrollEndNotification>(
+            onNotification: _onScrollEnd,
+            child: PageView.builder(
+              // A new pager per tab, and per change of follows on
+              // Following, starting at its first card.
+              key: ValueKey(_feed == 0 ? Scenario.followed.value : _feed),
+              controller: _pages,
+              scrollDirection: Axis.vertical,
+              itemCount: items.length,
+              itemBuilder: (context, i) {
+                final item = items[i];
+                if (item is Suggestion) {
+                  return Center(
+                    child: MakerSuggestionCard(
+                      suggestion: item,
+                      // The same first-time ticket an idea card opens.
+                      onTrade: () => showFeedOrderTicket(
+                        context,
+                        symbol: item.asset,
+                        side: item.direction,
+                        onDetails: () =>
+                            Navigator.of(context)
+                                .push(AssetTradeScreen.route(item.asset)),
+                      ),
+                    ),
+                  );
+                }
+                final idea = item as TradeIdea;
+                return TradeIdeaCard(
+                  idea: idea,
+                  active: widget.visible && i == _settledPage,
+                  // An asset opens its trade page; a trader market, the
+                  // trader's market page.
+                  onDetails: () => Navigator.of(context).push(
+                    idea.traderMarket
+                        ? TraderMarketScreen.route(idea.ticker)
+                        : AssetTradeScreen.route(idea.ticker),
+                  ),
+                  onCaller: () =>
+                      Navigator.of(context)
+                          .push(ProfileScreen.route(idea.callerHandle)),
+                  // The first-time ticket, on the call's side (simulated);
+                  // its Details is the card's.
+                  onTrade: () => showFeedOrderTicket(
+                    context,
+                    symbol: idea.ticker,
+                    side: idea.side,
+                    sourceCallId: '${idea.callerHandle}/${idea.ticker}',
+                    sourceAuthorHandle: idea.callerHandle,
+                    onDetails: () => Navigator.of(context).push(
+                      idea.traderMarket
+                          ? TraderMarketScreen.route(idea.ticker)
+                          : AssetTradeScreen.route(idea.ticker),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
   }
 }

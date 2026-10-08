@@ -3,6 +3,7 @@ import 'package:flutter/painting.dart';
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../portfolio/series_chart.dart';
 import '../trade/trade_mock.dart';
 
 enum CallOutcome { right, wrong, open }
@@ -61,30 +62,58 @@ class CallReceipt {
   /// The fixture the receipt comes from.
   final String provenance;
 
-  String get status => switch (result) {
-    CallOutcome.right => 'Right',
-    CallOutcome.wrong => 'Wrong',
-    CallOutcome.open => 'Open',
-    null => unavailable,
-  };
+  /// How the fixture's own [result] shows, ignoring the clock. A verdict
+  /// that settles after the clock, or whose settlement date
+  /// `Scenario.outcomeAt` cannot read, shows differently at the clock: to
+  /// show a call as a record counts it, pass the outcome at the clock,
+  /// `outcomeStatus(Scenario.outcomeAt(c, Scenario.clock.value))`, and the
+  /// same to [outcomeColor] and [outcomeRail]; [outcomeDetail] also takes
+  /// `c.odds`.
+  String get status => outcomeStatus(result);
 
-  Color get color => switch (result) {
-    CallOutcome.right => VistaColors.long,
-    CallOutcome.wrong => VistaColors.short,
-    CallOutcome.open => VistaColors.fees,
-    null => VistaColors.textMuted,
-  };
+  /// Like [status]: the raw [result]'s colour, ignoring the clock.
+  Color get color => outcomeColor(result);
 
-  String get rail => switch (result) {
-    CallOutcome.right => VistaAssets.timelineRight,
-    CallOutcome.wrong => VistaAssets.timelineWrong,
-    CallOutcome.open || null => VistaAssets.timelineOpen,
-  };
+  /// Like [status]: the raw [result]'s timeline rail, ignoring the clock.
+  String get rail => outcomeRail(result);
 
-  String get detail => result == CallOutcome.open
-      ? 'published · at ${odds ?? unavailable}'
-      : 'at ${odds ?? unavailable}';
+  /// Like [status]: the raw [result]'s detail line, ignoring the clock.
+  String get detail => outcomeDetail(result, odds);
 }
+
+/// A call's detail line: "published" while [o] is open, then its odds.
+/// Called like [outcomeStatus], with the raw result or the outcome at the
+/// clock (`Scenario.outcomeAt`).
+String outcomeDetail(CallOutcome? o, String? odds) => o == CallOutcome.open
+    ? 'published · at ${odds ?? unavailable}'
+    : 'at ${odds ?? unavailable}';
+
+/// How a call's outcome shows: its word, colour and timeline rail. Called
+/// with the raw [CallReceipt.result], or with the outcome at the clock
+/// (`Scenario.outcomeAt`) where a record counts it.
+String outcomeStatus(CallOutcome? o) => switch (o) {
+  CallOutcome.right => 'Right',
+  CallOutcome.wrong => 'Wrong',
+  CallOutcome.open => 'Open',
+  null => unavailable,
+};
+
+/// [o]'s colour; called like [outcomeStatus].
+Color outcomeColor(CallOutcome? o) => switch (o) {
+  CallOutcome.right => VistaColors.long,
+  CallOutcome.wrong => VistaColors.short,
+  CallOutcome.open => VistaColors.fees,
+  null => VistaColors.textMuted,
+};
+
+/// The design system has no rail for an unavailable outcome
+/// (`VistaAssets` ships right, wrong and open only), so null shares the
+/// Open rail; its status word and muted colour say "unavailable".
+String outcomeRail(CallOutcome? o) => switch (o) {
+  CallOutcome.right => VistaAssets.timelineRight,
+  CallOutcome.wrong => VistaAssets.timelineWrong,
+  CallOutcome.open || null => VistaAssets.timelineOpen,
+};
 
 /// One fee credit to a creator's market (VC-MKT-004): the creator's share
 /// of what traders paid in fees during one demo market event.
@@ -123,9 +152,6 @@ enum FeeKind { credit, copyFee }
 
 /// Mock content from the Figma frame (168:110). Simulated; not market data.
 abstract final class YourMarketMock {
-  static const change24h = r'+$1.8M (4.27%)';
-  static const unitLine = r'$0.4400 / unit · 100M supply';
-  static const price = r'$0.4400';
   static const skew = '58% long';
   static const openInterest = r'$3,140';
   static const funding = 'Longs pay shorts 0.01% in 3h 12m';
@@ -133,10 +159,29 @@ abstract final class YourMarketMock {
   static const holderSplit = '82 long · 60 short';
   static const holdersChange = '+9 this week';
 
-  /// The creator's share of trading fees: the video's 40% (O-05). A demo
-  /// assumption, not TPX economics; every place showing it says so.
+  /// The creator's share of trading fees: the video's 40% (O-05, the
+  /// video's economic copy, with no demo-assumption label).
   static const creatorSharePct = 40;
-  static const shareLabel = '$creatorSharePct% share is a demo assumption';
+  static const shareLabel = '$creatorSharePct% creator share';
+
+  /// The seeded market's (`HAS_MARKET`) cap: $44.0M in int cents, and what
+  /// it moved by over each of `PortfolioMock.spans` (1h, 4h, 1D, 1W, 1M,
+  /// All), in cents. A fresh listing has its own starting cap and no moves
+  /// (`Scenario.ownCapCents`). The moves are fixture history, not a
+  /// listing's start: the 1W line begins at $38.4M a week back, at
+  /// [listedAt], and the 1M and All lines reach before it.
+  static const seededCapCents = 4400000000;
+  static const seededCapMovesCents = [
+    -21000000,
+    35000000,
+    180000000,
+    560000000,
+    -230000000,
+    3120000000,
+  ];
+
+  /// The market's supply in units: 100M, whole millions.
+  static const supplyUnits = 100000000;
 
   /// When the seeded market (`HAS_MARKET`) was listed: a week before the
   /// fixture's now, so this week's seeded credits all follow it.
@@ -162,8 +207,12 @@ abstract final class YourMarketMock {
   ]);
 
   /// The user's published calls, as Your market's record lists them (the
-  /// call receipts' seed). The record states no entry prices or
-  /// settlement times.
+  /// call receipts' seed). The record states no entry prices. Each verdict
+  /// settles at the start of its rule's deadline day (`Scenario.outcomeAt`
+  /// reads whole days): Friday Sep 25, before the clock, and Oct 2, after
+  /// it, so that call counts as open at the clock. Its entry
+  /// date (Oct 2) is also after the clock, a fixture-v1 date left as is:
+  /// the record never reads entry dates.
   static const record = [
     CallReceipt(
       id: 'maya-sol-300-fri',
@@ -173,6 +222,7 @@ abstract final class YourMarketMock {
       entryAt: 'Thu 14:32',
       rule: r'SOL reaches $300 by Fri',
       result: CallOutcome.right,
+      settledAt: 'Sep 25',
       odds: '22%',
     ),
     CallReceipt(
@@ -183,6 +233,7 @@ abstract final class YourMarketMock {
       entryAt: 'Oct 2',
       rule: r'ETH reaches $4,000 by Oct 2',
       result: CallOutcome.wrong,
+      settledAt: 'Oct 2',
       odds: '31%',
     ),
     CallReceipt(
@@ -366,3 +417,59 @@ final seedCalls = List<CallReceipt>.unmodifiable([
   ...YourMarketMock.record,
   ...traderCalls,
 ]);
+
+/// The user's own market cap in int cents, as every screen prints it:
+/// tenths of a million from $1M ("$44.0M"), whole dollars below
+/// ("$10,000"). Rounds half-up, so it takes non-negative cents only, and
+/// caps from $999.95M up are out of the demo's range.
+String formatCap(int cents) {
+  assert(cents >= 0 && cents < 99995000000);
+  if (cents >= 100000000) {
+    final t = (cents + 5000000) ~/ 10000000;
+    return '\$${t ~/ 10}.${t % 10}M';
+  }
+  final whole = ((cents + 50) ~/ 100).toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+  return '\$$whole';
+}
+
+/// The cap's move from [startCents] to [endCents]: "+" for a rise or no
+/// move, "−" for a fall, the move through [formatCap], then its share of
+/// [startCents] in hundredths of a percent, half-up ("+$1.8M (4.27%)").
+/// No percentage from a start of zero or less. The sign comes from the
+/// exact move in cents, not the rounded amount, so a fall under 50 cents
+/// prints "−$0"; no cap reaches it, since every cap and move is whole
+/// dollars.
+String formatCapChange(int startCents, int endCents) {
+  final move = endCents - startCents;
+  final sign = move < 0 ? '−' : '+';
+  final amount = '$sign${formatCap(move.abs())}';
+  if (startCents <= 0) return amount;
+  final p = (move.abs() * 20000 + startCents) ~/ (2 * startCents);
+  return '$amount (${p ~/ 100}.${(p % 100).toString().padLeft(2, '0')}%)';
+}
+
+/// One unit's price, the cap over [supplyUnits], in ten-thousandths of a
+/// dollar, half-up ("$0.4400").
+String formatUnitPrice(int capCents, int supplyUnits) {
+  assert(capCents >= 0 && supplyUnits > 0);
+  final t = (capCents * 100 + supplyUnits ~/ 2) ~/ supplyUnits;
+  return '\$${t ~/ 10000}.${(t % 10000).toString().padLeft(4, '0')}';
+}
+
+/// The user's own cap over [span] (an index of `PortfolioMock.spans`), in
+/// dollars for display only, ending at `Scenario.ownCapCents`; null with
+/// no cap. The seed walks from cap − move to cap; a fresh listing has no
+/// history, so its line is flat at the cap (not [bridgeSeries], which
+/// wiggles even a zero move). Its 48 points repeat [bridgeSeries]'s
+/// default `n` (spec 12); change both together.
+List<double>? ownCapSeries(int span) {
+  RangeError.checkValidIndex(span, PortfolioMock.spans);
+  final cap = Scenario.ownCapCents;
+  if (cap == null) return null;
+  if (!Scenario.ownCapHasHistory) return List.filled(48, cap / 100);
+  final move = Scenario.ownCapMoveCents(span);
+  return bridgeSeries('cap/$span', (cap - move) / 100, cap / 100);
+}

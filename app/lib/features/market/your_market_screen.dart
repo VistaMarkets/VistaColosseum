@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../portfolio/series_chart.dart';
 import 'market_mock.dart';
 import 'receipt_screens.dart';
 
@@ -33,6 +33,11 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     const gap = SizedBox(height: VistaSpace.xl);
+    // Read at build, with no ownCap listener: nothing changes the cap while
+    // this screen is open. Reset demo pops this route before it resets, but
+    // the route stays mounted through its exit transition and may show
+    // either cap there. Null with no market.
+    final cap = Scenario.ownCapCents;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -59,9 +64,12 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
                   VistaSpace.gutter,
                 ),
                 children: [
-                  _marketCap(),
+                  _marketCap(cap),
                   gap,
-                  const _MarketCapChart(),
+                  if (ownCapSeries(_span) case final s?)
+                    SizedBox(height: 150, child: SeriesChart(focus: s))
+                  else
+                    const SizedBox(height: 150),
                   gap,
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -76,24 +84,32 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
                   gap,
                   const VistaHairline(),
                   gap,
-                  const Row(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: VistaMetric(
                           label: 'Price',
-                          value: YourMarketMock.price,
+                          value: cap == null
+                              ? unavailable
+                              : formatUnitPrice(
+                                  cap,
+                                  YourMarketMock.supplyUnits,
+                                ),
+                          valueColor: cap == null
+                              ? VistaColors.textMuted
+                              : VistaColors.textPrimary,
                         ),
                       ),
-                      SizedBox(width: VistaSpace.md),
-                      Expanded(
+                      const SizedBox(width: VistaSpace.md),
+                      const Expanded(
                         child: VistaMetric(
                           label: 'Skew',
                           value: YourMarketMock.skew,
                         ),
                       ),
-                      SizedBox(width: VistaSpace.md),
-                      Expanded(
+                      const SizedBox(width: VistaSpace.md),
+                      const Expanded(
                         child: VistaMetric(
                           label: 'Open interest',
                           value: YourMarketMock.openInterest,
@@ -140,7 +156,12 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
     );
   }
 
-  Widget _marketCap() {
+  /// The user's own [cap] (`Scenario.ownCapCents`), its change over the
+  /// selected span and its unit price; each shows [unavailable] with no cap.
+  Widget _marketCap(int? cap) {
+    assert(YourMarketMock.supplyUnits % 1000000 == 0);
+    const muted = VistaColors.textMuted;
+    final move = Scenario.ownCapMoveCents(_span);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,21 +170,40 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(PortfolioMock.marketCap, style: VistaType.display),
+          child: Text(
+            cap == null ? unavailable : formatCap(cap),
+            style: cap == null
+                ? VistaType.display.copyWith(color: muted)
+                : VistaType.display,
+          ),
         ),
         const SizedBox(height: 3),
         Wrap(
           spacing: VistaSpace.xs,
           children: [
             Text(
-              YourMarketMock.change24h,
-              style: VistaType.bodyMedium.copyWith(color: VistaColors.long),
+              cap == null ? unavailable : formatCapChange(cap - move, cap),
+              style: VistaType.bodyMedium.copyWith(
+                color: cap == null
+                    ? muted
+                    : move >= 0
+                    ? VistaColors.long
+                    : VistaColors.short,
+              ),
             ),
-            Text('Last 24 hours', style: VistaType.bodyMedium),
+            Text(spanWindows[_span], style: VistaType.bodyMedium),
           ],
         ),
         const SizedBox(height: 3),
-        Text(YourMarketMock.unitLine, style: VistaType.caption),
+        Text(
+          cap == null
+              ? unavailable
+              : '${formatUnitPrice(cap, YourMarketMock.supplyUnits)} / unit · '
+                    '${YourMarketMock.supplyUnits ~/ 1000000}M supply',
+          style: cap == null
+              ? VistaType.caption.copyWith(color: muted)
+              : VistaType.caption,
+        ),
         const SizedBox(height: 3),
         // Market credits only (spec 06): the ledger Total adds copy fees.
         // Never a stored figure; opens the ledger.
@@ -205,62 +245,6 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
           style: VistaType.label.copyWith(color: VistaColors.textMuted),
         ),
       ],
-    );
-  }
-}
-
-/// Market-cap line (static Figma vectors on a 370×150 box; x stretches).
-class _MarketCapChart extends StatelessWidget {
-  const _MarketCapChart();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 150,
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final sx = c.maxWidth / 370;
-          Widget layer(String asset, Rect r) => Positioned(
-            left: r.left * sx,
-            top: r.top,
-            width: r.width * sx,
-            height: r.height,
-            child: SvgPicture.asset(asset, fit: BoxFit.fill),
-          );
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              layer(
-                VistaAssets.marketDotLattice,
-                const Rect.fromLTWH(0, 0, 370, 150),
-              ),
-              layer(
-                VistaAssets.marketBaseline,
-                const Rect.fromLTWH(0, 141, 370, 1),
-              ),
-              layer(
-                VistaAssets.marketClipAbove,
-                const Rect.fromLTWH(-5, -6, 380, 148),
-              ),
-              layer(
-                VistaAssets.marketClipBelow,
-                const Rect.fromLTWH(-5, 142, 380, 14),
-              ),
-              // Live dot at the latest point, on the right edge.
-              Positioned(
-                left: c.maxWidth - 6.5,
-                top: 1.5,
-                child: const VistaIcon(VistaAssets.marketLiveHalo, size: 13),
-              ),
-              Positioned(
-                left: c.maxWidth - 3.5,
-                top: 4.5,
-                child: const VistaIcon(VistaAssets.markerLive, size: 7),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }

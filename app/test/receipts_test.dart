@@ -245,13 +245,16 @@ void main() {
     expect(Scenario.marketFeesCents, 0);
   });
 
-  testWidgets('the 40% share is labelled a demo assumption, with one worked '
-      'example, in the ledger and the listing flow', (tester) async {
+  testWidgets('the 40% share shows with one worked example and no '
+      'demo-assumption label, in the ledger and the listing flow', (
+    tester,
+  ) async {
     await pumpApp(tester, home: const LedgerScreen());
     expect(
-      find.text('Illustrative demo ledger · 40% share is a demo assumption'),
+      find.text('Illustrative demo ledger · 40% creator share'),
       findsOneWidget,
     );
+    expect(find.textContaining('demo assumption'), findsNothing);
     // The example works the newest credit back from its fee: fee × 40%.
     final first = Scenario.feeEntries.value.first;
     final fee = first.amountCents * 100 ~/ 40;
@@ -266,7 +269,9 @@ void main() {
     await pumpApp(tester, home: const MakeMarketFlow());
     await tapAndSettle(tester, find.text(r'Continue with $MAYA'));
     expect(find.text('You earn 40% of the fees from both'), findsOneWidget);
-    expect(find.text('40% share is a demo assumption'), findsOneWidget);
+    expect(find.textContaining('demo assumption'), findsNothing);
+    // The line above already says 40%; no caption repeats the label.
+    expect(find.text(YourMarketMock.shareLabel), findsNothing);
   });
 
   test('the worked example prints the listed credit for an odd-cent '
@@ -306,12 +311,20 @@ void main() {
     await pumpApp(tester, home: const YourMarketScreen());
     expect(myCalls, hasLength(YourMarketMock.record.length));
     for (final c in myCalls) {
+      // The receipt shows the outcome at the clock, as the record counts it.
+      // Derived from outcomeAt on purpose; trader_record_test pins the
+      // literal outcomes.
+      final at = Scenario.outcomeAt(c, Scenario.clock.value);
+      final open = at == CallOutcome.open;
+      // Every seed here is settled or open at the clock; an unavailable one
+      // has no Settled time and needs its own expectations below.
+      expect(at, isNotNull);
       await tapAndSettle(tester, find.text(c.rule!));
       expect(find.byType(CallReceiptScreen), findsOneWidget);
       expect(onReceipt(find.text(c.rule!)), findsOneWidget);
       expect(onReceipt(find.text(c.author)), findsOneWidget);
       expect(onReceipt(find.text(c.asset)), findsOneWidget);
-      expect(onReceipt(find.text(c.status)), findsOneWidget);
+      expect(onReceipt(find.text(outcomeStatus(at))), findsOneWidget);
       expect(onReceipt(find.text(noCall)), findsNothing);
       expect(
         onReceipt(find.text('A published call, not an order fill')),
@@ -319,20 +332,27 @@ void main() {
       );
       expect(onReceipt(find.text(Scenario.fixtureVersion)), findsOneWidget);
       expect(onReceipt(find.text(c.side!.label)), findsOneWidget);
-      expect(onReceipt(find.text(c.entryAt!)), findsOneWidget);
+      // The Oct 2 call has a settlement date yet is open at the Sep 26
+      // clock: it reads Open and 'Not settled yet', and shows Oct 2 once
+      // (its entry date).
+      final dates = [c.entryAt!, if (!open) c.settledAt!];
+      for (final d in dates.toSet()) {
+        expect(
+          onReceipt(find.text(d)),
+          findsNWidgets(dates.where((x) => x == d).length),
+        );
+      }
       expect(onReceipt(find.text(c.odds!)), findsOneWidget);
-      // The record states no entry price or paper size, nor a settlement
-      // time for the settled calls: shown as unavailable, not blank.
-      final open = c.result == CallOutcome.open;
+      // The record states no entry price or paper size: shown as
+      // unavailable, not blank.
       expect(c.entryPrice, isNull);
-      expect(c.settledAt, isNull);
       expect(
         onReceipt(find.text('Not settled yet')),
         open ? findsOneWidget : findsNothing,
       );
       expect(onReceipt(find.text('Paper size')), findsOneWidget);
       expect(c.sizeCents, isNull);
-      expect(onReceipt(find.text('unavailable')), findsNWidgets(open ? 2 : 3));
+      expect(onReceipt(find.text('unavailable')), findsNWidgets(2));
       await back(tester, CallReceiptScreen);
     }
 

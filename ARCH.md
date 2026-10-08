@@ -444,6 +444,7 @@ VistaColosseum/
 │   │   ├── empty_states_test.dart
 │   │   ├── feed_order_ticket_test.dart
 │   │   ├── home_screen_test.dart
+│   │   ├── market_cap_test.dart
 │   │   ├── order_ticket_test.dart
 │   │   ├── receipts_test.dart
 │   │   ├── replay_live_test.dart
@@ -974,12 +975,15 @@ VistaColosseum/
 │   │   ├── 07-trader-record-panel.md
 │   │   ├── 08-list-empty-failed-states.md
 │   │   ├── 09-copy-story.md
-│   │   └── 11-verification-and-packaging.md
+│   │   ├── 11-verification-and-packaging.md
+│   │   └── 12-own-market-cap.md
 │   └── verification/
 │       ├── 2026-10-05-m1-shell-and-scenario.md
 │       ├── 2026-10-05-m2-home-and-listing.md
 │       ├── 2026-10-05-m3-market-and-wallet.md
 │       ├── 2026-10-05-m4-arena-discovery.md
+│       ├── 2026-10-07-m2-m4-reverification.md
+│       ├── 2026-10-07-m5-participation-and-copy.md
 │       └── rehearsal-protocol.md
 ├── scripts/
 │   └── gate.sh
