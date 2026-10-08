@@ -267,7 +267,6 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
                       key: ValueKey('challenge-card-$i'),
                       option: _options[i],
                       ticker: _ticker,
-                      picked: i == _page,
                     ),
                   ),
                 ),
@@ -308,10 +307,6 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
                       decoration: BoxDecoration(
                         color: VistaColors.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: VistaColors.accent,
-                          width: 1.5,
-                        ),
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: Row(
@@ -352,32 +347,21 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
 }
 
 /// A ready-made challenge: the wording and where its price came from, the
-/// whole sentence, and its price field. The one in view is outlined.
+/// whole sentence, and its price field.
 class _ChallengeCard extends StatelessWidget {
-  const _ChallengeCard({
-    super.key,
-    required this.option,
-    required this.ticker,
-    required this.picked,
-  });
+  const _ChallengeCard({super.key, required this.option, required this.ticker});
 
   final _Option option;
   final String ticker;
-  final bool picked;
 
   @override
   Widget build(BuildContext context) {
     final label = VistaType.labelStrong.copyWith(color: VistaColors.textMuted);
-    return AnimatedContainer(
-      duration: VistaMotion.state,
+    return Container(
       padding: const EdgeInsets.all(VistaSpace.gutter),
       decoration: BoxDecoration(
         color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: picked ? VistaColors.accent : Colors.transparent,
-          width: 1.5,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
