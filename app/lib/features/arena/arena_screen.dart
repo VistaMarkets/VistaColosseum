@@ -134,9 +134,6 @@ class _ArenaScreenState extends State<ArenaScreen> {
                           _NoMarkets(onExplore: widget.onExplore),
                         for (final r in _yourMarkets(calls, positions))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
-                        const _Head('Trending now'),
-                        for (final r in _trending(calls))
-                          _RoomRow(room: r, onTap: () => _room(r.key)),
                         // Figma 591:222: live battles, swiped sideways.
                         _Head(
                           'Live battles',
@@ -154,6 +151,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
                             onOpen: (b) => _push(DebateScreen.route(b)),
                           ),
                         ),
+                        const _Head('Trending now'),
+                        for (final r in _trending(calls))
+                          _RoomRow(room: r, onTap: () => _room(r.key)),
                         _Head(
                           'Trending calls',
                           trailing: 'See all',
