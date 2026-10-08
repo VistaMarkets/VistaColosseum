@@ -1096,6 +1096,51 @@ void main() {
     expect(find.byType(LiveBattlesScreen), findsOneWidget);
   });
 
+  testWidgets('Join on a battle: ticket without that side, post page with it', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    LiveBattle live(String ticker) => BattlesStore.all.value.firstWhere(
+      (b) => b.ticker == ticker && !b.settled,
+    );
+    final nav = Navigator.of(tester.element(find.byType(Scaffold).first));
+    // No BTC position: the order ticket, on the long side.
+    nav.push(BattleScreen.route(live('BTC')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Join longs'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PickPositionScreen), findsNothing);
+    final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
+    expect((ticket.symbol, ticket.side), ('BTC', TradeSide.long));
+    Navigator.of(tester.element(find.byType(OrderTicket))).pop();
+    await tester.pumpAndSettle();
+    nav.pop();
+    await tester.pumpAndSettle();
+    // An ETH long: straight to the post page with the battle attached.
+    final eth = live('ETH');
+    nav.push(BattleScreen.route(eth));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Join longs'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PickPositionScreen), findsNothing);
+    expect(find.byType(ComposeTakeScreen), findsOneWidget);
+    expect(find.text('LIVE DEBATE'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Holding the long.');
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Post'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BattleScreen), findsOneWidget);
+    expect(
+      BattlesStore.all.value.firstWhere((b) => b.id == eth.id).takes,
+      eth.takes + 1,
+    );
+  });
+
   group('challenge', () {
     Future<void> toCalls(WidgetTester tester) async {
       tester.view

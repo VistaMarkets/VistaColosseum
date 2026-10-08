@@ -6,19 +6,20 @@ import '../live/market_prices.dart';
 import '../market/trader_market_screen.dart';
 import '../people/follow_state.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../portfolio/positions_state.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_state.dart';
 import '../trade/caller_play_screen.dart';
 import '../trade/order_ticket.dart';
 import 'arena_mock.dart';
 import 'hub_call_card.dart';
-import 'pick_position_screen.dart';
+import 'compose_take_screen.dart';
 
 /// A live battle (Figma 599:222), opened from a Live battles card: about
 /// the people in it. The question and time left, the most right callers
 /// in it to follow (with their side), then every call (All / Long /
-/// Short) as call cards, and Join longs / Join shorts, which make your
-/// case from a position like Argue does.
+/// Short) as call cards, and Join longs / Join shorts: the post page when
+/// you hold that side, else the order ticket on it.
 class BattleScreen extends StatefulWidget {
   const BattleScreen({super.key, required this.battle});
 
@@ -36,11 +37,19 @@ class _BattleScreenState extends State<BattleScreen> {
 
   void _push(Route<void> route) => Navigator.of(context).push(route);
 
-  /// Join a side: pick (or open) a position on it, write the call with the
-  /// battle attached. It joins (moving the split) and lands here first.
+  /// Join a side. With a position on it in this market, straight to the
+  /// post page with the battle attached; without one, the order ticket on
+  /// that side. A posted call joins (moving the split) and lands here
+  /// first.
   Future<void> _join(LiveBattle b, TradeSide side) async {
+    final mine = PositionsState.open.value
+        .where((p) => p.detail.symbol == b.ticker && p.side == side)
+        .firstOrNull;
+    if (mine == null) {
+      return showOrderTicket(context, symbol: b.ticker, side: side);
+    }
     final take = await Navigator.of(context)
-        .push(PickPositionScreen.route(debate: b, side: side));
+        .push(ComposeTakeScreen.route(mine, debate: b));
     if (take == null || !mounted) return;
     CallsStore.add(take);
     setState(() => _filter = 0);
