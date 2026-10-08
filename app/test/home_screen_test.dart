@@ -792,6 +792,9 @@ void main() {
       expect(rowNames(tester), ['AVAX']);
       await tester.enterText(find.byType(TextField), '');
       await tester.pumpAndSettle();
+      // Cancel leaves search; Favorites and the sections come back.
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
 
       // Starring ARB adds it to the favourites rail.
       expect(find.byType(VistaMarketCard), findsNWidgets(3));
@@ -1241,6 +1244,29 @@ void main() {
       'vexa',
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Explore: tapping search shows just the full list; Cancel', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Explore'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    expect(find.text('Favorites'), findsNothing);
+    expect(find.text('Moving now'), findsNothing);
+    expect(find.text('ALL MARKETS'), findsOneWidget);
+    expect(find.byType(AssetMarketCard), findsNWidgets(5));
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Favorites'), findsOneWidget);
+    expect(find.text('Cancel'), findsNothing);
   });
 
   group('challenge', () {

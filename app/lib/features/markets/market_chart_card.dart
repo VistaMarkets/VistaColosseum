@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
-import '../calls/calls_store.dart';
 import '../live/market_prices.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../portfolio/series_chart.dart';
@@ -236,10 +235,10 @@ class LeaderboardCard extends StatelessWidget {
   }
 }
 
-/// An asset perp in the Assets list, in the same card as trader markets:
-/// ticker over the asset's name with its max leverage, live price with its
-/// 24h change, favourite star; the day as a short chart; then open interest,
-/// funding and how many calls people have made on it. Simulated history.
+/// An asset perp in Explore's All markets: a compact row, the reference
+/// list under the sections. Icon, ticker and leverage over the full name,
+/// a small line chart of the day, live price with its 24h change, and the
+/// favourite star.
 class AssetMarketCard extends StatelessWidget {
   const AssetMarketCard({
     super.key,
@@ -259,221 +258,106 @@ class AssetMarketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final m = market;
-    return ValueListenableBuilder(
-      valueListenable: CallsStore.all,
-      builder: (context, all, _) {
-        final calls = all.where((t) => t.ticker == m.id).length;
-        return _MarketChartCard(
-          market: m,
-          leading: VistaIcon(m.rowIcon, size: 36),
-          title: m.name,
-          subtitle: MarketsMock.assetNames[m.id] ?? m.name,
-          badge: m.badge,
-          period: '24h',
-          starred: starred,
-          onStar: onStar,
-          onPressed: onPressed,
-          foot: (strong) => [
-            const TextSpan(text: 'OI '),
-            TextSpan(text: m.subline.replaceFirst('OI ', ''), style: strong),
-            const TextSpan(text: '   Funding '),
-            TextSpan(text: m.third, style: strong),
-            const TextSpan(text: '   '),
-            if (calls == 0)
-              const TextSpan(text: 'No calls')
-            else ...[
-              TextSpan(text: '$calls', style: strong),
-              TextSpan(text: ' call${calls == 1 ? '' : 's'}'),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// The shared card: header (leading, title over subtitle, price and change,
-/// star), a 56pt chart in [SeriesChart]'s style with the live end dot, and
-/// one line of figures.
-class _MarketChartCard extends StatelessWidget {
-  const _MarketChartCard({
-    required this.market,
-    required this.leading,
-    required this.title,
-    required this.subtitle,
-    required this.period,
-    required this.starred,
-    required this.onStar,
-    required this.foot,
-    this.badge,
-    this.onPressed,
-  });
-
-  final MarketItem market;
-  final Widget leading;
-  final String title;
-  final String subtitle;
-  final String? badge;
-
-  /// What the change and chart cover: '7d' or '24h'.
-  final String period;
-  final bool starred;
-  final VoidCallback onStar;
-  final List<InlineSpan> Function(TextStyle strong) foot;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final m = market;
-    final muted = VistaType.meta.copyWith(color: VistaColors.textMuted);
-    final strong = VistaType.figures(VistaType.meta)
-        .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
-
+    final narrow = MediaQuery.sizeOf(context).width < 390;
     return ValueListenableBuilder(
       valueListenable: MarketPrices.of(m.id),
-      builder: (context, price, _) {
-        final up = m.changePct >= 0;
-        return Semantics(
-          button: true,
-          label:
-              '$title, $subtitle, ${MarketPrices.format(price, compact: true)}, '
-              '${vistaChangeLabel(m.changePct)} over $period',
-          child: VistaPressable(
-            scale: 0.98,
-            onTap: onPressed,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(
-                VistaSpace.gutter,
-                VistaSpace.xl,
-                VistaSpace.gutter,
-                VistaSpace.xl,
-              ),
-              decoration: BoxDecoration(
-                color: VistaColors.surface,
-                borderRadius: BorderRadius.circular(VistaRadius.card),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 36,
-                    child: Row(
-                      children: [
-                        leading,
-                        const SizedBox(width: VistaSpace.lg),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      title,
-                                      style: VistaType.subhead.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (badge != null) ...[
-                                    const SizedBox(width: VistaSpace.sm),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 1,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: VistaColors.surfaceRaised,
-                                        borderRadius: BorderRadius.circular(
-                                          VistaRadius.sm,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        badge!,
-                                        style: VistaType.label.copyWith(
-                                          color: VistaColors.textMuted,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
+      builder: (context, price, _) => Semantics(
+        button: true,
+        label:
+            '${m.name}, ${MarketsMock.assetNames[m.id] ?? m.name}, '
+            '${MarketPrices.format(price, compact: true)}, '
+            '${vistaChangeLabel(m.changePct)} over 24h',
+        child: VistaPressable(
+          scale: 0.98,
+          onTap: onPressed,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 59),
+            padding: const EdgeInsets.fromLTRB(
+              VistaSpace.xl,
+              VistaSpace.lg,
+              VistaSpace.xs,
+              VistaSpace.lg,
+            ),
+            decoration: BoxDecoration(
+              color: VistaColors.surface,
+              borderRadius: BorderRadius.circular(VistaRadius.card),
+            ),
+            child: Row(
+              children: [
+                VistaIcon(m.rowIcon, size: VistaSize.listLeading),
+                const SizedBox(width: VistaSpace.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              m.name,
+                              style: VistaType.subhead.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
-                              const SizedBox(height: 1),
-                              Text(
-                                subtitle,
-                                style: VistaType.chip.copyWith(
-                                  color: VistaColors.textMuted,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: VistaSpace.md),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              MarketPrices.format(price, compact: true),
-                              style: VistaType.figures(VistaType.headline),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        '${up ? '▲' : '▼'}'
-                                        '${m.changePct.abs().toStringAsFixed(1)}%',
-                                    style: TextStyle(
-                                      color: vistaChangeColor(m.changePct),
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: ' $period',
-                                    style: const TextStyle(
-                                      color: VistaColors.textMuted,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
+                          ),
+                          if (m.badge != null) ...[
+                            const SizedBox(width: VistaSpace.sm),
+                            Text(
+                              m.badge!,
+                              style: VistaType.label.copyWith(
+                                color: VistaColors.textMuted,
                               ),
-                              style: VistaType.figures(VistaType.label),
                             ),
                           ],
+                        ],
+                      ),
+                      Text(
+                        MarketsMock.assetNames[m.id] ?? m.name,
+                        style: VistaType.chip.copyWith(
+                          color: VistaColors.textMuted,
                         ),
-                        VistaStarButton(
-                          starred: starred,
-                          onPressed: onStar,
-                          size: 16,
-                        ),
-                      ],
-                    ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: VistaSpace.md),
-                  MarketLineChart(
+                ),
+                SizedBox(
+                  width: narrow ? 52 : 72,
+                  child: MarketLineChart(
                     id: m.id,
                     changePct: m.changePct,
                     price: price,
-                    height: 56,
+                    height: 30,
                   ),
-                  const SizedBox(height: VistaSpace.md),
-                  Text.rich(
-                    TextSpan(children: foot(strong)),
-                    style: muted,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: VistaSpace.xl),
+                ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: narrow ? 64 : 76),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        MarketPrices.format(price, compact: true),
+                        style: VistaType.figures(VistaType.subhead),
+                      ),
+                      Text(
+                        '${m.changePct >= 0 ? '▲' : '▼'}'
+                        '${m.changePct.abs().toStringAsFixed(1)}%',
+                        style: VistaType.figures(VistaType.label)
+                            .copyWith(color: vistaChangeColor(m.changePct)),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                VistaStarButton(starred: starred, onPressed: onStar, size: 16),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

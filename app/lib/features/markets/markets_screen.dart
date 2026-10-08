@@ -40,6 +40,10 @@ class _MarketsScreenState extends State<MarketsScreen> {
   int _tab = 0; // 0 Assets, 1 Leaderboard
   final _search = TextEditingController();
   String _query = '';
+
+  /// The search bar has focus: Explore shows just the full list under it.
+  bool _searchFocused = false;
+  bool get _searching => _searchFocused || _query.isNotEmpty;
   final _sort = [0, 0];
 
   /// Leaderboard time window, an index into [Leaderboard.windows] (7d).
@@ -232,10 +236,46 @@ class _MarketsScreenState extends State<MarketsScreen> {
                         VistaSpace.gutter,
                         VistaSpace.md,
                       ),
-                      child: VistaSearchField(
-                        hint: _traders ? 'Search traders' : 'Search markets',
-                        controller: _search,
-                        onChanged: (q) => setState(() => _query = q),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Focus(
+                              onFocusChange: (f) =>
+                                  setState(() => _searchFocused = f),
+                              child: VistaSearchField(
+                                hint: _traders
+                                    ? 'Search traders'
+                                    : 'Search markets',
+                                controller: _search,
+                                onChanged: (q) => setState(() => _query = q),
+                              ),
+                            ),
+                          ),
+                          // Searching: Cancel clears it and brings the
+                          // sections back.
+                          if (_searching) ...[
+                            const SizedBox(width: VistaSpace.md),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                _search.clear();
+                                FocusScope.of(context).unfocus();
+                                setState(() => _query = '');
+                              },
+                              child: SizedBox(
+                                height: VistaSize.tapTarget,
+                                child: Center(
+                                  child: Text(
+                                    'Cancel',
+                                    style: VistaType.body.copyWith(
+                                      color: VistaColors.accent,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                     Padding(
@@ -247,7 +287,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ),
                     ),
                     // Favorites sit on Assets only; the board is the board.
-                    if (!_traders && favItems.isNotEmpty) ...[
+                    if (!_traders && !_searching && favItems.isNotEmpty) ...[
                       const SizedBox(height: VistaSpace.xl),
                       Padding(
                         padding: gutter,
@@ -323,7 +363,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                     ],
                     // Sideways sections: why a market is worth a look. Off
                     // while searching, so results sit under the search.
-                    if (!_traders && _query.isEmpty)
+                    if (!_traders && !_searching)
                       ExploreSections(
                         onAsset: (m) =>
                             Navigator.of(context)
