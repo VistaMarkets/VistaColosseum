@@ -477,7 +477,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           VistaSpace.gutter,
                           0,
                           VistaSpace.gutter,
-                          _traders ? VistaSpace.sm : VistaSpace.md,
+                          VistaSpace.md,
                         ),
                         child: _traders
                             ? LeaderboardCard(
@@ -486,6 +486,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
                                 metric: _sortKey,
                                 window: _window,
                                 isYou: m.id == PortfolioMock.handle,
+                                starred: favs.contains(m.id),
+                                onStar: () => _toggleFavorite(m.id),
                                 onPressed: () => _open(m),
                               )
                             : AssetMarketCard(

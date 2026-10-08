@@ -9,12 +9,12 @@ import '../portfolio/series_chart.dart';
 import 'leaderboard.dart';
 import 'markets_mock.dart';
 
-/// A trader market on the Explore Leaderboard: a slim row card in the
-/// Portfolio positions style ([VistaListRow]), so more fit on screen. Its
-/// place (the top three in medal colours, the avatar ringed to match),
-/// ticker and handle over two figures, a small line chart of the selected
-/// [window], and on the right the figure the [metric] chip ranks by. Your
-/// own market is outlined. Simulated history.
+/// A trader market on the Explore Leaderboard, laid out like the Assets
+/// All markets rows ([AssetMarketCard]): its place (the top three in medal
+/// colours, the avatar ringed to match; Brand new shows a NEW tag
+/// instead), avatar, ticker over handle, a small line chart of the
+/// selected [window], the figure the [metric] chip ranks by, and the
+/// favourite star. Your own market is outlined. Simulated history.
 class LeaderboardCard extends StatelessWidget {
   const LeaderboardCard({
     super.key,
@@ -23,6 +23,8 @@ class LeaderboardCard extends StatelessWidget {
     required this.metric,
     required this.window,
     this.isYou = false,
+    this.starred = false,
+    this.onStar,
     this.onPressed,
   });
 
@@ -35,6 +37,8 @@ class LeaderboardCard extends StatelessWidget {
   /// Index into [Leaderboard.windows].
   final int window;
   final bool isYou;
+  final bool starred;
+  final VoidCallback? onStar;
   final VoidCallback? onPressed;
 
   String get name => market.name;
@@ -49,8 +53,7 @@ class LeaderboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = market;
     final card = MarketsMock.traderCards[m.id];
-    // Brand new is a list of launches, not a ranking: a NEW tag in place
-    // of the place, and no medals.
+    // Brand new is a list of launches, not a ranking.
     final fresh = metric == 'Brand new';
     final medal = !fresh && rank <= 3 ? medals[rank - 1] : null;
     final v = Leaderboard.value(m, metric, window) ?? 0;
@@ -62,7 +65,6 @@ class LeaderboardCard extends StatelessWidget {
         window == 3 ? 'holders' : 'new holders',
         VistaColors.long,
       ),
-      'Market cap' => (m.third, 'market cap', VistaColors.textPrimary),
       'Brand new' => (
         (card?.days ?? 0) == 0 ? 'Today' : '${card?.days ?? 0}d ago',
         'opened',
@@ -73,7 +75,6 @@ class LeaderboardCard extends StatelessWidget {
         w,
         vistaChangeColor(change),
       ),
-      // The window is in the selector above, so just "right".
       _ => (m.third, 'market cap', VistaColors.textPrimary),
     };
     final handle = [
@@ -81,186 +82,147 @@ class LeaderboardCard extends StatelessWidget {
       isYou ? 'You' : m.name,
       if (metric == 'Up and coming') '${card?.days ?? 0}d',
     ].join('   ');
-    final muted = VistaType.label.copyWith(color: VistaColors.textMuted);
-    final strong = VistaType.figures(VistaType.label)
-        .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
+    final narrow = MediaQuery.sizeOf(context).width < 390;
 
     return ValueListenableBuilder(
       valueListenable: MarketPrices.of(m.id),
-      builder: (context, price, _) {
-        final changeSpan = TextSpan(
-          text: '${change >= 0 ? '▲' : '▼'}${change.abs().toStringAsFixed(1)}%',
-          style: strong.copyWith(color: vistaChangeColor(change)),
-        );
-        final priceSpan = TextSpan(
-          text: MarketPrices.format(price, compact: true),
-          style: strong,
-        );
-        final capSpans = [
-          TextSpan(text: m.third, style: strong),
-          const TextSpan(text: ' cap'),
-        ];
-        const dot = TextSpan(text: '   ');
-        // Figures under the name, never the one on the right; the second
-        // never truncates, the first gives way on small phones. Change
-        // (on the right) leaves just the cap.
-        final (first, second) = switch (metric) {
-          'Market cap' => (<InlineSpan>[priceSpan], changeSpan),
-          'Change' => (capSpans, null),
-          _ => (capSpans, changeSpan),
-        };
-        final narrow = MediaQuery.sizeOf(context).width < 390;
-        return Semantics(
-          button: true,
-          label:
-              '${fresh ? 'New' : '#$rank'} ${card?.symbol ?? m.name}, '
-              '$handle, $figure $caption',
-          excludeSemantics: true,
-          child: VistaPressable(
-            scale: 0.98,
-            onTap: onPressed,
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 59),
-              padding: const EdgeInsets.fromLTRB(
-                VistaSpace.lg,
-                VistaSpace.lg,
-                VistaSpace.gutter,
-                VistaSpace.lg,
-              ),
-              decoration: BoxDecoration(
-                color: VistaColors.surface,
-                borderRadius: BorderRadius.circular(VistaRadius.card),
-                border: isYou
-                    ? Border.all(color: VistaColors.accent, width: 1.5)
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  if (fresh)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VistaColors.accentTint,
-                        borderRadius: BorderRadius.circular(VistaRadius.sm),
-                      ),
-                      child: Text(
-                        'NEW',
-                        style: VistaType.label.copyWith(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: VistaColors.accent,
-                        ),
-                      ),
-                    )
-                  else
-                    SizedBox(
-                      width: 18,
-                      child: Text(
-                        '$rank',
-                        textAlign: TextAlign.center,
-                        style: VistaType.figures(VistaType.body).copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: medal ?? VistaColors.textMuted,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: VistaSpace.xs),
+      builder: (context, price, _) => Semantics(
+        button: true,
+        label:
+            '${fresh ? 'New' : '#$rank'} ${card?.symbol ?? m.name}, '
+            '$handle, $figure $caption',
+        child: VistaPressable(
+          scale: 0.98,
+          onTap: onPressed,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 59),
+            padding: EdgeInsets.fromLTRB(
+              VistaSpace.lg,
+              VistaSpace.lg,
+              onStar == null ? VistaSpace.xl : VistaSpace.xs,
+              VistaSpace.lg,
+            ),
+            decoration: BoxDecoration(
+              color: VistaColors.surface,
+              borderRadius: BorderRadius.circular(VistaRadius.card),
+              border: isYou
+                  ? Border.all(color: VistaColors.accent, width: 1.5)
+                  : null,
+            ),
+            child: Row(
+              children: [
+                if (fresh)
                   Container(
-                    width: VistaSize.listLeading,
-                    height: VistaSize.listLeading,
-                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: Color(
-                        card?.avatar ?? VistaColors.surfaceRaised.toARGB32(),
+                      color: VistaColors.accentTint,
+                      borderRadius: BorderRadius.circular(VistaRadius.sm),
+                    ),
+                    child: Text(
+                      'NEW',
+                      style: VistaType.label.copyWith(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: VistaColors.accent,
                       ),
-                      shape: BoxShape.circle,
-                      border: medal == null
-                          ? null
-                          : Border.all(color: medal, width: 1.5),
                     ),
-                    child: Text(m.name[0].toUpperCase(), style: VistaType.body),
-                  ),
-                  SizedBox(width: narrow ? VistaSpace.md : VistaSpace.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: card?.symbol ?? m.name,
-                                style: VistaType.subhead.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              TextSpan(text: '  $handle', style: muted),
-                            ],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: VistaSpace.xxs),
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [...first, if (second != null) dot],
-                                ),
-                                style: muted,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (second != null)
-                              Text.rich(second, style: muted, maxLines: 1),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: VistaSpace.md),
-                  // The window as the Assets cards draw it, live end dot
-                  // and all, just smaller.
+                  )
+                else
                   SizedBox(
-                    // Narrower on small phones so the figures keep room.
-                    width: narrow ? 44 : 72,
-                    child: MarketLineChart(
-                      id: m.id,
-                      changePct: change,
-                      price: price,
-                      height: 32,
-                      seriesKey: 'explore/${m.id}/$window',
+                    width: 18,
+                    child: Text(
+                      '$rank',
+                      textAlign: TextAlign.center,
+                      style: VistaType.figures(VistaType.body).copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: medal ?? VistaColors.textMuted,
+                      ),
                     ),
                   ),
-                  // Clear of the end dot, which sits on the chart's edge.
-                  const SizedBox(width: VistaSpace.xl),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: narrow ? 44 : 56),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          figure,
-                          style: VistaType.figures(
-                            narrow ? VistaType.subhead : VistaType.headline,
-                          ).copyWith(color: color),
+                const SizedBox(width: VistaSpace.sm),
+                Container(
+                  width: VistaSize.listLeading,
+                  height: VistaSize.listLeading,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Color(
+                      card?.avatar ?? VistaColors.surfaceRaised.toARGB32(),
+                    ),
+                    shape: BoxShape.circle,
+                    border: medal == null
+                        ? null
+                        : Border.all(color: medal, width: 1.5),
+                  ),
+                  child: Text(m.name[0].toUpperCase(), style: VistaType.body),
+                ),
+                const SizedBox(width: VistaSpace.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card?.symbol ?? m.name,
+                        style: VistaType.subhead.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
-                        const SizedBox(height: VistaSpace.xxs),
-                        Text(caption, style: muted),
-                      ],
-                    ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        handle,
+                        style: VistaType.chip.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  width: narrow ? 52 : 72,
+                  child: MarketLineChart(
+                    id: m.id,
+                    changePct: change,
+                    price: price,
+                    height: 30,
+                    seriesKey: 'explore/${m.id}/$window',
+                  ),
+                ),
+                const SizedBox(width: VistaSpace.xl),
+                ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: narrow ? 64 : 76),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        figure,
+                        style: VistaType.figures(VistaType.subhead)
+                            .copyWith(color: color),
+                      ),
+                      Text(
+                        caption,
+                        style: VistaType.label.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (onStar != null)
+                  VistaStarButton(
+                    starred: starred,
+                    onPressed: onStar!,
+                    size: 16,
+                  ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

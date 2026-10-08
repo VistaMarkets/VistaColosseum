@@ -847,13 +847,12 @@ void main() {
         find.descendant(of: maya, matching: find.byType(SeriesChart)),
         findsOneWidget,
       );
-      expect(
-        find.descendant(
-          of: maya,
-          matching: find.text('MAYA  You', findRichText: true),
-        ),
-        findsOneWidget,
-      );
+      for (final text in ['MAYA', 'You']) {
+        expect(
+          find.descendant(of: maya, matching: find.text(text)),
+          findsOneWidget,
+        );
+      }
       for (final text in [r'$44.0M', 'market cap']) {
         expect(
           find.descendant(of: maya, matching: find.text(text)),
@@ -863,12 +862,12 @@ void main() {
       expect(find.textContaining('% right'), findsNothing);
 
       await tester.scrollUntilVisible(
-        find.text('REAL  0xreal', findRichText: true),
+        find.text('0xreal'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       final xreal = find.ancestor(
-        of: find.text('REAL  0xreal', findRichText: true),
+        of: find.text('0xreal'),
         matching: find.byType(LeaderboardCard),
       );
       await tester.ensureVisible(xreal);
@@ -935,7 +934,7 @@ void main() {
       // than 30 days, so you (maya.eth) aren't on it.
       expect(rows.map((r) => r.name).take(2), ['vexa', 'pip.eth']);
       expect(rows.map((r) => r.name), isNot(contains('maya.eth')));
-      expect(find.text('VEXA  vexa   6d', findRichText: true), findsOneWidget);
+      expect(find.text('vexa   6d'), findsOneWidget);
       expect(find.text('+52'), findsOneWidget);
       expect(find.textContaining('You', findRichText: true), findsNothing);
     });
