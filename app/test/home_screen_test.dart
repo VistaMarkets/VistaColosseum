@@ -1076,9 +1076,15 @@ void main() {
         find.textContaining('ETH closes above', findRichText: true),
         findsOneWidget,
       );
-      // Wording and price change the statement.
-      await tester.tap(find.text('Touches'));
-      await tester.enterText(find.bySemanticsLabel('Price'), '3100');
+      // Ready-made challenges: swipe to Touches and set its price.
+      expect(find.text('CLOSES ABOVE'), findsOneWidget);
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
+      await tester.pumpAndSettle();
+      final touches = find.byKey(const ValueKey('challenge-card-1'));
+      await tester.enterText(
+        find.descendant(of: touches, matching: find.byType(TextField)),
+        '3100',
+      );
       await tester.pumpAndSettle();
       const statement = r'ETH touches $3,100 in 24 hours';
       expect(find.text(statement), findsOneWidget);

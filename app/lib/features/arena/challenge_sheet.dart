@@ -55,10 +55,39 @@ Future<void> startChallenge(BuildContext context, Take take) async {
   CallsStore.putOnDebate(take, debate.label);
 }
 
+/// One ready-made challenge on the carousel: its wording, why the price
+/// starts where it does, and the price (editable).
+class _Option {
+  _Option(this.kind, this.wording, this.note, double level)
+    : price = TextEditingController(text: _digits(level));
+
+  /// 0 closes, 1 touches, 2 stays, 3 ends (see [statement]).
+  final int kind;
+  final String wording;
+  final String note;
+  final TextEditingController price;
+
+  double? get level =>
+      double.tryParse(price.text.replaceAll(RegExp('[^0-9.]'), ''));
+
+  String statement(String ticker) {
+    final l = level;
+    final at = l == null ? r'$…' : MarketPrices.format(l, compact: true);
+    final verb = wording.toLowerCase();
+    return switch (kind) {
+      2 => '$ticker $verb $at for 24 hours',
+      3 => '$ticker $verb than $at in 24 hours',
+      _ => '$ticker $verb $at in 24 hours',
+    };
+  }
+}
+
+String _digits(double v) => groupDigits(v.roundToDouble(), 0);
+
 /// The Challenge sheet (Figma 578:273): who you're challenging and the side
-/// you take, when it ends, the debate (its sentence, the wording on a
-/// sideways strip, the price as its own field with shortcuts on another
-/// strip), your position on that side, then Next. Returns the debate.
+/// you take, when it ends, then ready-made challenges to swipe through
+/// (each a full sentence with its own price field), your position on that
+/// side, then Next. The card in view is the one posted. Returns the debate.
 class ChallengeSheet extends StatefulWidget {
   const ChallengeSheet({super.key, required this.take, required this.position});
 
@@ -75,66 +104,53 @@ class ChallengeSheet extends StatefulWidget {
 }
 
 class _ChallengeSheetState extends State<ChallengeSheet> {
-  int _wording = 0;
-  late final List<(String, double)> _prices = _priceOptions();
-  late final _price = TextEditingController(text: _digits(_prices.first.$2));
+  late final List<_Option> _options = _optionsFor();
+  final _pages = PageController(viewportFraction: 0.89);
+  int _page = 0;
 
-  bool get _long => widget.position.side == TradeSide.long;
   String get _ticker => widget.take.ticker;
+  _Option get _picked => _options[_page];
 
-  /// The long side argues up, the short side down.
-  List<String> get _wordings => _long
-      ? const ['Closes above', 'Touches', 'Stays above', 'Ends higher']
-      : const ['Closes below', 'Touches', 'Stays below', 'Ends lower'];
-
-  /// Their stop first (where their call is wrong), then now, steps your
-  /// way, and their target.
-  List<(String, double)> _priceOptions() {
+  /// Four challenges your way: past their stop, a stretch move, never
+  /// reaching their target, and simply from here.
+  List<_Option> _optionsFor() {
+    final long = widget.position.side == TradeSide.long;
     final now = MarketPrices.of(_ticker).value;
     final c = widget.take.call;
     final entry = c == null ? null : MarketPrices.base(_ticker) * c.entryRatio;
-    final dir = _long ? 1 : -1;
-    String fmt(double v) => MarketPrices.format(v, compact: true);
+    final dir = long ? 1 : -1;
     return [
-      if (entry != null)
-        ('Their stop ${fmt(entry * c!.stopLoss)}', entry * c.stopLoss),
-      ('Now ${fmt(now)}', now),
-      for (final pct in [2, 5])
-        (
-          '${dir > 0 ? '+' : '−'}$pct% ${fmt(now * (1 + dir * pct / 100))}',
-          now * (1 + dir * pct / 100),
-        ),
-      if (entry != null)
-        ('Their TP ${fmt(entry * c!.takeProfit)}', entry * c.takeProfit),
+      _Option(
+        0,
+        long ? 'Closes above' : 'Closes below',
+        entry == null ? '${dir > 0 ? '+' : '−'}1%' : 'their stop',
+        entry == null ? now * (1 + dir * 0.01) : entry * c!.stopLoss,
+      ),
+      _Option(1, 'Touches', '${dir > 0 ? '+' : '−'}5%', now * (1 + dir * 0.05)),
+      _Option(
+        2,
+        long ? 'Stays above' : 'Stays below',
+        entry == null ? '${dir > 0 ? '−' : '+'}2%' : 'their target, never hit',
+        entry == null ? now * (1 - dir * 0.02) : entry * c!.takeProfit,
+      ),
+      _Option(3, long ? 'Ends higher' : 'Ends lower', 'from now', now),
     ];
-  }
-
-  static String _digits(double v) => groupDigits(v.roundToDouble(), 0);
-
-  double? get _level =>
-      double.tryParse(_price.text.replaceAll(RegExp('[^0-9.]'), ''));
-
-  String get _statement {
-    final level = _level == null
-        ? r'$…'
-        : MarketPrices.format(_level!, compact: true);
-    final verb = _wordings[_wording].toLowerCase();
-    return switch (_wording) {
-      2 => '$_ticker $verb $level for 24 hours',
-      3 => '$_ticker $verb than $level in 24 hours',
-      _ => '$_ticker $verb $level in 24 hours',
-    };
   }
 
   @override
   void initState() {
     super.initState();
-    _price.addListener(() => setState(() {}));
+    for (final o in _options) {
+      o.price.addListener(() => setState(() {}));
+    }
   }
 
   @override
   void dispose() {
-    _price.dispose();
+    _pages.dispose();
+    for (final o in _options) {
+      o.price.dispose();
+    }
     super.dispose();
   }
 
@@ -144,12 +160,13 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
     final change = m == null
         ? ''
         : '${m.changePct >= 0 ? '+' : '−'}${m.changePct.abs()}%';
+    final statement = _picked.statement(_ticker);
     Navigator.of(context).pop(
       LiveBattle(
         ticker: _ticker,
         change: change,
-        question: _statement,
-        chip: _statement,
+        question: statement,
+        chip: statement,
         // Only their call so far; yours joins when you post.
         longShare: widget.take.side == TradeSide.long ? 1 : 0,
         minutesLeft: ChallengeSheet.minutes,
@@ -167,9 +184,7 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
       color: VistaColors.textMuted,
     );
     final label = VistaType.labelStrong.copyWith(color: VistaColors.textMuted);
-    final selectedPrice = _prices.indexWhere(
-      (o) => _level != null && _digits(o.$2) == _digits(_level!),
-    );
+    const side = VistaSpace.gutter + VistaSpace.xs;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -177,9 +192,9 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-            VistaSpace.gutter + VistaSpace.xs,
+            0,
             VistaSpace.lg,
-            VistaSpace.gutter + VistaSpace.xs,
+            0,
             VistaSpace.gutter,
           ),
           child: Column(
@@ -197,121 +212,136 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
                 ),
               ),
               const SizedBox(height: VistaSpace.xxl),
-              Text('Challenge ${t.handle}', style: VistaType.title),
-              const SizedBox(height: VistaSpace.xs),
-              Text.rich(
-                TextSpan(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: side),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const TextSpan(text: "They're "),
-                    TextSpan(
-                      text: '${t.side.label.toLowerCase()} $_ticker',
-                      style: TextStyle(color: t.side.color),
+                    Text('Challenge ${t.handle}', style: VistaType.title),
+                    const SizedBox(height: VistaSpace.xs),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(text: "They're "),
+                          TextSpan(
+                            text: '${t.side.label.toLowerCase()} $_ticker',
+                            style: TextStyle(color: t.side.color),
+                          ),
+                          const TextSpan(text: '. You take the '),
+                          TextSpan(
+                            text: p.side.label.toLowerCase(),
+                            style: TextStyle(color: p.side.color),
+                          ),
+                          const TextSpan(text: ' side.'),
+                        ],
+                      ),
+                      style: muted,
                     ),
-                    const TextSpan(text: '. You take the '),
-                    TextSpan(
-                      text: p.side.label.toLowerCase(),
-                      style: TextStyle(color: p.side.color),
+                    const SizedBox(height: VistaSpace.xxl),
+                    Row(
+                      children: [
+                        Expanded(child: Text('ENDS', style: label)),
+                        Text('24 hours', style: label),
+                      ],
                     ),
-                    const TextSpan(text: ' side.'),
                   ],
                 ),
-                style: muted,
               ),
               const SizedBox(height: VistaSpace.xxl),
+              // Ready-made challenges, the next one peeking in.
+              SizedBox(
+                height: 196,
+                child: PageView.builder(
+                  controller: _pages,
+                  itemCount: _options.length,
+                  onPageChanged: (i) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _page = i);
+                  },
+                  // Centred, so every card lines up and its neighbours peek.
+                  itemBuilder: (context, i) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: VistaSpace.sm,
+                    ),
+                    child: _ChallengeCard(
+                      key: ValueKey('challenge-card-$i'),
+                      option: _options[i],
+                      ticker: _ticker,
+                      picked: i == _page,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: VistaSpace.xl),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(child: Text('ENDS', style: label)),
-                  Text('24 hours', style: label),
+                  for (var i = 0; i < _options.length; i++)
+                    AnimatedContainer(
+                      duration: VistaMotion.state,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == _page ? 18 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: i == _page
+                            ? VistaColors.accent
+                            : VistaColors.surfaceRaised,
+                        borderRadius: BorderRadius.circular(VistaRadius.pill),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: VistaSpace.xxl),
-              // The debate: sentence, wording, price, price shortcuts.
-              Container(
-                padding: const EdgeInsets.only(
-                  left: VistaSpace.gutter,
-                  top: VistaSpace.xxl,
-                  bottom: VistaSpace.xxl,
-                ),
-                decoration: BoxDecoration(
-                  color: VistaColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                clipBehavior: Clip.antiAlias,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: side),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: VistaSpace.gutter),
-                      child: Text(
-                        _statement,
-                        style: VistaType.title.copyWith(fontSize: 20),
-                      ),
+                    Text(
+                      'YOUR SIDE · ${p.side.label.toUpperCase()} $_ticker',
+                      style: label,
                     ),
-                    const SizedBox(height: VistaSpace.xl),
-                    _Strip(
-                      labels: _wordings,
-                      selected: _wording,
-                      onPick: (i) => setState(() => _wording = i),
-                    ),
-                    const SizedBox(height: VistaSpace.xl),
-                    Padding(
-                      padding: const EdgeInsets.only(right: VistaSpace.gutter),
-                      child: _PriceField(controller: _price, ticker: _ticker),
-                    ),
-                    const SizedBox(height: VistaSpace.xl),
-                    _Strip(
-                      labels: [for (final o in _prices) o.$1],
-                      selected: selectedPrice,
-                      onPick: (i) {
-                        _price.text = _digits(_prices[i].$2);
-                        _price.selection = TextSelection.collapsed(
-                          offset: _price.text.length,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: VistaSpace.xxl),
-              Text(
-                'YOUR SIDE · ${p.side.label.toUpperCase()} $_ticker',
-                style: label,
-              ),
-              const SizedBox(height: VistaSpace.xxl),
-              // Your position on that side, picked.
-              Container(
-                padding: const EdgeInsets.only(right: VistaSpace.xxl),
-                decoration: BoxDecoration(
-                  color: VistaColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: VistaColors.accent, width: 1.5),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: BackedPositionCard(
-                        post: ComposeTakeScreen.backing(p),
-                        ticker: _ticker,
-                      ),
-                    ),
+                    const SizedBox(height: VistaSpace.xxl),
+                    // Your position on that side, picked.
                     Container(
-                      width: 22,
-                      height: 22,
-                      decoration: const BoxDecoration(
-                        color: VistaColors.accent,
-                        shape: BoxShape.circle,
+                      padding: const EdgeInsets.only(right: VistaSpace.xxl),
+                      decoration: BoxDecoration(
+                        color: VistaColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: VistaColors.accent,
+                          width: 1.5,
+                        ),
                       ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: BackedPositionCard(
+                              post: ComposeTakeScreen.backing(p),
+                              ticker: _ticker,
+                            ),
+                          ),
+                          Container(
+                            width: 22,
+                            height: 22,
+                            decoration: const BoxDecoration(
+                              color: VistaColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: VistaSpace.xxl),
+                    VistaPillButton(
+                      label: 'Next: make your case',
+                      variant: VistaPillVariant.accent,
+                      foreground: VistaColors.onAccent,
+                      onPressed: _picked.level == null ? null : _next,
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: VistaSpace.xxl),
-              VistaPillButton(
-                label: 'Next: make your case',
-                variant: VistaPillVariant.accent,
-                foreground: VistaColors.onAccent,
-                onPressed: _level == null ? null : _next,
               ),
             ],
           ),
@@ -321,37 +351,52 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
   }
 }
 
-/// A row of choice pills that scrolls sideways, running to the card's
-/// edge; the picked one is filled.
-class _Strip extends StatelessWidget {
-  const _Strip({
-    required this.labels,
-    required this.selected,
-    required this.onPick,
+/// A ready-made challenge: the wording and where its price came from, the
+/// whole sentence, and its price field. The one in view is outlined.
+class _ChallengeCard extends StatelessWidget {
+  const _ChallengeCard({
+    super.key,
+    required this.option,
+    required this.ticker,
+    required this.picked,
   });
 
-  final List<String> labels;
-
-  /// -1 when none matches.
-  final int selected;
-  final ValueChanged<int> onPick;
+  final _Option option;
+  final String ticker;
+  final bool picked;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.only(right: VistaSpace.gutter),
-      child: Row(
+    final label = VistaType.labelStrong.copyWith(color: VistaColors.textMuted);
+    return AnimatedContainer(
+      duration: VistaMotion.state,
+      padding: const EdgeInsets.all(VistaSpace.gutter),
+      decoration: BoxDecoration(
+        color: VistaColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: picked ? VistaColors.accent : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: VistaSpace.md),
-            VistaFilterChip(
-              label: labels[i],
-              accent: true,
-              selected: i == selected,
-              onPressed: () => onPick(i),
-            ),
-          ],
+          Row(
+            children: [
+              Expanded(child: Text(option.wording.toUpperCase(), style: label)),
+              Text(option.note, style: label),
+            ],
+          ),
+          const SizedBox(height: VistaSpace.lg),
+          Text(
+            option.statement(ticker),
+            style: VistaType.title.copyWith(fontSize: 20),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Spacer(),
+          _PriceField(controller: option.price, ticker: ticker),
         ],
       ),
     );
