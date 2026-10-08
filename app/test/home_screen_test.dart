@@ -1043,6 +1043,51 @@ void main() {
     }
   });
 
+  testWidgets('Arena: Live battles swipe sideways and open a battle', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Arena'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Live battles'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    // Busiest live battle first, as a card on a sideways row.
+    final busiest = ([
+      for (final b in BattlesStore.all.value)
+        if (!b.settled) b,
+    ]..sort((a, b) => b.takes.compareTo(a.takes))).first;
+    expect(find.text('BATTLE · ${busiest.ticker}'), findsWidgets);
+    expect(find.textContaining('read both sides'), findsWidgets);
+    await tester.tap(find.text(busiest.question).first);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.id,
+      busiest.id,
+    );
+    await tester.tap(find.bySemanticsLabel('Back').last);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Live battles'),
+          matching: find.byType(Row),
+        ),
+        matching: find.text('See all'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(LiveBattlesScreen), findsOneWidget);
+  });
+
   group('challenge', () {
     Future<void> toCalls(WidgetTester tester) async {
       tester.view
@@ -3017,8 +3062,13 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      // Bring voskov's take clear of the floating composer first.
-      await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+      // Bring the first call's Join clear of the floating composer.
+      await tester.scrollUntilVisible(
+        find.text('Join short'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.drag(find.byType(ListView).last, const Offset(0, -150));
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Join short').first);
       await tester.pumpAndSettle();

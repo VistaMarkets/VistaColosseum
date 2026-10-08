@@ -16,6 +16,7 @@ import '../portfolio/positions_state.dart';
 import 'trending_calls_screen.dart';
 import 'arena_mock.dart';
 import 'debate_screen.dart';
+import 'live_battles_screen.dart';
 import 'pick_position_screen.dart';
 import 'room_screen.dart';
 import 'hub_call_card.dart';
@@ -136,6 +137,23 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         const _Head('Trending now'),
                         for (final r in _trending(calls))
                           _RoomRow(room: r, onTap: () => _room(r.key)),
+                        // Figma 591:222: live battles, swiped sideways.
+                        _Head(
+                          'Live battles',
+                          trailing: 'See all',
+                          onTrailing: () => _push(LiveBattlesScreen.route()),
+                        ),
+                        ValueListenableBuilder(
+                          valueListenable: BattlesStore.all,
+                          builder: (context, battles, _) => _LiveBattles(
+                            battles: [
+                              for (final b in battles)
+                                if (!b.settled) b,
+                            ]..sort((a, b) => b.takes.compareTo(a.takes)),
+                            calls: calls,
+                            onOpen: (b) => _push(DebateScreen.route(b)),
+                          ),
+                        ),
                         _Head(
                           'Trending calls',
                           trailing: 'See all',
@@ -418,6 +436,206 @@ class _NoMarkets extends StatelessWidget {
 }
 
 /// Section title with an optional link on the right.
+/// Live battles as narrow cards on one sideways-scrolling row (Figma
+/// 591:222): the market and time left, the question, the split, who's in
+/// and how many calls. A card opens the battle.
+class _LiveBattles extends StatelessWidget {
+  const _LiveBattles({
+    required this.battles,
+    required this.calls,
+    required this.onOpen,
+  });
+
+  final List<LiveBattle> battles;
+  final List<Take> calls;
+  final ValueChanged<LiveBattle> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(
+        top: VistaSpace.lg,
+        bottom: VistaSpace.gutter,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: VistaColors.hairline)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+          horizontal: VistaSpace.gutter + VistaSpace.xs,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (i, b) in battles.indexed) ...[
+              if (i > 0) const SizedBox(width: VistaSpace.lg),
+              _BattleCard(
+                battle: b,
+                people: Debates.callsOn(b, calls).take(3).toList(),
+                onTap: () => onOpen(b),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleCard extends StatelessWidget {
+  const _BattleCard({
+    required this.battle,
+    required this.people,
+    required this.onTap,
+  });
+
+  final LiveBattle battle;
+
+  /// The first few calls on it, for who's in.
+  final List<Take> people;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final b = battle;
+    final long = (b.longShare * 100).round();
+    final strong = VistaType.labelStrong;
+    // Under half a day reads as urgent.
+    final soon = b.minutesLeft < 12 * 60;
+    return Semantics(
+      button: true,
+      label: '${b.question}, $long% long, ${b.timeLeft}',
+      excludeSemantics: true,
+      child: VistaPressable(
+        scale: 0.98,
+        onTap: onTap,
+        child: Container(
+          width: 248,
+          padding: const EdgeInsets.symmetric(
+            horizontal: VistaSpace.xxl,
+            vertical: VistaSpace.xl,
+          ),
+          decoration: BoxDecoration(
+            color: VistaColors.surface,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'BATTLE · ${b.ticker}',
+                      style: strong.copyWith(
+                        fontSize: 11,
+                        color: VistaColors.textMuted,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    b.timeLeft,
+                    style: strong.copyWith(
+                      color: soon ? VistaColors.short : VistaColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.md),
+              Text(
+                b.question,
+                style: VistaType.headline.copyWith(fontSize: 16),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: VistaSpace.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$long% long',
+                      style: strong.copyWith(color: VistaColors.long),
+                    ),
+                  ),
+                  Text(
+                    '${100 - long}% short',
+                    style: strong.copyWith(color: VistaColors.short),
+                  ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.md),
+              Row(
+                children: [
+                  if (long > 0)
+                    Expanded(
+                      flex: long,
+                      child: Container(
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: VistaColors.long,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                  if (long > 0 && long < 100) const SizedBox(width: 3),
+                  if (long < 100)
+                    Expanded(
+                      flex: 100 - long,
+                      child: Container(
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: VistaColors.short,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: VistaSpace.md),
+              Row(
+                children: [
+                  if (people.isNotEmpty) ...[
+                    SizedBox(
+                      width: 20 + (people.length - 1) * 15,
+                      height: 20,
+                      child: Stack(
+                        children: [
+                          for (final (i, t) in people.indexed)
+                            Positioned(
+                              left: i * 15,
+                              child: PersonInitial(
+                                t.handle,
+                                size: 20,
+                                ring: t.side.color,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.md),
+                  ],
+                  Expanded(
+                    child: Text(
+                      '${b.takes} call${b.takes == 1 ? '' : 's'}'
+                      ' · read both sides ›',
+                      style: VistaType.meta.copyWith(
+                        color: VistaColors.textMuted,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _Head extends StatelessWidget {
   const _Head(this.title, {this.trailing, this.onTrailing});
 
