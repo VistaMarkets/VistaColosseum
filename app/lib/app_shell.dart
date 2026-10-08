@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import 'design_system/design_system.dart';
 import 'features/arena/arena_screen.dart';
+import 'features/arena/battle_result_sheet.dart';
 import 'features/home/home_screen.dart';
 import 'features/markets/markets_screen.dart';
 import 'features/portfolio/portfolio_screen.dart';
@@ -43,6 +45,24 @@ class _AppShellState extends State<AppShell> {
 
   void _select(int i) {
     setState(() => _tab = i);
+  }
+
+  /// Battles count down live; every so often settle any that are done (a
+  /// result sheet shows for ones you were in).
+  Timer? _settler;
+
+  @override
+  void initState() {
+    super.initState();
+    _settler = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) settleBattles(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    _settler?.cancel();
+    super.dispose();
   }
 
   /// Bottom dock timing: the Arena panel folding in and out.

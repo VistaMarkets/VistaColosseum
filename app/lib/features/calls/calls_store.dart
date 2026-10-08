@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../design_system/design_system.dart';
 import '../arena/arena_mock.dart';
+import '../live/market_prices.dart';
 import '../home/mock_trade_idea.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../trade/trade_mock.dart';
@@ -144,6 +146,51 @@ abstract final class BattlesStore {
       all.value = List.unmodifiable([b, ...all.value]);
 
   static void reset() => all.value = ArenaMock.battles;
+
+  /// Settles every live battle whose time is up, from the market's price
+  /// now against the battle's line ([longWins]). Returns the ones that
+  /// just settled.
+  static List<LiveBattle> settleDue() {
+    final done = <LiveBattle>[];
+    final next = [
+      for (final b in all.value)
+        if (!b.settled && b.remaining <= 0)
+          () {
+            final price = MarketPrices.of(b.ticker).value;
+            final settled = b.settle(
+              longRight: longWins(b, price),
+              at: MarketPrices.format(price, compact: true),
+            );
+            done.add(settled);
+            return settled;
+          }()
+        else
+          b,
+    ];
+    if (done.isNotEmpty) all.value = List.unmodifiable(next);
+    return done;
+  }
+
+  /// Whether the long side (the statement coming true) wins at [price]:
+  /// the battle's dollar line, crossed the way its words say ("holds",
+  /// "reclaims", "breaks" above; "loses", "under", "below" beneath).
+  /// Without a line, whether the market is up on the session. Mock.
+  static bool longWins(LiveBattle b, double price) {
+    final text = b.question.toLowerCase();
+    final m = RegExp(r'\$([0-9][0-9,]*\.?[0-9]*)').firstMatch(b.question);
+    final level = m == null
+        ? null
+        : double.tryParse(m.group(1)!.replaceAll(',', ''));
+    if (level == null) return price >= MarketPrices.base(b.ticker);
+    final down = RegExp(r'\b(loses|under|below|drops|falls)\b').hasMatch(text);
+    return down ? price < level : price >= level;
+  }
+
+  /// Your side on [b], if you made a call on it.
+  static TradeSide? yourSide(LiveBattle b) => CallsStore.all.value
+      .where((t) => t.handle == PortfolioMock.handle && b.has(t))
+      .firstOrNull
+      ?.side;
 
   /// A call joins [b] on the long or short side: one more call, and the
   /// split moves with it. Returns the updated battle.

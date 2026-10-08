@@ -40,18 +40,51 @@ class LiveBattle {
   /// Share of takes on the long side, 0–1.
   final double longShare;
 
-  /// Time until the battle settles.
+  /// Time until the battle settles, counted from when the app opened.
   final int minutesLeft;
   final int takes;
 
-  /// "45m left", "4h left", "2d left"; "Settled" once it has.
-  String get timeLeft => settled
-      ? 'Settled'
-      : minutesLeft < 60
-      ? '${minutesLeft}m left'
-      : minutesLeft < 1440
-      ? '${minutesLeft ~/ 60}h left'
-      : '${minutesLeft ~/ 1440}d left';
+  /// Minutes still to go, as of now ([DemoClock]).
+  int get remaining => minutesLeft - DemoClock.elapsedMinutes;
+
+  /// "45m left", "4h left", "2d left"; "Settling" at zero; "Settled" once
+  /// it has.
+  String get timeLeft {
+    if (settled) return 'Settled';
+    final m = remaining;
+    if (m <= 0) return 'Settling';
+    return m < 60
+        ? '${m}m left'
+        : m < 1440
+        ? '${m ~/ 60}h left'
+        : '${m ~/ 1440}d left';
+  }
+
+  /// This battle, settled: [longRight] side wins at [at].
+  LiveBattle settle({required bool longRight, required String at}) =>
+      LiveBattle(
+        ticker: ticker,
+        change: change,
+        question: question,
+        chip: chip,
+        longShare: longShare,
+        minutesLeft: minutesLeft,
+        takes: takes,
+        result: DebateResult(longRight: longRight, settledAt: at, age: 'now'),
+      );
+}
+
+/// The demo's clock: battles count down from when the app opened. Tests
+/// move [start] back to make time pass.
+abstract final class DemoClock {
+  static DateTime start = DateTime.now();
+  static DateTime Function() now = DateTime.now;
+  static int get elapsedMinutes => now().difference(start).inMinutes;
+
+  static void reset() {
+    start = DateTime.now();
+    now = DateTime.now;
+  }
 }
 
 /// How a debate settled: which side was right and the price it settled at.
@@ -242,6 +275,16 @@ abstract final class ArenaMock {
       longShare: 0.52,
       minutesLeft: 610,
       takes: 14,
+    ),
+    // Yours, and nearly done: it settles two minutes after the app opens.
+    LiveBattle(
+      ticker: 'ETH',
+      change: '−0.4%',
+      question: r'ETH holds $2,900 into the close',
+      chip: r'ETH holds $2,900 into the close',
+      longShare: 0.6,
+      minutesLeft: 2,
+      takes: 6,
     ),
   ];
 
@@ -655,6 +698,28 @@ abstract final class ArenaMock {
       battle: r'Holds $180 through CPI',
       body: 'A hot print takes out 180 in the first minute. Too much leverage.',
       likes: 7,
+    ),
+    // Your call on the battle that settles first.
+    Take(
+      handle: 'maya.eth',
+      side: TradeSide.long,
+      accuracy: '82% right',
+      age: '3h',
+      ticker: 'ETH',
+      body: r'$2,900 has held every retest this week. Long into the close.',
+      battle: r'ETH holds $2,900 into the close',
+      call: CallerPost(
+        handle: 'maya.eth',
+        age: '3h',
+        side: TradeSide.long,
+        leverage: 3,
+        entryRatio: 0.985,
+        size: 800,
+        takeProfit: 1.03,
+        stopLoss: 0.97,
+        message: '',
+      ),
+      likes: 9,
     ),
   ];
 }

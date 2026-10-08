@@ -55,7 +55,20 @@ abstract final class Notifications {
   static final unread = ValueNotifier<int>(4);
 
   static void markRead() => unread.value = 0;
-  static void reset() => unread.value = 4;
+  static void reset() {
+    unread.value = 4;
+    all.removeRange(0, all.length - _seeded);
+  }
+
+  /// A new note goes on top and lights the bell.
+  static void add(Note n) {
+    // Count the seeded ones before the first addition.
+    _seedCount;
+    all.insert(0, n);
+    unread.value++;
+  }
+
+  static int get _seeded => _seedCount;
 
   static final all = <Note>[
     Note(
@@ -120,6 +133,9 @@ abstract final class Notifications {
       open: () => ReceiptsScreen.route(PortfolioMock.handle),
     ),
   ];
+
+  /// How many seeded notes [all] starts with.
+  static final _seedCount = all.length;
 }
 
 /// Notifications (the bell on Home, Explore and Arena): All, Calls, People

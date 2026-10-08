@@ -33,6 +33,7 @@ import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/profile/trader_profile.dart';
 import 'package:vista_colosseum/features/portfolio/trade_history.dart';
+import 'package:vista_colosseum/features/arena/battle_result_sheet.dart';
 import 'package:vista_colosseum/features/profile/receipts_screen.dart';
 import 'package:vista_colosseum/features/profile/holdings_table.dart';
 import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
@@ -187,6 +188,7 @@ void main() {
     ProfileEdits.reset();
     Notifications.reset();
     TradeHistory.reset();
+    DemoClock.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1336,6 +1338,40 @@ void main() {
     expect(find.text('Closed at'), findsOneWidget);
   });
 
+  testWidgets('a battle you are in settles; the result sheet shows', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    const label = r'ETH holds $2,900 into the close';
+    LiveBattle quick() =>
+        BattlesStore.all.value.firstWhere((b) => b.label == label);
+    expect(quick().settled, isFalse);
+    expect(BattlesStore.yourSide(quick()), TradeSide.long);
+    final before = Notifications.unread.value;
+    // Three minutes on: it's due.
+    DemoClock.now = () => DemoClock.start.add(const Duration(minutes: 3));
+    await tester.pump(const Duration(seconds: 16));
+    await tester.pumpAndSettle();
+    expect(quick().settled, isTrue);
+    expect(find.byType(BattleResultSheet), findsOneWidget);
+    // ETH is well above $2,900: the statement held, so your long won.
+    expect(quick().result!.longRight, isTrue);
+    expect(find.text('You won the battle'), findsOneWidget);
+    expect(
+      BattlesStore.longWins(quick(), 2850),
+      isFalse,
+    ); // under the line, it wouldn't have
+    expect(Notifications.unread.value, before + 1);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BattleResultSheet), findsNothing);
+  });
+
   group('challenge', () {
     Future<void> toCalls(WidgetTester tester) async {
       tester.view
@@ -1469,7 +1505,7 @@ void main() {
         expect(find.bySemanticsLabel(RegExp('^SOL room')), findsOneWidget);
         expect(find.bySemanticsLabel(RegExp('^REAL room')), findsOneWidget);
         expect(
-          find.text('You: LONG 5x   6 calls today   1 debate'),
+          find.text('You: LONG 5x   7 calls today   2 debates'),
           findsOneWidget,
         );
         await tester.tap(find.bySemanticsLabel(RegExp('^ETH room')).first);
@@ -1790,6 +1826,7 @@ void main() {
         'lunaq',
         'maya.eth',
         'orbit.eth',
+        'maya.eth', // your call on the battle that settles first
       ]);
     });
 
