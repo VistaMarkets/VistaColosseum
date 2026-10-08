@@ -6,6 +6,7 @@ import '../markets/markets_mock.dart';
 import '../people/follow_state.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'arena_mock.dart';
+import 'challenge_sheet.dart';
 import 'take_card.dart';
 
 /// An initial in a filled circle (a person until avatars come from the
@@ -208,7 +209,7 @@ class HubCallCard extends StatelessWidget {
                       // challenged (Figma 577:240).
                       if (t.handle != PortfolioMock.handle &&
                           t.battle == null) ...[
-                        const _ChallengePill(),
+                        _ChallengePill(take: t),
                         const SizedBox(width: VistaSpace.md),
                       ],
                       VistaJoinPill(side: t.side, onTap: onJoin),
@@ -224,10 +225,13 @@ class HubCallCard extends StatelessWidget {
   }
 }
 
-/// Challenge, beside Join: the same pill in the neutral raised colour. The
-/// challenge flow isn't built yet, so it says so.
+/// Challenge, beside Join: the same pill in the neutral raised colour.
+/// Opens the order ticket on the other side, or the Challenge sheet when
+/// you already hold that side ([startChallenge]).
 class _ChallengePill extends StatelessWidget {
-  const _ChallengePill();
+  const _ChallengePill({required this.take});
+
+  final Take take;
 
   @override
   Widget build(BuildContext context) {
@@ -236,11 +240,7 @@ class _ChallengePill extends StatelessWidget {
       label: 'Challenge',
       excludeSemantics: true,
       child: VistaPressable(
-        onTap: () => ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(content: Text('Challenge — not in the demo yet')),
-          ),
+        onTap: () => startChallenge(context, take),
         child: SizedBox(
           height: VistaSize.tapTarget,
           child: Center(

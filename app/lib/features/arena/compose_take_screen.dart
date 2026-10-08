@@ -254,7 +254,7 @@ class _ComposeTakeScreenState extends State<ComposeTakeScreen> {
                               label: 'LIVE DEBATE',
                               question: j.question,
                               detail:
-                                  'Your call joins it · ${j.takes} calls · '
+                                  'Your call joins it · ${j.takes} call${j.takes == 1 ? '' : 's'} · '
                                   '${j.timeLeft}',
                               onRemove: () => setState(() => _joined = null),
                             ),

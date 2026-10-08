@@ -50,6 +50,8 @@ import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/markets/markets_screen.dart';
+import 'package:vista_colosseum/features/arena/challenge_sheet.dart';
+import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
@@ -1039,6 +1041,81 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  group('challenge', () {
+    Future<void> toCalls(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Trending calls'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('holding the other side opens the sheet, then the composer;'
+        ' posting starts the debate on their call', (tester) async {
+      await toCalls(tester);
+      // vega is short ETH and you hold an ETH long.
+      await tester.tap(find.bySemanticsLabel('Challenge').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(ChallengeSheet), findsOneWidget);
+      expect(find.text('Challenge vega'), findsOneWidget);
+      expect(find.text('24 hours'), findsOneWidget);
+      expect(find.text('YOUR SIDE · LONG ETH'), findsOneWidget);
+      expect(
+        find.textContaining('ETH closes above', findRichText: true),
+        findsOneWidget,
+      );
+      // Wording and price change the statement.
+      await tester.tap(find.text('Touches'));
+      await tester.enterText(find.bySemanticsLabel('Price'), '3100');
+      await tester.pumpAndSettle();
+      const statement = r'ETH touches $3,100 in 24 hours';
+      expect(find.text(statement), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Next: make your case'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      expect(find.text('LIVE DEBATE'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Breaks out by tomorrow.');
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      final debate = BattlesStore.all.value.first;
+      expect(
+        (debate.label, debate.takes, debate.longShare),
+        (statement, 2, 0.5),
+      );
+      final vega = CallsStore.all.value.firstWhere(
+        (t) => t.handle == 'vega' && t.ticker == 'ETH',
+      );
+      expect(vega.battle, statement);
+      expect(
+        CallsStore.all.value.where(
+          (t) => t.handle == PortfolioMock.handle && t.battle == statement,
+        ),
+        hasLength(1),
+      );
+    });
+
+    testWidgets('without that side, the ticket opens on it', (tester) async {
+      await toCalls(tester);
+      // kilo.sol is short SOL; you only hold a SOL short.
+      await tester.tap(find.bySemanticsLabel('Challenge').last);
+      await tester.pumpAndSettle();
+      expect(find.byType(ChallengeSheet), findsNothing);
+      final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
+      expect((ticket.symbol, ticket.side), ('SOL', TradeSide.long));
+    });
   });
 
   group('arena', () {

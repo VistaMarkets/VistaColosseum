@@ -59,6 +59,26 @@ abstract final class CallsStore {
     return _records[handle];
   }
 
+  /// Puts [t] on the debate [label] (a challenge started one on it).
+  static void putOnDebate(Take t, String label) => all.value = [
+    for (final x in all.value)
+      identical(x, t)
+          ? Take(
+              handle: x.handle,
+              side: x.side,
+              accuracy: x.accuracy,
+              age: x.age,
+              ticker: x.ticker,
+              body: x.body,
+              likes: x.likes,
+              battle: label,
+              call: x.call,
+              joined: x.joined,
+              idea: x.idea,
+            )
+          : x,
+  ];
+
   /// Adds a newly posted take.
   static void add(Take t) => all.value = _ordered([t, ...all.value]);
 
