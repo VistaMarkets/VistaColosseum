@@ -147,12 +147,14 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
   }
 
   Widget _marketCap(int? cap) {
+    assert(YourMarketMock.supplyUnits % 1000000 == 0);
+    const muted = VistaColors.textMuted;
     final capText = cap == null ? unavailable : formatCap(cap);
     
     final move = Scenario.ownCapMoveCents(_span);
     final moveText = cap == null ? unavailable : formatCapChange(cap - move, cap);
     final moveColor = cap == null 
-        ? VistaColors.textMuted 
+        ? muted 
         : (move >= 0 ? VistaColors.long : VistaColors.short);
         
     final priceText = cap == null 
@@ -167,7 +169,7 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(capText, style: VistaType.display),
+          child: Text(capText, style: cap == null ? VistaType.display.copyWith(color: muted) : VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(
@@ -181,7 +183,7 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
           ],
         ),
         const SizedBox(height: 3),
-        Text(priceText, style: VistaType.caption),
+        Text(priceText, style: cap == null ? VistaType.caption.copyWith(color: muted) : VistaType.caption),
         const SizedBox(height: 3),
         // Market credits only (spec 06): the ledger Total adds copy fees.
         // Never a stored figure; opens the ledger.

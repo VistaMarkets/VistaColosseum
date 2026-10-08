@@ -33,6 +33,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
   final _pitch = TextEditingController(text: MakeMarketMock.defaultPitch);
   final _agreed = List<bool>.filled(MakeMarketMock.consents.length + 1, false);
 
+  /// The new market's cap, read once when it is listed: what the live
+  /// step shows, unchanged by a later reset.
+  late final int _capCents;
+
   @override
   void initState() {
     super.initState();
@@ -57,12 +61,12 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
       ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
   }
 
-  late final int _capCents;
-
   void _create() {
+    // Listed once: the consent step's Create stays tappable while it fades.
     if (_step == _Step.live) return;
     // Simulated: records the market in app state only.
     AccountState.listMarket(_symbol);
+    // listMarket has just set hasMarket and listedAt, so there is a cap.
     _capCents = Scenario.ownCapCents!;
     setState(() => _step = _Step.live);
   }
@@ -72,7 +76,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
     return PopScope(
       canPop: _step != _Step.consent,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) setState(() => _step = _Step.create);
+        // canPop lags a build: a back in Create's frame must not rewind.
+        if (!didPop && _step == _Step.consent) {
+          setState(() => _step = _Step.create);
+        }
       },
       child: Scaffold(
         body: AnimatedSwitcher(
@@ -224,7 +231,11 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               enabled: _tickerOk,
               onPressed: () {
                 FocusScope.of(context).unfocus();
-                setState(() => _step = _Step.consent);
+                // A no-op once listed: this Continue stays tappable while
+                // the step fades out.
+                if (_step == _Step.create) {
+                  setState(() => _step = _Step.consent);
+                }
               },
             ),
           ]),
@@ -588,7 +599,11 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
           _topBar(
             title: 'Before you list',
             close: false,
-            onLeading: () => setState(() => _step = _Step.create),
+            // A no-op once listed: this Back stays tappable while the
+            // step fades out.
+            onLeading: () {
+              if (_step == _Step.consent) setState(() => _step = _Step.create);
+            },
           ),
           const Padding(
             padding: EdgeInsets.only(top: 4, bottom: 8),
@@ -630,15 +645,11 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    children: [
-                      Text(
-                        'You earn ${YourMarketMock.creatorSharePct}% of the '
-                        'fees from both',
-                        textAlign: TextAlign.center,
-                        style: VistaType.bodyStrong.copyWith(fontSize: 14),
-                      ),
-                    ],
+                  child: Text(
+                    'You earn ${YourMarketMock.creatorSharePct}% of the '
+                    'fees from both',
+                    textAlign: TextAlign.center,
+                    style: VistaType.bodyStrong.copyWith(fontSize: 14),
                   ),
                 ),
                 Container(
@@ -772,30 +783,6 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
 
   // ─── 3 · Live ─────────────────────────────────────────────────────────
 
-  Widget _pill(String label, VoidCallback onTap) {
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          height: 48,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: VistaColors.surfaceRaised,
-            borderRadius: BorderRadius.circular(VistaRadius.pill),
-          ),
-          child: Text(
-            label,
-            style: VistaType.subhead.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _liveStep() {
     final t = '\$$_symbol';
     return Stack(
@@ -889,10 +876,26 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                   label: 'Make your first call',
                   onPressed: () => _notBuilt('Make a call'),
                 ),
-                const SizedBox(height: VistaSpace.md),
-                _pill('Open $t', () => Navigator.of(context).pushReplacement(YourMarketScreen.route())),
-                const SizedBox(height: VistaSpace.md),
-                _pill('Share $t', () => _notBuilt('Share')),
+                const SizedBox(height: VistaSpace.lg),
+                // Side by side so the step fits 1.3x text on a 360x640
+                // phone. Open replaces the flow, so Back returns to the
+                // Wallet.
+                Row(
+                  children: [
+                    Expanded(
+                      child: _pill(
+                        'Open $t',
+                        () =>
+                            Navigator.of(context)
+                                .pushReplacement(YourMarketScreen.route()),
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.lg),
+                    Expanded(
+                      child: _pill('Share $t', () => _notBuilt('Share')),
+                    ),
+                  ],
+                ),
               ]),
             ],
           ),
@@ -900,6 +903,35 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
         // Burst from the market image (Figma frame units).
         const Positioned.fill(child: ConfettiBurst(origin: Offset(201, 158))),
       ],
+    );
+  }
+
+  /// A raised secondary pill on the live step.
+  Widget _pill(String label, VoidCallback onTap) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: VistaSpace.xl),
+          decoration: BoxDecoration(
+            color: VistaColors.surfaceRaised,
+            borderRadius: BorderRadius.circular(VistaRadius.pill),
+          ),
+          child: Text(
+            label,
+            style: VistaType.subhead.copyWith(fontWeight: FontWeight.w700),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
     );
   }
 }

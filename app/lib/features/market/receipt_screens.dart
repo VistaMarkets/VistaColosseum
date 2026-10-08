@@ -52,8 +52,9 @@ Widget _page(
 }
 
 /// The fee ledger of the user's market (VC-MKT-004): every credit, naming
-/// its market and event, and their sum as the footer. Illustrative: the
-/// 40% creator share is a demo assumption.
+/// its market and event, and their sum as the footer. Illustrative: each
+/// credit is a seeded amount, and [example] works its fee back at the 40%
+/// creator share.
 class LedgerScreen extends StatelessWidget {
   const LedgerScreen({super.key});
 
@@ -185,7 +186,9 @@ class LedgerScreen extends StatelessWidget {
   }
 }
 
-/// One call in a record list; tapping it opens its receipt.
+/// One call in a record list, showing its outcome at the demo clock, the
+/// value a record counts (`Scenario.outcomeAt`); tapping it opens its
+/// receipt. Its parent rebuilds it when the clock moves.
 class CallRecordItem extends StatelessWidget {
   const CallRecordItem({super.key, required this.receipt});
 
@@ -316,6 +319,7 @@ class ReceiptsScreen extends StatelessWidget {
         Scenario.callReceipts,
         Scenario.receipts,
         Scenario.activePersona,
+        Scenario.clock,
       ]),
       builder: (context, _) {
         // Paper receipts are the active persona's own.
@@ -401,7 +405,9 @@ class CallReceiptScreen extends StatelessWidget {
 
   /// Call details for [author]'s [holding]: the receipt of the author's
   /// open call on the same asset and side, or an unavailable receipt
-  /// when the fixture names none (VC-FED-003).
+  /// when the fixture names none (VC-FED-003). "Open" is the raw result on
+  /// purpose: the Oct 2 ETH call is open at the clock too, and the holding
+  /// is backed by the call still open in the fixture (Oct 10).
   static Route<void> forHolding(String author, Holding holding) {
     for (final c in Scenario.callReceipts.value) {
       if (c.author == author &&
@@ -420,28 +426,36 @@ class CallReceiptScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Scenario.clock,
-      builder: (context, _) {
-        final r = receipt;
-        final o = Scenario.outcomeAt(r, Scenario.clock.value);
-        final fields = [
-          ('Author', r.author),
-          ('Asset', r.asset),
-          ('Direction', r.side?.label),
-          ('Entry price', r.entryPrice),
-          ('Paper size', r.sizeCents == null ? null : formatCents(r.sizeCents!)),
-          ('Entered', r.entryAt),
-          ('Rule', r.rule),
-          ('Result', r.result == null ? null : outcomeStatus(o)),
-          (
-            'Settled',
-            o == CallOutcome.open ? 'Not settled yet' : r.settledAt,
-          ),
-          ('Market said', r.odds),
-          ('Provenance', r.provenance),
-        ];
-        return _page(
+    final r = receipt;
+    // The outcome at the clock, as the record and the list show it: a
+    // verdict settling after the clock reads Open, not settled yet. Read
+    // at build with no clock listener: outside tests only Scenario.reset
+    // writes the clock (`Scenario.ownCapHasHistory`), and Reset demo pops
+    // this route before it resets; the route stays mounted through its exit
+    // transition and may show either outcome there.
+    final o = Scenario.outcomeAt(r, Scenario.clock.value);
+    final fields = [
+      ('Author', r.author),
+      ('Asset', r.asset),
+      ('Direction', r.side?.label),
+      ('Entry price', r.entryPrice),
+      ('Paper size', r.sizeCents == null ? null : formatCents(r.sizeCents!)),
+      ('Entered', r.entryAt),
+      ('Rule', r.rule),
+      ('Result', o == null ? null : outcomeStatus(o)),
+      // A verdict the clock cannot place has no settlement time either.
+      (
+        'Settled',
+        switch (o) {
+          CallOutcome.open => 'Not settled yet',
+          null => null,
+          _ => r.settledAt,
+        },
+      ),
+      ('Market said', r.odds),
+      ('Provenance', r.provenance),
+    ];
+    return _page(
       context,
       title: 'Call receipt',
       children: [
@@ -482,7 +496,5 @@ class CallReceiptScreen extends StatelessWidget {
           ),
       ],
     );
-  }
-  );
   }
 }

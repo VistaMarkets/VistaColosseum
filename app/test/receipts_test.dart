@@ -270,6 +270,7 @@ void main() {
     await tapAndSettle(tester, find.text(r'Continue with $MAYA'));
     expect(find.text('You earn 40% of the fees from both'), findsOneWidget);
     expect(find.textContaining('demo assumption'), findsNothing);
+    // The line above already says 40%; no caption repeats the label.
     expect(find.text(YourMarketMock.shareLabel), findsNothing);
   });
 
@@ -310,13 +311,20 @@ void main() {
     await pumpApp(tester, home: const YourMarketScreen());
     expect(myCalls, hasLength(YourMarketMock.record.length));
     for (final c in myCalls) {
+      // The receipt shows the outcome at the clock, as the record counts it.
+      // Derived from outcomeAt on purpose; trader_record_test pins the
+      // literal outcomes.
+      final at = Scenario.outcomeAt(c, Scenario.clock.value);
+      final open = at == CallOutcome.open;
+      // Every seed here is settled or open at the clock; an unavailable one
+      // has no Settled time and needs its own expectations below.
+      expect(at, isNotNull);
       await tapAndSettle(tester, find.text(c.rule!));
       expect(find.byType(CallReceiptScreen), findsOneWidget);
       expect(onReceipt(find.text(c.rule!)), findsOneWidget);
       expect(onReceipt(find.text(c.author)), findsOneWidget);
       expect(onReceipt(find.text(c.asset)), findsOneWidget);
-      final o = Scenario.outcomeAt(c, Scenario.clock.value);
-      expect(onReceipt(find.text(outcomeStatus(o))), findsOneWidget);
+      expect(onReceipt(find.text(outcomeStatus(at))), findsOneWidget);
       expect(onReceipt(find.text(noCall)), findsNothing);
       expect(
         onReceipt(find.text('A published call, not an order fill')),
@@ -324,7 +332,9 @@ void main() {
       );
       expect(onReceipt(find.text(Scenario.fixtureVersion)), findsOneWidget);
       expect(onReceipt(find.text(c.side!.label)), findsOneWidget);
-      final open = o == CallOutcome.open;
+      // The Oct 2 call has a settlement date yet is open at the Sep 26
+      // clock: it reads Open and 'Not settled yet', and shows Oct 2 once
+      // (its entry date).
       final dates = [c.entryAt!, if (!open) c.settledAt!];
       for (final d in dates.toSet()) {
         expect(

@@ -92,7 +92,8 @@ abstract final class PortfolioMock {
   static const copierCashCents = 100000;
   static const change24h = r'+$91 (0.73%)';
 
-  /// The user's own market (their TPX symbol) and its market cap.
+  /// The user's own market (their TPX symbol). Its cap is
+  /// `Scenario.ownCapCents`.
   static const marketSymbol = 'MAYA';
   static const spans = ['1h', '4h', '1D', '1W', '1M', 'All'];
   static const defaultSpan = 2; // 1D

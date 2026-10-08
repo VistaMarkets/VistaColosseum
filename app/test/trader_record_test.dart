@@ -247,6 +247,76 @@ void main() {
     expect(oct2.detail, 'at 31%');
   });
 
+  testWidgets('the user\'s own record and its items agree', (tester) async {
+    final m = Scenario.record(PortfolioMock.handle);
+    expect((m.settled, m.right, m.wrong, m.open), (1, 1, 0, 2));
+    // Tall enough that the whole record list is built.
+    await pumpApp(
+      tester,
+      home: const YourMarketScreen(),
+      size: const Size(402, 2400),
+    );
+    final panel = find.byType(TraderRecordPanel);
+    for (final t in ['1 settled', '1 right', '0 wrong', '2 open']) {
+      expect(
+        find.descendant(of: panel, matching: find.text(t)),
+        findsOneWidget,
+      );
+    }
+    expect(
+      find.textContaining(TraderRecordPanel.unavailableNote),
+      findsNothing,
+    );
+
+    // Each item shows the outcome the panel counts.
+    final items = find.byType(CallRecordList);
+    int shown(String status) => find
+        .descendant(of: items, matching: find.text(status))
+        .evaluate()
+        .length;
+    expect(shown('Right'), m.right);
+    expect(shown('Wrong'), m.wrong);
+    expect(shown('Open'), m.open);
+    expect(shown(unavailable), m.unavailable);
+
+    // The Oct 2 call settles after the clock: open, published, unsettled.
+    final oct2 = YourMarketMock.record.singleWhere(
+      (c) => c.id == 'maya-eth-4000-oct2',
+    );
+    final entry = find.ancestor(
+      of: find.text(oct2.rule!),
+      matching: find.byType(VistaTimelineEntry),
+    );
+    expect(
+      find.descendant(of: entry, matching: find.text('Open')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: entry, matching: find.text('published · at 31%')),
+      findsOneWidget,
+    );
+    // Its colour and rail follow the outcome at the clock too, not the
+    // fixture's raw Wrong.
+    final item = tester.widget<VistaTimelineEntry>(entry);
+    expect(item.statusColor, outcomeColor(CallOutcome.open));
+    expect(item.railAsset, outcomeRail(CallOutcome.open));
+    await tester.tap(find.text(oct2.rule!));
+    await tester.pumpAndSettle();
+    final receipt = find.byType(CallReceiptScreen);
+    expect(
+      find.descendant(of: receipt, matching: find.text('Open')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: receipt, matching: find.text('Not settled yet')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: receipt, matching: find.text('Wrong')),
+      findsNothing,
+    );
+  });
+
   testWidgets('both traders\' panels show the same sample size, hit rate and '
       'as-of time below the index chart', (tester) async {
     for (final handle in [pair.$1, pair.$2]) {
@@ -286,6 +356,18 @@ void main() {
       inPanel(fresh, find.text('$unavailableNote · 1 unavailable')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a receipt whose verdict the clock cannot place shows no '
+      'result and no settlement time', (tester) async {
+    final nara = Scenario.callReceipts.value.singleWhere(
+      (c) => c.id == 'nara-btc-66k-tue',
+    );
+    expect(Scenario.outcomeAt(nara, Scenario.clock.value), isNull);
+    await pumpApp(tester, home: CallReceiptScreen(receipt: nara));
+    expect(onReceipt(find.text(nara.settledAt!)), findsNothing);
+    // Entry price, paper size, result and settlement time.
+    expect(onReceipt(find.text(unavailable)), findsNWidgets(4));
   });
 
   testWidgets('the verdicts strip shows the trader\'s last 10 settled calls, '
@@ -590,6 +672,33 @@ void main() {
     );
   });
 
+  testWidgets('mounted record items follow the demo clock', (tester) async {
+    final oct2 = YourMarketMock.record.singleWhere(
+      (c) => c.id == 'maya-eth-4000-oct2',
+    );
+    final start = Scenario.clock.value;
+    // The Oct 2 call's status in whichever list is on screen.
+    Finder status(String s) => find.descendant(
+      of: find.ancestor(
+        of: find.text(oct2.rule!),
+        matching: find.byType(VistaTimelineEntry),
+      ),
+      matching: find.text(s),
+    );
+    for (final home in [
+      const YourMarketScreen(),
+      const ReceiptsScreen(author: PortfolioMock.handle),
+    ]) {
+      Scenario.clock.value = start;
+      await pumpApp(tester, home: home, size: const Size(402, 2400));
+      expect(status('Open'), findsOneWidget, reason: '${home.runtimeType}');
+      // Oct 2 reached: the call has settled Wrong.
+      Scenario.clock.value = start.add(const Duration(days: 6));
+      await tester.pumpAndSettle();
+      expect(status('Wrong'), findsOneWidget, reason: '${home.runtimeType}');
+    }
+  });
+
   testWidgets('the trader market\'s open-calls chip counts the trader\'s '
       'open calls', (tester) async {
     // A second open call, so a fixed "1 open call" would show.
@@ -604,21 +713,5 @@ void main() {
     ];
     await pumpApp(tester, home: TraderMarketScreen(handle: pair.$1));
     expect(find.text('2 open calls'), findsOneWidget);
-  });
-
-  testWidgets('the user\'s own record and its items agree', (tester) async {
-    const handle = PortfolioMock.handle;
-    await pumpApp(
-      tester,
-      home: const YourMarketScreen(),
-      size: const Size(402, 2400),
-    );
-    final m = Scenario.record(handle);
-    expect(m.right, greaterThan(0));
-    expect(inPanel(handle, find.text('${m.right} right')), findsOneWidget);
-    expect(
-      find.descendant(of: find.byType(CallRecordItem), matching: find.text('Right')),
-      findsNWidgets(m.right),
-    );
   });
 }
