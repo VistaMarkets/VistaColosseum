@@ -61,7 +61,7 @@ class ExploreSections extends StatelessWidget {
                   for (final m in moving)
                     SlimMarketCard(
                       market: m,
-                      note: '24h move',
+                      note: m.changePct >= 0 ? 'Moving up' : 'Moving down',
                       onTap: () => onAsset(m),
                     ),
                 ],
@@ -157,8 +157,11 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// A slim market card for Explore's sections: icon and ticker, live price
-/// and change, a small line chart, and one line on why it's here.
+/// A market card for Explore's sections, wider than the Favorites cards:
+/// icon, ticker and leverage over the full name (or the trader's handle),
+/// live price with its 24h change, the day as a line chart, why it's in
+/// this row, and its figures (OI and funding; cap and holders for a
+/// trader).
 class SlimMarketCard extends StatelessWidget {
   const SlimMarketCard({
     super.key,
@@ -174,20 +177,24 @@ class SlimMarketCard extends StatelessWidget {
   final Color? noteColor;
   final VoidCallback onTap;
 
-  /// A trader market: their initial, and the ticker over the handle.
+  /// A trader market: their initial, the ticker over the handle.
   final bool trader;
 
-  static const width = 156.0;
+  static const width = 236.0;
 
   @override
   Widget build(BuildContext context) {
     final m = market;
     final card = MarketsMock.traderCards[m.id];
     final title = trader ? card?.symbol ?? m.name : m.name;
+    final subtitle = trader ? m.name : MarketsMock.assetNames[m.id] ?? m.name;
+    final muted = VistaType.meta.copyWith(color: VistaColors.textMuted);
+    final strong = VistaType.figures(VistaType.meta)
+        .copyWith(color: VistaColors.textPrimary, fontWeight: FontWeight.w600);
     final Widget icon = trader
         ? Container(
-            width: 24,
-            height: 24,
+            width: 32,
+            height: 32,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Color(
@@ -195,19 +202,33 @@ class SlimMarketCard extends StatelessWidget {
               ),
               shape: BoxShape.circle,
             ),
-            child: Text(m.name[0].toUpperCase(), style: VistaType.labelStrong),
+            child: Text(m.name[0].toUpperCase(), style: VistaType.body),
           )
-        : VistaIcon(m.rowIcon, size: 24);
+        : VistaIcon(m.rowIcon, size: 32);
+    // Figures: OI and funding for an asset; cap and holders for a trader.
+    final figures = trader
+        ? <InlineSpan>[
+            TextSpan(text: m.third, style: strong),
+            const TextSpan(text: ' cap   '),
+            TextSpan(text: '${card?.holders ?? 0}', style: strong),
+            const TextSpan(text: ' holders'),
+          ]
+        : <InlineSpan>[
+            const TextSpan(text: 'OI '),
+            TextSpan(text: m.subline.replaceFirst('OI ', ''), style: strong),
+            const TextSpan(text: '   Funding '),
+            TextSpan(text: m.third, style: strong),
+          ];
     return Semantics(
       button: true,
-      label: '$title, $note',
+      label: '$title, $subtitle, $note',
       excludeSemantics: true,
       child: VistaPressable(
         scale: 0.97,
         onTap: onTap,
         child: Container(
           width: width,
-          padding: const EdgeInsets.all(VistaSpace.xl),
+          padding: const EdgeInsets.all(VistaSpace.gutter),
           decoration: BoxDecoration(
             color: VistaColors.surface,
             borderRadius: BorderRadius.circular(VistaRadius.card),
@@ -220,44 +241,108 @@ class SlimMarketCard extends StatelessWidget {
                 Row(
                   children: [
                     icon,
-                    const SizedBox(width: VistaSpace.sm),
+                    const SizedBox(width: VistaSpace.md),
                     Expanded(
-                      child: Text(
-                        title,
-                        style: VistaType.subhead.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  title,
+                                  style: VistaType.subhead.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (!trader && m.badge != null) ...[
+                                const SizedBox(width: VistaSpace.sm),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: VistaColors.surfaceRaised,
+                                    borderRadius: BorderRadius.circular(
+                                      VistaRadius.sm,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    m.badge!,
+                                    style: VistaType.label.copyWith(
+                                      color: VistaColors.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            subtitle,
+                            style: VistaType.chip.copyWith(
+                              color: VistaColors.textMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: VistaSpace.md),
-                Text(
-                  MarketPrices.format(price, compact: true),
-                  style: VistaType.figures(VistaType.headline),
-                  maxLines: 1,
-                ),
-                Text(
-                  '${m.changePct >= 0 ? '▲' : '▼'}'
-                  '${m.changePct.abs().toStringAsFixed(1)}%',
-                  style: VistaType.figures(VistaType.label)
-                      .copyWith(color: vistaChangeColor(m.changePct)),
+                const SizedBox(height: VistaSpace.xl),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        MarketPrices.format(price, compact: true),
+                        style: VistaType.figures(VistaType.headline),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.sm),
+                    Text(
+                      '${m.changePct >= 0 ? '▲' : '▼'}'
+                      '${m.changePct.abs().toStringAsFixed(1)}%',
+                      style: VistaType.figures(VistaType.label)
+                          .copyWith(color: vistaChangeColor(m.changePct)),
+                    ),
+                    Text(
+                      trader ? ' 7d' : ' 24h',
+                      style: VistaType.label.copyWith(
+                        color: VistaColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: VistaSpace.md),
                 MarketLineChart(
                   id: m.id,
                   changePct: m.changePct,
                   price: price,
-                  height: 28,
+                  height: 44,
                 ),
-                const SizedBox(height: VistaSpace.md),
+                const SizedBox(height: VistaSpace.lg),
                 Text(
                   note,
                   style: VistaType.meta.copyWith(
-                    color: noteColor ?? VistaColors.textMuted,
+                    color: noteColor ?? VistaColors.textPrimary,
+                    fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: VistaSpace.xxs),
+                Text.rich(
+                  TextSpan(children: figures),
+                  style: muted,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
