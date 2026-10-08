@@ -35,9 +35,6 @@ class MarketsScreen extends StatefulWidget {
 }
 
 class _MarketsScreenState extends State<MarketsScreen> {
-  /// Height the floating search takes above the nav (field plus margins).
-  static const double _searchSpace = 50;
-
   int _tab = 0; // 0 Assets, 1 Leaderboard
   final _search = TextEditingController();
   String _query = '';
@@ -196,7 +193,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
     );
 
     // The list runs to the bottom of the screen and scrolls under the
-    // floating search and nav, which sit over it with nothing behind them.
+    // floating nav.
     final navSpace = MediaQuery.paddingOf(context).bottom;
     return SafeArea(
       bottom: false,
@@ -214,16 +211,29 @@ class _MarketsScreenState extends State<MarketsScreen> {
                   showNotifications: true,
                 ),
               ),
-              const SizedBox(height: VistaSpace.md),
               Expanded(
                 child: ListView(
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
-                  // Room to scroll the last item clear of the search and nav.
+                  // Room to scroll the last item clear of the nav.
                   padding: EdgeInsets.only(
-                    bottom: VistaSpace.gutter + _searchSpace + navSpace,
+                    bottom: VistaSpace.gutter + navSpace,
                   ),
                   children: [
+                    // Search at the top, as on Arena.
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        VistaSpace.gutter,
+                        VistaSpace.xl,
+                        VistaSpace.gutter,
+                        VistaSpace.md,
+                      ),
+                      child: VistaSearchField(
+                        hint: _traders ? 'Search traders' : 'Search markets',
+                        controller: _search,
+                        onChanged: (q) => setState(() => _query = q),
+                      ),
+                    ),
                     Padding(
                       padding: gutter,
                       child: VistaUnderlineTabs(
@@ -412,26 +422,6 @@ class _MarketsScreenState extends State<MarketsScreen> {
                 ),
               ),
             ],
-          ),
-          // The search floats just above the nav.
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: navSpace,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                VistaSpace.gutter,
-                VistaSpace.sm,
-                VistaSpace.gutter,
-                VistaSpace.sm,
-              ),
-              child: VistaSearchField(
-                bordered: true,
-                hint: _traders ? 'Search traders' : 'Search markets',
-                controller: _search,
-                onChanged: (q) => setState(() => _query = q),
-              ),
-            ),
           ),
         ],
       ),
