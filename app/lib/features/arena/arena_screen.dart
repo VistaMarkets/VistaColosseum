@@ -15,6 +15,7 @@ import '../portfolio/portfolio_mock.dart';
 import '../portfolio/positions_state.dart';
 import 'trending_calls_screen.dart';
 import 'arena_mock.dart';
+import 'battle_screen.dart';
 import 'debate_screen.dart';
 import 'live_battles_screen.dart';
 import 'pick_position_screen.dart';
@@ -148,7 +149,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                                 if (!b.settled) b,
                             ]..sort((a, b) => b.takes.compareTo(a.takes)),
                             calls: calls,
-                            onOpen: (b) => _push(DebateScreen.route(b)),
+                            onOpen: (b) => _push(BattleScreen.route(b)),
                           ),
                         ),
                         const _Head('Trending now'),

@@ -50,6 +50,7 @@ import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/markets/markets_screen.dart';
+import 'package:vista_colosseum/features/arena/battle_screen.dart';
 import 'package:vista_colosseum/features/arena/challenge_sheet.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
@@ -1069,11 +1070,18 @@ void main() {
     expect(find.textContaining('read both sides'), findsWidgets);
     await tester.tap(find.text(busiest.question).first);
     await tester.pumpAndSettle();
+    // The battle page (Figma 599:222): who to follow, every call, join.
     expect(
-      tester.widget<DebateScreen>(find.byType(DebateScreen)).debate.id,
+      tester.widget<BattleScreen>(find.byType(BattleScreen)).battle.id,
       busiest.id,
     );
-    await tester.tap(find.bySemanticsLabel('Back').last);
+    expect(find.text('Most right in this battle'), findsOneWidget);
+    expect(find.byType(VistaFollowButton), findsWidgets);
+    expect(find.text('All ${busiest.takes}'), findsOneWidget);
+    expect(find.text('Join longs'), findsOneWidget);
+    expect(find.text('Join shorts'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    Navigator.of(tester.element(find.byType(BattleScreen))).pop();
     await tester.pumpAndSettle();
     await tester.tap(
       find.descendant(

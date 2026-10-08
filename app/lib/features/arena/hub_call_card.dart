@@ -54,6 +54,7 @@ class HubCallCard extends StatelessWidget {
     required this.onPosition,
     required this.onJoin,
     this.onDebate,
+    this.showDebate = true,
   });
 
   final Take take;
@@ -62,6 +63,10 @@ class HubCallCard extends StatelessWidget {
   final VoidCallback onPosition;
   final VoidCallback onJoin;
   final VoidCallback? onDebate;
+
+  /// The debate badge; off on the battle's own page, where every call is
+  /// on it.
+  final bool showDebate;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +181,7 @@ class HubCallCard extends StatelessWidget {
                         color: t.side.color,
                       ),
                     ),
-                    if (t.battle != null)
+                    if (t.battle != null && showDebate)
                       GestureDetector(
                         onTap: onDebate,
                         child: _Badge('${t.battle!} ›', VistaColors.textMuted),
