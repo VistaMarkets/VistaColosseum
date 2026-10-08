@@ -270,9 +270,7 @@ void main() {
     await tapAndSettle(tester, find.text(r'Continue with $MAYA'));
     expect(find.text('You earn 40% of the fees from both'), findsOneWidget);
     expect(find.textContaining('demo assumption'), findsNothing);
-    // The caption under it still shows YourMarketMock.shareLabel today.
-    // Phase 3 drops it (make_market_flow.dart:636-642) and must add
-    // expect(find.text(YourMarketMock.shareLabel), findsNothing) here.
+    expect(find.text(YourMarketMock.shareLabel), findsNothing);
   });
 
   test('the worked example prints the listed credit for an odd-cent '
@@ -317,7 +315,8 @@ void main() {
       expect(onReceipt(find.text(c.rule!)), findsOneWidget);
       expect(onReceipt(find.text(c.author)), findsOneWidget);
       expect(onReceipt(find.text(c.asset)), findsOneWidget);
-      expect(onReceipt(find.text(c.status)), findsOneWidget);
+      final o = Scenario.outcomeAt(c, Scenario.clock.value);
+      expect(onReceipt(find.text(outcomeStatus(o))), findsOneWidget);
       expect(onReceipt(find.text(noCall)), findsNothing);
       expect(
         onReceipt(find.text('A published call, not an order fill')),
@@ -325,15 +324,7 @@ void main() {
       );
       expect(onReceipt(find.text(Scenario.fixtureVersion)), findsOneWidget);
       expect(onReceipt(find.text(c.side!.label)), findsOneWidget);
-      // Today's receipt renders the raw result and settledAt, so the Oct 2
-      // call reads Wrong, Settled Oct 2 at the Sep 26 clock (its entry date
-      // is also Oct 2, so that date shows twice); an open one has none.
-      // When the Result and Settled rows (receipt_screens.dart:431-434)
-      // show Scenario.outcomeAt, derive `open` and the status check above
-      // from it, expect Open and 'Not settled yet' for Oct 2, and drop the
-      // settledAt == null check: Oct 2 has a date yet is open at the clock.
-      final open = c.result == CallOutcome.open;
-      expect(c.settledAt == null, open);
+      final open = o == CallOutcome.open;
       final dates = [c.entryAt!, if (!open) c.settledAt!];
       for (final d in dates.toSet()) {
         expect(

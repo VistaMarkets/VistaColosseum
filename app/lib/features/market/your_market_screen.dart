@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../portfolio/series_chart.dart';
 import '../live/live_feed.dart';
 import '../portfolio/portfolio_mock.dart';
 import 'market_mock.dart';
@@ -30,6 +30,7 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     const gap = SizedBox(height: VistaSpace.xl);
@@ -51,75 +52,81 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  VistaSpace.gutter,
-                  VistaSpace.md,
-                  VistaSpace.gutter,
-                  VistaSpace.gutter,
-                ),
-                children: [
-                  _marketCap(),
-                  gap,
-                  const _MarketCapChart(),
-                  gap,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: VistaSpace.xl,
+              child: ListenableBuilder(
+                listenable: Scenario.ownCap,
+                builder: (context, _) {
+                  final cap = Scenario.ownCapCents;
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                    VistaSpace.gutter,
+                    VistaSpace.md,
+                    VistaSpace.gutter,
+                    VistaSpace.gutter,
+                  ),
+                  children: [
+                    _marketCap(cap),
+                    gap,
+                    if (ownCapSeries(_span) case final s?) SizedBox(height: 150, child: SeriesChart(focus: s)) else const SizedBox(height: 150),
+                    gap,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: VistaSpace.xl,
+                      ),
+                      child: VistaSpanSelector(
+                        labels: PortfolioMock.spans,
+                        selectedIndex: _span,
+                        onChanged: (i) => setState(() => _span = i),
+                      ),
                     ),
-                    child: VistaSpanSelector(
-                      labels: PortfolioMock.spans,
-                      selectedIndex: _span,
-                      onChanged: (i) => setState(() => _span = i),
+                    gap,
+                    const VistaHairline(),
+                    gap,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: VistaMetric(
+                            label: 'Price',
+                            value: cap == null ? unavailable : formatUnitPrice(cap, YourMarketMock.supplyUnits),
+                            valueColor: cap == null ? VistaColors.textMuted : VistaColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(width: VistaSpace.md),
+                        Expanded(
+                          child: VistaMetric(
+                            label: 'Skew',
+                            value: YourMarketMock.skew,
+                          ),
+                        ),
+                        SizedBox(width: VistaSpace.md),
+                        Expanded(
+                          child: VistaMetric(
+                            label: 'Open interest',
+                            value: YourMarketMock.openInterest,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  gap,
-                  const VistaHairline(),
-                  gap,
-                  const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: VistaMetric(
-                          label: 'Price',
-                          value: YourMarketMock.price,
-                        ),
-                      ),
-                      SizedBox(width: VistaSpace.md),
-                      Expanded(
-                        child: VistaMetric(
-                          label: 'Skew',
-                          value: YourMarketMock.skew,
-                        ),
-                      ),
-                      SizedBox(width: VistaSpace.md),
-                      Expanded(
-                        child: VistaMetric(
-                          label: 'Open interest',
-                          value: YourMarketMock.openInterest,
-                        ),
-                      ),
-                    ],
-                  ),
-                  gap,
-                  Text(YourMarketMock.funding, style: VistaType.bodyMedium),
-                  gap,
-                  _holders(),
-                  gap,
-                  const VistaHairline(),
-                  // The head's 44pt link target stands in for the gaps.
-                  VistaSectionHead(
-                    title: 'RECORD',
-                    linkLabel: 'All receipts',
-                    onLink: () =>
-                        Navigator.of(context)
-                            .push(ReceiptsScreen.route(PortfolioMock.handle)),
-                  ),
-                  const TraderRecordPanel(handle: PortfolioMock.handle),
-                  // The user's call receipts; each opens its receipt.
-                  const CallRecordList(author: PortfolioMock.handle),
-                ],
-              ),
+                    gap,
+                    Text(YourMarketMock.funding, style: VistaType.bodyMedium),
+                    gap,
+                    _holders(),
+                    gap,
+                    const VistaHairline(),
+                    // The head's 44pt link target stands in for the gaps.
+                    VistaSectionHead(
+                      title: 'RECORD',
+                      linkLabel: 'All receipts',
+                      onLink: () =>
+                          Navigator.of(context)
+                              .push(ReceiptsScreen.route(PortfolioMock.handle)),
+                    ),
+                    const TraderRecordPanel(handle: PortfolioMock.handle),
+                    // The user's call receipts; each opens its receipt.
+                    const CallRecordList(author: PortfolioMock.handle),
+                  ],
+                );
+              }),
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(
@@ -140,7 +147,7 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
     );
   }
 
-  Widget _marketCap() {
+  Widget _marketCap(int? cap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,21 +156,21 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(PortfolioMock.marketCap, style: VistaType.display),
+          child: Text(cap == null ? unavailable : formatCap(cap), style: VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(
           spacing: VistaSpace.xs,
           children: [
             Text(
-              YourMarketMock.change24h,
-              style: VistaType.bodyMedium.copyWith(color: VistaColors.long),
+              cap == null ? unavailable : formatCapChange(cap - Scenario.ownCapMoveCents(_span), cap),
+              style: VistaType.bodyMedium.copyWith(color: cap == null ? VistaColors.textMuted : (Scenario.ownCapMoveCents(_span) >= 0 ? VistaColors.long : VistaColors.short)),
             ),
-            Text('Last 24 hours', style: VistaType.bodyMedium),
+            Text(spanWindows[_span], style: VistaType.bodyMedium),
           ],
         ),
         const SizedBox(height: 3),
-        Text(YourMarketMock.unitLine, style: VistaType.caption),
+        Text(cap == null ? unavailable : '${formatUnitPrice(cap, YourMarketMock.supplyUnits)} / unit · ${YourMarketMock.supplyUnits ~/ 1000000}M supply', style: VistaType.caption),
         const SizedBox(height: 3),
         // Market credits only (spec 06): the ledger Total adds copy fees.
         // Never a stored figure; opens the ledger.
@@ -209,58 +216,3 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
   }
 }
 
-/// Market-cap line (static Figma vectors on a 370×150 box; x stretches).
-class _MarketCapChart extends StatelessWidget {
-  const _MarketCapChart();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 150,
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final sx = c.maxWidth / 370;
-          Widget layer(String asset, Rect r) => Positioned(
-            left: r.left * sx,
-            top: r.top,
-            width: r.width * sx,
-            height: r.height,
-            child: SvgPicture.asset(asset, fit: BoxFit.fill),
-          );
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              layer(
-                VistaAssets.marketDotLattice,
-                const Rect.fromLTWH(0, 0, 370, 150),
-              ),
-              layer(
-                VistaAssets.marketBaseline,
-                const Rect.fromLTWH(0, 141, 370, 1),
-              ),
-              layer(
-                VistaAssets.marketClipAbove,
-                const Rect.fromLTWH(-5, -6, 380, 148),
-              ),
-              layer(
-                VistaAssets.marketClipBelow,
-                const Rect.fromLTWH(-5, 142, 380, 14),
-              ),
-              // Live dot at the latest point, on the right edge.
-              Positioned(
-                left: c.maxWidth - 6.5,
-                top: 1.5,
-                child: const VistaIcon(VistaAssets.marketLiveHalo, size: 13),
-              ),
-              Positioned(
-                left: c.maxWidth - 3.5,
-                top: 4.5,
-                child: const VistaIcon(VistaAssets.markerLive, size: 7),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}

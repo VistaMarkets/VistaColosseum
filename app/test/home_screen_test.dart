@@ -302,7 +302,7 @@ void main() {
         .opacity;
 
     const portfolio = r'$12,480.00';
-    const market = r'$44.0M';
+    const market = r'$10,000'; // updated for listMarket('MAYA')
 
     testWidgets('swiping the chart moves to the market cap and back', (
       tester,
@@ -1744,13 +1744,13 @@ void main() {
     ) async {
       await openWallet(tester);
       expect(find.text(r'+$91 (0.73%)'), findsOneWidget);
-      // Both pages (balance and market cap) cover the chosen span.
-      expect(find.text('Last 24 hours'), findsNWidgets(2));
+      // The balance page covers the chosen span.
+      expect(find.text('Last 24 hours'), findsOneWidget);
       final day = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
       await tester.tap(find.text('1W'));
       await tester.pumpAndSettle();
       expect(find.text(r'+$412 (3.41%)'), findsOneWidget);
-      expect(find.text('Past week'), findsNWidgets(2));
+      expect(find.text('Past week'), findsOneWidget);
       final week = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
       // A different window, ending at the same balance.
       expect(week.first, isNot(day.first));
@@ -3047,4 +3047,52 @@ void main() {
       expect(state(), equals(before));
     });
   });
+
+  group('home tabs', () {
+    setUp(() => Scenario.reset());
+
+    Future<void> pumpHome(WidgetTester tester) async {
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Following shows only calls from followed traders; For You shows the full feed', (tester) async {
+      await pumpHome(tester);
+      // Default is For You
+      expect(find.text('For You'), findsOneWidget);
+      expect(find.text('kaito.eth'), findsOneWidget);
+
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      
+      // kaito.eth is not followed
+      expect(find.text('kaito.eth'), findsNothing);
+      expect(find.text('kilo.sol'), findsOneWidget); // kilo.sol is followed and is the first item
+    });
+
+    testWidgets('unfollowing everyone empties Following into the empty state', (tester) async {
+      Scenario.followed.value = {};
+      await pumpHome(tester);
+      
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      
+      expect(find.text('No calls to show'), findsOneWidget);
+    });
+
+    testWidgets('a follow made elsewhere appears in Following', (tester) async {
+      Scenario.followed.value = {};
+      await pumpHome(tester);
+      
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      expect(find.text('No calls to show'), findsOneWidget);
+      
+      Scenario.followed.value = {'kaito.eth'};
+      await tester.pumpAndSettle();
+      expect(find.text('No calls to show'), findsNothing);
+      expect(find.text('kaito.eth'), findsOneWidget);
+    });
+  });
+
 }

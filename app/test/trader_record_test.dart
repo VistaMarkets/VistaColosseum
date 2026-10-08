@@ -605,4 +605,20 @@ void main() {
     await pumpApp(tester, home: TraderMarketScreen(handle: pair.$1));
     expect(find.text('2 open calls'), findsOneWidget);
   });
+
+  testWidgets('the user\'s own record and its items agree', (tester) async {
+    const handle = PortfolioMock.handle;
+    await pumpApp(
+      tester,
+      home: const YourMarketScreen(),
+      size: const Size(402, 2400),
+    );
+    final m = Scenario.record(handle);
+    expect(m.right, greaterThan(0));
+    expect(inPanel(handle, find.text('${m.right} right')), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(CallRecordItem), matching: find.text('Right')),
+      findsNWidgets(m.right),
+    );
+  });
 }

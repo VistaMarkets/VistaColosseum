@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
+import '../market/market_mock.dart';
 import 'portfolio_mock.dart';
 import 'series_chart.dart';
 
@@ -55,23 +56,19 @@ const double _chartHeight = 170;
 /// 1D, 1W, 1M, All), ending at today's figures. 1D is the design's
 /// +$91 / +$1.8M. Mock.
 const _balanceMoves = [-15.0, 26.0, 91.0, 412.0, 937.0, 3920.0];
-const _capMoves = [-0.21e6, 0.35e6, 1.8e6, 5.6e6, -2.3e6, 31.2e6];
 
 /// The user's cash in dollars, for the chart and its change line only; the
 /// headline shows the stored cents.
 double get _balance => Scenario.cashCents.value / 100;
-const double _cap = 44.0e6;
 
 /// The balance, live.
 ValueListenable<double> get _liveBalance =>
     LiveFeed.watch('portfolio', _balance, 9);
 
 /// "+$91 (0.73%)" or "+$1.8M (4.27%)" for a move from [start] to [end].
-String _change(double start, double end, {bool millions = false}) {
+String _change(double start, double end) {
   final d = end - start;
-  final amount = millions
-      ? '\$${(d.abs() / 1e6).toStringAsFixed(1)}M'
-      : formatUsd(d.abs());
+  final amount = formatUsd(d.abs());
   final moved = '${d < 0 ? '−' : '+'}$amount';
   // No percentage of a start at or below zero.
   if (start <= 0) return moved;
@@ -89,14 +86,16 @@ class _PortfolioPagerState extends State<PortfolioPager>
   /// 0 = portfolio in focus, 1 = market in focus.
   late final AnimationController _page = AnimationController(vsync: this);
 
+  bool get _hasCap => widget.hasMarket && Scenario.ownCapCents != null;
+
   /// Rebuild on a swipe or when the cash changes.
-  late final _rebuild = Listenable.merge([_page, Scenario.cashCents]);
+  late final _rebuild = Listenable.merge([_page, Scenario.cashCents, Scenario.ownCap]);
 
   @override
   void didUpdateWidget(PortfolioPager oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Reset can unlist the market; there is then no cap page to stay on.
-    if (!widget.hasMarket) _page.value = 0;
+    if (!_hasCap) _page.value = 0;
   }
 
   @override
@@ -132,17 +131,19 @@ class _PortfolioPagerState extends State<PortfolioPager>
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Swipe to switch between portfolio and market cap',
-      onIncrease: () => _settle(1),
-      onDecrease: () => _settle(0),
+      label: _hasCap ? 'Swipe to switch between portfolio and market cap' : null,
+      onIncrease: _hasCap ? () => _settle(1) : null,
+      onDecrease: _hasCap ? () => _settle(0) : null,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onHorizontalDragUpdate: widget.hasMarket ? _onDrag : null,
-        onHorizontalDragEnd: widget.hasMarket ? _onDragEnd : null,
+        onHorizontalDragUpdate: _hasCap ? _onDrag : null,
+        onHorizontalDragEnd: _hasCap ? _onDragEnd : null,
         child: AnimatedBuilder(
           animation: _rebuild,
           builder: (context, _) {
             final p = _page.value;
+            final cap = _hasCap ? Scenario.ownCapCents : null;
+            final capSeries = _hasCap ? ownCapSeries(widget.span) : null;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -177,18 +178,17 @@ class _PortfolioPagerState extends State<PortfolioPager>
                           _slid(
                             dx: _slide * (1 - p),
                             opacity: _incoming(p),
-                            child: _NumberPage(
+                            child: cap != null ? _NumberPage(
                               caption: '\$${widget.ticker} market cap',
                               dots: VistaAssets.pagerDotsMarket,
-                              value: PortfolioMock.marketCap,
-                              change: _change(
-                                _cap - _capMoves[widget.span],
-                                _cap,
-                                millions: true,
+                              value: formatCap(cap),
+                              change: formatCapChange(
+                                cap - Scenario.ownCapMoveCents(widget.span),
+                                cap,
                               ),
-                              up: _capMoves[widget.span] >= 0,
+                              up: Scenario.ownCapMoveCents(widget.span) >= 0,
                               window: spanWindows[widget.span],
-                            ),
+                            ) : const SizedBox.shrink(),
                           ),
                         ],
                       ),
@@ -198,7 +198,7 @@ class _PortfolioPagerState extends State<PortfolioPager>
                 const SizedBox(height: VistaSpace.sm),
                 _Chart(
                   progress: p,
-                  hasMarket: widget.hasMarket,
+                  cap: capSeries,
                   span: widget.span,
                 ),
               ],
@@ -296,19 +296,17 @@ class _NumberPage extends StatelessWidget {
 class _Chart extends StatelessWidget {
   const _Chart({
     required this.progress,
-    required this.hasMarket,
+    required this.cap,
     required this.span,
   });
 
   final double progress;
 
-  /// Without a market there is no second line to show behind the portfolio.
-  final bool hasMarket;
+  final List<double>? cap;
   final int span;
 
   @override
   Widget build(BuildContext context) {
-    final cap = bridgeSeries('cap/$span', _cap - _capMoves[span], _cap);
     final history = bridgeSeries(
       'portfolio/$span',
       _balance - _balanceMoves[span],
@@ -335,13 +333,13 @@ class _Chart extends StatelessWidget {
                     opacity: portfolio,
                     child: SeriesChart(
                       focus: balance,
-                      muted: hasMarket ? cap : null,
+                      muted: cap,
                     ),
                   ),
-                if (market > 0)
+                if (market > 0 && cap != null)
                   Opacity(
                     opacity: market,
-                    child: SeriesChart(focus: cap, muted: balance),
+                    child: SeriesChart(focus: cap!, muted: balance),
                   ),
               ],
             );

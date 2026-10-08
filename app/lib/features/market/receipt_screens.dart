@@ -193,6 +193,7 @@ class CallRecordItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final o = Scenario.outcomeAt(receipt, Scenario.clock.value);
     return Semantics(
       button: true,
       child: GestureDetector(
@@ -200,12 +201,12 @@ class CallRecordItem extends StatelessWidget {
         onTap: () =>
             Navigator.of(context).push(CallReceiptScreen.route(receipt)),
         child: VistaTimelineEntry(
-          railAsset: receipt.rail,
+          railAsset: outcomeRail(o),
           time: receipt.entryAt ?? unavailable,
           title: receipt.rule ?? unavailable,
-          status: receipt.status,
-          statusColor: receipt.color,
-          detail: receipt.detail,
+          status: outcomeStatus(o),
+          statusColor: outcomeColor(o),
+          detail: outcomeDetail(o, receipt.odds),
         ),
       ),
     );
@@ -221,12 +222,12 @@ class CallRecordList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: Scenario.callReceipts,
-      builder: (context, calls, _) => Column(
+    return ListenableBuilder(
+      listenable: Listenable.merge([Scenario.callReceipts, Scenario.clock]),
+      builder: (context, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final c in calls)
+          for (final c in Scenario.callReceipts.value)
             if (c.author == author) ...[
               const SizedBox(height: VistaSpace.xl),
               CallRecordItem(receipt: c),
@@ -419,24 +420,28 @@ class CallReceiptScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final r = receipt;
-    final fields = [
-      ('Author', r.author),
-      ('Asset', r.asset),
-      ('Direction', r.side?.label),
-      ('Entry price', r.entryPrice),
-      ('Paper size', r.sizeCents == null ? null : formatCents(r.sizeCents!)),
-      ('Entered', r.entryAt),
-      ('Rule', r.rule),
-      ('Result', r.result == null ? null : r.status),
-      (
-        'Settled',
-        r.result == CallOutcome.open ? 'Not settled yet' : r.settledAt,
-      ),
-      ('Market said', r.odds),
-      ('Provenance', r.provenance),
-    ];
-    return _page(
+    return ListenableBuilder(
+      listenable: Scenario.clock,
+      builder: (context, _) {
+        final r = receipt;
+        final o = Scenario.outcomeAt(r, Scenario.clock.value);
+        final fields = [
+          ('Author', r.author),
+          ('Asset', r.asset),
+          ('Direction', r.side?.label),
+          ('Entry price', r.entryPrice),
+          ('Paper size', r.sizeCents == null ? null : formatCents(r.sizeCents!)),
+          ('Entered', r.entryAt),
+          ('Rule', r.rule),
+          ('Result', r.result == null ? null : outcomeStatus(o)),
+          (
+            'Settled',
+            o == CallOutcome.open ? 'Not settled yet' : r.settledAt,
+          ),
+          ('Market said', r.odds),
+          ('Provenance', r.provenance),
+        ];
+        return _page(
       context,
       title: 'Call receipt',
       children: [
@@ -477,5 +482,7 @@ class CallReceiptScreen extends StatelessWidget {
           ),
       ],
     );
+  }
+  );
   }
 }

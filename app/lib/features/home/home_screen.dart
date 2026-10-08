@@ -1,3 +1,4 @@
+import '../../scenario/scenario.dart';
 import 'package:flutter/material.dart';
 
 import '../../design_system/design_system.dart';
@@ -44,7 +45,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _feed = 0;
+  int _feed = 1;
 
   final _pages = PageController();
 
@@ -64,27 +65,44 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
-  List<Object> get _feedItems => widget.feed ?? homeFeed;
+  List<Object> _getFeedItems(Set<String> followed) {
+    if (widget.feed != null) return widget.feed!;
+    if (_feed == 1) return homeFeed; // For You
+    return homeFeed.where((item) {
+      if (item is TradeIdea) return followed.contains(item.callerHandle);
+      return false;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
-            child: AccountTopBar(onNotBuilt: widget.onNotBuilt),
-          ),
-          const SizedBox(height: VistaSpace.md),
-          VistaSegmentedTabs(
-            labels: const ['Following', 'For You'],
-            selectedIndex: _feed,
-            onChanged: (i) => setState(() => _feed = i),
-          ),
-          const SizedBox(height: VistaSpace.md),
-          Expanded(
-            child: _feedItems.isEmpty
+      child: ValueListenableBuilder<Set<String>>(
+        valueListenable: Scenario.followed,
+        builder: (context, followed, child) {
+          final feedItems = _getFeedItems(followed);
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+                child: AccountTopBar(onNotBuilt: widget.onNotBuilt),
+              ),
+              const SizedBox(height: VistaSpace.md),
+              VistaSegmentedTabs(
+                labels: const ['Following', 'For You'],
+                selectedIndex: _feed,
+                onChanged: (i) {
+                  setState(() {
+                    _feed = i;
+                    _settledPage = 0;
+                    if (_pages.hasClients) _pages.jumpToPage(0);
+                  });
+                },
+              ),
+              const SizedBox(height: VistaSpace.md),
+              Expanded(
+                child: feedItems.isEmpty
                 ? ListView(
                     children: [
                       VistaEmptyState(
@@ -99,9 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: PageView.builder(
                       controller: _pages,
                       scrollDirection: Axis.vertical,
-                      itemCount: _feedItems.length,
+                      itemCount: feedItems.length,
                       itemBuilder: (context, i) {
-                        final item = _feedItems[i];
+                        final item = feedItems[i];
                         if (item is Suggestion) {
                           return Center(
                             child: MakerSuggestionCard(
@@ -149,8 +167,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                   ),
-          ),
-        ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -94,7 +94,6 @@ abstract final class PortfolioMock {
 
   /// The user's own market (their TPX symbol) and its market cap.
   static const marketSymbol = 'MAYA';
-  static const marketCap = r'$44.0M';
   static const spans = ['1h', '4h', '1D', '1W', '1M', 'All'];
   static const defaultSpan = 2; // 1D
 

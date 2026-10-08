@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
 import '../account/account_state.dart';
 import '../market/market_mock.dart';
+import '../market/your_market_screen.dart';
 import 'confetti_burst.dart';
 import 'make_market_mock.dart';
 
@@ -55,9 +57,13 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
       ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
   }
 
+  late final int _capCents;
+
   void _create() {
+    if (_step == _Step.live) return;
     // Simulated: records the market in app state only.
     AccountState.listMarket(_symbol);
+    _capCents = Scenario.ownCapCents!;
     setState(() => _step = _Step.live);
   }
 
@@ -632,14 +638,6 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                         textAlign: TextAlign.center,
                         style: VistaType.bodyStrong.copyWith(fontSize: 14),
                       ),
-                      const SizedBox(height: VistaSpace.xxs),
-                      Text(
-                        YourMarketMock.shareLabel,
-                        textAlign: TextAlign.center,
-                        style: VistaType.caption.copyWith(
-                          color: VistaColors.textMuted,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -774,6 +772,30 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
 
   // ─── 3 · Live ─────────────────────────────────────────────────────────
 
+  Widget _pill(String label, VoidCallback onTap) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: VistaColors.surfaceRaised,
+            borderRadius: BorderRadius.circular(VistaRadius.pill),
+          ),
+          child: Text(
+            label,
+            style: VistaType.subhead.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _liveStep() {
     final t = '\$$_symbol';
     return Stack(
@@ -858,7 +880,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               ),
               const SizedBox(height: VistaSpace.xxs),
               Text(
-                MakeMarketMock.startingCap,
+                formatCap(_capCents),
                 style: VistaType.display.copyWith(fontSize: 34),
               ),
               const Spacer(),
@@ -867,30 +889,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                   label: 'Make your first call',
                   onPressed: () => _notBuilt('Make a call'),
                 ),
-                const SizedBox(height: VistaSpace.lg),
-                Semantics(
-                  button: true,
-                  label: 'Share $t',
-                  excludeSemantics: true,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _notBuilt('Share'),
-                    child: Container(
-                      height: 48,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: VistaColors.surfaceRaised,
-                        borderRadius: BorderRadius.circular(VistaRadius.pill),
-                      ),
-                      child: Text(
-                        'Share $t',
-                        style: VistaType.subhead.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: VistaSpace.md),
+                _pill('Open $t', () => Navigator.of(context).pushReplacement(YourMarketScreen.route())),
+                const SizedBox(height: VistaSpace.md),
+                _pill('Share $t', () => _notBuilt('Share')),
               ]),
             ],
           ),
