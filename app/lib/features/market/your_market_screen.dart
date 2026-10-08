@@ -30,7 +30,6 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     const gap = SizedBox(height: VistaSpace.xl);
@@ -148,6 +147,18 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
   }
 
   Widget _marketCap(int? cap) {
+    final capText = cap == null ? unavailable : formatCap(cap);
+    
+    final move = Scenario.ownCapMoveCents(_span);
+    final moveText = cap == null ? unavailable : formatCapChange(cap - move, cap);
+    final moveColor = cap == null 
+        ? VistaColors.textMuted 
+        : (move >= 0 ? VistaColors.long : VistaColors.short);
+        
+    final priceText = cap == null 
+        ? unavailable 
+        : '${formatUnitPrice(cap, YourMarketMock.supplyUnits)} / unit · ${YourMarketMock.supplyUnits ~/ 1000000}M supply';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -156,21 +167,21 @@ class _YourMarketScreenState extends State<YourMarketScreen> {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(cap == null ? unavailable : formatCap(cap), style: VistaType.display),
+          child: Text(capText, style: VistaType.display),
         ),
         const SizedBox(height: 3),
         Wrap(
           spacing: VistaSpace.xs,
           children: [
             Text(
-              cap == null ? unavailable : formatCapChange(cap - Scenario.ownCapMoveCents(_span), cap),
-              style: VistaType.bodyMedium.copyWith(color: cap == null ? VistaColors.textMuted : (Scenario.ownCapMoveCents(_span) >= 0 ? VistaColors.long : VistaColors.short)),
+              moveText,
+              style: VistaType.bodyMedium.copyWith(color: moveColor),
             ),
             Text(spanWindows[_span], style: VistaType.bodyMedium),
           ],
         ),
         const SizedBox(height: 3),
-        Text(cap == null ? unavailable : '${formatUnitPrice(cap, YourMarketMock.supplyUnits)} / unit · ${YourMarketMock.supplyUnits ~/ 1000000}M supply', style: VistaType.caption),
+        Text(priceText, style: VistaType.caption),
         const SizedBox(height: 3),
         // Market credits only (spec 06): the ledger Total adds copy fees.
         // Never a stored figure; opens the ledger.

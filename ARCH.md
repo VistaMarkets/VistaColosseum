@@ -445,8 +445,6 @@ VistaColosseum/
 │   │   ├── replay_live_test.dart
 │   │   ├── rolling_number_test.dart
 │   │   ├── scenario_test.dart
-│   │   ├── test_checkbox.dart
-│   │   ├── test_lunaq.dart
 │   │   └── trader_record_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   └── app_icon/

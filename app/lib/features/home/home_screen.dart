@@ -120,6 +120,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: feedItems.length,
                       itemBuilder: (context, i) {
                         final item = feedItems[i];
+                        
+                        void goDetails(String ticker, {bool isTrader = false}) {
+                          Navigator.of(context).push(
+                            isTrader
+                                ? TraderMarketScreen.route(ticker)
+                                : AssetTradeScreen.route(ticker),
+                          );
+                        }
+
                         if (item is Suggestion) {
                           return Center(
                             child: MakerSuggestionCard(
@@ -129,8 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context,
                                 symbol: item.asset,
                                 side: item.direction,
-                                onDetails: () => Navigator.of(context)
-                                    .push(AssetTradeScreen.route(item.asset)),
+                                onDetails: () => goDetails(item.asset),
                               ),
                             ),
                           );
@@ -141,11 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           active: widget.visible && i == _settledPage,
                           // An asset opens its trade page; a trader market, the
                           // trader's market page.
-                          onDetails: () => Navigator.of(context).push(
-                            idea.traderMarket
-                                ? TraderMarketScreen.route(idea.ticker)
-                                : AssetTradeScreen.route(idea.ticker),
-                          ),
+                          onDetails: () => goDetails(idea.ticker, isTrader: idea.traderMarket),
                           onCaller: () =>
                               Navigator.of(context)
                                   .push(ProfileScreen.route(idea.callerHandle)),
@@ -157,11 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             side: idea.side,
                             sourceCallId: '${idea.callerHandle}/${idea.ticker}',
                             sourceAuthorHandle: idea.callerHandle,
-                            onDetails: () => Navigator.of(context).push(
-                              idea.traderMarket
-                                  ? TraderMarketScreen.route(idea.ticker)
-                                  : AssetTradeScreen.route(idea.ticker),
-                            ),
+                            onDetails: () => goDetails(idea.ticker, isTrader: idea.traderMarket),
                           ),
                         );
                       },
