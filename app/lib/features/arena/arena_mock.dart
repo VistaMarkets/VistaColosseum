@@ -472,6 +472,8 @@ abstract final class ArenaMock {
         takeProfit: 1.012,
         stopLoss: 0.994,
         message: '',
+        // Took the quick one off: closed 0.11% up, +1.1% at 10x.
+        exitRatio: 1.0011,
       ),
       likes: 11,
     ),

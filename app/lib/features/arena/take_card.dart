@@ -391,8 +391,9 @@ final _actionCount = VistaType.bodyMedium.copyWith(
   color: VistaColors.textMuted,
 );
 
-/// The position behind a backed take, live: side and leverage, P/L since
-/// entry, then entry, size and exits.
+/// The position behind a backed take: side and leverage, P/L since entry
+/// (live, or fixed at the exit once they've closed), then entry and size,
+/// and the exit if there is one. No planned TP/SL.
 class BackedPositionCard extends StatelessWidget {
   const BackedPositionCard({
     super.key,
@@ -442,13 +443,9 @@ class BackedPositionCard extends StatelessWidget {
                   ValueListenableBuilder(
                     valueListenable: MarketPrices.of(ticker),
                     builder: (context, price, _) {
-                      final pnl =
-                          (price - entry) /
-                          entry *
-                          p.leverage *
-                          (p.side == TradeSide.long ? 1 : -1) *
-                          100;
+                      final pnl = p.pnlPct(entry, price);
                       return Text(
+                        '${p.exited ? 'Exited ' : ''}'
                         '${pnl >= 0 ? '+' : '−'}'
                         '${pnl.abs().toStringAsFixed(1)}%',
                         style: VistaType.figures(VistaType.subhead).copyWith(
@@ -464,8 +461,7 @@ class BackedPositionCard extends StatelessWidget {
               const SizedBox(height: VistaSpace.xs),
               Text(
                 'Entry ${level(1)} · ${formatUsd(p.size)}'
-                ' · TP ${_short(entry * p.takeProfit)}'
-                ' · SL ${_short(entry * p.stopLoss)}',
+                '${p.exited ? ' · Exit ${level(p.exitRatio!)}' : ''}',
                 style: VistaType.figures(VistaType.chip).copyWith(
                   fontWeight: FontWeight.w500,
                   color: VistaColors.textMuted,
@@ -478,15 +474,6 @@ class BackedPositionCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// An exit level in short form: $72,000 → "$72k", $64,900 → "$64.9k",
-/// $187.22 → "$187".
-String _short(double v) {
-  if (v < 100) return MarketPrices.format(v, compact: true);
-  if (v < 1000) return '\$${v.round()}';
-  final k = (v / 1000).toStringAsFixed(1);
-  return '\$${k.endsWith('.0') ? k.substring(0, k.length - 2) : k}k';
 }
 
 /// The battle a take is on: "Reclaims $72,000 by Fri ›".

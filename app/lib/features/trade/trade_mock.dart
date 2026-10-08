@@ -45,6 +45,7 @@ class CallerPost {
     required this.stopLoss,
     required this.message,
     this.following = true,
+    this.exitRatio,
   });
 
   final String handle;
@@ -65,6 +66,21 @@ class CallerPost {
   final double takeProfit;
   final double stopLoss;
   final String message;
+
+  /// Where they closed, as a share of the entry; null while still open.
+  /// Call cards show the exit and its P/L only once there is one.
+  final double? exitRatio;
+  bool get exited => exitRatio != null;
+
+  /// P/L in % at [price] (live), or at the exit once closed.
+  double pnlPct(double entry, double price) {
+    final at = exitRatio == null ? price : entry * exitRatio!;
+    return (at - entry) /
+        entry *
+        leverage *
+        (side == TradeSide.long ? 1 : -1) *
+        100;
+  }
 }
 
 /// Mock content from Figma 206:110 and 214:110 / 214:428 / 214:746

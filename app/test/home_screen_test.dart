@@ -51,6 +51,7 @@ import 'package:vista_colosseum/features/markets/markets_mock.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/markets/markets_screen.dart';
 import 'package:vista_colosseum/features/arena/battle_screen.dart';
+import 'package:vista_colosseum/features/trade/trade_mock.dart';
 import 'package:vista_colosseum/features/arena/challenge_sheet.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
@@ -1139,6 +1140,39 @@ void main() {
       BattlesStore.all.value.firstWhere((b) => b.id == eth.id).takes,
       eth.takes + 1,
     );
+  });
+
+  testWidgets('call cards: no TP/SL; the exit and its P/L once closed', (
+    tester,
+  ) async {
+    CallerPost post({double? exit}) => CallerPost(
+      handle: 'lunaq',
+      age: '40m',
+      side: TradeSide.long,
+      leverage: 10,
+      entryRatio: 1,
+      size: 600,
+      takeProfit: 1.012,
+      stopLoss: 0.994,
+      message: '',
+      exitRatio: exit,
+    );
+    Future<void> pump(CallerPost p) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BackedPositionCard(post: p, ticker: 'ETH'),
+        ),
+      ),
+    );
+    await pump(post());
+    expect(find.textContaining('TP'), findsNothing);
+    expect(find.textContaining('SL'), findsNothing);
+    expect(find.textContaining('Exit'), findsNothing);
+    // Closed 1% up at 10x: +10.0%, fixed, with the exit price.
+    await pump(post(exit: 1.01));
+    expect(find.text('Exited +10.0%'), findsOneWidget);
+    expect(find.textContaining(' · Exit '), findsOneWidget);
+    expect(find.textContaining('TP'), findsNothing);
   });
 
   group('challenge', () {

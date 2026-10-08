@@ -205,9 +205,8 @@ class CallOrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = post;
-    final long = p.side == TradeSide.long;
     final entry = base * p.entryRatio;
-    final pnl = (price - entry) / entry * p.leverage * (long ? 1 : -1) * 100;
+    final pnl = p.pnlPct(entry, price);
     String level(double ratio) =>
         MarketPrices.format(entry * ratio, compact: true);
     return Semantics(
@@ -247,6 +246,7 @@ class CallOrderCard extends StatelessWidget {
                     ),
                   ),
                   Text(
+                    '${p.exited ? 'Exited ' : ''}'
                     '${pnl >= 0 ? '+' : '−'}${pnl.abs().toStringAsFixed(1)}%',
                     style: VistaType.figures(VistaType.bodyStrong).copyWith(
                       color: pnl >= 0 ? VistaColors.long : VistaColors.short,
@@ -257,8 +257,7 @@ class CallOrderCard extends StatelessWidget {
               const SizedBox(height: VistaSpace.xs),
               Text(
                 'Size ${formatUsd(p.size)}'
-                ' · TP ${level(p.takeProfit)}'
-                ' · SL ${level(p.stopLoss)}',
+                '${p.exited ? ' · Exit ${level(p.exitRatio!)}' : ''}',
                 style: VistaType.figures(VistaType.caption)
                     .copyWith(color: VistaColors.textMuted),
               ),
