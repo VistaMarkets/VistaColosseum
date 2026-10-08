@@ -1267,6 +1267,27 @@ void main() {
     expect(find.text('Cancel'), findsNothing);
   });
 
+  testWidgets('Leaderboard: a Brand new row, newest first', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Explore'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Leaderboard'));
+    await tester.pumpAndSettle();
+    expect(find.text('Brand new'), findsOneWidget);
+    final cards = tester
+        .widgetList<SlimMarketCard>(find.byType(SlimMarketCard))
+        .map((c) => c.market.id)
+        .toList();
+    expect(cards.take(2), ['pip.eth', 'vexa']); // 3 days, then 6
+    expect(find.text('Opened 3d ago'), findsOneWidget);
+    expect(cards, isNot(contains('maya.eth')));
+  });
+
   group('challenge', () {
     Future<void> toCalls(WidgetTester tester) async {
       tester.view

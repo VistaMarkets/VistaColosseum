@@ -372,6 +372,13 @@ class _MarketsScreenState extends State<MarketsScreen> {
                             Navigator.of(context)
                                 .push(ProfileScreen.route(m.name)),
                       ),
+                    // Leaderboard: brand new markets first, then the board.
+                    if (_traders && !_searching)
+                      BrandNewMarkets(
+                        onTrader: (m) =>
+                            Navigator.of(context)
+                                .push(ProfileScreen.route(m.name)),
+                      ),
                     const SizedBox(height: VistaSpace.xl),
                     // The Leaderboard's chips; All markets has no sort (it
                     // lists by volume). One line that scrolls sideways.
