@@ -52,7 +52,7 @@ real financial execution out of the demo.
 - `app/lib/design_system/` — Vista tokens, theme and shared components; import `design_system.dart`
 - `app/lib/charting/` — candle chart engine; import `charting.dart`: `Candle` (OHLC in prices), `PriceScale` + `roundTicks` (round-number gridlines), `timeMarks` (clock-boundary time labels), `LiveCandles` (newest candle follows a `LiveFeed` value), `sampleCandles` (seeded generated history) and the `PriceChart` widget (hollow candles or line)
 - `app/lib/app_shell.dart` — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; the nav is a floating glass pill
-- `app/lib/features/invite/` — referral: `invite_sheet.dart` (`InviteSheet`: your link to copy, code, "you both get $20", who joined and what you earned, Share invite) opened by the green `InviteButton` chip beside Portfolio's Followers / Following chips and Settings' Invite friends row. Simulated
+- `app/lib/features/invite/` — referral: `invite_sheet.dart` (`InviteSheet`, Figma 1396:9883: earned from referred traders with Claim, your link with copy, friends referred and rank, Share your code; illustration SVGs `assets/figma/ref_*.svg`) opened by the green `InviteButton` chip beside Portfolio's Followers / Following chips and Settings' Invite friends row. Simulated
 - `app/lib/features/people/` — Followers / Following lists (pushed from Portfolio chips) with search and follow toggles (mock data)
 - `app/lib/features/profile/` — another user's profile (from follow lists, callers and the Home card): header, market chart, holdings, call/arena receipts; private accounts without a market get the private layout (mock data); `receipts_screen.dart` is a trader's full record ("All receipts" from a profile, trader market or your market): % right, counts, All/Calls/Arena/Open filters, every receipt; a receipt, or a "Holding now" row, opens `ReceiptSheet` (side, called at, settled at / now, verdict) Each profile's figures come from `trader_profile.dart` (`TraderProfile.of(handle)`): yours is the designed profile; everyone else's record (settled/right from their % right), followers, bio, market (price, cap, change, line chart; hidden without a market), holdings (their backed calls) and receipts (their calls plus recent settled ones) are their own
 - `app/lib/features/portfolio/` — Portfolio screen: swipeable portfolio / market-cap pager and chart (`series_chart.dart`: drawn from simulated history over the chosen span, the balance ending at its live value, in the Home line style), spans, fees, positions; tapping a position slides up its P/L sheet, whose chart is that market's price over the span ending at the live price, with take-profit / stop-loss steppers that move the chart lines and swap Close for a simulated Edit/save; Open orders tab lists resting limit orders as compact cards (fill price and distance from the mark, size, partial fill, TP/SL, reduce-only) with a one-tap simulated Cancel and Undo; without a market the chart drops the muted market line (mock data); `positions_state.dart` (`PositionsState`) is the one list of open positions: a market fill from either ticket adds one, Portfolio and Arena's + picker read it, Close on the position sheet removes it (Undo puts it back) Positions / Orders / History: History lists closed trades (`trade_history.dart`, `TradeHistory`), newest first, with side, when it closed and realised P/L; a row opens its receipt (entry, closed at). Closing a position from its sheet records it (Undo removes it again)
@@ -243,6 +243,15 @@ VistaColosseum/
 │   │   │   ├── rail_record_right.svg
 │   │   │   ├── rail_record_wrong.svg
 │   │   │   ├── range_dot.svg
+│   │   │   ├── ref_chart.svg
+│   │   │   ├── ref_coin_left.svg
+│   │   │   ├── ref_coin_right.svg
+│   │   │   ├── ref_coin_top.svg
+│   │   │   ├── ref_copy.svg
+│   │   │   ├── ref_dot.svg
+│   │   │   ├── ref_dot2.svg
+│   │   │   ├── ref_spark_blue.svg
+│   │   │   ├── ref_spark_red.svg
 │   │   │   ├── referral_button.svg
 │   │   │   ├── search.svg
 │   │   │   ├── search_16.svg
@@ -415,7 +424,7 @@ VistaColosseum/
 │   │   │   │   ├── replay_timeline.dart
 │   │   │   │   ├── signal_replay_chart.dart
 │   │   │   │   └── trade_idea_card.dart
-│   │   │   ├── invite/  — referral: `invite_sheet.dart` (`InviteSheet`: your link to copy, code, "you both get $20", who joined and what you earned, Share invite) opened by the green `InviteButton` chip beside Portfolio's Followers / Following chips and Settings' Invite friends row. Simulated
+│   │   │   ├── invite/  — referral: `invite_sheet.dart` (`InviteSheet`, Figma 1396:9883: earned from referred traders with Claim, your link with copy, friends referred and rank, Share your code; illustration SVGs `assets/figma/ref_*.svg`) opened by the green `InviteButton` chip beside Portfolio's Followers / Following chips and Settings' Invite friends row. Simulated
 │   │   │   │   └── invite_sheet.dart
 │   │   │   ├── live/  — simulated live feed (off under `flutter test`) that nudges headline figures so they roll their digits (Figma 108:125); `MarketPrices` is the one live price per market that every screen reads, so any two screens always agree
 │   │   │   │   ├── live_feed.dart
