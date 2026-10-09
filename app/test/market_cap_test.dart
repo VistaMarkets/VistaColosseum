@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/home/home_screen.dart';
+import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/market/trader_market_chart.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
@@ -529,6 +531,16 @@ void main() {
       expect(maya().sortValues['Market cap'], 0.01);
       expect(mayaSide().price, r'$0.0001');
       expect(mayaSide().change, '+0.0%');
+    });
+
+    test("Home hides calls on the user's market while it is fresh", () {
+      bool ownCall() =>
+          homeFeed.any((i) => i is TradeIdea && i.ticker == 'maya.eth');
+      expect(ownCall(), isTrue); // before a listing: the seed market
+      AccountState.listMarket(PortfolioMock.marketSymbol);
+      expect(ownCall(), isFalse); // deltaone's 2d-old call can't exist
+      Scenario.reset(withMarket: true);
+      expect(ownCall(), isTrue);
     });
 
     testWidgets('Trader market shows the listed cap and a flat line', (

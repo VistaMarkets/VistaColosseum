@@ -4,6 +4,7 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../account/account_top_bar.dart';
 import '../profile/profile_screen.dart';
+import '../market/trader_market_mock.dart';
 import '../market/trader_market_screen.dart';
 import '../trade/asset_trade_screen.dart';
 import '../trade/order_ticket.dart';
@@ -13,8 +14,17 @@ import 'trade_idea_card.dart';
 import '../../app_shell.dart';
 
 /// Home's pages: the idea cards, with the two Maker suggestions each
-/// between two of them.
-final homeFeed = <Object>[
+/// between two of them. Calls on the user's own market (deltaone's, made
+/// days ago) drop out while that market is a fresh listing (VC-MKT-001).
+List<Object> get homeFeed => [
+  for (final i in _seedFeed)
+    if (!(i is TradeIdea &&
+        i.ticker == TraderMarketMock.own &&
+        !TraderMarketMock.ownHasHistory))
+      i,
+];
+
+final _seedFeed = <Object>[
   ...mockFeed.take(2),
   makerSuggestions[0],
   mockFeed[2],
@@ -151,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: items.length,
               itemBuilder: (context, i) {
                 final item = items[i];
-                
+
                 void goDetails(String ticker, {bool isTrader = false}) {
                   Navigator.of(context).push(
                     isTrader
@@ -180,7 +190,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   active: widget.visible && i == _settledPage,
                   // An asset opens its trade page; a trader market, the
                   // trader's market page.
-                  onDetails: () => goDetails(idea.ticker, isTrader: idea.traderMarket),
+                  onDetails: () =>
+                      goDetails(idea.ticker, isTrader: idea.traderMarket),
                   onCaller: () =>
                       Navigator.of(context)
                           .push(ProfileScreen.route(idea.callerHandle)),
@@ -192,7 +203,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     side: idea.side,
                     sourceCallId: '${idea.callerHandle}/${idea.ticker}',
                     sourceAuthorHandle: idea.callerHandle,
-                    onDetails: () => goDetails(idea.ticker, isTrader: idea.traderMarket),
+                    onDetails: () =>
+                        goDetails(idea.ticker, isTrader: idea.traderMarket),
                   ),
                 );
               },
