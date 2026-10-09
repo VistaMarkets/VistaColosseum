@@ -12,9 +12,12 @@ Future<void> showInviteSheet(BuildContext context) => showVistaSheet<void>(
   builder: (_) => const InviteSheet(),
 );
 
-/// The green Invite pill (Portfolio, beside "My portfolio").
+/// The green Invite pill (Portfolio, beside "My portfolio"; Settings).
+/// [compact] matches a caption line's height; the tap area stays 44pt.
 class InviteButton extends StatelessWidget {
-  const InviteButton({super.key});
+  const InviteButton({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +31,9 @@ class InviteButton extends StatelessWidget {
           height: VistaSize.tapTarget,
           child: Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: VistaSpace.xl,
-                vertical: 5,
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? VistaSpace.lg : VistaSpace.xl,
+                vertical: compact ? 2 : 5,
               ),
               decoration: BoxDecoration(
                 color: VistaColors.long,
@@ -38,7 +41,8 @@ class InviteButton extends StatelessWidget {
               ),
               child: Text(
                 'Invite',
-                style: VistaType.body.copyWith(color: VistaColors.onAccent),
+                style: (compact ? VistaType.labelStrong : VistaType.body)
+                    .copyWith(color: VistaColors.onAccent),
               ),
             ),
           ),
