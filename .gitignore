@@ -1,3 +1,8 @@
 /AGENTS.md
 /CLAUDE.md
 .drift-status/
+# planning-with-files job state; keeps it out of the generated ARCH.md (#34)
+/task_plan.md
+/findings.md
+/progress.md
+/.planning/
