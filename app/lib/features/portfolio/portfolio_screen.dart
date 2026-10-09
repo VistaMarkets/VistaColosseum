@@ -14,6 +14,7 @@ import 'open_order_card.dart';
 import 'orders_state.dart';
 import 'positions_state.dart';
 import 'trade_history.dart';
+import '../invite/invite_sheet.dart';
 import '../profile/profile_mock.dart';
 import '../profile/receipts_screen.dart';
 import '../live/market_prices.dart';
@@ -139,6 +140,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   Navigator.of(context)
                       .push(FollowListScreen.route(initialTab: 1)),
             ),
+            // Bring people in, beside the people you already have.
+            const InviteButton(chip: true),
           ],
         ),
       ],

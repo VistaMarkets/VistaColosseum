@@ -4,7 +4,6 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
-import '../invite/invite_sheet.dart';
 import '../live/live_feed.dart';
 import 'portfolio_mock.dart';
 import 'series_chart.dart';
@@ -87,9 +86,6 @@ double _incoming(double p) => _outgoing(1 - p);
 
 class _PortfolioPagerState extends State<PortfolioPager>
     with SingleTickerProviderStateMixin {
-  /// Where the "My portfolio" caption line's centre sits in the pager.
-  static const double _captionCentre = 9;
-
   /// 0 = portfolio in focus, 1 = market in focus.
   late final AnimationController _page = AnimationController(vsync: this);
 
@@ -154,67 +150,55 @@ class _PortfolioPagerState extends State<PortfolioPager>
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Invite on the caption line, centred on it and fixed while
-                // the pages slide; outside the clip so its 44pt tap area fits.
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: VistaSpace.gutter,
-                      ),
-                      child: SizedBox(
-                        height: 86,
-                        child: ClipRect(
-                          child: Stack(
-                            children: [
-                              _slid(
-                                dx: -_slide * p,
-                                opacity: _outgoing(p),
-                                child: ValueListenableBuilder(
-                                  valueListenable: _liveBalance,
-                                  builder: (context, live, _) {
-                                    final start =
-                                        _balance - _balanceMoves[widget.span];
-                                    return _NumberPage(
-                                      caption: 'My portfolio',
-                                      dots: VistaAssets.pagerDots,
-                                      value: PortfolioMock.balance,
-                                      live: true,
-                                      change: _change(start, live),
-                                      up: live >= start,
-                                      window: spanWindows[widget.span],
-                                    );
-                                  },
-                                ),
-                              ),
-                              _slid(
-                                dx: _slide * (1 - p),
-                                opacity: _incoming(p),
-                                child: _NumberPage(
-                                  caption: '\$${widget.ticker} market cap',
-                                  dots: VistaAssets.pagerDotsMarket,
-                                  value: PortfolioMock.marketCap,
-                                  change: _change(
-                                    _cap - _capMoves[widget.span],
-                                    _cap,
-                                    millions: true,
-                                  ),
-                                  up: _capMoves[widget.span] >= 0,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: VistaSpace.gutter,
+                  ),
+                  child: SizedBox(
+                    height: 86,
+                    child: ClipRect(
+                      child: Stack(
+                        children: [
+                          _slid(
+                            dx: -_slide * p,
+                            opacity: _outgoing(p),
+                            child: ValueListenableBuilder(
+                              valueListenable: _liveBalance,
+                              builder: (context, live, _) {
+                                final start =
+                                    _balance - _balanceMoves[widget.span];
+                                return _NumberPage(
+                                  caption: 'My portfolio',
+                                  dots: VistaAssets.pagerDots,
+                                  value: PortfolioMock.balance,
+                                  live: true,
+                                  change: _change(start, live),
+                                  up: live >= start,
                                   window: spanWindows[widget.span],
-                                ),
-                              ),
-                            ],
+                                );
+                              },
+                            ),
                           ),
-                        ),
+                          _slid(
+                            dx: _slide * (1 - p),
+                            opacity: _incoming(p),
+                            child: _NumberPage(
+                              caption: '\$${widget.ticker} market cap',
+                              dots: VistaAssets.pagerDotsMarket,
+                              value: PortfolioMock.marketCap,
+                              change: _change(
+                                _cap - _capMoves[widget.span],
+                                _cap,
+                                millions: true,
+                              ),
+                              up: _capMoves[widget.span] >= 0,
+                              window: spanWindows[widget.span],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Positioned(
-                      right: VistaSpace.gutter,
-                      top: _captionCentre - VistaSize.tapTarget / 2,
-                      child: InviteButton(compact: true),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: VistaSpace.sm),
                 _Chart(

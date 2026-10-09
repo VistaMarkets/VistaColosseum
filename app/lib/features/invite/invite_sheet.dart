@@ -12,41 +12,47 @@ Future<void> showInviteSheet(BuildContext context) => showVistaSheet<void>(
   builder: (_) => const InviteSheet(),
 );
 
-/// The green Invite pill (Portfolio, beside "My portfolio"; Settings).
-/// [compact] matches a caption line's height; the tap area stays 44pt.
+/// The green Invite button. [chip] matches the Followers / Following
+/// stat chips it sits beside on Portfolio; otherwise a pill (Settings).
 class InviteButton extends StatelessWidget {
-  const InviteButton({super.key, this.compact = false});
+  const InviteButton({super.key, this.chip = false});
 
-  final bool compact;
+  final bool chip;
 
   @override
   Widget build(BuildContext context) {
+    final pill = Container(
+      padding: chip
+          ? const EdgeInsets.symmetric(horizontal: 10, vertical: 5)
+          : const EdgeInsets.symmetric(horizontal: VistaSpace.xl, vertical: 5),
+      decoration: BoxDecoration(
+        color: VistaColors.long,
+        borderRadius: BorderRadius.circular(VistaRadius.pill),
+      ),
+      child: Text(
+        chip
+            // Short on narrow phones so it stays on the chips' line.
+            ? MediaQuery.sizeOf(context).width < 390
+                  ? '+ Invite'
+                  : '+ Invite friends'
+            : 'Invite',
+        style: (chip ? VistaType.bodyStrong : VistaType.body).copyWith(
+          color: VistaColors.onAccent,
+        ),
+      ),
+    );
     return Semantics(
       button: true,
       label: 'Invite friends',
       excludeSemantics: true,
       child: VistaPressable(
         onTap: () => showInviteSheet(context),
-        child: SizedBox(
-          height: VistaSize.tapTarget,
-          child: Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? VistaSpace.lg : VistaSpace.xl,
-                vertical: compact ? 2 : 5,
+        child: chip
+            ? pill
+            : SizedBox(
+                height: VistaSize.tapTarget,
+                child: Center(child: pill),
               ),
-              decoration: BoxDecoration(
-                color: VistaColors.long,
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-              ),
-              child: Text(
-                'Invite',
-                style: (compact ? VistaType.labelStrong : VistaType.body)
-                    .copyWith(color: VistaColors.onAccent),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

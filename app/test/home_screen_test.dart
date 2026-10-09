@@ -1384,7 +1384,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Wallet'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Invite'));
+    await tester.tap(find.text('+ Invite friends'));
     await tester.pumpAndSettle();
     expect(find.byType(InviteSheet), findsOneWidget);
     expect(find.text('vista.app/i/maya'), findsOneWidget);
