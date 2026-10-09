@@ -6,6 +6,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/live/market_prices.dart';
+import 'package:vista_colosseum/features/market/trader_market_chart.dart';
+import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+import 'package:vista_colosseum/features/markets/markets_mock.dart';
+import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/make_market/make_market_mock.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
 import 'package:vista_colosseum/features/market/your_market_screen.dart';
@@ -493,5 +499,77 @@ void main() {
       expect(find.text(spanWindows[i]), findsOneWidget);
       expect(onlyChart(tester).focus, ownCapSeries(i));
     }
+  });
+
+  // Ruled 2026-10-09: maya.eth's trader market is the user's listed market.
+  group("maya.eth's trader market reads the user's cap (#29)", () {
+    MarketItem maya() =>
+        MarketsMock.traders.firstWhere((m) => m.id == 'maya.eth');
+    VistaBattleSide mayaSide() => [
+      for (final b in ArenaMock.battles) ...[b.bull, b.bear],
+    ].firstWhere((s) => s.caller == 'maya.eth');
+
+    test('before a listing and in seeded mode it is the seed market', () {
+      for (final withMarket in [false, true]) {
+        Scenario.reset(withMarket: withMarket);
+        expect(MarketPrices.base('maya.eth'), 0.44);
+        expect(maya().third, r'$44.0M');
+        expect(maya().changePct, 4.3);
+        expect(mayaSide().price, r'$0.4400');
+        expect(mayaSide().change, '+4.3%');
+      }
+    });
+
+    test('a fresh listing prices Explore, Arena and the feed from its cap', () {
+      AccountState.listMarket(PortfolioMock.marketSymbol);
+      expect(MarketPrices.base('maya.eth'), 0.0001);
+      expect(maya().third, r'$10,000');
+      expect(maya().footLeft, r'Cap $10,000');
+      expect(maya().changePct, 0);
+      expect(maya().sortValues['Market cap'], 0.01);
+      expect(mayaSide().price, r'$0.0001');
+      expect(mayaSide().change, '+0.0%');
+    });
+
+    testWidgets('Trader market shows the listed cap and a flat line', (
+      tester,
+    ) async {
+      AccountState.listMarket(PortfolioMock.marketSymbol);
+      await pumpApp(tester, home: const TraderMarketScreen(handle: 'maya.eth'));
+      expect(find.text(r'$10,000'), findsWidgets);
+      expect(find.text(r'+$0'), findsOneWidget);
+      expect(find.text('+0.00%'), findsOneWidget);
+      expect(find.textContaining('44.0M'), findsNothing);
+      expect(find.byType(TraderMarketChart), findsNothing);
+      expect(find.byType(SeriesChart), findsOneWidget);
+    });
+
+    testWidgets('seeded Trader market keeps the fixture figures and chart', (
+      tester,
+    ) async {
+      Scenario.reset(withMarket: true);
+      await pumpApp(tester, home: const TraderMarketScreen(handle: 'maya.eth'));
+      expect(find.text(r'$44.0M'), findsOneWidget);
+      expect(find.text(r'+$1.8M'), findsOneWidget);
+      expect(find.text('+4.27%'), findsOneWidget);
+      expect(find.byType(SeriesChart), findsNothing);
+    });
+
+    testWidgets("maya.eth's Profile reads the listed cap; others keep theirs", (
+      tester,
+    ) async {
+      AccountState.listMarket(PortfolioMock.marketSymbol);
+      await pumpApp(tester, home: const ProfileScreen(handle: 'maya.eth'));
+      expect(find.text(r'$10,000'), findsOneWidget);
+      expect(find.text(r'$0.0001'), findsOneWidget);
+      expect(find.text(r'$10,000 cap'), findsOneWidget);
+      expect(find.text('+0.00%'), findsOneWidget);
+      expect(find.textContaining('44.0M'), findsNothing);
+      expect(find.byType(ProfileIndexChart), findsNothing);
+      expect(find.byType(SeriesChart), findsOneWidget);
+
+      await pumpApp(tester, home: const ProfileScreen(handle: '0xreal'));
+      expect(find.text(r'$44.0M'), findsOneWidget);
+    });
   });
 }

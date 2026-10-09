@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../market/trader_market_mock.dart';
 import 'live_feed.dart';
 
 /// One price per market, shared by every screen that shows it: Home cards,
@@ -14,7 +15,6 @@ abstract final class MarketPrices {
     'SOL': 214.90,
     'ARB': 1.04,
     'AVAX': 38.20,
-    'maya.eth': 0.4400,
     '0xreal': 0.3820,
     'lunaq': 0.3145,
     'deltaone': 0.2610,
@@ -23,8 +23,11 @@ abstract final class MarketPrices {
     'nara': 0.1410,
   };
 
-  /// The price each market opens the session at.
-  static double base(String symbol) => _base[symbol] ?? 0;
+  /// The price each market opens the session at. The user's own trader
+  /// market opens at its cap's unit price (`TraderMarketMock.own`).
+  static double base(String symbol) => symbol == TraderMarketMock.own
+      ? TraderMarketMock.ownUnitPrice
+      : _base[symbol] ?? 0;
 
   /// The feed key and tick size behind [of], for widgets that take a key
   /// (such as `LiveUsd`) so they read the same feed.

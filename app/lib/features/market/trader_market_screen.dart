@@ -6,6 +6,7 @@ import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../live/market_prices.dart';
+import '../portfolio/series_chart.dart';
 import '../profile/holdings_table.dart';
 import '../settings/settings_state.dart';
 import '../trade/trade_mock.dart';
@@ -57,12 +58,21 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
     );
   }
 
+  bool get _fresh =>
+      widget.handle == TraderMarketMock.own && !TraderMarketMock.ownHasHistory;
+
   Widget _sheet(PlotMode mode) {
     final period = TradeMock.periods[_interval];
     return ChartSheet(
       header: _header,
       // Line is the designed market-cap chart; candles draw the unit price.
-      chart: (t) => mode == PlotMode.line
+      // The user's freshly listed market has no history (VC-MKT-001): a
+      // flat line at its cap in either mode, not the seeded exports.
+      chart: (t) => _fresh
+          ? SeriesChart(
+              focus: List.filled(48, TraderMarketMock.ownCapCents / 100),
+            )
+          : mode == PlotMode.line
           ? TraderMarketChart(collapse: t)
           : PriceChart(
               period: period,
@@ -233,7 +243,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              TraderMarketMock.capChange,
+                              TraderMarketMock.capChangeOf(widget.handle),
                               style: VistaType.subhead.copyWith(
                                 color: VistaColors.long,
                               ),
@@ -244,7 +254,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                     ),
                     const SizedBox(width: VistaSpace.md),
                     Text(
-                      TraderMarketMock.change24h,
+                      TraderMarketMock.change24hOf(widget.handle),
                       style: VistaType.displayNumber.copyWith(
                         fontSize: 24,
                         color: VistaColors.long,
