@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import '../../design_system/design_system.dart';
+import '../live/market_prices.dart';
+import '../market/trader_market_mock.dart';
 import 'opinions_mock.dart';
 
 /// A battle (a clash): a question on one asset with a Bull caller against a
@@ -93,12 +95,12 @@ abstract final class ArenaMock {
   // Callers with a `MarketPrices` entry (maya.eth, 0xreal, kilo.sol, lunaq)
   // quote its opening price and their Explore change. They are fixed, while
   // other screens' prices walk every 3 s from that open. The user is
-  // maya.eth, so her $0.4400 (spec 12, Remaining risk) and +4.3% are the
-  // seeded market's: they show with no market listed (the default) and after
-  // a fresh listing, which Your market prices on its own. mirin and renatafx
-  // have no `MarketPrices` entry and no Explore row, so their price and
-  // change match nothing.
-  static const _btc = Battle(
+  // maya.eth, whose trader market is their listed market (ruled
+  // 2026-10-09), so her price and change read `TraderMarketMock.own*`:
+  // the seed's $0.4400 and +4.3% before a listing, $0.0001 and +0.0% after
+  // a fresh one. mirin and renatafx have no `MarketPrices` entry and no
+  // Explore row, so their price and change match nothing.
+  static Battle get _btc => Battle(
     id: 'btc-72k',
     asset: 'BTC',
     price: r'$67,412',
@@ -111,9 +113,9 @@ abstract final class ArenaMock {
     timeLeft: '4h 12m left',
     question: r"Reclaims $72,000 before Friday's expiry",
     bull: VistaBattleSide(
-      caller: 'maya.eth',
-      price: r'$0.4400',
-      change: '+4.3%',
+      caller: TraderMarketMock.own,
+      price: MarketPrices.format(TraderMarketMock.ownUnitPrice, compact: true),
+      change: _pct(TraderMarketMock.ownDayChangePct),
       thesis:
           'Breaks on ETF flows — spot bid has absorbed every wick since '
           'Tuesday.',
@@ -243,17 +245,21 @@ abstract final class ArenaMock {
   );
 
   /// In no particular order: the Arena always sorts.
-  static const battles = [_btc, _sol, _eth];
+  static List<Battle> get battles => [_btc, _sol, _eth];
+
+  /// "+4.3%" or "−2.4%", as Arena prints a caller's change.
+  static String _pct(double p) =>
+      '${p < 0 ? '−' : '+'}${p.abs().toStringAsFixed(1)}%';
 
   /// The assets Ask knows, for its no-match hint.
   static final askHint =
       'Try ${({for (final b in battles) b.asset}.toList()..sort()).join(', ')}';
 
   /// Battles in [pool] whose asset contains [query], any case.
-  static List<Battle> asked(String query, [List<Battle> pool = battles]) {
+  static List<Battle> asked(String query, [List<Battle>? pool]) {
     final q = query.trim().toUpperCase();
     return [
-      for (final b in pool)
+      for (final b in pool ?? battles)
         if (b.asset.contains(q)) b,
     ];
   }
@@ -269,7 +275,7 @@ abstract final class ArenaMock {
 
   /// What the list shows: Ask's matches in the range, highest first by the
   /// sort chip's field, ties by id.
-  static List<Battle> visible(ArenaView v, [List<Battle> pool = battles]) {
+  static List<Battle> visible(ArenaView v, [List<Battle>? pool]) {
     num key(Battle b) => switch (v.sort) {
       1 => b.changePct,
       2 => b.fundingPct,

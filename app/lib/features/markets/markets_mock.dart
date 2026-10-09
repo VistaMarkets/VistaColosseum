@@ -1,4 +1,7 @@
 import '../../design_system/design_system.dart';
+import '../live/market_prices.dart';
+import '../market/market_mock.dart';
+import '../market/trader_market_mock.dart';
 
 /// One market in the Markets lists (an asset perp or a trader market).
 class MarketItem {
@@ -157,17 +160,26 @@ abstract final class MarketsMock {
     footRight: '$calls calls',
   );
 
-  static final traders = [
-    _trader(
-      'maya.eth',
-      62,
-      3,
-      r'$0.4400',
-      4.3,
-      r'$44.0M',
-      44.0,
-      VistaAssets.spark24UpA,
-    ),
+  /// The user's row (maya.eth) reads their market's cap (VC-MKT-001), so
+  /// the list is rebuilt on each read.
+  static List<MarketItem> get traders {
+    final cap = TraderMarketMock.ownCapCents;
+    return [
+      _trader(
+        TraderMarketMock.own,
+        62,
+        3,
+        MarketPrices.format(TraderMarketMock.ownUnitPrice, compact: true),
+        TraderMarketMock.ownDayChangePct,
+        formatCap(cap),
+        cap / 100000000,
+        VistaAssets.spark24UpA,
+      ),
+      ..._otherTraders,
+    ];
+  }
+
+  static final _otherTraders = [
     _trader(
       '0xreal',
       240,

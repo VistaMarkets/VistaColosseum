@@ -956,7 +956,10 @@ void main() {
       await tester.tap(find.text('Traders'));
       await tester.pumpAndSettle();
       expect(find.text('ALL TRADER MARKETS'), findsOneWidget);
-      expect(rowNames(tester).first, 'maya.eth');
+      // Sorted by cap: the file's setUp lists MAYA fresh, so the user's own
+      // market (maya.eth) reads $10,000 and sorts last (VC-MKT-001).
+      expect(rowNames(tester).first, '0xreal');
+      expect(rowNames(tester).last, 'maya.eth');
 
       await tester.tap(
         find.descendant(

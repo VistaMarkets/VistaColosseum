@@ -5,9 +5,11 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../market/market_mock.dart';
 import '../market/receipt_screens.dart';
+import '../market/trader_market_mock.dart';
 import '../market/trader_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../portfolio/portfolio_mock.dart';
+import '../portfolio/series_chart.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
 import 'profile_mock.dart';
@@ -88,6 +90,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _span = PortfolioMock.defaultSpan;
+
+  MarketFigures get _figures => ProfileMock.marketOf(widget.handle);
 
   void _openMarket() =>
       Navigator.of(context).push(TraderMarketScreen.route(widget.handle));
@@ -274,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         Expanded(
           child: VistaCountStat(
-            value: ProfileMock.market,
+            value: _figures.market,
             label: 'Market',
             valueColor: VistaColors.accent,
             onPressed: _openMarket,
@@ -316,27 +320,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                ProfileMock.price,
+                _figures.price,
                 style: VistaType.displayNumber.copyWith(fontSize: 24),
               ),
               const SizedBox(width: VistaSpace.sm),
               Expanded(
                 child: Text(
-                  ProfileMock.cap,
+                  _figures.cap,
                   style: VistaType.body.copyWith(color: VistaColors.textMuted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
-                ProfileMock.change,
+                _figures.change,
                 style: VistaType.headline.copyWith(color: VistaColors.long),
               ),
             ],
           ),
         ),
         const SizedBox(height: VistaSpace.lg),
-        const ProfileIndexChart(),
+        // The user's freshly listed market has no history (VC-MKT-001): a
+        // flat line at its cap, not the seeded index export.
+        if (widget.handle == TraderMarketMock.own &&
+            !TraderMarketMock.ownHasHistory)
+          SizedBox(
+            height: 180,
+            child: SeriesChart(
+              focus: List.filled(48, TraderMarketMock.ownCapCents / 100),
+            ),
+          )
+        else
+          const ProfileIndexChart(),
         const SizedBox(height: VistaSpace.lg),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.md),

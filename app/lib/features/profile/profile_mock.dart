@@ -1,4 +1,6 @@
 import '../../design_system/design_system.dart';
+import '../market/market_mock.dart';
+import '../market/trader_market_mock.dart';
 import '../people/follow_mock.dart';
 
 /// A live position shown in "Holding now".
@@ -22,6 +24,15 @@ class Holding {
   bool get inProfit => !pnl.startsWith('−');
 }
 
+/// A profile's market block: its cap, unit price, 24h change and open.
+typedef MarketFigures = ({
+  String market,
+  String price,
+  String cap,
+  String change,
+  String openPrice,
+});
+
 /// Sample profile content from Figma 303:102 (maya.eth). Every profile in the
 /// demo shows this content under its own handle. Simulated.
 abstract final class ProfileMock {
@@ -35,6 +46,31 @@ abstract final class ProfileMock {
   static const cap = r'$44.0M cap';
   static const change = '+4.27%';
   static const openPrice = r'Open $0.4220';
+
+  /// [handle]'s market figures: the user's own market reads its cap
+  /// (VC-MKT-001, `TraderMarketMock.own`); every other profile shows the
+  /// fixture above.
+  static MarketFigures marketOf(String handle) {
+    if (handle != TraderMarketMock.own) {
+      return (
+        market: market,
+        price: price,
+        cap: cap,
+        change: change,
+        openPrice: openPrice,
+      );
+    }
+    final c = TraderMarketMock.ownCapCents;
+    final supply = YourMarketMock.supplyUnits;
+    return (
+      market: formatCap(c),
+      price: formatUnitPrice(c, supply),
+      cap: '${formatCap(c)} cap',
+      change: TraderMarketMock.change24hOf(handle),
+      openPrice:
+          'Open ${formatUnitPrice(c - TraderMarketMock.ownDayMoveCents, supply)}',
+    );
+  }
 
   static const holdings = [
     Holding(
