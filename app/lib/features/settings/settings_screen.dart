@@ -6,6 +6,7 @@ import '../../charting/charting.dart';
 import '../../design_system/design_system.dart';
 import '../people/follow_mock.dart';
 import 'settings_mock.dart';
+import '../invite/invite_sheet.dart';
 import '../profile/edit_profile_screen.dart';
 import 'settings_state.dart';
 
@@ -125,6 +126,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: VistaSpace.lg),
+                    VistaSettingRow(
+                      title: 'Invite friends',
+                      subtitle: 'You both get \$20',
+                      trailing: const InviteButton(),
+                      onTap: () => showInviteSheet(context),
                     ),
                     const SizedBox(height: VistaSpace.section),
                     _notifications(),

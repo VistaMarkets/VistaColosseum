@@ -4,6 +4,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
+import '../invite/invite_sheet.dart';
 import '../live/live_feed.dart';
 import 'portfolio_mock.dart';
 import 'series_chart.dart';
@@ -194,6 +195,12 @@ class _PortfolioPagerState extends State<PortfolioPager>
                               up: _capMoves[widget.span] >= 0,
                               window: spanWindows[widget.span],
                             ),
+                          ),
+                          // Invite, on the caption line, fixed while pages slide.
+                          const Positioned(
+                            right: 0,
+                            top: -8,
+                            child: InviteButton(),
                           ),
                         ],
                       ),

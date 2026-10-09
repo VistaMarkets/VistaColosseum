@@ -33,6 +33,7 @@ import 'package:vista_colosseum/features/portfolio/series_chart.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/profile/trader_profile.dart';
 import 'package:vista_colosseum/features/portfolio/trade_history.dart';
+import 'package:vista_colosseum/features/invite/invite_sheet.dart';
 import 'package:vista_colosseum/features/arena/battle_result_sheet.dart';
 import 'package:vista_colosseum/features/profile/receipts_screen.dart';
 import 'package:vista_colosseum/features/profile/holdings_table.dart';
@@ -1370,6 +1371,31 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.byType(BattleResultSheet), findsNothing);
+  });
+
+  testWidgets('Invite: green pill on My portfolio and in Settings', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Invite'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InviteSheet), findsOneWidget);
+    expect(find.text('vista.app/i/maya'), findsOneWidget);
+    Navigator.of(tester.element(find.byType(InviteSheet))).pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.text('Invite friends'), findsOneWidget);
+    await tester.tap(find.text('Invite friends'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InviteSheet), findsOneWidget);
   });
 
   group('challenge', () {
