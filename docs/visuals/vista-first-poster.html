@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vista Markets | Meet the people behind the trades</title>
+  <meta name="description" content="Vista Markets is a mobile community for discovering traders, following their market calls, and exploring Solana markets.">
+  <style>
+    :root{color-scheme:dark;--ink:#041810;--forest:#063e30;--mint:#72ffbb;--vista:#2bab7a;--cream:#fbffe9;--line:rgba(190,255,216,.35)}
+    *{box-sizing:border-box}html{background:#031b15}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--cream)}
+    .poster{position:relative;isolation:isolate;width:min(100%,1080px);min-height:1350px;margin:auto;overflow:hidden;background:radial-gradient(circle at 88% 21%,#228f68 0,#0b5842 23%,transparent 47%),radial-gradient(circle at 9% 80%,#0b7e55 0,transparent 35%),linear-gradient(145deg,#041912 4%,#07563f 55%,#021710);box-shadow:0 32px 100px #0009}
+    .poster:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.18;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(transparent,#000 25%,#000 72%,transparent)}
+    .poster:after{content:"";position:absolute;left:-16%;top:40%;width:132%;height:52%;border:1px solid #90ffd349;border-radius:50%;transform:rotate(-19deg);z-index:-1;box-shadow:0 0 0 95px #8affe908,0 0 0 190px #8affe905}
+    header{display:flex;align-items:center;justify-content:space-between;padding:58px 68px 0;gap:20px}.brand{display:flex;align-items:center;gap:16px;font-size:25px;font-weight:900;letter-spacing:.12em}.mark{width:59px;height:59px;flex:none;border-radius:18px;background:var(--vista);box-shadow:0 12px 35px #0004,0 0 30px #66ffbb52}.edition{border:1px solid #b5ffd87c;border-radius:999px;padding:11px 18px;text-transform:uppercase;letter-spacing:.18em;font-weight:800;font-size:11px;background:#052f2499}
+    main{padding:96px 68px 0}.eyebrow{display:inline-block;text-transform:uppercase;letter-spacing:.24em;color:var(--mint);font-size:15px;font-weight:900;margin:0 0 22px}.headline{max-width:890px;margin:0;font-size:clamp(70px,10.2vw,126px);line-height:.91;letter-spacing:-.08em;font-weight:950;text-transform:uppercase;text-wrap:balance}.headline span{color:var(--mint);text-shadow:0 0 34px #68ffab70}.intro{max-width:700px;margin:38px 0 0;font-size:clamp(22px,2.55vw,30px);line-height:1.28;font-weight:500;color:#e2ffe9}.intro strong{color:#fff}
+    .diagram{position:relative;margin-top:83px;display:grid;grid-template-columns:1fr 58px 1fr 58px 1fr;align-items:center;gap:8px}.step{min-height:240px;position:relative;padding:30px 23px;border:1px solid #a8fdd074;border-radius:24px;background:linear-gradient(160deg,#e4fff318,#033a2eeb);backdrop-filter:blur(8px);box-shadow:0 24px 38px #00191099, inset 0 1px #c6ffde55}.step:nth-of-type(3){background:linear-gradient(155deg,#95ffba2c,#064e3ccf)}.step .num{font-size:14px;letter-spacing:.18em;font-weight:900;color:var(--mint)}.step h2{font-size:31px;line-height:1.03;letter-spacing:-.05em;text-transform:uppercase;margin:29px 0 16px}.step p{font-size:17px;line-height:1.35;color:#d7f6e3;margin:0}.arrow{font-size:55px;color:var(--mint);font-weight:200;text-align:center;text-shadow:0 0 24px #78ffb7}
+    .bottom{margin-top:76px;padding:28px 0;border-top:1px solid #baffd477;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}.signoff{font-size:31px;font-weight:850;letter-spacing:-.045em}.signoff em{font-style:normal;color:var(--mint)}.small{font-size:13px;color:#c4e8d2;text-align:right;line-height:1.5;max-width:240px}
+    @media(max-width:760px){.poster{min-height:100vh}header{padding:27px 26px 0}.brand{font-size:16px;letter-spacing:.09em;gap:10px}.mark{width:43px;height:43px;border-radius:13px}.edition{font-size:9px;padding:8px 11px}main{padding:70px 26px 26px}.headline{font-size:clamp(52px,12.2vw,90px)}.intro{margin-top:25px}.diagram{margin-top:55px;grid-template-columns:1fr;gap:8px}.step{min-height:auto;padding:21px 22px}.step h2{font-size:26px;margin:15px 0 8px}.arrow{transform:rotate(90deg);font-size:36px;line-height:26px}.bottom{margin-top:48px;align-items:start}.signoff{font-size:23px}.small{font-size:11px}}
+    @media print{@page{size:1080px 1350px;margin:0}html,body{background:white}.poster{width:1080px;height:1350px;box-shadow:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  </style>
+</head>
+<body>
+  <article class="poster" aria-label="Vista Markets marketing poster">
+    <header>
+      <div class="brand">
+        <svg class="mark" role="img" aria-label="Vista Markets logo" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="640" fill="#2BAB7A"/><path d="M174 163C155 163 139 176 139 194C139 198 140 202 141 206L208 454C212 471 225 482 242 482H291C313 482 330 463 325 443L258 191C254 174 242 163 224 163Z" fill="#fff"/><path d="M351 160C332 160 315 175 315 194C315 198 316 202 317 206L384 452C388 469 401 479 418 479H467C489 479 505 460 500 440L434 189C430 172 418 160 400 160Z" fill="#fff"/></svg>
+        <span>VISTA MARKETS</span>
+      </div>
+      <span class="edition">The first look</span>
+    </header>
+    <main>
+      <p class="eyebrow">Trading starts with people</p>
+      <h1 class="headline">Meet the people <span>behind the trades.</span></h1>
+      <p class="intro"><strong>Vista</strong> is a mobile community where you discover traders, see their market ideas, and explore Solana markets in one place.</p>
+      <section class="diagram" aria-label="How Vista works: discover traders, follow their calls, make your own move">
+        <div class="step"><span class="num">01 / DISCOVER</span><h2>Find your people.</h2><p>Meet traders and explore how they think.</p></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="step"><span class="num">02 / FOLLOW</span><h2>See their calls.</h2><p>Follow market ideas and the stories behind them.</p></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="step"><span class="num">03 / DECIDE</span><h2>Make your move.</h2><p>Choose what fits you. Your decisions stay yours.</p></div>
+      </section>
+      <div class="bottom"><div class="signoff">Your market. <em>Your circle.</em></div><div class="small">Built for iOS &amp; Android<br>Pre-launch preview · Trading features in development</div></div>
+    </main>
+  </article>
+</body>
+</html>
