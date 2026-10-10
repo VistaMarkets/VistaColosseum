@@ -22,7 +22,7 @@ Five reviewers (architect, critical-thinking, silent-failure-hunter, security, p
 **2. "Common rules for every unit" reach no unit**
 - Location: `00-baton-queue.md:16,18`; `SKILL.md:49-56,100-101`; `REFERENCE.md:136-152`
 - Description: Each phase runs with fresh context — its own spec plus prior digests. `00-baton-queue.md` is not in the run command, so "no new pub deps", "int-cents money", "truthful success messages", "keep the not-built toast" are invisible to every work, review and fix unit. The gate (`flutter_lints` only) cannot catch violations either.
-- Suggested fix: Copy the rules block into each unit spec's header (or into a repo `CLAUDE.md` the work-unit prompt already cites), and add `ClaudesMods:audit-numeric-types` + `git diff --exit-code origin/main -- app/pubspec.yaml app/pubspec.lock` to `gate.sh`.
+- Suggested fix: Copy the rules block into each unit spec's header (or into a repo `AGENTS.md` the work-unit prompt already cites), and add `ClaudesMods:audit-numeric-types` + `git diff --exit-code origin/main -- app/pubspec.yaml app/pubspec.lock` to `gate.sh`.
 - Raised by: silent-failure-hunter, security-reviewer, penetration-tester.
 
 **3. "Closes VC-DEM-004" is false — persona and scenario-phase controls are in nobody's scope**
@@ -90,7 +90,7 @@ Any commit after this one is unreviewed.
 **Not examined (residual risk):**
 - The evidence register `docs/prd/2026-10-01-vc-hackathon-evidence.md` — no reviewer read it.
 - The `baton-runner-managed` variant as an alternative run path.
-- Whether a repo-level `CLAUDE.md` exists in VistaColosseum to carry the common rules (the work-unit prompt cites it).
+- Whether a repo-level `AGENTS.md` exists in VistaColosseum to carry the common rules (the work-unit prompt cites it).
 - Whether unit 08's failure toggle survives reset.
 - `docs/agents/` conventions.
 
@@ -121,7 +121,7 @@ Engagement check: all five reviewers engaged — each severity-using reviewer ha
 ## Recommended Changes (Prioritized)
 1. Add `scripts/gate.sh` (Flutter analyze + test, `GATE: PASS|FAIL`, non-zero on failure) to this branch and point the queue's gate line at it.
 2. Merge this branch (specs + `gate.sh`) to `main` and state that precondition in the queue preamble.
-3. Copy the common-rules block into each unit spec's header (or a repo `CLAUDE.md`) so work/review/fix units actually see it.
+3. Copy the common-rules block into each unit spec's header (or a repo `AGENTS.md`) so work/review/fix units actually see it.
 4. Rewrite the DEM-004 cells as "reset + truthful notifications only; persona/phase deferred" and record the residual (or add a persona-switch unit).
 5. Record the premium-feel merge-or-park decision as a precondition of unit 02 and re-cite line numbers afterwards.
 6. Fix the Depends column: 03→1,2; 06→1,2; 07→4,6; trim 08's "1–7" to what it actually needs.
