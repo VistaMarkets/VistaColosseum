@@ -20,7 +20,8 @@ class LiveFeed {
   static Timer? _timer;
   static final _random = math.Random(7);
 
-  static bool get enabled => !Platform.environment.containsKey('FLUTTER_TEST');
+  static bool get enabled =>
+      kIsWeb || !Platform.environment.containsKey('FLUTTER_TEST');
 
   /// The live value for [key], starting at [base]. Each tick it moves by up
   /// to [step] either way. A new [base] (cash debited, demo reset) starts a

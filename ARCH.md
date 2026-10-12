@@ -458,13 +458,23 @@ VistaColosseum/
 │   │   ├── replay_live_test.dart
 │   │   ├── rolling_number_test.dart
 │   │   ├── scenario_test.dart
-│   │   └── trader_record_test.dart
+│   │   ├── trader_record_test.dart
+│   │   └── web_frame_test.dart
 │   ├── tool/  — asset scripts: market-focus Portfolio chart from the Figma export; `app_icon/` renders the launcher icon (Figma 201:1939) and cuts iOS/Android sizes
 │   │   └── app_icon/
 │   │       ├── app_icon_1024.png
 │   │       ├── make_icons.py
 │   │       ├── mark_fill.svg
 │   │       └── render_app_icon_test.dart
+│   ├── web/
+│   │   ├── icons/
+│   │   │   ├── Icon-192.png
+│   │   │   ├── Icon-512.png
+│   │   │   ├── Icon-maskable-192.png
+│   │   │   └── Icon-maskable-512.png
+│   │   ├── favicon.png
+│   │   ├── index.html
+│   │   └── manifest.json
 │   ├── .gitignore
 │   ├── .metadata
 │   ├── analysis_options.yaml
