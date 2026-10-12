@@ -15,5 +15,6 @@ One spec per built unit. Each states its rules, the PRD requirements it covers, 
 | [09 Copy story](09-copy-story.md) | Persona switch, copied order, $5.00 copy fee | VC-CPY-001/002, VC-DEM-004 | Built, PR #27; Wallet label PR #43 |
 | [11 Verification and packaging](11-verification-and-packaging.md) | Rehearsals, viewport checks, recording, package | VC-QA-001, VC-QA-003, VC-QA-004 | In progress: rehearsal 1 done (PR #47) |
 | [12 Own market cap](12-own-market-cap.md) | One market cap that every screen reads | VC-MKT-001, VC-LST-003 | Built, PRs #32 and #41 |
+| [13 Judge controls, copy card, web](13-judge-mode-and-copy-card.md) | Pill controls, shareable copy card, hosted web build | VC-DEM-003, VC-DEM-004, VC-CPY-002 | Spec'd |
 
 **Not spec'd:** there is no spec 10 file. The copy story, which the roadmap calls SP-10, was written as spec 09. Later fixes that needed no spec of their own: the Following tab and the listing's link to the market (#32), the first-call sample (#44, VC-LST-004), and the Linux desktop build (#46).

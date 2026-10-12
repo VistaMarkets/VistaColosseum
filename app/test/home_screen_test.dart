@@ -56,7 +56,7 @@ Finder get pagerBalance => find.descendant(
 Finder get breakoutLabel => find.text(r'Broke $2,950');
 
 /// The simulated pill's label.
-const pill = 'Simulated · fixture-v1';
+final pill = RegExp(r'^Simulated · fixture-v1');
 
 /// The pill is on screen, on top, and covers none of [targets].
 void expectPillClear(WidgetTester tester, Finder targets) {
