@@ -6,6 +6,7 @@ import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../profile/profile_mock.dart';
+import '../share/copy_card.dart';
 import 'market_mock.dart';
 import '../../app_shell.dart';
 
@@ -60,6 +61,31 @@ class LedgerScreen extends StatelessWidget {
 
   static Route<void> route() =>
       MaterialPageRoute(builder: (_) => const LedgerScreen());
+
+  /// A copy row opens its copy card; a row missing who copied what stays
+  /// plain text.
+  static Widget _copyRow(BuildContext context, FeeEntry e, Widget row) {
+    final copier = e.counterparty;
+    final call = e.sourceCallId;
+    final asset = e.asset;
+    if (copier == null || call == null || asset == null) return row;
+    return Semantics(
+      button: true,
+      label: 'Share copy card · @$copier · $asset',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => showCopyCardSheet(
+          context,
+          copier: copier,
+          author: call.split('/').first,
+          symbol: asset,
+          feeCents: e.amountCents,
+        ),
+        child: row,
+      ),
+    );
+  }
 
   /// Works [e] back from the fee traders paid: fee × 40% = the credit.
   /// The fee is the credit ÷ 40% in int cents, rounded half up; the result
@@ -126,29 +152,35 @@ class LedgerScreen extends StatelessWidget {
               const SizedBox(height: VistaSpace.xl),
               const VistaSectionHead(title: 'COPY FEES'),
               for (final e in copies)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: VistaSpace.md),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${e.eventTitle} · @${e.counterparty} · '
-                              '${e.asset}',
-                              style: VistaType.bodyStrong,
-                            ),
-                            Text(_when(e.at), style: muted),
-                          ],
+                _copyRow(
+                  context,
+                  e,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: VistaSpace.md,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${e.eventTitle} · @${e.counterparty} · '
+                                '${e.asset}',
+                                style: VistaType.bodyStrong,
+                              ),
+                              Text(_when(e.at), style: muted),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: VistaSpace.md),
-                      Text(
-                        formatCents(e.amountCents),
-                        style: VistaType.bodyStrong,
-                      ),
-                    ],
+                        const SizedBox(width: VistaSpace.md),
+                        Text(
+                          formatCents(e.amountCents),
+                          style: VistaType.bodyStrong,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
