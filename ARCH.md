@@ -46,8 +46,8 @@ real financial execution out of the demo.
 - `ARCH.md` — generated file tree with curated architecture notes
 - `README.md` — project presentation and animated Vista logo
 - `CONTEXT.md` — project acronyms, vocabulary, and reference repositories
-- `docs/agents/` — issue tracker, triage labels, and domain-document configuration
-- `docs/prd/` — hackathon requirements, delivery roadmap, and dated evidence register
+- `docs/verification/` — dated milestone and rehearsal records; `README.md` there says which is current
+- `docs/visuals/` — roadmap and poster HTML pages
 - `docs/assets/` — animated Vista logo and reduced-motion fallback
 - `app/` — Flutter demo app (iOS and Android)
 - `app/lib/design_system/` — Vista tokens, theme and shared components; import `design_system.dart`
@@ -485,26 +485,7 @@ VistaColosseum/
 │   ├── assets/  — animated Vista logo and reduced-motion fallback
 │   │   ├── vista-logo-animated.gif
 │   │   └── vista-logo-static.png
-│   ├── prd/  — hackathon requirements, delivery roadmap, and dated evidence register
-│   │   ├── 2026-10-01-vc-hackathon-evidence.md
-│   │   ├── 2026-10-01-vc-hackathon-master-prd.md
-│   │   ├── 2026-10-01-vc-hackathon-roadmap.md
-│   │   └── 2026-10-04-open-decisions-recommendations.md
-│   ├── specs/
-│   │   ├── 01-scenario-store.md
-│   │   ├── 02-truthful-order-confirm.md
-│   │   ├── 03-simulation-indicator.md
-│   │   ├── 04-arena-sort-filter-join.md
-│   │   ├── 05-maker-suggestion-card.md
-│   │   ├── 06-fee-ledger-and-receipts.md
-│   │   ├── 07-trader-record-panel.md
-│   │   ├── 08-list-empty-failed-states.md
-│   │   ├── 09-copy-story.md
-│   │   ├── 11-verification-and-packaging.md
-│   │   ├── 12-own-market-cap.md
-│   │   ├── 13-judge-mode-and-copy-card.md
-│   │   └── README.md
-│   ├── verification/
+│   ├── verification/  — dated milestone and rehearsal records; `README.md` there says which is current
 │   │   ├── evidence/
 │   │   │   └── m6-rehearsal-1-has-market.log
 │   │   ├── 2026-10-05-m1-shell-and-scenario.md
@@ -518,13 +499,14 @@ VistaColosseum/
 │   │   ├── presenter-checklist-wsl.md
 │   │   ├── README.md
 │   │   └── rehearsal-protocol.md
-│   └── visuals/
+│   └── visuals/  — roadmap and poster HTML pages
 │       ├── vista-colosseum-roadmap.html
 │       └── vista-first-poster.html
 ├── scripts/
 │   └── gate.sh
 ├── .gitignore
 ├── ARCH.md  — generated file tree with curated architecture notes
+├── CLAUDE.md
 ├── CONTEXT.md  — project acronyms, vocabulary, and reference repositories
 └── README.md  — project presentation and animated Vista logo
 ```
