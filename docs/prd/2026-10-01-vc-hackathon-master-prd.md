@@ -1,8 +1,8 @@
 # VistaColosseum — master hackathon PRD
 
-**Version:** 0.5 · **Planning date:** October 1, 2026 · **Updated:** October 4, 2026 · **Status:** demo scope decided; O-01 to O-10 resolved by the user on October 4 ([decision record, October 4](2026-10-04-open-decisions-recommendations.md)), O-11 open with an interim default; Figma frame export and VC coverage audit pending.
+**Version:** 0.6 · **Planning date:** October 1, 2026 · **Updated:** October 12, 2026 · **Status:** P0 built. M1 exited October 5 in the iOS Simulator; M2–M5 exited October 12 on [rehearsal 1](../verification/m6-rehearsal-1.md). Remaining: rehearsal 2 and the viewport checks (M6), the final recording and package (M7), and submission (M8). O-01 to O-08 and O-10 are resolved; O-09 and O-11 are open (see §8).
 
-**Deadline:** corrected by the user on October 5 to **October 12, 2026, 23:59 America/Los_Angeles** (was October 11, 23:00; see [spec 11, DR-2](../specs/11-verification-and-packaging.md)). Submission channel and format are still unconfirmed. This document proposes priorities and acceptance criteria, not delivery commitments.
+**Deadline:** 2026-10-12 23:59 America/Los_Angeles ([spec 11, DR-2](../specs/11-verification-and-packaging.md)). Submission channel and format are still unconfirmed.
 
 Read with the [product roadmap](2026-10-01-vc-hackathon-roadmap.md) and [evidence register](2026-10-01-vc-hackathon-evidence.md). Requirement IDs are stable: retain them when moving requirements into specs; mark removed requirements deferred or superseded rather than renumbering them.
 
@@ -12,7 +12,7 @@ Demonstrate a mobile social-trading experience in which a viewer can understand 
 
 The 10-day deliverable is a coherent, repeatable interactive demo and recording. It is not a production trading platform. Success means the demonstrated paths work together and the presenter can explain which parts are simulated. Production deployment of VMBE, a validated TPX index, real custody and live trade execution are outside scope.
 
-**Confirmed presentation target:** a PC running a simulated iOS device, clarified by the user on October 2 ([E-U01](2026-10-01-vc-hackathon-evidence.md#e-u01)). **Runtime decided October 4: the Xcode iOS Simulator** running the existing Flutter `ios/` target. The Simulator only runs on macOS, so the presenter machine must be a Mac with Xcode installed; M1 must prove launch and recording on that exact machine. If no Mac is available, the fallback is a Flutter web build in Chrome with a portrait phone frame, and that change must be recorded as a scope decision, not made silently.
+**Confirmed presentation target:** a PC running a simulated iOS device, clarified by the user on October 2 ([E-U01](2026-10-01-vc-hackathon-evidence.md#e-u01)). **Runtime decided October 4: the Xcode iOS Simulator** running the Flutter `ios/` target on a Mac; M1 proved launch and recording there on October 5. Rehearsal 1 (October 12) ran the Flutter Linux desktop build on WSL in a 402×874 window instead, recorded as a target deviation in its record.
 
 **Primary demo roles:** a seeded creator, a seeded spectator/participant, and a presenter who can reset the scenario. These are proposed demo personas, not researched customer segments. Use one simulated device on the PC with a persona switch.
 
@@ -27,7 +27,7 @@ The 10-day deliverable is a coherent, repeatable interactive demo and recording.
 | FMA Arena/Clash | No implementation found on current main; its plan explicitly says Arena has no code. [E-F01](2026-10-01-vc-hackathon-evidence.md#e-f01) | The user's reported frontend baseline is not verified and is contradicted on this branch. Current VC has Arena source (E-C03); assess its coverage independently of the FMA gap. |
 | VMBE Arena/Clash | No source domain/routes/migrations found; planned contracts only. [E-B01](2026-10-01-vc-hackathon-evidence.md#e-b01) | Mock formation, participants, clocks, outcomes and records locally. No dependency on finishing a backend. |
 | VMBE adjacent services | Price/history, suggestion and account routes exist in source; trading handoff/executor gaps remain. [E-B02](2026-10-01-vc-hackathon-evidence.md#e-b02), [E-B03](2026-10-01-vc-hackathon-evidence.md#e-b03) | Use shapes and boundaries as references; do not rely on deployment or fill execution. |
-| Video / Figma | Video inspected. October 2 recheck confirms the Figma plugin is installed/enabled, but its design-reading tools are unavailable in this chat; browser access to the exact node still stops at a WebGL error. No canvas content inspected. [E-V01](2026-10-01-vc-hackathon-evidence.md#e-v01), [E-D01](2026-10-01-vc-hackathon-evidence.md#e-d01) | Behavioral coverage can be planned from the video; Figma-specific requirements and exact design fidelity remain provisional. Plugin installation alone does not close the evidence gap. |
+| Video / Figma | Video inspected. The Figma plugin was installed, but its design-reading tools were not available to the reviewer, and browser access to the exact node stopped at a WebGL error. No canvas content inspected. [E-V01](2026-10-01-vc-hackathon-evidence.md#e-v01), [E-D01](2026-10-01-vc-hackathon-evidence.md#e-d01) | Behavioral coverage was planned from the video; Figma-specific design fidelity remains unverified (O-09). |
 
 ### Evidence vocabulary
 
@@ -43,7 +43,7 @@ The 10-day deliverable is a coherent, repeatable interactive demo and recording.
 |---|---|---|
 | A-01 | No live integration is mandatory; use mocks especially for VMBE. This follows the user's explicit direction. | A mandatory live sponsor/API requirement needs a bounded replacement plan and a scope cut. It cannot silently expand P0. |
 | A-02 | Two developers, one frontend and one backend, confirmed October 4. Because nothing goes live (O-07), the backend developer owns the scenario store, fixtures, mock services and reset logic; the frontend developer owns screens. Interfaces are fixed at M1 so both streams run in parallel from M2. | If either developer is unavailable, collapse to one stream and cut S08 first. |
-| A-03 | Runtime confirmed October 4: Xcode iOS Simulator on a macOS presenter machine, using the existing Flutter `ios/` target. | If the presenter machine is not a Mac, the Simulator cannot run. M1 must prove launch on the actual machine; the fallback is a Flutter web build in Chrome with a phone frame. |
+| A-03 | Runtime confirmed October 4: Xcode iOS Simulator on a macOS presenter machine, using the existing Flutter `ios/` target. | M1 proved launch on a Mac (October 5). When no Mac is available, the Linux desktop build (`flutter run -d linux`) is the fallback; rehearsal 1 used it. |
 | A-04 | Closed October 4: “x” had no supplied meaning and no feature or metric was inferred from it. | None. |
 | A-05 | Reproduce the video's economic copy (token supply, market cap, token price, 40% creator share) as the demo narrative. The user accepted on October 4 that this may misrepresent the product's current TPX economics (O-05). The persistent simulation indicator stays: the narrative is a product-story choice, the indicator prevents viewers mistaking demo money for real money. | TPX's ECONOMICS doc still defines no issuance (E-F07). The submission's known-limitations note must say the economics shown are a demo narrative, not the product specification. |
 | A-06 | Reuse means reference-guided lightweight implementation under VC's current CONTEXT.md, not wholesale source migration. | A source transplantation strategy would need explicit reconsideration; it is not assumed to save time. |
@@ -51,7 +51,7 @@ The 10-day deliverable is a coherent, repeatable interactive demo and recording.
 
 **P0 — essential connected demo:** resettable shell; Home call browsing/replay; portfolio entry into market listing; listing acknowledgments and success; market/portfolio chart views and simulated creator fees; Arena cards, sorting and crowd-split filter; one shared simulated order-review path; clear simulation disclosure and a rehearsed recording.
 
-**P1 — only after P0 is stable:** public first-call composition, scripted challenge-to-clash-to-result progression, a separate TPX position ticket, two-person manual copy/payment story, real sharing. P1 work may be omitted without claiming it was implemented.
+**P1 — only after P0 is stable:** public first-call composition, scripted challenge-to-clash-to-result progression, a separate TPX position ticket, real sharing. P1 work may be omitted without claiming it was implemented.
 
 **Deferred:** production auth/wallet onboarding, funding/withdrawals, live VMBE deployment, real exchange orders, payouts, on-chain programs, settlement oracle, calibrated TPX scoring, production market matching/liquidity, push notifications, AI recommendation/answer engines, moderation infrastructure, broad asset catalogs and app-store release. No production architecture rewrite is necessary for this demo.
 
@@ -64,7 +64,7 @@ The 10-day deliverable is a coherent, repeatable interactive demo and recording.
 | J3 — understand a clash | Arena → inspect opposing theses → change sort and crowd-split range → view matching cards/count → inspect more opinions. | Video V07/V08; opinion opening is proposed completion of a visible control. | P0; seeded discussions, no posting/moderation backend. |
 | J4 — participate deliberately | Call or Arena side → prefilled asset/direction → adjust demo size → review → confirm → simulated position appears in Wallet and Arena participation updates. | Visible entry controls plus FMA order flow; resulting Arena membership is proposed. | P0, one minimal shared ticket; cancel must leave state unchanged. |
 | J5 — explain outcomes | View a seeded settled call/record and corresponding illustrative index; distinguish event verdict, trading P&L and market-fee income. | TPX/Arena plans and video narration; dynamic settlement is not demonstrated. | P0 read-only fixtures; P1 adds presenter-controlled progression. |
-| J6 — share an order and receive a copy credit | Creator publishes → another persona chooses it → reviews/places their own simulated order → creator sees one illustrative credit. | VC's earlier brief, E-C02; absent from supplied video. | P1 provisional extension, behind a defined reward rule and P0 exit. |
+| J6 — share an order and receive a copy credit | Creator publishes → another persona chooses it → reviews/places their own simulated order → creator sees one illustrative credit. | VC's earlier brief, E-C02; absent from supplied video. | Promoted to P0 as S08 (O-06); built as the copy story (spec 09). |
 
 The [evidence register's V01–V09 coverage table](2026-10-01-vc-hackathon-evidence.md#e-v01) accounts for every sampled core surface. No observed feature is silently presented as backend-complete. Minor visible utilities such as deposit, notifications, settings and share may give an explicit demo-only explanation; the main journey controls must function.
 
@@ -74,18 +74,18 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S01. Demo foundation and shared state
 
-**Basis:** E-C01; video navigation; FMA shell E-F01; confirmed PC/simulated-iOS target E-U01. **Status:** VC now has a shell (E-C03); shared-state and target-runtime acceptance remain untested. **Dependencies:** runtime and fixture decisions at M0.
+**Basis:** E-C01; video navigation; FMA shell E-F01; confirmed PC/simulated-iOS target E-U01. **Status:** built; verified in M1 (October 5) and rehearsal 1 (October 12). **Dependencies:** runtime and fixture decisions at M0.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
 | VC-DEM-001 | P0 | Provide one runnable demo on the presenter's PC inside a portrait simulated iOS device, with Home, Arena and Wallet reachable, plus market/profile drill-downs. Mouse clicks, scrolling/dragging and keyboard text entry support every core journey; paging or swipe interactions have a usable PC input equivalent. Back returns to the prior surface; changing sections preserves selected call/filter state. Any fourth navigation item must have a defined destination or be omitted under the agreed shell decision. Exact tab order remains provisional because video and FMA plans differ. |
 | VC-DEM-002 | P0 | Use a single scenario store for identities, calls, prices, listing status, positions and fee entries. The same entity has the same identity/value on feed, detail, Arena and Wallet. A reset restores a known fixture version and clock; two consecutive runs after reset produce the same balances and results. |
 | VC-DEM-003 | P0 | Display a persistent, concise simulation indicator and identify synthetic financial results at review/confirmation. The default build completes P0 without credentials, signing, RPC or VMBE. With external network unavailable, all bundled demo journeys remain usable; no external financial write occurs. |
-| VC-DEM-004 | P0 | Give presenter controls for reset, persona and scenario phase outside the normal product journey. Every optional visible control has a working local result or a clear demo-unavailable explanation; no success notification may imply an action that did not occur. |
+| VC-DEM-004 | P0 | Give presenter controls for reset, persona and scenario phase outside the normal product journey. Every optional visible control has a working local result or a clear demo-unavailable explanation; no success notification may imply an action that did not occur. Reset and persona switch are built; the scenario-phase control is deferred with the P1 progression (VC-REC-003, VC-ARN-006). |
 
 ### S02. Home / Tradefeed, call detail and trader context
 
-**Basis:** video V01/V09; E-F02/E-F04/E-F05; Maker shape E-B02. **Status:** client patterns exist in FMA and Home source now exists in VC (E-C03); requirement coverage remains untested.
+**Basis:** video V01/V09; E-F02/E-F04/E-F05; Maker shape E-B02. **Status:** built; verified in the M2 records and rehearsal 1.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
@@ -96,7 +96,7 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S03. Creator market listing
 
-**Basis:** video V02–V05; E-F07. **Status:** observed prototype; VC main now includes a make-market flow (E-C03), with acceptance coverage still untested. **Dependencies:** S01 and a draft demo listing record. **Provisional:** exact Figma styling. Economic labels follow the video per O-05.
+**Basis:** video V02–V05; E-F07. **Status:** built; verified in the M2 records and rehearsal 1. **Dependencies:** S01. **Provisional:** exact Figma styling. Economic labels follow the video per O-05.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
@@ -107,11 +107,11 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S04. Trader market, record and Wallet
 
-**Basis:** video V06, performance narration, E-F03/E-F05/E-F07. **Status:** FMA paper-portfolio patterns and VC market/portfolio source exist (E-C03); production TPX economics remain specification-only. **Dependencies:** S01/S03; S06 for newly created positions.
+**Basis:** video V06, performance narration, E-F03/E-F05/E-F07. **Status:** built; verified in the M3 records and rehearsal 1. Not run: the zero-history and capital-independence examples and the worked 40% example. Production TPX economics remain specification-only. **Dependencies:** S01/S03; S06 for newly created positions.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
-| VC-MKT-001 | P0 | Own-market access shows creator identity, an illustrative performance-index series and settled-call examples. Wallet can switch between its portfolio series and trader-market series as in the video's two views. Each has a distinct title, unit and legend; switching back restores the right series. Video labels (market cap, supply, token price) are permitted per O-05; values must stay arithmetically consistent across every screen that shows them. |
+| VC-MKT-001 | P0 | Own-market access shows creator identity, an illustrative performance-index series and settled-call examples. Wallet can switch between its portfolio series and trader-market series as in the video's two views. Each has a distinct title, unit and legend; switching back restores the right series. Video labels (market cap, supply, token price) are permitted per O-05; values must stay arithmetically consistent across every screen that shows them. maya.eth's trader market is the market the user lists (user ruling, October 9). |
 | VC-MKT-002 | P0 | Make performance explanation capital-independent: two fixture traders with identical call results but different paper trade sizes receive the same illustrative record metrics. Display sample count and as-of time. Zero settled calls shows unavailable/insufficient history. The index is fixture-driven; the presenter script, not the screen, notes that production scoring is unvalidated. |
 | VC-MKT-003 | P0 | Wallet shows paper cash/equity, positions and an open-orders view. A confirmed simulated order adds exactly one position and updates cash consistently; cancellation does not. At least two chart ranges show the appropriate fixture windows. Seeded open orders or an honest empty state are sufficient; editing and limit-order execution are deferred. Deposit/withdraw entries explain the demo boundary and do not imply funding. |
 | VC-MKT-004 | P0 | Show creator fee income with an inspectable illustrative ledger separate from trading P&L. Each credit identifies its demo market/event. Total equals the ledger sum. Show the video's 40% creator share with one consistent example calculation (O-05). Direct-copy credits from S08 appear in the same ledger as a separately typed row so the two mechanisms are distinguishable. |
@@ -119,7 +119,7 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S05. Arena and Clash discovery
 
-**Basis:** video V07/V08; plans E-F06. **Status:** VC Arena/opinions/filter source now exists (E-C03); coverage remains untested. FMA and VMBE lacked implemented Arena/Clash support at their reviewed revisions. **Dependencies:** S01, call/trader fixtures. **Provisional:** actual ask/opinions behavior beyond the visible controls.
+**Basis:** video V07/V08; plans E-F06. **Status:** built; verified in the M4 records and rehearsal 1. **Dependencies:** S01, call/trader fixtures. **Provisional:** ask/opinions behavior beyond the visible controls is the demo's own design.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
@@ -132,7 +132,7 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S06. Shared simulated order review and confirmation
 
-**Basis:** visible trade/side controls, E-F03, VMBE execution limitations E-B03. **Status:** proposed integration; VC now includes trade-ticket source (E-C03), whose state/receipt invariants remain untested. **Dependencies:** S01, S02/S05 context, S04 portfolio model.
+**Basis:** visible trade/side controls, E-F03, VMBE execution limitations E-B03. **Status:** built; verified in the M5 record and rehearsal 1. Not run: the AVAX order-failure recovery. **Dependencies:** S01, S02/S05 context, S04 portfolio model.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
@@ -142,7 +142,7 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S07. Calls, results and demo receipts
 
-**Basis:** video first-call gap and performance narrative; Arena/TPX plans E-F06/E-F07. **Status:** proposed; no verified production settlement backend. **Dependencies:** shared IDs and record projections.
+**Basis:** video first-call gap and performance narrative; Arena/TPX plans E-F06/E-F07. **Status:** VC-REC-001 built and verified; VC-REC-002/003 are P1 and not built. No production settlement backend. **Dependencies:** shared IDs and record projections.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
@@ -152,16 +152,16 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 
 ### S08. Social Market copy/payment story
 
-**Basis:** E-C02, VC README; not observed in the supplied video. **Status:** **P0, selected by the user on October 4 (O-06)** with fixture numbers. **Dependencies:** stable S06; persona switch from S01. Does not depend on S07.
+**Basis:** E-C02, VC README; not observed in the supplied video. **Status:** **P0, selected by the user on October 4 (O-06)** with fixture numbers; built October 5 (spec 09) and verified in rehearsal 1. **Dependencies:** stable S06; persona switch from S01. Does not depend on S07.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
 | VC-CPY-001 | P0 | A second persona selects a public copyable call and chooses to place their own simulated order through review. Viewing/following/liking never submits it. Retain source-call attribution and separate creator/copier positions. Use a persona switch within the same simulated device on the PC. |
-| VC-CPY-002 | P0 | Demo reward rule (fixture values, editable in SP-10): the **copier persona** pays a flat **$5.00 demo cash copy fee** when their copied order is **confirmed** through S06; the creator receives the full amount as one ledger credit tagged `copy`. Cancel, failure and insufficient paper funds produce no credit and no debit. One credit per action ID; retry cannot double-pay. The ledger row names the source call and copier. The numbers are invented for the demo and the presenter script says so. |
+| VC-CPY-002 | P0 | Demo reward rule (fixture values, editable in SP-10): the **copier persona** pays a flat **$5.00 demo cash copy fee** when a copied market order is **confirmed** through S06; the creator persona receives the full amount as one ledger credit tagged `copy`, whoever authored the copied call. When the creator persona copies another trader's call, she pays $5.00 and no ledger is credited. Copy fees paid before a listing stay in the creator's ledger, and the copier's Wallet labels the market as the creator's ([rulings, October 12](../verification/2026-10-12-user-rulings.md)). Cancel, failure and insufficient paper funds produce no credit and no debit. One credit per action ID; retry cannot double-pay. The ledger row names the source call and copier. The numbers are invented for the demo and the presenter script says so. |
 
 ### S09. Demo quality, accessibility and delivery
 
-**Basis:** user's hackathon deadline and mock-first goal; FMA visual patterns. **Status:** proposed acceptance gates. **Dependencies:** all included sections.
+**Basis:** user's hackathon deadline and mock-first goal; FMA visual patterns. **Status:** VC-QA-002 and one VC-QA-003 run passed (rehearsal 1). Not run: VC-QA-001's viewport checks, the second VC-QA-003 run, and VC-QA-004's recording and package. **Dependencies:** all included sections.
 
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
@@ -176,7 +176,7 @@ All implementation lands in VC. No source-repo changes are required by this plan
 
 | Capability / VC destination | Source and evidence | Existing reality | Reuse approach | New/mocked work and dependency |
 |---|---|---|---|---|
-| Existing VC app → S01–S06/S09 | VC app shell and feature paths, E-C03 | Source now present; no runtime acceptance audit in this update | Assess and extend current VC screens/design system before building replacements | Identify missing state integration and acceptance gaps; do not equate assets with exact-node Figma verification. |
+| Existing VC app → S01–S06/S09 | VC app shell and feature paths, E-C03 | Extended and verified; see `docs/verification/` | Assess and extend current VC screens/design system before building replacements | Identify missing state integration and acceptance gaps; do not equate assets with exact-node Figma verification. |
 | Product vocabulary, branding, component roles → S01/S02 | VC README/CONTEXT/ARCH, E-C01 | Documentation and logo assets | Retain vocabulary and advisory→review→simulated action story | Adapt existing shell for the PC-hosted simulated-phone target; confirm runtime. |
 | Navigation and visual tokens → S01/S09 | FMA shell/theme, E-F01/E-F05 | Implemented client patterns | Adapt persistent navigation, tokens and layouts | New VC routes; Arena tab differs from checked main. |
 | Home/feed/cards → S02 | FMA feed/card/repository, E-F02 | Interactive fixture-backed client | Adapt card hierarchy, repository seam and paging | Curated cross-screen scenario; no recommendation service. |
@@ -189,13 +189,13 @@ All implementation lands in VC. No source-repo changes are required by this plan
 | Merchant action → S06 | VMBE wiring, E-B03 | Source exists; no working app execution path | Retain deliberate user intent and clear failure states | New local simulator; never count VMBE dry-run rejection as a successful fill. |
 | Arena/Clash → S05/S07 | FMA Arena plan, E-F06; VMBE gap E-B01 | Specification only | Reference card vocabulary and event-versus-P&L distinction | New cards, filters, participant projection; scripted lifecycle if selected. |
 | Listing/TPX market → S03/S04 | Video V03–V06; FMA TPX docs, E-F07 | Video mock + specification only | Adapt visual journey and no-supply index concept | Local ticker registry, listing state, index fixtures and fee ledger. |
-| Public calls/copy credit → S07/S08 | VC earlier brief E-C02; FMA thesis/record patterns | No evidenced complete publication/copy-payment system | Reference manual intent and attribution | New local publication/credit rules; optional after core demo. |
+| Public calls/copy credit → S07/S08 | VC earlier brief E-C02; FMA thesis/record patterns | No evidenced complete publication/copy-payment system | Reference manual intent and attribution | Copy credit: P0 (O-06), built. Public call publication: P1, not built. |
 
 **Compatibility traps:** FMA mock doubles do not satisfy VMBE's decimal-string contract; user calls are not Maker suggestions; an account handle is not a TPX ticker; portfolio trade wins are not Arena event verdicts; a graph of returns is not a validated TPX index; local persistence is not multi-device synchronization.
 
 ## 6. Proposed demo architecture and dependencies
 
-Use the existing Flutter application and one local scenario store, run in the Xcode iOS Simulator on the presenter Mac (O-04). The backend developer owns the scenario store and mock services as in-process Dart modules; no separate server process is planned. Interfaces may be ordinary in-process modules; no separate backend servers, queues, databases or WebSockets are required. A local static development/preview server may serve the app. Persona switching keeps both demo roles in the same state store.
+Use the existing Flutter application and one local scenario store, run in the Xcode iOS Simulator (O-04) or, as the fallback, the Linux desktop build. The backend developer owns the scenario store and mock services as in-process Dart modules; no separate server process is planned. Interfaces may be ordinary in-process modules; no separate backend servers, queues, databases or WebSockets are required. Persona switching keeps both demo roles in the same state store.
 
 ```mermaid
 flowchart LR
@@ -212,7 +212,7 @@ flowchart LR
     REC --> ST
 ```
 
-These are proposed responsibilities, not a verified map of the current VC modules. Reconcile them with the existing app before choosing module boundaries. Keep the following contracts small enough to specify independently:
+These were the planned responsibilities; the as-built modules are mapped in [ARCH.md](../../ARCH.md), with all state in `app/lib/scenario/`. Keep the following contracts small enough to specify independently:
 
 | Data / responsibility | Minimum relationship | Downstream consumers |
 |---|---|---|
@@ -232,7 +232,7 @@ S01 contracts precede screen implementation. S02 and S03 can then progress indep
 | Risk | Impact | Mitigation / trigger |
 |---|---|---|
 | Demo branch is missing; frontend reuse was overstated | Underestimated Arena/listing effort | VC now has related source (E-C03); inspect its acceptance coverage before estimating remaining Arena/listing effort. |
-| iOS Simulator requires a Mac with Xcode | If the presenter machine is not a Mac the decided runtime cannot run | M1 proves launch on the actual presenter machine before any screen work depends on it. Fallback: Flutter web in Chrome with a phone frame, recorded as a decision change. |
+| iOS Simulator requires a Mac with Xcode | If the presenter machine is not a Mac the decided runtime cannot run | M1 proved launch on a Mac (October 5). Fallback: the Linux desktop build, used for rehearsal 1 and recorded as a target deviation. |
 | Two parallel streams drift on shared contracts | Frontend and backend fixtures disagree, screens show inconsistent values | Freeze scenario-store IDs, financial value types and reset semantics at M1; one shared fixture file; reconciliation check in VC-QA-003. |
 | Figma design-reading tools unavailable despite installed/enabled plugin; browser blocked by WebGL | Cannot inspect the requested node or certify layout fidelity | Restore callable Figma access or obtain an accessible export of node 1325-7814. Record frame IDs, visible states and video differences before changing affected specs. Use video/FMA references provisionally; limit late visual changes to core-flow defects. |
 | Demo economics follow the video, not TPX (O-05) | Viewers or judges may read the demo's supply/market-cap story as the product specification | Accepted by the user October 4. Keep the simulation indicator, keep numbers arithmetically consistent, and state in the submission's known-limitations note that the economics are a demo narrative. |
@@ -240,26 +240,26 @@ S01 contracts precede screen implementation. S02 and S03 can then progress indep
 | VMBE integration consumes the schedule | Missed demo and safety regressions | No VMBE runtime on the critical path. An unavoidable live requirement must replace scope and preserve existing gates. |
 | Mock outcomes appear like real transactions | Misleading demonstration | Persistent simulation label, honest confirmations, no keys or financial writes. |
 | Simulated-phone controls do not translate to PC input | Presenter cannot complete mobile gestures or recording clips controls | Require mouse/keyboard equivalents and viewport checks in VC-DEM-001/VC-QA-001; rehearse on the actual PC. |
-| Submission channel and format unknown; cutoff is 23:00 Oct 11 | Wrong format or late submission | Cutoff confirmed October 4. Confirm channel/format before M7; reserve Oct 11 daytime for packaging/upload issues, with recording already available. |
+| Submission channel and format unknown; cutoff is 2026-10-12 23:59 America/Los_Angeles | Wrong format or late submission | Confirm channel/format before M7; keep the recording available before packaging. |
 | Scope grows into social platform/production scoring | Unfinishable project | Canned ask responses, seeded opinions/receipts, bounded fixture index; no AI/forum/settlement platform. |
 
 ## 8. Open decisions
 
-Resolved by the user on October 4, 2026; the reasoning behind each default is in the [decision record, October 4](2026-10-04-open-decisions-recommendations.md). O-11 is the only item still open.
+Resolved by the user on October 4, 2026; the reasoning behind each default is in the [decision record, October 4](2026-10-04-open-decisions-recommendations.md). O-09 and O-11 are still open.
 
 | ID | Decision | Resolution (October 4) | Status |
 |---|---|---|---|
-| O-01 | Exact deadline time/timezone, hackathon rules, required technologies and format | Cutoff **October 11, 2026, 23:00**; timezone assumed America/Los_Angeles. No sponsor technology requirement. Submission channel/format still to confirm before M7. | Resolved (channel/format pending) |
+| O-01 | Exact deadline time/timezone, hackathon rules, required technologies and format | Cutoff **2026-10-12 23:59 America/Los_Angeles** (corrected by the user October 5). No sponsor technology requirement. Submission channel/format still to confirm before M7. | Resolved (channel/format pending) |
 | O-02 | Team size, available hours and builder skills | **Two developers: one frontend, one backend.** Backend owns scenario store, fixtures and mock services (nothing live). Two parallel streams from M2 after M1 fixes contracts. | Resolved |
 | O-03 | Meaning of “x” | Closed with no scope. | Closed |
-| O-04 | Host OS, runtime/tool and run/record route | **Xcode iOS Simulator** on a macOS presenter machine, existing Flutter `ios/` target, screen-recorded with macOS screen capture. Requires a Mac; M1 proves it. Fallback: Flutter web in Chrome with a phone frame. | Resolved (M1 feasibility proof pending) |
+| O-04 | Host OS, runtime/tool and run/record route | **Xcode iOS Simulator** on a macOS presenter machine, existing Flutter `ios/` target, screen-recorded with macOS screen capture. Fallback: the Linux desktop build. | Resolved; M1 proved it October 5; rehearsal 1 used the Linux fallback |
 | O-05 | Reproduce video economic copy or use current index-market language? | **Reproduce the video's economic copy.** User accepted that the demo may misrepresent current product economics. Simulation indicator stays. | Resolved |
-| O-06 | Include direct-copy payment story? If yes, what demo payer/amount/trigger? | **Yes, in the demo, P0, with fixture numbers.** Copier pays a flat $5.00 demo copy fee on confirmed copy; creator receives it as a `copy` ledger credit. Values editable in SP-10. | Resolved |
+| O-06 | Include direct-copy payment story? If yes, what demo payer/amount/trigger? | **Yes, in the demo, P0, with fixture numbers.** Copier pays a flat $5.00 demo copy fee on confirmed copy; the creator persona, maya.eth, receives it as a `copy` ledger credit (October 12 ruling). Values editable in SP-10. | Resolved |
 | O-07 | Which, if any, behavior must become live? | **Nothing.** All mocked. | Resolved |
-| O-08 | How much of the newly merged VC app covers the video and PRD? | Run a coverage audit of the current app against J1–J5 and every P0 ID (passed / partial / missing), then re-cut M2–M5 against it. | Accepted; audit not yet run |
-| O-09 | Read Figma node 1325-7814 through callable plugin tools or an accessible export | Whoever exported `app/assets/figma/` exports PNG frames of node 1325-7814 into `docs/assets/figma/` with frame IDs and dimensions; that closes E-D01. No further plugin or WebGL effort. | Accepted; export not yet done |
+| O-08 | How much of the newly merged VC app covers the video and PRD? | Run a coverage audit of the current app against J1–J5 and every P0 ID (passed / partial / missing), then re-cut M2–M5 against it. | Done: M2–M5 verification records (October 5–7), re-verified October 7 and in rehearsal 1 |
+| O-09 | Read Figma node 1325-7814 through callable plugin tools or an accessible export | Export PNG frames of node 1325-7814 into `docs/assets/figma/` with frame IDs and dimensions; that closes E-D01. | Open: export not done; Figma fidelity unverified |
 | O-10 | Does the demo need public composition/dynamic settlement or only seeded examples? | Seeded receipts and an honest unfinished composer for P0; interactive progression stays P1. | Resolved |
-| O-11 | Final shell order and asset permission/font choices | Not answered. Interim default: keep the built shell (Home, Explore, Arena, Wallet), Open Runde font under OFL, existing Figma SVG exports. | Open |
+| O-11 | Final shell order and asset permission/font choices | Not answered. The built shell (Home, Explore, Arena, Wallet), the Open Runde font under OFL and the existing Figma SVG exports shipped as the default. | Open |
 
 ## 9. Master acceptance and decomposition check
 
@@ -267,6 +267,6 @@ Resolved by the user on October 4, 2026; the reasoning behind each default is in
 - **Baseline correction:** Arena/Clash are missing from inspected VMBE and FMA main; plans and adjacent mock client behavior are separately classified.
 - **Reuse:** every source-repo claim has an evidence entry and an explicit adaptation boundary. VC remains the implementation destination.
 - **Mock completeness:** fixtures cover identity, market data, suggestions, listing, orders, portfolio, Arena and fee/record displays; no backend deployment is necessary.
-- **Provisional work:** Figma fidelity (pending frame export), VC coverage (pending audit) and shell order (O-11) remain open. Economics, copy reward, capacity, runtime and live requirements were decided October 4.
+- **Provisional work:** Figma fidelity (O-09) and the final shell order (O-11) remain open. Coverage was audited in the M2–M5 records.
 - **Spec readiness:** S01–S09 have stable requirement IDs, dependencies and observable acceptance criteria. The roadmap assigns each section to a milestone/spec boundary.
-- **Delivery readiness:** this planning check is complete; implementation, runtime validation, recording and hackathon submission are future work.
+- **Delivery readiness:** P0 is built and rehearsed once from reset. Remaining: rehearsal 2 and viewport checks, the final recording and package, and submission.

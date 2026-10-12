@@ -1,3 +1,19 @@
 /AGENTS.md
-/CLAUDE.md
 .drift-status/
+# planning-with-files job state; keeps it out of the generated ARCH.md (#34)
+/task_plan.md
+/findings.md
+/progress.md
+/.planning/
+
+# Internal agent process files and personal tool config: kept local, not published
+baton-runner/
+baton-pass/
+docs/reviews/
+docs/agents/
+docs/prompts/
+docs/specs/00-baton-queue.md
+replace.py
+.claude/
+.codex/
+.agents/

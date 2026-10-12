@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'design_system/design_system.dart';
@@ -24,6 +25,11 @@ class VistaColosseumApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: VistaTheme.dark(),
       navigatorKey: _navigator,
+      // A mouse drag swipes like a finger, so pagers work on desktop builds
+      // (VC-DEM-001's PC input equivalent).
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: PointerDeviceKind.values.toSet(),
+      ),
       // Cap system text scaling so fixed-height rows (44pt bars, 46pt pills,
       // 64pt nav) stay intact; beyond 1.3× the feed card would clip. The
       // simulated pill sits over every route and sheet.

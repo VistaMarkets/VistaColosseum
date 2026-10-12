@@ -245,8 +245,9 @@ void main() {
   testWidgets('a trader-index ticket says so and creates nothing', (
     tester,
   ) async {
-    // maya.eth has a price, so only the trader-index rule can refuse it.
-    await homeCard(tester, 'maya.eth');
+    // lunaq has a price, so only the trader-index rule can refuse it.
+    // (maya.eth's card drops out: setUp lists the user's market fresh.)
+    await homeCard(tester, 'lunaq');
     await tester.tap(find.text('Details').hitTestable());
     await tester.pumpAndSettle();
     final before = state();
@@ -271,7 +272,7 @@ void main() {
   testWidgets("a Home trader-market card's ticket says so and creates "
       'nothing, on Market and Limit', (tester) async {
     final before = state();
-    await homeCard(tester, 'maya.eth');
+    await homeCard(tester, 'lunaq');
     for (final tab in ['Market', 'Limit']) {
       await tester.tap(
         find.widgetWithText(VistaPillButton, 'Long').hitTestable().first,

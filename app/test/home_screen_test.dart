@@ -30,6 +30,8 @@ import 'package:vista_colosseum/features/trade/candle_chart.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
+import 'package:vista_colosseum/features/market/market_mock.dart' show traderCalls;
+import 'package:vista_colosseum/features/market/receipt_screens.dart' show CallReceiptScreen;
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/market/your_market_screen.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
@@ -956,7 +958,10 @@ void main() {
       await tester.tap(find.text('Traders'));
       await tester.pumpAndSettle();
       expect(find.text('ALL TRADER MARKETS'), findsOneWidget);
-      expect(rowNames(tester).first, 'maya.eth');
+      // Sorted by cap: the file's setUp lists MAYA fresh, so the user's own
+      // market (maya.eth) reads $10,000 and sorts last (VC-MKT-001).
+      expect(rowNames(tester).first, '0xreal');
+      expect(rowNames(tester).last, 'maya.eth');
 
       await tester.tap(
         find.descendant(
@@ -2041,10 +2046,30 @@ void main() {
       await tester.tap(find.text(r'Create $ZED'));
       await tester.pumpAndSettle();
 
-      // The other two controls keep their toasts.
+      // VC-LST-004: the first call explains it is outside the demo and
+      // offers a seeded call, another trader's, so nothing reads as posted.
       await tester.tap(find.text('Make your first call'));
-      await tester.pump();
-      expect(find.text('Make a call — not in the demo yet'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Make a call — not in the demo yet'), findsNothing);
+      expect(
+        find.text('Posting calls is outside this demo. Nothing has been '
+            'published. You can look at a sample call from another trader.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('See a sample call'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CallReceiptScreen), findsOneWidget);
+      expect(
+        tester.widget<CallReceiptScreen>(find.byType(CallReceiptScreen))
+            .receipt
+            .id,
+        traderCalls.first.id,
+      );
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Your market is open'), findsOneWidget);
+
+      // Share keeps its toast.
       // Through the semantics tap action, as a screen reader would.
       tester.semantics.tap(find.semantics.byLabel(r'Share $ZED'));
       await tester.pump();

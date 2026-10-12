@@ -1,0 +1,6 @@
+command: cd app && flutter test --dart-define=HAS_MARKET=true
+build: 505217c97d825d6ddc003fc4e831d4190ab686c1
+host: Ubuntu 24.04.5 LTS on WSL2, Flutter 3.47.5 stable
+run: 2026-10-12, finished about 08:40 PDT
+exit: 0
+result: 01:07 +348: All tests passed!

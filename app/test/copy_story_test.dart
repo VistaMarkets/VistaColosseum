@@ -9,6 +9,7 @@ import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
 import 'package:vista_colosseum/features/market/receipt_screens.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
+import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/main.dart';
@@ -109,6 +110,27 @@ void main() {
     // fee alone: the row and the Total both read $5.00.
     expect(Scenario.marketFeesCents, 0);
     expect(find.text(formatCents(500)), findsNWidgets(2));
+  });
+
+  testWidgets('the copier\'s Wallet labels the market as the creator\'s and '
+      'offers no listing (Oct 12 ruling)', (tester) async {
+    Scenario.switchPersona();
+    await pumpApp(tester, home: const PortfolioScreen());
+    expect(find.text('maya.eth\'s market'), findsOneWidget);
+    expect(find.text('Fees from maya.eth\'s market'), findsOneWidget);
+    expect(find.text('Your market'), findsNothing);
+    expect(find.text('Fees from your market'), findsNothing);
+
+    Scenario.hasMarket.value = false;
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Make a market'), findsNothing);
+
+    Scenario.switchPersona();
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
+    Scenario.hasMarket.value = true;
+    await tester.pumpAndSettle();
+    expect(find.text('Your market'), findsOneWidget);
   });
 
   testWidgets('cancelling a copied order writes nothing', (tester) async {
