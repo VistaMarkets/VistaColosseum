@@ -438,6 +438,19 @@ VistaColosseum/
 │   │   │   └── scenario.dart
 │   │   ├── app_shell.dart  — tab shell with the capsule bottom nav (Home, Explore, Arena, Wallet): pages switch with a fade-through and keep their state; one bottom dock where the Arena crowd panel folds open above the nav
 │   │   └── main.dart
+│   ├── linux/
+│   │   ├── flutter/
+│   │   │   ├── CMakeLists.txt
+│   │   │   ├── generated_plugin_registrant.cc
+│   │   │   ├── generated_plugin_registrant.h
+│   │   │   └── generated_plugins.cmake
+│   │   ├── runner/
+│   │   │   ├── CMakeLists.txt
+│   │   │   ├── main.cc
+│   │   │   ├── my_application.cc
+│   │   │   └── my_application.h
+│   │   ├── .gitignore
+│   │   └── CMakeLists.txt
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
 │   │   ├── copy_story_test.dart
@@ -985,6 +998,7 @@ VistaColosseum/
 │       ├── 2026-10-07-m2-m4-reverification.md
 │       ├── 2026-10-07-m5-participation-and-copy.md
 │       ├── 2026-10-12-user-rulings.md
+│       ├── presenter-checklist-wsl.md
 │       └── rehearsal-protocol.md
 ├── scripts/
 │   └── gate.sh
