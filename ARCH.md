@@ -488,6 +488,7 @@ VistaColosseum/
 │   │   ├── 09-copy-story.md
 │   │   ├── 11-verification-and-packaging.md
 │   │   ├── 12-own-market-cap.md
+│   │   ├── 13-judge-mode-and-copy-card.md
 │   │   └── README.md
 │   └── verification/
 │       ├── evidence/
