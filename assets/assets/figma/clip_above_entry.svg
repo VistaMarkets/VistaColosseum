@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="370" height="238.043" viewBox="0 0 370 238.043" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="clip &#194;&#183; above entry" clip-path="url(#clip0_0_54)">
+<path id="Vector" d="M9 238L16.4 281.9L23.8 301.2L31.2 316.3L38.6 323L46 327.4L53.4 351.5L60.8 379.5L68.2 385L75.6 361.3L83 362.5L90.4 348.1L97.9 336.3L105.3 339.2L112.7 340.1L120.1 324.5L127.5 331L134.9 337L142.3 338.2L149.7 337.5L157.1 334.8L164.5 339.4L171.9 317.1L179.3 293.9L186.7 280.3L194.1 265.1L201.5 261.5L208.9 231.8L216.3 229.3L223.7 232.2L231.1 214.8L238.5 214.2L245.9 194.6L253.3 199.6L260.7 202.1L268.1 174.9L275.6 151.1L283 151.2L290.4 124.5L297.8 131.3L305.2 113.4L312.6 87.7L320 91.7L327.4 92.2L334.8 66.2L342.2 68.3L349.6 44.5L357 30V238.043H9V238Z" fill="url(#paint0_linear_0_54)"/>
+<path id="Vector_2" d="M9 238L16.4 281.9L23.8 301.2L31.2 316.3L38.6 323L46 327.4L53.4 351.5L60.8 379.5L68.2 385L75.6 361.3L83 362.5L90.4 348.1L97.9 336.3L105.3 339.2L112.7 340.1L120.1 324.5L127.5 331L134.9 337L142.3 338.2L149.7 337.5L157.1 334.8L164.5 339.4L171.9 317.1L179.3 293.9L186.7 280.3L194.1 265.1L201.5 261.5L208.9 231.8L216.3 229.3L223.7 232.2L231.1 214.8L238.5 214.2L245.9 194.6L253.3 199.6L260.7 202.1L268.1 174.9L275.6 151.1L283 151.2L290.4 124.5L297.8 131.3L305.2 113.4L312.6 87.7L320 91.7L327.4 92.2L334.8 66.2L342.2 68.3L349.6 44.5L357 30" stroke="#34D399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_54" x1="183" y1="30" x2="183" y2="385" gradientUnits="userSpaceOnUse">
+<stop stop-color="#34D399" stop-opacity="0.18"/>
+<stop offset="1" stop-color="#34D399" stop-opacity="0"/>
+</linearGradient>
+<clipPath id="clip0_0_54">
+<rect width="370" height="238.043" fill="white"/>
+</clipPath>
+</defs>
+</svg>

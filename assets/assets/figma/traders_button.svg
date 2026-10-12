@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="traders_button" clip-path="url(#clip0_0_24)">
+<path id="Vector" d="M26 52C40.3594 52 52 40.3594 52 26C52 11.6406 40.3594 0 26 0C11.6406 0 0 11.6406 0 26C0 40.3594 11.6406 52 26 52Z" fill="#1F1F1F" fill-opacity="0.25"/>
+<g id="Group">
+<path id="Vector_2" d="M20.5 36V18.5" stroke="#34D399" stroke-width="4.6" stroke-linecap="round"/>
+<path id="Vector_3" d="M16 23L20.5 18.5L25 23" stroke="#34D399" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M31.5 16V33.5" stroke="#F16082" stroke-width="4.6" stroke-linecap="round"/>
+<path id="Vector_5" d="M27 29L31.5 33.5L36 29" stroke="#F16082" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_24">
+<rect width="52" height="52" fill="white"/>
+</clipPath>
+</defs>
+</svg>

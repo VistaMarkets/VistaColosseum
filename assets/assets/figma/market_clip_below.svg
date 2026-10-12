@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="380" height="14" viewBox="0 0 380 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="clip &#194;&#183; below baseline" clip-path="url(#clip0_0_21)">
+<path id="area gradient" d="M5 0L12.6 -13.8L20.1 -28.4L27.7 -21.6L35.2 -23L42.8 -37.2L50.3 -32.1L57.9 -32.8L65.4 -36.9L73 -44L80.5 -41.2L88.1 -35.7L95.6 -50.7L103.2 -52L110.7 -48.1L118.3 -52L125.8 -50.5L133.4 -44.6L140.9 -54.2L148.5 -53.3L156 -52.3L163.6 -44.5L171.1 -57.9L178.7 -54.1L186.2 -66.5L193.8 -68.6L201.3 -64.7L208.9 -70L216.4 -70.3L224 -79.6L231.5 -86.2L239.1 -79.8L246.6 -75.7L254.2 -77.2L261.7 -69.6L269.3 -86.2L276.8 -86.7L284.4 -94L291.9 -100.5L299.5 -114.7L307 -113L314.6 -114.2L322.1 -116.9L329.7 -118.1L337.2 -129.4L344.8 -130.9L352.3 -132.1L359.9 -129L367.4 -125.1L375 -134V0H5Z" fill="url(#paint0_linear_0_21)"/>
+<path id="market line" d="M5 0L12.6 -13.8L20.1 -28.4L27.7 -21.6L35.2 -23L42.8 -37.2L50.3 -32.1L57.9 -32.8L65.4 -36.9L73 -44L80.5 -41.2L88.1 -35.7L95.6 -50.7L103.2 -52L110.7 -48.1L118.3 -52L125.8 -50.5L133.4 -44.6L140.9 -54.2L148.5 -53.3L156 -52.3L163.6 -44.5L171.1 -57.9L178.7 -54.1L186.2 -66.5L193.8 -68.6L201.3 -64.7L208.9 -70L216.4 -70.3L224 -79.6L231.5 -86.2L239.1 -79.8L246.6 -75.7L254.2 -77.2L261.7 -69.6L269.3 -86.2L276.8 -86.7L284.4 -94L291.9 -100.5L299.5 -114.7L307 -113L314.6 -114.2L322.1 -116.9L329.7 -118.1L337.2 -129.4L344.8 -130.9L352.3 -132.1L359.9 -129L367.4 -125.1L375 -134" stroke="#F16082" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_21" x1="190" y1="0" x2="190" y2="-134" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F16082" stop-opacity="0.18"/>
+<stop offset="1" stop-color="#F16082" stop-opacity="0"/>
+</linearGradient>
+<clipPath id="clip0_0_21">
+<rect width="380" height="14" fill="white"/>
+</clipPath>
+</defs>
+</svg>
