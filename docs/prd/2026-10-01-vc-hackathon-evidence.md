@@ -1,18 +1,18 @@
 # VistaColosseum hackathon evidence register
 
-Repository/video review: **October 1, 2026 (America/Los_Angeles)**. User target clarification and Figma access recheck: **October 2, 2026**. Companion to the [master PRD](2026-10-01-vc-hackathon-master-prd.md) and [roadmap](2026-10-01-vc-hackathon-roadmap.md).
+Repository/video review: **October 1, 2026 (America/Los_Angeles)**. User target clarification and Figma access recheck: **October 2, 2026**. Companion to the [master PRD](2026-10-01-vc-hackathon-master-prd.md) and [roadmap](2026-10-01-vc-hackathon-roadmap.md). **This register is a snapshot as of October 2.** Current verification status is in [`docs/verification/`](../verification/README.md).
 
 ## Subsequent user clarification
 
 ### E-U01
 
-On **October 2, 2026**, the user specified the target as a **PC with a simulated iOS device**. This establishes the presentation target. A desktop browser with a portrait phone viewport/frame is the PRD's proposed implementation approach; the user has not specified the host OS, browser, simulation tool or a native iOS runtime. Primary/smaller viewport dimensions are proposed acceptance defaults, not measurements from the design references. Repository and design findings below retain their October 1 review date; no additional runtime verification is implied.
+On **October 2, 2026**, the user specified the target as a **PC with a simulated iOS device**. On October 4 the runtime was decided as the Xcode iOS Simulator (O-04); M1 proved it on October 5, and rehearsal 1 (October 12) used the Linux desktop build as the fallback. Primary/smaller viewport dimensions are proposed acceptance defaults, not measurements from the design references. Repository and design findings below retain their October 1 review date.
 
 ## Review method and limits
 
 Read repository source, wiring, public contracts, relevant tests, and product plans. Inspected the supplied video through the browser at specific playback positions and read its automatically generated English captions. A video demonstrates visible prototype behavior, not its implementation, server connections, or economic correctness. Captions are supporting narration, not exact specifications.
 
-No VC application existed at the initial October 1 revisions below. A subsequent main update adds the app; see E-C03 for the bounded October 2 check. FMA was not launched and its tests were not run; `flutter` was unavailable on PATH. VMBE was not started and its build/tests were not run. Accordingly, **implemented** below means source-backed implementation, not newly verified runtime success. Existing test files are evidence of intended coverage, not a passing result from this review. No live deployment was verified.
+As of October 1–2: no VC application existed at the initial October 1 revisions below. A subsequent main update adds the app; see E-C03 for the bounded October 2 check. FMA was not launched and its tests were not run; `flutter` was not installed on the review machine. VMBE was not started and its build/tests were not run. Accordingly, **implemented** below means source-backed implementation, not newly verified runtime success. Existing test files are evidence of intended coverage, not a passing result from this review. No live deployment was verified.
 
 | Repository | Local HEAD inspected | Remote main checked | Consequence |
 |---|---|---|---|
@@ -52,7 +52,7 @@ Narration around 1:07–1:23 describes percentage/performance-based comparison i
 |---|---|---|---|
 | Initial web/browser access | Oct 1 | Web retrieval failed; browser reached the file title but reported WebGL unsupported or disabled. | No canvas/frame content inspected. |
 | Installed plugin discovery | Oct 2 | Plugin registry returned Figma with `installed: true` and `status: ENABLED`; Figma skill files are available locally. | Confirms installation/enabled status, not authenticated file access or callable design tools. |
-| Callable-tool discovery | Oct 2 | No Figma tools were exposed in this chat's available tool inventory, including design context, metadata, screenshot or file-context execution. | No Figma design read could be issued through the plugin. The cause is not established; no permission denial is inferred. |
+| Callable-tool discovery | Oct 2 | No Figma design-reading tools were available to the reviewer (design context, metadata, screenshot or file-context execution). | No Figma design read could be issued through the plugin. The cause is not established; no permission denial is inferred. |
 | Exact-node browser retry | Oct 2 | The requested URL again reached “Vista Mobile app – Figma” and displayed the WebGL unsupported/disabled error. | No canvas, frame hierarchy or interactions inspected. |
 
 **Gap remains open:** exact frame hierarchy, typography, spacing, component variants, assets, interactions and the relationship between this node and the video remain unverified. Video layout is usable provisional guidance; FMA theme code is a separate reference, not evidence that this Figma node matches it. Plugin installation alone does not justify changing feature requirements or marking Figma fidelity verified. No Figma file was modified.
@@ -77,7 +77,7 @@ During October 2 PR preparation, `origin/main` advanced to **`ddcfaa350890864b87
 
 The [app shell](https://github.com/VistaMarkets/VistaColosseum/blob/ddcfaa350890864b8726732837629bd237a0d603/app/lib/app_shell.dart) was read: it instantiates Home, Explore/Markets, Arena and Wallet/Portfolio and mounts the crowd-filter panel. This supersedes the initial **VC has no app** finding. The [architecture map](https://github.com/VistaMarkets/VistaColosseum/blob/ddcfaa350890864b8726732837629bd237a0d603/ARCH.md) describes design provenance from a different Figma file key, `yIxjFkwJAwBa07RgSmVv1D`; that repository claim does not close access to the user's specified file/node in E-D01.
 
-**Limits:** this was a tracked-tree and shell-source check, not an audit or execution of every feature. No PRD criterion or milestone is marked passed. FMA/VMBE findings remain tied to their original revisions. Before implementation estimates are used, inspect the current VC feature code and record each requirement as verified, partial, missing or untested; extend existing work rather than assuming a fresh build.
+**Limits:** this was a tracked-tree and shell-source check, not an audit or execution of every feature. FMA/VMBE findings remain tied to their original revisions. Superseded: requirements were later verified in the milestone records under [`docs/verification/`](../verification/README.md).
 
 ### E-F01
 
@@ -135,7 +135,7 @@ VC should implement its own simulated order outcome, without weakening VMBE gate
 
 ## Verification verdict
 
-Document validation found **35 unique requirement IDs (29 P0, 6 P1)**, no undefined explicit requirement references, and no broken companion-document links/anchors. All **45 distinct pinned repository links** resolve to files and valid line locations in the inspected Git objects. The 10-day date calculation resolves to October 11. These checks validate the planning artifacts; they do not establish runtime acceptance.
+Document validation found **35 unique requirement IDs** (now 31 P0 and 4 P1, after VC-CPY-001/002 were promoted to P0 on October 4), no undefined explicit requirement references, and no broken companion-document links/anchors. All **45 distinct pinned repository links** resolve to files and valid line locations in the inspected Git objects. The deadline was later corrected to 2026-10-12 23:59 America/Los_Angeles ([spec 11, DR-2](../specs/11-verification-and-packaging.md)). These checks validate the planning artifacts; they do not establish runtime acceptance.
 
 | Claim | Verdict |
 |---|---|
@@ -143,6 +143,6 @@ Document validation found **35 unique requirement IDs (29 P0, 6 P1)**, no undefi
 | Most Arena/Clash functionality is implemented in FMA | Contradicted on current main. Adjacent client features and extensive plans exist; matching demo branch remains unknown. |
 | FMA already supplies live trading/social data | Unsupported; inspected flows use local stores and fixtures. |
 | VC can migrate an already working backend to cover the video | Unsupported as a working-backend claim. VC now has demo client source (E-C03); this does not establish live backend support or passing acceptance criteria. |
-| A mock-first demo can use these repositories as references | Supported as a planning approach, with the existing VC app to assess/extend and the scoped acceptance criteria in the PRD. The target is now PC with simulated iOS presentation (E-U01); feasibility still depends on capacity and runtime setup. |
-| Figma installation resolves the design evidence gap | Not established. Installation/enabled status was confirmed October 2, but no Figma tools were callable in this chat and the browser retry remained blocked by WebGL. |
+| A mock-first demo can use these repositories as references | Supported, and since delivered: the existing VC app was extended and verified (see [`docs/verification/`](../verification/README.md)). |
+| Figma installation resolves the design evidence gap | Not established. Installation/enabled status was confirmed October 2, but no Figma tools were available to the reviewer and the browser retry remained blocked by WebGL. Still open as O-09. |
 | Proposed scope completely matches the specified Figma node | Unverified. No canvas/frame content has been inspected; exact visual fidelity remains provisional. |

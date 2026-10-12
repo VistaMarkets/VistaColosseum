@@ -5,3 +5,15 @@
 /findings.md
 /progress.md
 /.planning/
+
+# Internal agent process files and personal tool config: kept local, not published
+baton-runner/
+baton-pass/
+docs/reviews/
+docs/agents/
+docs/prompts/
+docs/specs/00-baton-queue.md
+replace.py
+.claude/
+.codex/
+.agents/

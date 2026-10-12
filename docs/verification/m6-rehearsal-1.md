@@ -1,6 +1,6 @@
 # M6 rehearsal 1
 
-The first full rehearsal of [the protocol](rehearsal-protocol.md), steps 1–41, run from reset by the presenter using [the WSL checklist](presenter-checklist-wsl.md). The presenter reported every step as passed. Rows are *attested*: the presenter checked them and reported them passed. The screen recording is the footage, but Claude has not reviewed it.
+The first full rehearsal of [the protocol](rehearsal-protocol.md), steps 1–41, run from reset by the presenter using [the WSL checklist](presenter-checklist-wsl.md). The presenter reported every step as passed. Rows are *attested*: the presenter checked them and reported them passed. The screen recording is the footage; it has not been reviewed beyond the presenter's attestation.
 
 **Target deviation.** Spec 11 names the iOS Simulator on a Mac (FR-1, FR-13, FR-18). This run used the Linux desktop build under WSLg in a 402×874 window (PR #46), because the presenter ran on WSL. The macOS, Xcode, Simulator device and iOS runtime fields below are replaced with the WSL host's versions.
 
