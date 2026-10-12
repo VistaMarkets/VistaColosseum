@@ -17,7 +17,7 @@ Earlier ruling, Oct 9: maya.eth's trader market is the market the user lists (PR
 
 - **M2:** the first-call exit criterion and VC-LST-004 are fixed on `fix/first-call-fixture`: "Make your first call" opens a sheet saying posting calls is outside the demo and nothing was published, with "See a sample call" opening kilo.sol's seeded call receipt (`home_screen_test.dart` "the listing success step opens Your market for the new listing"). Four cosmetic `failed` rows remain. J1 and J2 not run on the Simulator.
 - **M3:** VC-MKT-001's out-of-set screens until PR #41 merges. J2 and J5 not run on the Simulator.
-- **M4:** spec 04's missing video-only labels (failed exit criterion, cosmetic). No rehearsal.
+- **M4:** the user removed the video-only-labels exit criterion on Oct 12, to be added later; spec 04's labels are deferred, not failed. No rehearsal.
 - **M5:** the Simulator run of J1–J5 plus the copy story from reset, and the presenter's statement that the fee is invented, are `not run`.
 
 No row of class "misrepresents a financial action" remains open once PR #41 merges.
