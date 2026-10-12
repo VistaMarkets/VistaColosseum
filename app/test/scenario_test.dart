@@ -206,7 +206,7 @@ void main() {
     const note =
         'All prices, fills, balances and results are simulated. '
         'Nothing leaves this device.';
-    await tester.tap(find.text('Simulated · fixture-v1'));
+    await tester.tap(find.textContaining('Simulated · fixture-v1'));
     await tester.pumpAndSettle();
     expect(find.text(note), findsOneWidget);
     await tester.tap(find.text('Reset demo'));

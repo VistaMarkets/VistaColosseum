@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../app_shell.dart';
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../live/live_feed.dart';
+import '../live/market_prices.dart';
+import '../market/receipt_screens.dart';
 import '../settings/settings_state.dart';
 
 /// Reset demo: closes every sheet and pushed route (they were built on the
@@ -18,6 +22,74 @@ void resetDemo(BuildContext context) {
     ..showSnackBar(
       SnackBar(content: Text('Demo reset to ${Scenario.fixtureVersion}')),
     );
+}
+
+/// Act as the other persona: closes every sheet and route (a ticket opened
+/// as one persona must never confirm as the other), switches, and says who
+/// is acting, in the Settings row's words.
+void actAs(BuildContext context) {
+  final messenger = ScaffoldMessenger.of(context);
+  Navigator.of(context).popUntil((route) => route.isFirst);
+  Scenario.switchPersona();
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text('Now acting as ${Scenario.activePersona.value.handle}'),
+      ),
+    );
+}
+
+/// The preset copy's action id: fixed, so a second play returns the first
+/// receipt and writes nothing (the store's duplicate guard).
+const kPresetCopyActionId = 'preset-copy';
+
+/// The copy story's order: kilo.sol's SOL long, sized to a 10000-cent
+/// notional at the live price, so margin, fee and copy fee never drift.
+OrderIntent presetCopyIntent() {
+  final price = MarketPrices.now('SOL');
+  return OrderIntent(
+    actionId: kPresetCopyActionId,
+    symbol: 'SOL',
+    name: 'Solana',
+    side: TradeSide.long,
+    units: 100 / price,
+    price: price,
+    leverage: 5,
+    icon: VistaAssets.coinSolRow,
+    sourceCallId: 'kilo.sol/SOL',
+    sourceAuthorHandle: 'kilo.sol',
+  );
+}
+
+/// Play the copy story to its proof: as the copier, copy kilo.sol's SOL
+/// call through the real store, then land as the creator on the Fee ledger
+/// row it credited. A failed order stops here, still as the copier.
+void playCopyStory(BuildContext context) {
+  // Captured first: popping closes the note this was tapped from.
+  final nav = Navigator.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  nav.popUntil((route) => route.isFirst);
+  if (Scenario.activePersona.value != Persona.copier) Scenario.switchPersona();
+  final before = Scenario.copyFees.length;
+  final result = Scenario.placeOrder(presetCopyIntent());
+  final String toast;
+  if (result is OrderFailed) {
+    toast = result.reason;
+  } else {
+    Scenario.switchPersona();
+    AppShell.tab.value = AppShell.wallet;
+    nav.push(LedgerScreen.route());
+    final fee = formatCents(kCopyFeeCents);
+    toast = Scenario.copyFees.length > before
+        ? '${Persona.copier.handle} copied @kilo.sol · $fee copy fee '
+              'credited to ${Persona.creator.handle} (simulated)'
+        : 'Already played · the $fee copy fee is on the Fee ledger '
+              '(simulated)';
+  }
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(toast)));
 }
 
 /// The "Simulated · fixture-v1" pill, shown once over the whole app (wrap
@@ -70,7 +142,6 @@ class _SimulationIndicatorState extends State<SimulationIndicator> {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    final label = 'Simulated · ${Scenario.fixtureVersion}';
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -85,44 +156,51 @@ class _SimulationIndicatorState extends State<SimulationIndicator> {
           ),
           child: widget.child,
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          // Above the keyboard too, where screens already make room.
-          bottom: mq.padding.bottom + mq.viewInsets.bottom,
-          height: SimulationIndicator.slot,
-          child: Center(
-            child: Semantics(
-              container: true,
-              button: true,
-              label: label,
-              onTap: _showNote,
-              excludeSemantics: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _showNote,
-                child: Align(
-                  widthFactor: 1,
-                  child: Material(
-                    color: VistaColors.surfaceRaised,
-                    shape: const StadiumBorder(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: VistaSpace.lg,
-                        vertical: VistaSpace.xs,
-                      ),
-                      child: Text(
-                        label,
-                        style: VistaType.label.copyWith(
-                          color: VistaColors.textTertiary,
+        ValueListenableBuilder<Persona>(
+          valueListenable: Scenario.activePersona,
+          builder: (context, persona, _) {
+            final label =
+                'Simulated · ${Scenario.fixtureVersion} · ${persona.handle}';
+            return Positioned(
+              left: 0,
+              right: 0,
+              // Above the keyboard too, where screens already make room.
+              bottom: mq.padding.bottom + mq.viewInsets.bottom,
+              height: SimulationIndicator.slot,
+              child: Center(
+                child: Semantics(
+                  container: true,
+                  button: true,
+                  label: label,
+                  onTap: _showNote,
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _showNote,
+                    child: Align(
+                      widthFactor: 1,
+                      child: Material(
+                        color: VistaColors.surfaceRaised,
+                        shape: const StadiumBorder(),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: VistaSpace.lg,
+                            vertical: VistaSpace.xs,
+                          ),
+                          child: Text(
+                            label,
+                            style: VistaType.label.copyWith(
+                              color: VistaColors.textTertiary,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );
@@ -160,6 +238,24 @@ class _SimulatedNote extends StatelessWidget {
             style: VistaType.bodyRegular,
           ),
           const SizedBox(height: VistaSpace.gutter),
+          ValueListenableBuilder<Persona>(
+            valueListenable: Scenario.activePersona,
+            builder: (context, persona, _) {
+              final other = persona == Persona.creator
+                  ? Persona.copier
+                  : Persona.creator;
+              return VistaPrimaryButton(
+                label: 'Act as @${other.handle}',
+                onPressed: () => actAs(context),
+              );
+            },
+          ),
+          const SizedBox(height: VistaSpace.md),
+          VistaPrimaryButton(
+            label: 'Play the copy story',
+            onPressed: () => playCopyStory(context),
+          ),
+          const SizedBox(height: VistaSpace.md),
           VistaPrimaryButton(
             label: 'Reset demo',
             onPressed: () => resetDemo(context), // closes this note too
