@@ -57,6 +57,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       listenable: Listenable.merge([
         AccountState.hasMarket,
         AccountState.ticker,
+        Scenario.activePersona,
       ]),
       builder: (context, _) =>
           _page(AccountState.hasMarket.value, AccountState.ticker.value),
@@ -86,7 +87,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           gap,
           Padding(
             padding: gutter,
-            child: hasMarket ? _fees() : _makeMarketButton(),
+            child: hasMarket
+                ? _fees()
+                : _isCopier
+                ? const SizedBox.shrink()
+                : _makeMarketButton(),
           ),
           gap,
           Padding(
@@ -106,6 +111,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       ),
     );
   }
+
+  /// The market is the creator's: the copier sees it as hers and cannot
+  /// list it (ruling, Oct 12).
+  bool get _isCopier => Scenario.activePersona.value == Persona.copier;
+  String get _marketName =>
+      _isCopier ? "${Persona.creator.handle}'s market" : 'your market';
 
   Widget _profile() {
     return Column(
@@ -215,7 +226,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           ),
           const SizedBox(width: VistaSpace.sm),
           VistaChevronPill(
-            label: 'Your market',
+            label: _isCopier ? _marketName : 'Your market',
             onPressed: () =>
                 Navigator.of(context).push(YourMarketScreen.route()),
           ),
@@ -231,7 +242,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         const SizedBox(width: VistaSpace.sm),
         Flexible(
           child: Text(
-            'Fees from your market',
+            'Fees from $_marketName',
             style: VistaType.bodyRegular,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

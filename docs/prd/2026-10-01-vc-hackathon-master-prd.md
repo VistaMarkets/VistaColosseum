@@ -157,7 +157,7 @@ Each acceptance criterion is a future verification obligation. None is marked pa
 | ID | Priority | Requirement and acceptance criteria |
 |---|---|---|
 | VC-CPY-001 | P0 | A second persona selects a public copyable call and chooses to place their own simulated order through review. Viewing/following/liking never submits it. Retain source-call attribution and separate creator/copier positions. Use a persona switch within the same simulated device on the PC. |
-| VC-CPY-002 | P0 | Demo reward rule (fixture values, editable in SP-10): the **copier persona** pays a flat **$5.00 demo cash copy fee** when their copied order is **confirmed** through S06; the creator receives the full amount as one ledger credit tagged `copy`. Cancel, failure and insufficient paper funds produce no credit and no debit. One credit per action ID; retry cannot double-pay. The ledger row names the source call and copier. The numbers are invented for the demo and the presenter script says so. |
+| VC-CPY-002 | P0 | Demo reward rule (fixture values, editable in SP-10): the **copier persona** pays a flat **$5.00 demo cash copy fee** when their copied order is **confirmed** through S06; the creator persona receives the full amount as one ledger credit tagged `copy`, whoever authored the copied call (user ruling, Oct 12; the creator persona copying another trader's call pays and credits no ledger). Cancel, failure and insufficient paper funds produce no credit and no debit. One credit per action ID; retry cannot double-pay. The ledger row names the source call and copier. The numbers are invented for the demo and the presenter script says so. |
 
 ### S09. Demo quality, accessibility and delivery
 

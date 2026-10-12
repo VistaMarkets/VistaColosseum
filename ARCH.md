@@ -984,6 +984,7 @@ VistaColosseum/
 │       ├── 2026-10-05-m4-arena-discovery.md
 │       ├── 2026-10-07-m2-m4-reverification.md
 │       ├── 2026-10-07-m5-participation-and-copy.md
+│       ├── 2026-10-12-user-rulings.md
 │       └── rehearsal-protocol.md
 ├── scripts/
 │   └── gate.sh

@@ -16,6 +16,8 @@ The [master PRD](2026-10-01-vc-hackathon-master-prd.md) defines scope and accept
 
 **VC baseline update, October 2:** fetched main `ddcfaa350890864b8726732837629bd237a0d603` now includes a Flutter app (E-C03). The milestone table remains the original delivery sequence, not an assertion that its screens still need to be built. M0/SP-00 must map existing VC behavior to the stable PRD IDs and schedule only the remaining work; source presence alone does not complete a milestone.
 
+**Updated October 12:** the user ruled on every open "misrepresents a financial action" question ([record](../verification/2026-10-12-user-rulings.md)). Copy fees, the creator persona's copy and pre-listing fees stand as built; the copier's Wallet labels the market as maya.eth's; J4 covers market orders only; fixture figures are cosmetic. Once PR #41 merges, no open row of that class remains. M2–M5 still need the presenter's Simulator runs, and M2 and M4 each keep one cosmetic failed exit criterion.
+
 ## Delivery strategy
 
 Complete the connected demo in the existing VC app, using deterministic local data and simulated actions. FMA informs interaction patterns; VMBE informs domain/contract vocabulary. Neither repository's production integration work is a prerequisite. The current VC policy favors original lightweight implementation rather than transplanted source files.
