@@ -35,7 +35,9 @@ persona.
 
 ## Run it
 
-You need Flutter 3.47 stable. From the repository root:
+**In your browser, no install:** <https://vistamarkets.github.io/VistaColosseum/> — the same simulated demo in a phone-sized frame. Tap the "Simulated · fixture-v1" pill at the bottom to switch persona or play the copy story to the creator's ledger.
+
+For a native build you need Flutter 3.47 stable. From the repository root:
 
 ```bash
 cd app && flutter pub get
@@ -61,7 +63,8 @@ cd app && flutter run --dart-define=HAS_MARKET=true
 
 **Reset:** Wallet → Settings (gear) → **Reset demo**. You can also tap the
 "Simulated · fixture-v1" pill at the bottom of any screen. Reset restores
-every balance, position, order and listing to the fixture.
+every balance, position, order and listing to the fixture. The pill also
+offers **Act as** and **Play the copy story**.
 
 **Input on a computer:** click to tap, click and drag to swipe, and use the
 scroll wheel and keyboard.
@@ -104,6 +107,8 @@ and a check that dependencies are unchanged. It prints `GATE: PASS` or `GATE: FA
   viewport checks at 1.3× text, and Figma design fidelity.
 - **Target:** rehearsal 1 ran as a Linux desktop app on WSL. The iOS
   Simulator run is from October 5 (milestone M1).
+- **Web build:** haptics are silent and the share targets copy text or a
+  link rather than send; the hosted page is a snapshot of one commit.
 
 The full list, including small cosmetic issues, is in the
 [verification index](docs/verification/README.md#known-limitations).
