@@ -5,6 +5,7 @@ import '../../design_system/design_system.dart';
 import '../home/mock_trade_idea.dart';
 import '../live/market_prices.dart';
 import 'share_call_card.dart';
+import 'share_targets.dart';
 
 /// Opens the share sheet for [idea] (Figma "sheet · share call", 462:474):
 /// a preview of exactly what the recipient will see (an optional note over
@@ -133,7 +134,7 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
             gap,
             _preview(),
             gap,
-            _targets(),
+            ShareTargets(onSend: _send),
             gap,
             Semantics(
               button: true,
@@ -206,51 +207,6 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _targets() {
-    const targets = [
-      ('Messages', VistaAssets.shareMessages, 22.0),
-      ('Telegram', VistaAssets.shareTelegram, 48.0),
-      ('X', VistaAssets.shareX, 22.0),
-      ('Copy link', VistaAssets.shareCopyLink, 22.0),
-    ];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        for (final (label, asset, size) in targets)
-          Semantics(
-            button: true,
-            label: label,
-            excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _send(label),
-              child: Column(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: VistaColors.surfaceRaised,
-                      shape: BoxShape.circle,
-                    ),
-                    child: VistaIcon(asset, size: size),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    label,
-                    style: VistaType.meta.copyWith(
-                      color: VistaColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

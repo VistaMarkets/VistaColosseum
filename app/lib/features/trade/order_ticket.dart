@@ -9,6 +9,7 @@ import '../../design_system/design_system.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../markets/markets_mock.dart';
+import '../share/copy_card.dart';
 import '../../scenario/scenario.dart';
 import 'trade_mock.dart';
 
@@ -994,6 +995,28 @@ class _ReviewPanelState extends State<_ReviewPanel> {
         row('Paper funds required', formatCents(margin + fee + copyFee)),
         const SizedBox(height: 12),
         Text('Simulated — no real order', style: muted),
+        if (filled != null && filled.copyFeeCents > 0) ...[
+          const SizedBox(height: VistaSpace.md),
+          Semantics(
+            button: true,
+            label: 'Share copy card',
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => showCopyCardSheet(
+                context,
+                copier: Scenario.activePersona.value.handle,
+                author: filled.sourceAuthorHandle!,
+                symbol: filled.symbol,
+                feeCents: filled.copyFeeCents,
+              ),
+              child: Text(
+                'Share copy card',
+                style: VistaType.subhead.copyWith(color: VistaColors.accent),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         Row(
           children: [

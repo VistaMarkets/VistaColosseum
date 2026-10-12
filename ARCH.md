@@ -409,8 +409,10 @@ VistaColosseum/
 │   │   │   │   ├── settings_screen.dart
 │   │   │   │   └── settings_state.dart
 │   │   │   ├── share/  — Share call (Figma 462:474): the Home card's Share opens a sheet previewing exactly what the recipient gets (`ShareCallCard`, the 1.91:1 link-preview image with the Vista mark, drawn with the replay line painter, over its title and link), and Messages, Telegram, X and Copy link targets; sending is simulated (Copy link copies)
+│   │   │   │   ├── copy_card.dart
 │   │   │   │   ├── share_call_card.dart
-│   │   │   │   └── share_call_sheet.dart
+│   │   │   │   ├── share_call_sheet.dart
+│   │   │   │   └── share_targets.dart
 │   │   │   ├── simulation/
 │   │   │   │   └── simulation_indicator.dart
 │   │   │   ├── trade/  — asset trade page (Home Details, Explore assets): live `PriceChart` (BTC 15m seeded from the Figma candles, other assets/intervals generated; interval chips and candle/line toggle work) with Market / Book / Callers / Alerts panels (`asset_alerts.dart`: the Home feed's alerts on that market — the call, its replay events and live fills — as a newest-first timeline); Callers is a read-only post thread (each caller's reasoning over their order and live P&L, in the market's own prices) filtered to Following or Everyone; tapping a post's order opens `CallerPlayScreen`, that call as a Home-style trade card (mock data); `order_ticket.dart` is the pro order sheet (Figma 218:608) that Long/Short opens on the trade pages and Arena (Bull = long, Bear = short): side, Market/Limit/Stop, leverage up to the market's cap, price with Mid, size in units or USD with a 0–100% slider, TP/SL, reduce-only, live margin, liquidation and fee; placing is simulated and limit/stop orders land in Portfolio › Open orders via `OrdersState`; `feed_order_ticket.dart` (a part of it) is the first-time ticket Home feed cards open (Figma 472:1359): the card's side, Market/Limit, 2x/5x/10x/custom leverage, a dollar amount, an entry-anchored TP/SL track and the price where the margin is lost
@@ -444,6 +446,7 @@ VistaColosseum/
 │   │   └── CMakeLists.txt
 │   ├── test/  — widget tests, including the multi-phone-size overflow checks
 │   │   ├── charting_test.dart
+│   │   ├── copy_card_test.dart
 │   │   ├── copy_story_test.dart
 │   │   ├── empty_states_test.dart
 │   │   ├── feed_order_ticket_test.dart
