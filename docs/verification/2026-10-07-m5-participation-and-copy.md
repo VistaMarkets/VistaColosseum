@@ -11,7 +11,7 @@ Code paths are under `app/lib/`. Test names are as `flutter test` prints them (g
 | Target | `flutter test` headless widget tests, Flutter 3.47.5 stable, Linux (WSL2) host. Not the iOS Simulator |
 | Run date and start time | 2026-10-07, started about 19:28-07:00 (PDT), finished 19:29:42-07:00 |
 | Flags | none |
-| Test run | `scripts/gate.sh` with log dir `gate-p4` (`/tmp/claude-1000/-home-alex-orca-workspaces-VistaColosseum-defect-burndown/1a2683e6-d7f6-4d53-b1c8-46dab77f7533/scratchpad/gate-p4`, a session scratchpad that is not kept; `gate.out` written 19:29:42-07:00, after the 5a72ba6 commit at 19:27:02-07:00; it names no revision): `PASS flutter-analyze`, `PASS flutter-test` (`+341: All tests passed!`, **341 passed, 0 failed, 0 skipped**), `PASS pubspec-frozen`, `GATE: PASS`, exit 0 |
+| Test run | `scripts/gate.sh` with log dir `gate-p4` (a temporary local log directory, not kept; `gate.out` written 19:29:42-07:00, after the 5a72ba6 commit at 19:27:02-07:00; it names no revision): `PASS flutter-analyze`, `PASS flutter-test` (`+341: All tests passed!`, **341 passed, 0 failed, 0 skipped**), `PASS pubspec-frozen`, `GATE: PASS`, exit 0 |
 | Evidence | The tests named below; code citations as `file:line` at 5a72ba6 |
 
 ## PRD IDs exercised
