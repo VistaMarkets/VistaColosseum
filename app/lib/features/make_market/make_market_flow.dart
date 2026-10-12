@@ -6,6 +6,7 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../account/account_state.dart';
 import '../market/market_mock.dart';
+import '../market/receipt_screens.dart';
 import '../market/your_market_screen.dart';
 import 'confetti_burst.dart';
 import 'make_market_mock.dart';
@@ -59,6 +60,52 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('$what — not in the demo yet')));
+  }
+
+  /// VC-LST-004: posting calls is outside the demo, so offer a seeded
+  /// call to inspect, another trader's, so nothing reads as published.
+  void _firstCall() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: VistaColors.scrim,
+      builder: (sheet) => Container(
+        decoration: const BoxDecoration(
+          color: VistaColors.surface,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(VistaRadius.sheet),
+          ),
+        ),
+        padding: EdgeInsets.fromLTRB(
+          VistaSpace.gutter,
+          VistaSpace.lg,
+          VistaSpace.gutter,
+          VistaSpace.gutter + MediaQuery.paddingOf(sheet).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(child: VistaDragHandle()),
+            const SizedBox(height: VistaSpace.gutter),
+            Text(
+              'Posting calls is outside this demo. Nothing has been '
+              'published. You can look at a sample call from another trader.',
+              style: VistaType.bodyRegular,
+            ),
+            const SizedBox(height: VistaSpace.gutter),
+            VistaPrimaryButton(
+              label: 'See a sample call',
+              onPressed: () {
+                Navigator.of(sheet).pop();
+                Navigator.of(context)
+                    .push(CallReceiptScreen.route(traderCalls.first));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _create() {
@@ -874,7 +921,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               _footer([
                 VistaPrimaryButton(
                   label: 'Make your first call',
-                  onPressed: () => _notBuilt('Make a call'),
+                  onPressed: _firstCall,
                 ),
                 const SizedBox(height: VistaSpace.lg),
                 // Side by side so the step fits 1.3x text on a 360x640
