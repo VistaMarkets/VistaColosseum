@@ -18,6 +18,8 @@ The [master PRD](2026-10-01-vc-hackathon-master-prd.md) defines scope and accept
 
 **Updated October 12:** the user ruled on every open "misrepresents a financial action" question ([record](../verification/2026-10-12-user-rulings.md)). Copy fees, the creator persona's copy and pre-listing fees stand as built; the copier's Wallet labels the market as maya.eth's; J4 covers market orders only; fixture figures are cosmetic. Once PR #41 merges, no open row of that class remains. M2–M5 still need the presenter's Simulator runs, and M2 and M4 each keep one cosmetic failed exit criterion.
 
+**Updated October 12, morning:** rehearsal 1 ran on WSL (Linux desktop build, not the iOS Simulator) at `505217c`, and the presenter reported all 41 protocol steps passed ([record](../verification/m6-rehearsal-1.md)). **M2 to M5 exit** on that target. M6 still needs rehearsal 2 and the viewport matrix; M7 (final recording and package) and M8 (submission) remain.
+
 ## Delivery strategy
 
 Complete the connected demo in the existing VC app, using deterministic local data and simulated actions. FMA informs interaction patterns; VMBE informs domain/contract vocabulary. Neither repository's production integration work is a prerequisite. The current VC policy favors original lightweight implementation rather than transplanted source files.

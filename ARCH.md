@@ -991,6 +991,8 @@ VistaColosseum/
 │   │   ├── 11-verification-and-packaging.md
 │   │   └── 12-own-market-cap.md
 │   └── verification/
+│       ├── evidence/
+│       │   └── m6-rehearsal-1-has-market.log
 │       ├── 2026-10-05-m1-shell-and-scenario.md
 │       ├── 2026-10-05-m2-home-and-listing.md
 │       ├── 2026-10-05-m3-market-and-wallet.md
@@ -998,6 +1000,7 @@ VistaColosseum/
 │       ├── 2026-10-07-m2-m4-reverification.md
 │       ├── 2026-10-07-m5-participation-and-copy.md
 │       ├── 2026-10-12-user-rulings.md
+│       ├── m6-rehearsal-1.md
 │       ├── presenter-checklist-wsl.md
 │       └── rehearsal-protocol.md
 ├── scripts/
