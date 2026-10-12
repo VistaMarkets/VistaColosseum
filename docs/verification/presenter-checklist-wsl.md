@@ -1,6 +1,6 @@
 # Presenter checklist: run on WSL
 
-The full demo run, done on WSL instead of a Mac. The iOS Simulator only runs on macOS, so this run uses the app's Linux desktop build in a phone-sized window. The steps are the [rehearsal protocol](rehearsal-protocol.md)'s 41 steps. Where today's build differs from the protocol, the "Changed since the protocol" section wins.
+The full demo run, done on WSL instead of a Mac. The iOS Simulator only runs on macOS, so this run uses the app's Linux desktop build in a phone-sized window. The steps are the [rehearsal protocol](rehearsal-protocol.md)'s 41 steps, plus one extra check in section 3.
 
 ## 1. Set up
 
@@ -28,18 +28,17 @@ Tick each group once every step in it matches the protocol. When a step doesn't 
 - [ ] **Setup, steps 1–3:** Reset demo; Simulate load failure; Explore fails, then Retry recovers.
 - [ ] **J1 browse, steps 4–9:** For You vs Following; card pager; Like and People in; Details; kilo.sol profile Follow; the two Maker cards.
 - [ ] **J2 list a market, steps 10–17:** Wallet spans and Deposit; Make a market validation (blank, BTC taken, MAYA); consent; Close leaves nothing; create $MAYA; balance pager; Your market at $10,000.
-- [ ] **maya.eth's market everywhere (new, after step 17):** see below.
+- [ ] **maya.eth's market everywhere (after step 17):** see section 3.
 - [ ] **J3 Arena, steps 18–24:** three battles; sorts; crowd-split slider down to 2, then empty, then Show all; Ask SOL, DOGE, Clear search; more opinions; caller profile.
 - [ ] **J4 order, steps 25–32:** cancel adds nothing; double-click Confirm fills once; Wallet, receipts and Arena "Joined Bull" agree; the Explore ETH fill doesn't join; step 32's totals reconcile.
 - [ ] **Copy story, steps 33–37:** switch to the copier; copy kilo.sol's SOL call with the $5.00 fee; switch back; the ledger shows one $5.00 copy row.
 - [ ] **J5 outcomes, steps 38–41:** call receipt; kilo.sol profile and trader market; position sheet Close.
 
-## 3. Changed since the protocol
+## 3. Extra check
 
-- **Step 15:** "Make your first call" no longer shows a toast. It opens a sheet that reads "Posting calls is outside this demo. Nothing has been published. You can look at a sample call from another trader." Tap "See a sample call": kilo.sol's call receipt opens. Tap Back: you're on "Your market is open" again. "Share $MAYA" still shows "Share — not in the demo yet".
-- **New check after step 17 (PR #41):** maya.eth's market reads $10,000 and $0.0001 in the Explore → Traders row, on her Trader market (flat line) and on her Profile's market block. Home shows no deltaone call on her market. The protocol's "known market-cap mismatch (#29)" is fixed and should now pass.
-- **Step 33 (PR #43):** the copier's Wallet shows a "maya.eth's market" pill and "Fees from maya.eth's market", not "Your market".
-- **Step 37:** the ledger header reads "Illustrative demo ledger · 40% creator share". Per the Oct 12 ruling, the $5.00 credit for copying kilo.sol's call belongs in maya.eth's ledger. That counts as a pass.
+- **After step 17 (PR #41):** maya.eth's market reads $10,000 and $0.0001 in the Explore → Traders row, on her Trader market (flat line) and on her Profile's market block. Home shows no deltaone call on her market.
+
+The protocol's steps 15, 33 and 37 were updated on October 12 to match the current build.
 
 ## 4. Say these out loud on the recording
 
@@ -55,7 +54,7 @@ Tick each group once every step in it matches the protocol. When a step doesn't 
 cd ~/VistaColosseum/app && flutter test --dart-define=HAS_MARKET=true
 ```
 
-- [ ] Send Claude the build hash, the start time, the recording's location, and every step that didn't match. Claude writes the verification record from those notes.
+- [ ] Note the build hash, the start time, the recording's location, and every step that didn't match. The verification record is written from these notes.
 
 ## Not covered by this run
 

@@ -1,10 +1,10 @@
-# VistaColloseum context
+# VistaColosseum context
 
 ## Project vocabulary
 
 | Term | Expansion | Meaning here |
 | --- | --- | --- |
-| VC | VistaColloseum | This demo project; GitHub repository `VistaMarkets/VistaColosseum` |
+| VC | VistaColosseum | This demo project; GitHub repository `VistaMarkets/VistaColosseum` |
 | VMBE | VistaMobileBE | Backend reference repository |
 | FMA | Flutter-mobile-app | Frontend reference repository |
 | TPX | Trader Performance Exchange | The trader-performance market concept documented in FMA's `tpx/` directory |
@@ -16,8 +16,8 @@
 | RPC | Remote Procedure Call | A request to a remote service, including a blockchain node |
 | ADR | Architecture Decision Record | A documented design decision and its reasoning |
 
-VC is the agreed project name. Its GitHub repository spelling is
-`VistaMarkets/VistaColosseum`; use that exact slug for GitHub operations.
+VC is the agreed project name. Its GitHub repository is
+`VistaMarkets/VistaColosseum`.
 
 ## References
 
