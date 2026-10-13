@@ -7,6 +7,7 @@ are in the [repository README](../README.md#run-it).
   orders, receipts, the fee ledger and reset.
 - `lib/features/`: one folder per screen area (home, markets, arena,
   portfolio, make_market, market, trade, settings, …).
+- `lib/charting/`: the candle price chart and its sample data.
 - `lib/design_system/`: Vista colours, type, spacing and shared components.
 - `test/`: widget and unit tests (`flutter test`).
 - `linux/`, `ios/`, `android/`: platform runners.

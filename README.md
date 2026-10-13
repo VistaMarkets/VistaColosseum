@@ -8,11 +8,9 @@
   </picture>
 </p>
 
-**An arena for trading talent.**
-
-VistaColosseum brings the energy of spectator sports to social trading.
-Traders put their convictions on display, spectators follow the rivalries,
-and settled results build the record behind every reputation.
+VistaColosseum is a social-trading demo. Traders post calls, spectators
+follow the clashes between them, and settled results build each trader's
+record.
 
 **This repository is a hackathon demo.** Every price, order, balance, fee and
 result in it is simulated. Nothing leaves the device, no real money moves, and
@@ -22,11 +20,11 @@ the app never connects to a backend or a blockchain.
 
 | Journey | What you can do |
 |---|---|
-| J1 — discover a call | Browse the Home feed (For You and Following), replay a call, open its asset market and the trader's profile. Maker suggestions are labelled as advisory. |
-| J2 — become a listed creator | Make a market from the Wallet: pick a ticker, agree to the listing terms, and see one consistent market cap ($10,000) on every screen. |
-| J3 — understand a clash | In the Arena, sort battles, filter by crowd split, ask about a market, and read more opinions. |
-| J4 — take a side | Place a simulated market order through one review screen. Cancel adds nothing, and a double-click fills once. Wallet, receipts and the Arena agree. |
-| J5 — explain outcomes | Read a call receipt, a trader's record and the fee ledger. A call's verdict, trading P&L and fee income are three separate figures. |
+| J1, discover a call | Browse the Home feed (For You and Following), replay a call, open its asset market and the trader's profile. Maker suggestions are labelled as advisory. |
+| J2, become a listed creator | Make a market from the Wallet: pick a ticker, agree to the listing terms, and see one consistent market cap ($10,000) on every screen. |
+| J3, understand a clash | In the Arena, sort battles, filter by crowd split, ask about a market, and read more opinions. |
+| J4, take a side | Place a simulated market order through one review screen. Cancel adds nothing, and a double-click fills once. Wallet, receipts and the Arena agree. |
+| J5, explain outcomes | Read a call receipt, a trader's record and the fee ledger. A call's verdict, trading P&L and fee income are three separate figures. |
 | Copy story | Switch to a second persona, copy a call, and watch a $5.00 demo copy fee land in the creator's ledger. |
 
 Two personas: **maya.eth**, the creator ($12,480.00 paper cash), and
@@ -35,7 +33,7 @@ persona.
 
 ## Run it
 
-**In your browser, no install:** <https://vistamarkets.github.io/VistaColosseum/> — the same simulated demo in a phone-sized frame. Tap the "Simulated · fixture-v1" pill at the bottom to switch persona or play the copy story to the creator's ledger.
+**In your browser, no install:** <https://vistamarkets.github.io/VistaColosseum/>. It is the same simulated demo in a phone-sized frame. Tap the "Simulated · fixture-v1" pill at the bottom to switch persona or play the copy story to the creator's ledger.
 
 For a native build you need Flutter 3.47 stable. From the repository root:
 
@@ -75,7 +73,7 @@ scroll wheel and keyboard.
 scripts/gate.sh /tmp/gate-logs
 ```
 
-This runs `flutter analyze`, the full widget and unit test suite (348 tests),
+This runs `flutter analyze`, the full widget and unit test suite (360 tests),
 and a check that dependencies are unchanged. It prints `GATE: PASS` or `GATE: FAIL`.
 
 ## Evidence
@@ -85,9 +83,6 @@ and a check that dependencies are unchanged. It prints `GATE: PASS` or `GATE: FA
 | [Verification index](docs/verification/README.md) | Every milestone record, and which one is current |
 | [Rehearsal 1](docs/verification/m6-rehearsal-1.md) | The full 41-step run from reset. Every step passed |
 | [Rulings, Oct 12](docs/verification/2026-10-12-user-rulings.md) | How the demo's money rules were decided |
-| [Master PRD](docs/prd/2026-10-01-vc-hackathon-master-prd.md) | Scope, requirements and acceptance criteria |
-| [Roadmap](docs/prd/2026-10-01-vc-hackathon-roadmap.md) | Milestones and their current status |
-| [Specs](docs/specs/README.md) | One spec per built feature, with its pull request |
 | [ARCH.md](ARCH.md) | File-by-file map of the repository |
 
 ## Known limitations
