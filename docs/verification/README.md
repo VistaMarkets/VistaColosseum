@@ -6,6 +6,7 @@ How each milestone was checked, and against which build. Records use four outcom
 
 | Record | What it shows |
 |---|---|
+| [Rehearsal 2, October 12 (web, scripted)](m6-rehearsal-2-web.md) | 24 of 41 steps passed on the hosted build of `ae7b7ff`, driven by a script; copy story and sliders not reached. No defect; M6 does not exit |
 | [Rehearsal 1, October 12](m6-rehearsal-1.md) | All 41 protocol steps from reset passed on build `505217c`. M2 to M5 exit. Run as the Linux desktop build on WSL |
 | [Rulings, October 12](2026-10-12-user-rulings.md) | The six decisions on the demo's money rules that closed the last open questions |
 | [M1, October 5](2026-10-05-m1-shell-and-scenario.md) | Launch, navigation and reset in the iOS Simulator on a Mac. M1 exits |
