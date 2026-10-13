@@ -1,6 +1,8 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 
 import '../../design_system/design_system.dart';
 import '../settings/settings_state.dart';
@@ -19,6 +21,10 @@ class ChartSheetPanel {
 ///
 /// Opens with the panels up on the first panel. Dragging the handle (or the
 /// chart) down opens the chart full height; dragging up brings the panels
+
+/// Settles a dragged panel: critically damped, carrying the fling's speed.
+const _settleSpring = SpringDescription(mass: 1, stiffness: 500, damping: 45);
+
 /// back. Builders receive `collapse`: 0 = chart open, 1 = panels up.
 class ChartSheet extends StatefulWidget {
   const ChartSheet({
@@ -96,7 +102,20 @@ class _ChartSheetState extends State<ChartSheet>
         : v < -400
         ? 1.0
         : _sheet.value.roundToDouble();
-    _settle(target);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _settle(target);
+      return;
+    }
+    if ((target - _sheet.value).abs() > 0.5) HapticFeedback.lightImpact();
+    // The spring keeps the finger's speed, so a fast fling stays fast.
+    _sheet
+        .animateWith(
+          SpringSimulation(_settleSpring, _sheet.value, target, -v / _travel),
+        )
+        // Land exactly on the page; a spring stops a hair short.
+        .then((_) {
+          if (mounted) _sheet.value = target;
+        });
   }
 
   void _settle(double target) {
@@ -198,8 +217,8 @@ class _ChartSheetState extends State<ChartSheet>
                   opacity: t,
                   child: IgnorePointer(
                     ignoring: t < 0.5,
-                    // Nothing to lay out until there is room for the dots.
-                    child: panelH < 16 ? const SizedBox.shrink() : _panels(),
+                    // Nothing to lay out until there is room for the tabs.
+                    child: panelH < 52 ? const SizedBox.shrink() : _panels(),
                   ),
                 ),
               ),
@@ -211,14 +230,25 @@ class _ChartSheetState extends State<ChartSheet>
   }
 
   Widget _panels() {
-    final n = widget.panels.length;
     return Column(
       children: [
+        // One tap to any panel (swiping still works): the panels' names as
+        // tabs, following the page.
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: VistaSpace.xs),
-          child: Semantics(
-            label: 'Panel ${_page + 1} of $n, ${widget.panels[_page].title}',
-            child: VistaPageDots(count: n, index: _page),
+          padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+          child: VistaUnderlineTabs(
+            labels: [for (final p in widget.panels) p.title],
+            selectedIndex: _page,
+            onChanged: (i) {
+              if (i == _page) return;
+              setState(() => _page = i);
+              final instant = MediaQuery.disableAnimationsOf(context);
+              _pages.animateToPage(
+                i,
+                duration: instant ? Duration.zero : VistaMotion.sheetIn,
+                curve: VistaMotion.enter,
+              );
+            },
           ),
         ),
         Expanded(

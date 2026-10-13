@@ -7,6 +7,8 @@ import '../../design_system/design_system.dart';
 import '../people/follow_mock.dart';
 import '../simulation/simulation_indicator.dart';
 import 'settings_mock.dart';
+import '../invite/invite_sheet.dart';
+import '../profile/edit_profile_screen.dart';
 import 'settings_state.dart';
 import '../../scenario/scenario.dart';
 
@@ -89,7 +91,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _account(),
                     const VistaSettingsDivider(),
-                    Text(SettingsMock.bio, style: VistaType.bodyRegular),
+                    ValueListenableBuilder(
+                      valueListenable: ProfileEdits.bio,
+                      builder: (context, bio, _) =>
+                          Text(bio, style: VistaType.bodyRegular),
+                    ),
                     const VistaSettingsDivider(),
                     VistaSettingRow(
                       title: 'Wallet',
@@ -102,7 +108,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _say('Wallet address copied');
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: VistaSpace.md),
+                    // Money in and out, by the wallet. Simulated: neither
+                    // flow is built, and the demo never moves funds.
+                    Row(
+                      children: [
+                        Expanded(
+                          child: VistaPillButton(
+                            label: 'Deposit',
+                            variant: VistaPillVariant.accent,
+                            foreground: VistaColors.onAccent,
+                            onPressed: () => _notBuilt('Deposit'),
+                          ),
+                        ),
+                        const SizedBox(width: VistaSpace.md),
+                        Expanded(
+                          child: VistaPillButton(
+                            label: 'Withdraw',
+                            onPressed: () => _notBuilt('Withdraw'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: VistaSpace.lg),
+                    VistaSettingRow(
+                      title: 'Invite friends',
+                      subtitle: 'You both get \$20',
+                      trailing: const InviteButton(),
+                      onTap: () => showInviteSheet(context),
+                    ),
+                    const SizedBox(height: VistaSpace.section),
                     _notifications(),
                     const VistaSettingsDivider(),
                     _display(),
@@ -112,7 +147,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _legal(),
                     const VistaSettingsDivider(),
                     _help(),
-                    const SizedBox(height: 32),
+                    const VistaSettingsDivider(),
+                    const SizedBox(height: VistaSpace.section),
                     VistaSettingRow(
                       title: 'Log out',
                       titleColor: VistaColors.short,
@@ -206,7 +242,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           excludeSemantics: true,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _notBuilt('Edit profile'),
+            onTap: () async {
+              final saved = await Navigator.of(context)
+                  .push(EditProfileScreen.route());
+              if (saved == true) _say('Profile updated');
+            },
             child: SizedBox(
               height: VistaSize.tapTarget,
               child: Center(
@@ -326,9 +366,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           VistaSettingRow(
             title: 'Trading permission',
             subtitle: permitted
-                ? 'Places the trades you confirm · until '
+                ? 'Places the trades you confirm   until '
                       '${SettingsMock.permissionUntil}'
-                : 'Off · you will be asked again before your next trade',
+                : 'Off   you will be asked again before your next trade',
             trailing: permitted
                 ? const VistaSettingValue('Revoke', color: VistaColors.short)
                 : const VistaSettingValue('Off'),
@@ -369,7 +409,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const VistaSettingsDivider(),
           VistaSettingRow(
             title: 'Terms of service',
-            subtitle: 'Accepted · version ${SettingsMock.termsVersion}',
+            subtitle: 'Accepted   version ${SettingsMock.termsVersion}',
             trailing: const VistaSettingChevron(),
             onTap: () => _notBuilt('Terms of service'),
           ),

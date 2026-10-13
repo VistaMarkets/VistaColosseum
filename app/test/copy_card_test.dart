@@ -75,12 +75,15 @@ List<String> mockClipboard(WidgetTester tester) {
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 void main() {
@@ -109,7 +112,7 @@ void main() {
       find.widgetWithText(VistaPillButton, 'Long').hitTestable().first,
     );
     await tester.pumpAndSettle();
-    await tester.tap(inSheet(find.text(r'Long $200 · 2x')));
+    await tester.tap(inSheet(find.text(r'Long $200   2x')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();

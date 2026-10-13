@@ -79,7 +79,7 @@ abstract final class TraderMarketMock {
     [('24h volume', r'$1,880'), ('7d volume', r'$14,200')],
     [('Trades today', '214'), ('Traders this week', '96')],
     [
-      ('All-time high', r'$0.5120 · Aug 30'),
+      ('All-time high', r'$0.5120   Aug 30'),
       ('Since listing Mar 12', '+46.7%'),
     ],
   ];

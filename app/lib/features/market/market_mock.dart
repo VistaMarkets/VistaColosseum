@@ -152,12 +152,20 @@ enum FeeKind { credit, copyFee }
 
 /// Mock content from the Figma frame (168:110). Simulated; not market data.
 abstract final class YourMarketMock {
+  static const symbol = 'MAYA';
+  static const owner = 'maya.eth';
+  static const marketCap = r'$44.0M';
+  static const change24h = r'+$1.8M (4.27%)';
+  static const unitLine = r'$0.4400 / unit   100M supply';
+  static const feesThisWeek = r'$42.80';
+  static const price = r'$0.4400';
   static const skew = '58% long';
   static const openInterest = r'$3,140';
   static const funding = 'Longs pay shorts 0.01% in 3h 12m';
   static const holders = '142 holders';
-  static const holderSplit = '82 long · 60 short';
+  static const holderSplit = '82 long   60 short';
   static const holdersChange = '+9 this week';
+  static const recordSummary = '62 settled   36 right   26 wrong   9 open';
 
   /// The creator's share of trading fees: the video's 40% (O-05, the
   /// video's economic copy, with no demo-assumption label).

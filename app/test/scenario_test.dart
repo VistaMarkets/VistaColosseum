@@ -42,7 +42,6 @@ List<Object?> state() => [
   Scenario.receipts.value,
   Scenario.stalePrices.value,
   Scenario.participation.value,
-  Scenario.arena.value,
   Scenario.feeEntries.value,
   Scenario.callReceipts.value,
   Scenario.marketsLoadFails.value,
@@ -75,7 +74,6 @@ void mutateEverything() {
   Scenario.clock.value = Scenario.clock.value.add(const Duration(hours: 1));
   Scenario.refreshPrice('AVAX');
   Scenario.placeOrder(ethLong('mutate', units: 0.01, clashId: 'eth-4k'));
-  Scenario.setArena(sort: 1, from: 4, query: 'eth');
   Scenario.feeEntries.value = Scenario.feeEntries.value.sublist(1);
   Scenario.callReceipts.value = Scenario.callReceipts.value.sublist(1);
   Scenario.marketsLoadFails.value = true;
@@ -116,12 +114,15 @@ OrderIntent ethLong(
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 void main() {
@@ -228,8 +229,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Wallet'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Positions · '), findsOneWidget);
-    expect(find.text('Positions · 1'), findsOneWidget);
+    expect(find.textContaining('Positions   '), findsOneWidget);
+    expect(find.text('Positions   1'), findsOneWidget);
     expect(find.text('Ethereum'), findsNothing);
   });
 
@@ -304,18 +305,21 @@ void main() {
       Navigator.of(tester.element(find.byType(VistaWatchButton))).pop();
       await tester.pumpAndSettle();
 
-      // Arena: on screen, and its battles (const fixtures) carry no cash,
-      // star, like, position or listing, so none can disagree with the store.
+      // Arena: on screen, its top bar reads the store's cash, and its
+      // battles (const fixtures) carry no star, like, position or listing,
+      // so none can disagree with the store.
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
       expect(find.byType(ArenaScreen), findsOneWidget);
+      expect(
+        find.descendant(of: topBar, matching: find.text(r'$12,345.00')),
+        findsOneWidget,
+      );
       for (final shown in [
-        topBar,
         find.byType(VistaWatchButton),
         find.bySemanticsLabel(RegExp('^Like')),
         find.textContaining('Positions'),
         find.textContaining('ZED'),
-        find.textContaining(r'$12,'),
       ]) {
         expect(shown, findsNothing);
       }
@@ -326,7 +330,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(r'$12,345.00'), findsNWidgets(2));
       expect(find.text(r'$12,480.00'), findsNothing);
-      expect(find.text('Positions · 1'), findsOneWidget);
+      expect(find.text('Positions   1'), findsOneWidget);
       expect(find.text('Ethereum'), findsNothing);
       expect(find.text(r'$ZED market cap'), findsOneWidget);
 
@@ -376,7 +380,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Wallet'));
     await tester.pumpAndSettle();
-    expect(find.text('Positions · ${seedPositions + 1}'), findsOneWidget);
+    expect(find.text('Positions   ${seedPositions + 1}'), findsOneWidget);
     // Cash less margin + fee, to the cent, in the top bar and the headline;
     // a live tick of the balance feed doesn't move it off the store.
     expect(formatCents(Scenario.cashCents.value), r'$12,443.17');

@@ -7,6 +7,7 @@ import '../vista_assets.dart';
 import 'vista_buttons.dart';
 import 'vista_chips.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// One side of a battle: its lead caller, their thesis and the side's crowd.
 class VistaBattleSide {
@@ -110,7 +111,7 @@ class VistaBattleCard extends StatelessWidget {
                   children: [
                     Text(ticker, style: VistaType.displayNumber),
                     const SizedBox(width: VistaSpace.md),
-                    Text(price, style: VistaType.tab),
+                    Text(price, style: VistaType.figures(VistaType.tab)),
                     const SizedBox(width: VistaSpace.md),
                     Expanded(
                       child: Text(
@@ -129,7 +130,7 @@ class VistaBattleCard extends StatelessWidget {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF262626),
+                        color: VistaColors.surface,
                         borderRadius: BorderRadius.circular(VistaRadius.pill),
                       ),
                       child: Text(timeLeft, style: VistaType.label),
@@ -175,8 +176,8 @@ class VistaBattleCard extends StatelessWidget {
               button: true,
               label: moreOpinions,
               excludeSemantics: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
+              child: VistaPressable(
+                scale: 0.98,
                 onTap: onOpinions,
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 36),
@@ -213,16 +214,14 @@ class VistaBattleCard extends StatelessWidget {
             child: VistaSidePair(
               longOnRight: longOnRight,
               long: VistaPillButton(
-                label: joined == TradeSide.long
-                    ? 'Joined Bull'
-                    : "I'm with Bull",
+                label: joined == TradeSide.long ? 'Joined longs' : 'Join longs',
                 variant: VistaPillVariant.long,
                 onPressed: onBull,
               ),
               short: VistaPillButton(
                 label: joined == TradeSide.short
-                    ? 'Joined Bear'
-                    : "I'm with Bear",
+                    ? 'Joined shorts'
+                    : 'Join shorts',
                 variant: VistaPillVariant.short,
                 onPressed: onBear,
               ),
@@ -280,8 +279,8 @@ class _Side extends StatelessWidget {
         children: [
           Text(label, style: VistaType.labelStrong.copyWith(color: color)),
           const SizedBox(height: VistaSpace.md),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          VistaPressable(
+            scale: 0.98,
             onTap: onCaller == null ? null : () => onCaller!(side.caller),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -413,6 +412,7 @@ class VistaSideDetail extends StatelessWidget {
     required this.stats,
     this.hitRate,
     this.onCaller,
+    this.call,
   });
 
   final String initials;
@@ -425,6 +425,10 @@ class VistaSideDetail extends StatelessWidget {
   final String? hitRate;
   final VoidCallback? onCaller;
 
+  /// The caller's order under their thesis (as on a trade page's Callers);
+  /// shown in place of [stats] when given.
+  final Widget? call;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -432,8 +436,8 @@ class VistaSideDetail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          VistaPressable(
+            scale: 0.98,
             onTap: onCaller,
             child: Row(
               children: [
@@ -478,31 +482,33 @@ class VistaSideDetail extends StatelessWidget {
             ),
           ),
           const SizedBox(height: VistaSpace.xl),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final s in stats)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.value,
-                      style: VistaType.body.copyWith(
-                        color: s.color ?? VistaColors.textPrimary,
+          ?call,
+          if (call == null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final s in stats)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s.value,
+                        style: VistaType.body.copyWith(
+                          color: s.color ?? VistaColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: VistaSpace.xxs),
-                    Text(
-                      s.label,
-                      style: VistaType.caption.copyWith(
-                        color: VistaColors.textMuted,
+                      const SizedBox(height: VistaSpace.xxs),
+                      Text(
+                        s.label,
+                        style: VistaType.caption.copyWith(
+                          color: VistaColors.textMuted,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
+                    ],
+                  ),
+              ],
+            ),
         ],
       ),
     );

@@ -1,7 +1,7 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="9.6" height="11.2" viewBox="0 0 9.6 11.2" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="icon/lock" clip-path="url(#clip0_0_16)">
-<path id="Vector" d="M1.76 4.16V2.56C1.76 0.8 2.8 0 4.16 0C5.52 0 6.56 0.8 6.56 2.56V4.16" stroke="#858585" stroke-width="1.28" stroke-linecap="round"/>
-<rect id="Rectangle" y="4.8" width="9.6" height="6.4" rx="1.6" fill="#858585"/>
+<path id="Vector" d="M1.76 4.16V2.56C1.76 0.8 2.8 0 4.16 0C5.52 0 6.56 0.8 6.56 2.56V4.16" stroke="#85878E" stroke-width="1.28" stroke-linecap="round"/>
+<rect id="Rectangle" y="4.8" width="9.6" height="6.4" rx="1.6" fill="#85878E"/>
 </g>
 <defs>
 <clipPath id="clip0_0_16">

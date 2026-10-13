@@ -8,7 +8,6 @@ import '../account/account_state.dart';
 import '../market/market_mock.dart';
 import '../market/receipt_screens.dart';
 import '../market/your_market_screen.dart';
-import 'confetti_burst.dart';
 import 'make_market_mock.dart';
 
 /// Make a market: create (Figma 338:102) → before you list (329:102) →
@@ -30,6 +29,9 @@ enum _Step { create, consent, live }
 
 class _MakeMarketFlowState extends State<MakeMarketFlow> {
   _Step _step = _Step.create;
+
+  /// The last step change went back (consent → create).
+  bool _back = false;
   final _ticker = TextEditingController(text: AccountState.ticker.value);
   final _pitch = TextEditingController(text: MakeMarketMock.defaultPitch);
   final _agreed = List<bool>.filled(MakeMarketMock.consents.length + 1, false);
@@ -115,7 +117,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
     AccountState.listMarket(_symbol);
     // listMarket has just set hasMarket and listedAt, so there is a cap.
     _capCents = Scenario.ownCapCents!;
-    setState(() => _step = _Step.live);
+    setState(() {
+      _back = false;
+      _step = _Step.live;
+    });
   }
 
   @override
@@ -125,7 +130,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
       onPopInvokedWithResult: (didPop, _) {
         // canPop lags a build: a back in Create's frame must not rewind.
         if (!didPop && _step == _Step.consent) {
-          setState(() => _step = _Step.create);
+          setState(() {
+            _back = true;
+            _step = _Step.create;
+          });
         }
       },
       child: Scaffold(
@@ -136,7 +144,9 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
             opacity: anim,
             child: SlideTransition(
               position: Tween(
-                begin: const Offset(0.08, 0),
+                // Forward steps arrive from the right; going back, from the
+                // left.
+                begin: Offset(_back ? -0.08 : 0.08, 0),
                 end: Offset.zero,
               ).animate(anim),
               child: child,
@@ -263,7 +273,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
           ),
           _footer([
             Text(
-              'Free to create · nothing is minted',
+              'Free to create   nothing is minted',
               textAlign: TextAlign.center,
               style: VistaType.chip.copyWith(
                 fontWeight: FontWeight.w500,
@@ -281,7 +291,10 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                 // A no-op once listed: this Continue stays tappable while
                 // the step fades out.
                 if (_step == _Step.create) {
-                  setState(() => _step = _Step.consent);
+                  setState(() {
+                    _back = false;
+                    _step = _Step.consent;
+                  });
                 }
               },
             ),
@@ -404,8 +417,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
           Center(
             child: Text(
               initial,
-              style: VistaType.display.copyWith(
-                fontSize: 28,
+              style: VistaType.displayMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: VistaColors.textPrimary.withValues(alpha: 0.85),
               ),
@@ -435,7 +447,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
         : _taken
         ? ('× Taken', VistaColors.short)
         : ('✓ Available', VistaColors.long);
-    final big = VistaType.displayNumber.copyWith(fontSize: 22);
+    final big = VistaType.displaySmall;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -649,7 +661,12 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
             // A no-op once listed: this Back stays tappable while the
             // step fades out.
             onLeading: () {
-              if (_step == _Step.consent) setState(() => _step = _Step.create);
+              if (_step == _Step.consent) {
+                setState(() {
+                  _back = true;
+                  _step = _Step.create;
+                });
+              }
             },
           ),
           const Padding(
@@ -667,7 +684,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               children: [
                 Text(
                   'Your market has two sides',
-                  style: VistaType.displayNumber.copyWith(fontSize: 22),
+                  style: VistaType.displaySmall,
                 ),
                 const SizedBox(height: VistaSpace.lg),
                 IntrinsicHeight(
@@ -696,7 +713,7 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                     'You earn ${YourMarketMock.creatorSharePct}% of the '
                     'fees from both',
                     textAlign: TextAlign.center,
-                    style: VistaType.bodyStrong.copyWith(fontSize: 14),
+                    style: VistaType.rowStrong,
                   ),
                 ),
                 Container(
@@ -870,10 +887,44 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                           alignment: Alignment.center,
                           children: [
                             const VistaIcon(VistaAssets.mmLiveAvatar, size: 88),
+                            // A calm check stamped on as it opens (no
+                            // confetti: nothing celebrates a financial step).
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: 1),
+                                duration: const Duration(milliseconds: 420),
+                                curve: VistaMotion.pop,
+                                builder: (context, t, child) => Opacity(
+                                  opacity: t.clamp(0.0, 1.0),
+                                  child: Transform.scale(
+                                    scale: 0.6 + 0.4 * t,
+                                    child: child,
+                                  ),
+                                ),
+                                child: Container(
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                    color: VistaColors.long,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: VistaColors.background,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    size: 16,
+                                    color: VistaColors.ink,
+                                  ),
+                                ),
+                              ),
+                            ),
                             Text(
                               _symbol.isEmpty ? '?' : _symbol[0],
-                              style: VistaType.display.copyWith(
-                                fontSize: 34,
+                              style: VistaType.displayLarge.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: VistaColors.textPrimary.withValues(
                                   alpha: 0.85,
@@ -893,7 +944,6 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
                         child: Text(
                           t,
                           style: VistaType.display.copyWith(
-                            fontSize: 40,
                             letterSpacing: -1.5,
                           ),
                         ),
@@ -907,16 +957,12 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
               const SizedBox(height: 12),
               Text(
                 'Your market cap is',
-                style: VistaType.bodyMedium.copyWith(
-                  fontSize: 14,
+                style: VistaType.rowMedium.copyWith(
                   color: VistaColors.textMuted,
                 ),
               ),
               const SizedBox(height: VistaSpace.xxs),
-              Text(
-                formatCap(_capCents),
-                style: VistaType.display.copyWith(fontSize: 34),
-              ),
+              Text(formatCap(_capCents), style: VistaType.displayLarge),
               const Spacer(),
               _footer([
                 VistaPrimaryButton(
@@ -947,8 +993,6 @@ class _MakeMarketFlowState extends State<MakeMarketFlow> {
             ],
           ),
         ),
-        // Burst from the market image (Figma frame units).
-        const Positioned.fill(child: ConfettiBurst(origin: Offset(201, 158))),
       ],
     );
   }

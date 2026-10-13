@@ -7,9 +7,17 @@ import 'profile_mock.dart';
 /// "Holding now" table: asset, side, entry, current and P/L per position,
 /// then the cash share. Shared by the profile and the trader market panel.
 class HoldingsTable extends StatelessWidget {
-  const HoldingsTable({super.key, this.onRowTap});
+  const HoldingsTable({
+    super.key,
+    this.onRowTap,
+    this.holdings = ProfileMock.holdings,
+    this.cashShare = ProfileMock.cashShare,
+  });
 
-  /// Tapping a position row: opens the receipt of the call it backs.
+  final List<Holding> holdings;
+  final String cashShare;
+
+  /// Tapping a position row: opens the call it backs.
   final ValueChanged<Holding>? onRowTap;
 
   @override
@@ -30,7 +38,7 @@ class HoldingsTable extends StatelessWidget {
           current: Text('Current', style: head),
           pnl: Text('P/L', style: head),
         ),
-        for (final h in ProfileMock.holdings) ...[
+        for (final h in holdings) ...[
           const SizedBox(height: VistaSpace.md),
           hairline,
           const SizedBox(height: VistaSpace.md),
@@ -41,35 +49,28 @@ class HoldingsTable extends StatelessWidget {
               children: [
                 _coin(h.ticker),
                 const SizedBox(width: VistaSpace.md),
-                Text(
-                  h.ticker,
-                  style: VistaType.bodyStrong.copyWith(fontSize: 14),
-                ),
+                Text(h.ticker, style: VistaType.rowStrong),
               ],
             ),
             side: Text(
               '${h.side.label} ${h.leverage}x',
-              style: VistaType.body.copyWith(fontSize: 14, color: h.side.color),
+              style: VistaType.row.copyWith(color: h.side.color),
             ),
             entry: Text(
               h.entry,
-              style: VistaType.bodyMedium.copyWith(
-                fontSize: 14,
-                color: VistaColors.textMuted,
-              ),
+              style: VistaType.rowMedium.copyWith(color: VistaColors.textMuted),
             ),
             // The market's one live price.
             current: ValueListenableBuilder(
               valueListenable: MarketPrices.of(h.ticker),
               builder: (context, price, _) => Text(
                 MarketPrices.format(price, compact: true),
-                style: VistaType.body.copyWith(fontSize: 14),
+                style: VistaType.figures(VistaType.row),
               ),
             ),
             pnl: Text(
               h.pnl,
-              style: VistaType.bodyStrong.copyWith(
-                fontSize: 14,
+              style: VistaType.rowStrong.copyWith(
                 color: h.inProfit ? VistaColors.long : VistaColors.short,
               ),
             ),
@@ -85,11 +86,8 @@ class HoldingsTable extends StatelessWidget {
               _coin('Cash'),
               const SizedBox(width: VistaSpace.md),
               Text(
-                ProfileMock.cashShare,
-                style: VistaType.body.copyWith(
-                  fontSize: 14,
-                  color: VistaColors.textMuted,
-                ),
+                cashShare,
+                style: VistaType.row.copyWith(color: VistaColors.textMuted),
               ),
             ],
           ),

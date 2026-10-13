@@ -5,6 +5,7 @@ import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
+import '../calls/calls_store.dart';
 import '../market/chart_sheet.dart';
 import '../settings/settings_state.dart';
 import '../watchlist/watchlist_state.dart';
@@ -88,10 +89,11 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           showOrderTicket(context, symbol: _quote.ticker, side: side),
       onNotBuilt: _notBuilt,
       panels: [
+        // What people come for first; the raw book last.
         ChartSheetPanel('Market', _marketPanel()),
-        ChartSheetPanel('Book', _bookPanel()),
         ChartSheetPanel('Callers', _callersPanel()),
         ChartSheetPanel('Alerts', AssetAlertsPanel(ticker: _quote.ticker)),
+        ChartSheetPanel('Book', _bookPanel()),
       ],
     );
   }
@@ -168,46 +170,42 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           ),
           const SizedBox(height: VistaSpace.lg),
           Padding(
-            padding: const EdgeInsets.only(
-              left: VistaSpace.xl,
-              right: VistaSpace.lg,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+            padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+            // Figma 232:159: the price on its own line, the 24h change
+            // under it.
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Scales down on narrow phones instead of overflowing.
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.bottomLeft,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        LiveUsd(
-                          feedKey: MarketPrices.feedKey(q.ticker),
-                          base: MarketPrices.base(q.ticker),
-                          step: MarketPrices.step(q.ticker),
-                          decimals: 2,
-                          style: VistaType.display.copyWith(fontSize: 32),
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          q.changeUsd,
-                          style: VistaType.subhead.copyWith(color: q.color),
-                        ),
-                      ],
-                    ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: LiveUsd(
+                    feedKey: MarketPrices.feedKey(q.ticker),
+                    base: MarketPrices.base(q.ticker),
+                    step: MarketPrices.step(q.ticker),
+                    decimals: 2,
+                    style: VistaType.displayLarge,
                   ),
                 ),
-                const SizedBox(width: VistaSpace.md),
-                Text(
-                  q.pctLabel,
-                  style: VistaType.displayNumber.copyWith(
-                    fontSize: 24,
-                    color: q.color,
-                  ),
+                const SizedBox(height: VistaSpace.sm),
+                // The move since the 24h open, following the live price.
+                ValueListenableBuilder(
+                  valueListenable: MarketPrices.of(q.ticker),
+                  builder: (context, price, _) {
+                    final open =
+                        MarketPrices.base(q.ticker) / (1 + q.changePct / 100);
+                    final move = price - open;
+                    return VistaChangeLine(
+                      up: move >= 0,
+                      amount: formatUsd(
+                        move.abs(),
+                        decimals: MarketPrices.decimalsFor(price),
+                      ),
+                      percent:
+                          '${(move.abs() / open * 100).toStringAsFixed(2)}%',
+                    );
+                  },
                 ),
               ],
             ),
@@ -223,9 +221,9 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
   );
 
   TextStyle get _rowLabel =>
-      VistaType.bodyMedium.copyWith(fontSize: 14, color: VistaColors.textMuted);
+      VistaType.rowMedium.copyWith(color: VistaColors.textMuted);
 
-  TextStyle get _rowValue => VistaType.body.copyWith(fontSize: 14);
+  TextStyle get _rowValue => VistaType.row;
 
   Widget _marketPanel() {
     const gap = SizedBox(height: 9);
@@ -333,7 +331,7 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         gap,
         Row(
           children: [
-            Expanded(child: Text('Funding · last 3 days', style: _rowLabel)),
+            Expanded(child: Text('Funding   last 3 days', style: _rowLabel)),
             Text(TradeMock.fundingSummary, style: _rowValue),
           ],
         ),
@@ -409,12 +407,9 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
     final colour = bid ? VistaColors.long : VistaColors.short;
     final priceText = Text(
       price,
-      style: VistaType.body.copyWith(fontSize: 14, color: colour),
+      style: VistaType.figures(VistaType.row).copyWith(color: colour),
     );
-    final sizeText = Text(
-      size,
-      style: VistaType.bodyMedium.copyWith(fontSize: 14),
-    );
+    final sizeText = Text(size, style: VistaType.figures(VistaType.rowMedium));
     return SizedBox(
       height: 26,
       child: Stack(
@@ -447,8 +442,6 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
 
   Widget _callersPanel() {
     const gap = SizedBox(height: VistaSpace.xl);
-    const long = TradeMock.callersLong;
-    const short = TradeMock.callersShort;
     Widget toggle(String label, bool on) => GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _followingOnly = label == 'Following'),
@@ -459,6 +452,27 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
         ),
       ),
     );
+    // The same calls Arena shows: the backed ones on this asset.
+    return ListenableBuilder(
+      listenable: Listenable.merge([CallsStore.all, Scenario.followed]),
+      builder: (context, _) {
+        final all = CallsStore.callersOn(_quote.ticker);
+        final followed = Scenario.followed.value;
+        final posts = [
+          for (final p in all)
+            if (!_followingOnly || followed.contains(p.handle)) p,
+        ];
+        return _callersColumn(gap, toggle, all.length, posts);
+      },
+    );
+  }
+
+  Widget _callersColumn(
+    Widget gap,
+    Widget Function(String, bool) toggle,
+    int total,
+    List<CallerPost> posts,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -474,22 +488,29 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
           ),
         ),
         gap,
-        ValueListenableBuilder(
-          valueListenable: Scenario.followed,
-          builder: (context, followed, _) => CallerThread(
+        if (posts.isEmpty)
+          Text(
+            _followingOnly && total > 0
+                ? 'No one you follow has called ${_quote.ticker} yet'
+                : 'No calls on ${_quote.ticker} yet',
+            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+          )
+        else
+          CallerThread(
             ticker: _quote.ticker,
-            // Following: people the user follows; Everyone: all callers.
-            posts: [
-              for (final p in TradeMock.callers)
-                if (!_followingOnly || followed.contains(p.handle)) p,
-            ],
+            posts: posts,
             onCaller: (handle) =>
                 Navigator.of(context).push(ProfileScreen.route(handle)),
             onPlay: (post) =>
                 Navigator.of(context)
                     .push(CallerPlayScreen.route(post, _quote.ticker)),
+            // Join their side, as on Arena (simulated: places nothing).
+            onJoin: (post) => showOrderTicket(
+              context,
+              symbol: _quote.ticker,
+              side: post.side,
+            ),
           ),
-        ),
         gap,
         const VistaHairline(),
         GestureDetector(
@@ -501,11 +522,8 @@ class _AssetTradeScreenState extends State<AssetTradeScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'All ${long + short} callers in ${_quote.ticker}',
-                    style: VistaType.body.copyWith(
-                      fontSize: 14,
-                      color: VistaColors.textMuted,
-                    ),
+                    'All $total callers in ${_quote.ticker}',
+                    style: VistaType.row.copyWith(color: VistaColors.textMuted),
                   ),
                 ),
                 Text(

@@ -128,7 +128,7 @@ class EditFavoritesScreen extends StatelessWidget {
                         detail: m == null
                             ? null
                             : '${MarketPrices.format(MarketPrices.now(id), compact: true)}'
-                                  ' · ${m.subline}',
+                                  '   ${m.subline}',
                         onRemove: () => _remove(context, id, i),
                       );
                     },

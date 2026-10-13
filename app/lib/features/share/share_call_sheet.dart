@@ -12,11 +12,8 @@ import 'share_targets.dart';
 /// the call's link preview), share targets, and two options. Simulated: the
 /// demo copies the link or confirms; nothing is sent.
 Future<void> showShareCallSheet(BuildContext context, TradeIdea idea) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000),
+  return showVistaSheet<void>(
+    context,
     builder: (_) => ShareCallSheet(idea: idea),
   );
 }
@@ -33,7 +30,7 @@ class ShareCallSheet extends StatefulWidget {
 class _ShareCallSheetState extends State<ShareCallSheet> {
   /// The link bubble, a step above the preview (Figma color/surfaceRaised,
   /// #262626).
-  static const _bubble = Color(0xFF262626);
+  static const _bubble = VistaColors.surface;
 
   /// A short, stable code for the call's link.
   String get _code {
@@ -82,32 +79,20 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: VistaColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(VistaRadius.sheet),
+        ),
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0x40FFFFFF),
-                  borderRadius: BorderRadius.circular(VistaRadius.pill),
-                ),
-              ),
-            ),
+            Center(child: VistaDragHandle()),
             gap,
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    'Share call',
-                    style: VistaType.subhead.copyWith(fontSize: 20),
-                  ),
-                ),
+                Expanded(child: Text('Share call', style: VistaType.title)),
                 Semantics(
                   button: true,
                   child: GestureDetector(
@@ -190,8 +175,10 @@ class _ShareCallSheetState extends State<ShareCallSheet> {
                   children: [
                     ValueListenableBuilder(
                       valueListenable: MarketPrices.of(widget.idea.ticker),
-                      builder: (context, price, _) =>
-                          Text(_title(price), style: VistaType.body),
+                      builder: (context, price, _) => Text(
+                        _title(price),
+                        style: VistaType.figures(VistaType.body),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(

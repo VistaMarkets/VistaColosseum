@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart' show Color;
+
 import '../../design_system/design_system.dart';
 import '../market/market_mock.dart';
 import '../market/trader_market_mock.dart';
@@ -33,9 +35,49 @@ typedef MarketFigures = ({
   String openPrice,
 });
 
+enum ReceiptKind { call, arena }
+
+/// A call or arena receipt on a profile.
+class ProfileReceipt {
+  const ProfileReceipt({
+    required this.kind,
+    required this.rail,
+    required this.title,
+    required this.lead,
+    required this.leadColor,
+    required this.detail,
+    required this.side,
+    required this.entry,
+    required this.close,
+    this.versus,
+  });
+
+  final ReceiptKind kind;
+
+  /// The side taken, the price when it was called, and how it ended (the
+  /// settle price) or where it stands now if still open.
+  final TradeSide side;
+  final String entry;
+  final String close;
+
+  bool get open =>
+      !lead.startsWith('Right') &&
+      !lead.startsWith('Wrong') &&
+      !close.startsWith('Closed');
+  final String rail;
+  final String title;
+  final String lead;
+  final Color leadColor;
+  final String detail;
+  final VistaVersus? versus;
+}
+
 /// Sample profile content from Figma 303:102 (maya.eth). Every profile in the
 /// demo shows this content under its own handle. Simulated.
 abstract final class ProfileMock {
+  static const recordSince = 'Record since Jun 2026   14 mo';
+  static const settled = '62';
+  static const right = '36';
   static const followers = FollowMock.followerCount;
   static const market = r'$44.0M';
   static const bio =
@@ -98,7 +140,98 @@ abstract final class ProfileMock {
       pnl: '−1.2%',
     ),
   ];
-  static const cashShare = 'Cash · 9%';
+  static const cashShare = 'Cash   9%';
+
+  static const summary = [
+    ('62 settled', VistaColors.textPrimary),
+    ('36 right', VistaColors.long),
+    ('26 wrong', VistaColors.short),
+    ('3 open', VistaColors.textMuted),
+  ];
+
+  static const receipts = [
+    ProfileReceipt(
+      kind: ReceiptKind.call,
+      rail: VistaAssets.railCallOpen,
+      title: r'SOL reaches $300 by Fri',
+      side: TradeSide.long,
+      entry: r'$214.60',
+      close: r'Now $214.90',
+      lead: '2d left',
+      leadColor: VistaColors.textMuted,
+      detail: 'Market said 22%   39.6% away',
+    ),
+    ProfileReceipt(
+      kind: ReceiptKind.arena,
+      rail: VistaAssets.railArenaOpen,
+      title: r'BTC stays under $72,000 to Oct 5',
+      side: TradeSide.short,
+      entry: r'$67,880',
+      close: r'Now $67,412',
+      versus: VistaVersus(
+        name: 'lunaq',
+        avatarAsset: VistaAssets.opponentAvatarLong,
+      ),
+      lead: '10d left',
+      leadColor: VistaColors.textMuted,
+      detail: 'took the other side of lunaq   market said 71%',
+    ),
+    ProfileReceipt(
+      kind: ReceiptKind.call,
+      rail: VistaAssets.railCallOpen,
+      title: r'ETH holds $3,000 to Oct 1',
+      side: TradeSide.long,
+      entry: r'$3,052',
+      close: r'Now $2,968',
+      lead: '6d left',
+      leadColor: VistaColors.textMuted,
+      detail: 'Market said 64%   5.7% cushion',
+    ),
+    ProfileReceipt(
+      kind: ReceiptKind.arena,
+      rail: VistaAssets.railArenaRight,
+      title: r'ARB stays under $1.20 to Sep 18',
+      side: TradeSide.short,
+      entry: r'$1.14',
+      close: r'Settled $1.09',
+      versus: VistaVersus(
+        name: '0xreal',
+        avatarAsset: VistaAssets.opponentAvatarShort,
+      ),
+      lead: 'Right at 34%',
+      leadColor: VistaColors.long,
+      detail: 'beat 0xreal   settled Sep 18',
+    ),
+    ProfileReceipt(
+      kind: ReceiptKind.call,
+      rail: VistaAssets.railCallRight,
+      title: r'BTC reclaims $66,000 by Tue',
+      side: TradeSide.long,
+      entry: r'$64,920',
+      close: r'Settled $66,340',
+      lead: 'Right at 31%',
+      leadColor: VistaColors.long,
+      detail: 'settled Tue 16:00',
+    ),
+    ProfileReceipt(
+      kind: ReceiptKind.arena,
+      rail: VistaAssets.railArenaWrong,
+      title: r'SOL loses $190 by Sep 15',
+      side: TradeSide.short,
+      entry: r'$201.30',
+      close: r'Settled $196.80',
+      versus: VistaVersus(
+        name: 'kilo.sol',
+        avatarAsset: VistaAssets.opponentAvatarLong,
+      ),
+      lead: 'Wrong at 41%',
+      leadColor: VistaColors.short,
+      detail: 'kilo.sol was right   settled Sep 15',
+    ),
+  ];
+
+  /// Filter counts as designed ("All 65 · Calls 51 · Arena 14").
+  static const filters = [('All', 65), ('Calls', 51), ('Debates', 14)];
 }
 
 /// A private account with no market: stats and public calls only (Figma

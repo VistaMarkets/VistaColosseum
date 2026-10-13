@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/home/home_feed.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
-import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
 import 'package:vista_colosseum/features/market/receipt_screens.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
 import 'package:vista_colosseum/features/market/your_market_screen.dart';
+import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
@@ -22,12 +24,15 @@ import 'home_screen_test.dart' show expectPillClear, phones;
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 /// The seeded pair: the same call outcomes behind different paper sizes.
@@ -318,7 +323,7 @@ void main() {
   });
 
   testWidgets('both traders\' panels show the same sample size, hit rate and '
-      'as-of time below the index chart', (tester) async {
+      'as-of time below their market chart', (tester) async {
     for (final handle in [pair.$1, pair.$2]) {
       await pumpApp(tester, home: ProfileScreen(handle: handle));
       expect(inPanel(handle, find.text(pairCaption)), findsOneWidget);
@@ -327,11 +332,12 @@ void main() {
       // The header shows the same derived counts, not stored ones.
       expect(countStat('Settled', '3'), findsOneWidget);
       expect(countStat('Right', '2'), findsOneWidget);
-      expect(find.byType(ProfileIndexChart), findsOneWidget);
+      // Another trader's profile charts their own market.
+      expect(find.byType(MarketLineChart), findsOneWidget);
       expect(
         tester.getRect(panelFor(handle)).top,
         greaterThanOrEqualTo(
-          tester.getRect(find.byType(ProfileIndexChart)).bottom,
+          tester.getRect(find.byType(MarketLineChart)).bottom,
         ),
       );
       // Their three settled calls, not a stored ten.
@@ -569,7 +575,9 @@ void main() {
     await pumpApp(tester);
     final feed = tester.widget<PageView>(find.byType(PageView).first);
     feed.controller!.jumpToPage(
-      homeFeed.indexWhere((i) => i is TradeIdea && i.callerHandle == pair.$1),
+      homeFeed.indexWhere(
+        (i) => i is Take && HomeFeed.ideaOf(i).callerHandle == pair.$1,
+      ),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text(pair.$1).hitTestable());
@@ -577,37 +585,6 @@ void main() {
     expect(find.byType(ProfileScreen), findsOneWidget);
     expect(inPanel(pair.$1, find.text(pairCaption)), findsOneWidget);
     expect(inPanel(pair.$1, find.text('Hit rate 67%')), findsOneWidget);
-  });
-
-  testWidgets('Arena card trader link opens the record panel', (tester) async {
-    await pumpApp(tester, size: const Size(402, 2400));
-    await tester.tap(find.bySemanticsLabel('Arena'));
-    await tester.pumpAndSettle();
-    // The tapped side's accuracy is the panel's hit rate, read from the
-    // receipts at render time, never a stored figure.
-    Finder side(String text) => find.descendant(
-      of: find
-          .ancestor(of: find.text(pair.$2), matching: find.byType(Column))
-          .first,
-      matching: find.text(text),
-    );
-    expect(side('67% accuracy'), findsOneWidget);
-    await tapAndSettle(tester, find.text(pair.$2).hitTestable());
-    expect(find.byType(ProfileScreen), findsOneWidget);
-    expect(inPanel(pair.$2, find.text(pairCaption)), findsOneWidget);
-    expect(inPanel(pair.$2, find.text('Hit rate 67%')), findsOneWidget);
-
-    // Drop lunaq's wrong call: panel and card both follow, so a constant
-    // that happens to match the seed fails here.
-    Scenario.callReceipts.value = [
-      for (final c in Scenario.callReceipts.value)
-        if (c.author != pair.$2 || c.result != CallOutcome.wrong) c,
-    ];
-    await tester.pumpAndSettle();
-    expect(inPanel(pair.$2, find.text('Hit rate 100%')), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('Back').last);
-    await tester.pumpAndSettle();
-    expect(side('100% accuracy'), findsOneWidget);
   });
 
   testWidgets('each panel shows its own trader\'s record, right and wrong '

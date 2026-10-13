@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/home/home_feed.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
-import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
@@ -22,12 +23,15 @@ import 'scenario_test.dart' show state;
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 void _phone(WidgetTester tester) {
@@ -61,7 +65,9 @@ Future<void> homeCard(WidgetTester tester, String ticker) async {
   await tester.pumpAndSettle();
   final feed = tester.widget<PageView>(find.byType(PageView).first);
   feed.controller!.jumpToPage(
-    homeFeed.indexWhere((i) => i is TradeIdea && i.ticker == ticker),
+    homeFeed.indexWhere(
+      (i) => i is Take && HomeFeed.ideaOf(i).ticker == ticker,
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -112,7 +118,7 @@ void main() {
     await review(tester);
     // The review shows what the store will take, before it takes it.
     expect(inSheet(find.text('Review order')), findsOneWidget);
-    expect(inSheet(find.text('Bitcoin · BTC')), findsOneWidget);
+    expect(inSheet(find.text('Bitcoin   BTC')), findsOneWidget);
     expect(inSheet(find.text('Long 10x')), findsOneWidget);
     expect(inSheet(find.text(r'$67,412.00')), findsOneWidget);
     expect(inSheet(find.text('Simulated — no real order')), findsOneWidget);
@@ -146,7 +152,7 @@ void main() {
     expect(inSheet(find.text(required)), findsOneWidget);
     expect(
       find.text(
-        'Bitcoin long filled · ${formatCents(receipt.totalCents)} from '
+        'Bitcoin long filled   ${formatCents(receipt.totalCents)} from '
         'paper cash (simulated)',
       ),
       findsOneWidget,
@@ -194,7 +200,7 @@ void main() {
     await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
     await tester.pumpAndSettle();
     final before = state();
-    await tester.tap(find.text(r'Long $200 · 2x'));
+    await tester.tap(find.text(r'Long $200   2x'));
     await tester.pumpAndSettle();
     expect(inSheet(find.text('Review order')), findsOneWidget);
     expect(state(), equals(before)); // review changes nothing
@@ -212,7 +218,7 @@ void main() {
 
     await tester.tap(inSheet(find.text('View in Wallet')));
     await tester.pumpAndSettle();
-    expect(find.text('Positions · ${seedPositions + 1}'), findsOneWidget);
+    expect(find.text('Positions   ${seedPositions + 1}'), findsOneWidget);
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -280,7 +286,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(inSheet(find.text(tab)));
       await tester.pumpAndSettle();
-      await tester.tap(inSheet(find.text(r'Long $200 · 2x')));
+      await tester.tap(inSheet(find.text(r'Long $200   2x')));
       await tester.pumpAndSettle();
       expect(find.text(traderToast), findsOneWidget, reason: tab);
       expect(find.byType(FeedOrderTicket), findsNothing, reason: tab);
@@ -355,7 +361,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(r'Long $200 · 2x'));
+    await tester.tap(find.text(r'Long $200   2x'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
@@ -390,9 +396,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text(r'Long $200 · 2x'));
+      await tester.ensureVisible(find.text(r'Long $200   2x'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(r'Long $200 · 2x'));
+      await tester.tap(find.text(r'Long $200   2x'));
       await tester.pumpAndSettle();
       expect(inSheet(find.text('Review order')), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -414,7 +420,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(r'Long $200 · 2x'));
+    await tester.tap(find.text(r'Long $200   2x'));
     await tester.pumpAndSettle();
     await tester.tap(inSheet(find.text('Cancel')));
     await tester.pumpAndSettle();
@@ -440,6 +446,8 @@ void main() {
     // The Navigator absorbs pointers until the next frame after a pop, so
     // the second tap lands on nothing.
     await tester.tap(find.text('Place limit long'), warnIfMissed: false);
+    // The button holds "Placed ✓" before the sheet closes.
+    await tester.pump(VistaMotion.confirmHold);
     await tester.pumpAndSettle();
     expect(find.byType(AssetTradeScreen), findsOneWidget);
     expect(

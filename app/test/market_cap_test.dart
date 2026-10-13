@@ -7,12 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/home/home_feed.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
-import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/market/trader_market_chart.dart';
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
+import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
+import 'package:vista_colosseum/features/markets/trader_standing.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
 import 'package:vista_colosseum/features/make_market/make_market_mock.dart';
 import 'package:vista_colosseum/features/market/market_mock.dart';
@@ -28,12 +30,15 @@ import 'package:vista_colosseum/scenario/scenario.dart';
 final spans = [for (var i = 0; i < PortfolioMock.spans.length; i++) i];
 
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 /// Pumps [home] (the app's shell unless given) on a 402x874 phone.
@@ -79,8 +84,24 @@ Future<void> swipeBack(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-SeriesChart onlyChart(WidgetTester tester) =>
-    tester.widget<SeriesChart>(find.byType(SeriesChart));
+/// The screen's one cap or balance chart; the Wallet's position rows each
+/// draw their own small line chart, which this skips.
+SeriesChart onlyChart(WidgetTester tester) {
+  final rows = find
+      .descendant(
+        of: find.byType(MarketLineChart),
+        matching: find.byType(SeriesChart),
+      )
+      .evaluate()
+      .toSet();
+  return find
+          .byType(SeriesChart)
+          .evaluate()
+          .where((e) => !rows.contains(e))
+          .single
+          .widget
+      as SeriesChart;
+}
 
 Color? colorOf(WidgetTester tester, String text) =>
     tester.widget<Text>(find.text(text)).style?.color;
@@ -507,9 +528,6 @@ void main() {
   group("maya.eth's trader market reads the user's cap (#29)", () {
     MarketItem maya() =>
         MarketsMock.traders.firstWhere((m) => m.id == 'maya.eth');
-    VistaBattleSide mayaSide() => [
-      for (final b in ArenaMock.battles) ...[b.bull, b.bear],
-    ].firstWhere((s) => s.caller == 'maya.eth');
 
     test('before a listing and in seeded mode it is the seed market', () {
       for (final withMarket in [false, true]) {
@@ -517,25 +535,22 @@ void main() {
         expect(MarketPrices.base('maya.eth'), 0.44);
         expect(maya().third, r'$44.0M');
         expect(maya().changePct, 4.3);
-        expect(mayaSide().price, r'$0.4400');
-        expect(mayaSide().change, '+4.3%');
       }
     });
 
-    test('a fresh listing prices Explore, Arena and the feed from its cap', () {
+    test('a fresh listing prices Explore and the feed from its cap', () {
       AccountState.listMarket(PortfolioMock.marketSymbol);
       expect(MarketPrices.base('maya.eth'), 0.0001);
       expect(maya().third, r'$10,000');
       expect(maya().footLeft, r'Cap $10,000');
       expect(maya().changePct, 0);
       expect(maya().sortValues['Market cap'], 0.01);
-      expect(mayaSide().price, r'$0.0001');
-      expect(mayaSide().change, '+0.0%');
     });
 
     test("Home hides calls on the user's market while it is fresh", () {
-      bool ownCall() =>
-          homeFeed.any((i) => i is TradeIdea && i.ticker == 'maya.eth');
+      bool ownCall() => homeFeed.any(
+        (i) => i is Take && HomeFeed.ideaOf(i).ticker == 'maya.eth',
+      );
       expect(ownCall(), isTrue); // before a listing: the seed market
       AccountState.listMarket(PortfolioMock.marketSymbol);
       expect(ownCall(), isFalse); // deltaone's 2d-old call can't exist
@@ -549,8 +564,7 @@ void main() {
       AccountState.listMarket(PortfolioMock.marketSymbol);
       await pumpApp(tester, home: const TraderMarketScreen(handle: 'maya.eth'));
       expect(find.text(r'$10,000'), findsWidgets);
-      expect(find.text(r'+$0'), findsOneWidget);
-      expect(find.text('+0.00%'), findsOneWidget);
+      expect(find.text(r'$0 (0.00%)'), findsOneWidget);
       expect(find.textContaining('44.0M'), findsNothing);
       expect(find.byType(TraderMarketChart), findsNothing);
       expect(find.byType(SeriesChart), findsOneWidget);
@@ -562,8 +576,7 @@ void main() {
       Scenario.reset(withMarket: true);
       await pumpApp(tester, home: const TraderMarketScreen(handle: 'maya.eth'));
       expect(find.text(r'$44.0M'), findsOneWidget);
-      expect(find.text(r'+$1.8M'), findsOneWidget);
-      expect(find.text('+4.27%'), findsOneWidget);
+      expect(find.text(r'$1.8M (4.27%)'), findsOneWidget);
       expect(find.byType(SeriesChart), findsNothing);
     });
 
@@ -573,15 +586,18 @@ void main() {
       AccountState.listMarket(PortfolioMock.marketSymbol);
       await pumpApp(tester, home: const ProfileScreen(handle: 'maya.eth'));
       expect(find.text(r'$10,000'), findsOneWidget);
-      expect(find.text(r'$0.0001'), findsOneWidget);
+      // The header and the pinned market strip both read the listed price.
+      expect(find.text(r'$0.0001'), findsNWidgets(2));
       expect(find.text(r'$10,000 cap'), findsOneWidget);
-      expect(find.text('+0.00%'), findsOneWidget);
+      expect(find.text('+0.00%'), findsNWidgets(2));
       expect(find.textContaining('44.0M'), findsNothing);
       expect(find.byType(ProfileIndexChart), findsNothing);
       expect(find.byType(SeriesChart), findsOneWidget);
 
+      // Other traders' profiles show their own market's cap.
       await pumpApp(tester, home: const ProfileScreen(handle: '0xreal'));
-      expect(find.text(r'$44.0M'), findsOneWidget);
+      expect(find.text(TraderStanding.of('0xreal')!.cap), findsOneWidget);
+      expect(find.textContaining('10,000'), findsNothing);
     });
   });
 }

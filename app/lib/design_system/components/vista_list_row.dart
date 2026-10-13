@@ -4,6 +4,7 @@ import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Rounded card row: leading mark, title over a coloured tag, a spark chart,
 /// and a coloured value over its percentage. Used for positions.
@@ -14,7 +15,9 @@ class VistaListRow extends StatelessWidget {
     required this.title,
     required this.tag,
     required this.tagColor,
-    required this.sparkAsset,
+    this.sparkAsset,
+    this.chart,
+    this.tagNote,
     required this.value,
     required this.change,
     required this.valueColor,
@@ -27,8 +30,14 @@ class VistaListRow extends StatelessWidget {
   final String tag;
   final Color tagColor;
 
-  /// Spark chart vector (88×30).
-  final String sparkAsset;
+  /// Muted words after the tag, e.g. "closed 2d ago".
+  final String? tagNote;
+
+  /// Spark chart vector (88×30), unless a live [chart] is given.
+  final String? sparkAsset;
+
+  /// A live chart in the spark's 88×30 slot, in place of [sparkAsset].
+  final Widget? chart;
   final String value;
   final String change;
   final Color valueColor;
@@ -59,12 +68,15 @@ class VistaListRow extends StatelessWidget {
       button: onPressed != null,
       label: '$title, $tag, $value, $change',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.98,
         onTap: onPressed,
         child: Container(
           constraints: const BoxConstraints(minHeight: 59),
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: VistaSpace.gutter,
+            vertical: VistaSpace.xl,
+          ),
           decoration: BoxDecoration(
             color: VistaColors.surface,
             borderRadius: BorderRadius.circular(VistaRadius.card),
@@ -84,24 +96,47 @@ class VistaListRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: VistaSpace.xxs),
-                    Text(
-                      tag,
-                      style: VistaType.labelStrong.copyWith(color: tagColor),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: tag,
+                            style: TextStyle(color: tagColor),
+                          ),
+                          if (tagNote != null)
+                            TextSpan(
+                              text: '   $tagNote',
+                              style: const TextStyle(
+                                color: VistaColors.textMuted,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                      style: VistaType.labelStrong,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: VistaSpace.lg),
-              // Spark chart; the vector bleeds 0.85% past each side.
-              SizedBox(
-                width: 88,
-                height: 30,
-                child: OverflowBox(
-                  maxWidth: 88 * 1.017,
-                  child: VistaIcon(sparkAsset, size: 88 * 1.017, height: 30),
+              if (chart != null) ...[
+                SizedBox(width: 88, height: 30, child: chart),
+                // Clear of the live end dot on the chart's edge.
+                const SizedBox(width: VistaSpace.xl),
+              ] else if (sparkAsset != null) ...[
+                // Spark chart; the vector bleeds 0.85% past each side.
+                SizedBox(
+                  width: 88,
+                  height: 30,
+                  child: OverflowBox(
+                    maxWidth: 88 * 1.017,
+                    child: VistaIcon(sparkAsset!, size: 88 * 1.017, height: 30),
+                  ),
                 ),
-              ),
-              const SizedBox(width: VistaSpace.lg),
+                const SizedBox(width: VistaSpace.lg),
+              ],
               ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 64),
                 child: Column(
@@ -109,12 +144,13 @@ class VistaListRow extends StatelessWidget {
                   children: [
                     Text(
                       value,
-                      style: VistaType.headline.copyWith(color: valueColor),
+                      style: VistaType.figures(VistaType.headline)
+                          .copyWith(color: valueColor),
                     ),
                     const SizedBox(height: VistaSpace.xxs),
                     Text(
                       change,
-                      style: VistaType.label.copyWith(
+                      style: VistaType.figures(VistaType.label).copyWith(
                         fontWeight: FontWeight.w500,
                         color: valueColor,
                       ),

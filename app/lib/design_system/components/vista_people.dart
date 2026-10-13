@@ -4,7 +4,9 @@ import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
+import 'vista_glass.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Top bar with a back chevron, an optional centred title, and optional
 /// trailing actions. Without actions an empty 44pt slot keeps the title
@@ -78,16 +80,18 @@ class VistaSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = VistaType.subhead.copyWith(fontWeight: FontWeight.w400);
-    return Container(
+    final field = Container(
       height: 38,
       padding: EdgeInsets.symmetric(
         horizontal: bordered ? VistaSpace.xl : VistaSpace.xxl,
       ),
-      decoration: BoxDecoration(
-        color: VistaColors.surface,
-        borderRadius: BorderRadius.circular(VistaRadius.pill),
-        border: bordered ? Border.all(color: VistaColors.hairline) : null,
-      ),
+      // The inline variant is filled; the bottom search sits on glass.
+      decoration: bordered
+          ? null
+          : BoxDecoration(
+              color: VistaColors.surface,
+              borderRadius: BorderRadius.circular(VistaRadius.pill),
+            ),
       child: Row(
         children: [
           bordered
@@ -117,6 +121,8 @@ class VistaSearchField extends StatelessWidget {
         ],
       ),
     );
+    // The bottom search floats like the nav: a frosted pill.
+    return bordered ? VistaGlass(child: field) : field;
   }
 }
 
@@ -144,8 +150,8 @@ class VistaFollowButton extends StatelessWidget {
       toggled: following,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.96,
         onTap: onPressed,
         child: SizedBox(
           height: VistaSize.tapTarget,
@@ -235,8 +241,8 @@ class VistaPersonRow extends StatelessWidget {
       fontWeight: FontWeight.w500,
       color: VistaColors.textSecondary,
     );
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return VistaPressable(
+      scale: 0.98,
       onTap: onPressed,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
@@ -288,7 +294,7 @@ class VistaPersonRow extends StatelessWidget {
                         children: [
                           if (emphasis != null)
                             TextSpan(
-                              text: ' · $emphasis',
+                              text: '   $emphasis',
                               style: meta.copyWith(
                                 color: VistaColors.textMuted,
                               ),

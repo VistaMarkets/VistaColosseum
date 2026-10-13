@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
 import '../vista_assets.dart';
 import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Two-colour proportion bar (longs vs shorts) with a 2px gap.
 class VistaSplitBar extends StatelessWidget {
@@ -81,8 +84,8 @@ class VistaIntervalSelector extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.95,
         onTap: onTap,
         child: SizedBox(
           height: VistaSize.tapTarget,
@@ -121,7 +124,10 @@ class VistaIntervalSelector extends StatelessWidget {
                     tab(
                       label: intervals[i],
                       selected: i == selectedIndex,
-                      onTap: () => onChanged(i),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        onChanged(i);
+                      },
                       child: Text(
                         intervals[i],
                         style: i == selectedIndex
@@ -145,8 +151,8 @@ class VistaIntervalSelector extends StatelessWidget {
             button: true,
             label: 'Indicators',
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
+              scale: 0.95,
               onTap: onIndicators,
               child: Container(
                 height: 32,
@@ -165,8 +171,8 @@ class VistaIntervalSelector extends StatelessWidget {
             button: true,
             label: 'Chart type',
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
+              scale: 0.95,
               onTap: onChartType,
               child: VistaIcon(chartTypeAsset, size: 60, height: 37),
             ),
@@ -246,8 +252,8 @@ class VistaStarButton extends StatelessWidget {
       toggled: starred,
       label: 'Favorite',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.9,
         onTap: onPressed,
         child: SizedBox(
           width: 28,
@@ -312,8 +318,8 @@ class _VistaWatchButtonState extends State<VistaWatchButton>
       toggled: widget.watched,
       label: 'Favorite',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.9,
         onTap: widget.onPressed,
         child: SizedBox.square(
           dimension: VistaSize.tapTarget,
@@ -345,7 +351,7 @@ Color vistaChangeColor(double pct) =>
     pct >= 0 ? VistaColors.long : VistaColors.short;
 
 /// Favourite card in a horizontal rail: icon, name, badge and star; price
-/// with change; 24h spark; two footnotes.
+/// with change; a line chart; two footnotes.
 class VistaMarketCard extends StatelessWidget {
   const VistaMarketCard({
     super.key,
@@ -354,7 +360,7 @@ class VistaMarketCard extends StatelessWidget {
     required this.badge,
     required this.price,
     required this.changePct,
-    required this.sparkAsset,
+    required this.chart,
     required this.footLeft,
     required this.footRight,
     this.onPressed,
@@ -365,7 +371,9 @@ class VistaMarketCard extends StatelessWidget {
   final String badge;
   final String price;
   final double changePct;
-  final String sparkAsset;
+
+  /// The 152×28 chart under the price, in the app's line style.
+  final Widget chart;
   final String footLeft;
   final String footRight;
   final VoidCallback? onPressed;
@@ -377,8 +385,8 @@ class VistaMarketCard extends StatelessWidget {
       button: true,
       label: '$name, $price, ${vistaChangeLabel(changePct)}',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.98,
         onTap: onPressed,
         child: Container(
           width: 176,
@@ -423,30 +431,26 @@ class VistaMarketCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: VistaSpace.sm),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(price, style: VistaType.headline),
-                  const SizedBox(width: VistaSpace.sm),
-                  Text(
-                    vistaChangeLabel(changePct),
-                    style: VistaType.label.copyWith(
-                      color: vistaChangeColor(changePct),
+              // Scales down at large text sizes instead of overflowing.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(price, style: VistaType.figures(VistaType.headline)),
+                    const SizedBox(width: VistaSpace.sm),
+                    Text(
+                      vistaChangeLabel(changePct),
+                      style: VistaType.figures(VistaType.label)
+                          .copyWith(color: vistaChangeColor(changePct)),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: VistaSpace.sm),
-              // The spark vector bleeds 0.66% past each side.
-              SizedBox(
-                width: 152,
-                height: 28,
-                child: OverflowBox(
-                  maxWidth: 154,
-                  child: VistaIcon(sparkAsset, size: 154, height: 28),
+                  ],
                 ),
               ),
+              const SizedBox(height: VistaSpace.sm),
+              SizedBox(width: 152, height: 28, child: chart),
               const SizedBox(height: VistaSpace.sm),
               Row(
                 children: [
@@ -508,11 +512,11 @@ class VistaMarketRow extends StatelessWidget {
         child: FittedBox(fit: BoxFit.scaleDown, child: child),
       ),
     );
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return VistaPressable(
+      scale: 0.98,
       onTap: onPressed,
       child: Container(
-        height: 48,
+        height: 56,
         padding: const EdgeInsets.only(left: 6, right: VistaSpace.gutter),
         decoration: BoxDecoration(
           color: VistaColors.surface,
@@ -524,7 +528,7 @@ class VistaMarketRow extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  VistaIcon(icon, size: 22),
+                  VistaIcon(icon, size: 26),
                   const SizedBox(width: VistaSpace.md),
                   Flexible(
                     child: Column(
@@ -563,17 +567,16 @@ class VistaMarketRow extends StatelessWidget {
             ),
             // Figma: 78 / 58 / 70. Price and last column give up a few
             // points so handles fit in the wider Open Runde face.
-            col(72, Text(price, style: VistaType.body)),
+            col(72, Text(price, style: VistaType.figures(VistaType.body))),
             col(
               58,
               Text(
                 vistaChangeLabel(changePct),
-                style: VistaType.body.copyWith(
-                  color: vistaChangeColor(changePct),
-                ),
+                style: VistaType.figures(VistaType.body)
+                    .copyWith(color: vistaChangeColor(changePct)),
               ),
             ),
-            col(64, Text(third, style: VistaType.body)),
+            col(64, Text(third, style: VistaType.figures(VistaType.body))),
           ],
         ),
       ),
@@ -695,6 +698,73 @@ class VistaRangeSlider extends StatelessWidget {
             if (v.end - v.start >= 1 / divisions - 1e-9) onChanged(v);
           },
         ),
+      ),
+    );
+  }
+}
+
+/// The line under a market's price (Figma 232:159, "24h change · V3"): an
+/// arrow, the move in money and percent in the direction's colour, then the
+/// window in grey, e.g. "▲ $798.00 (1.20%)  Past 24 hours".
+class VistaChangeLine extends StatelessWidget {
+  const VistaChangeLine({
+    super.key,
+    required this.up,
+    required this.amount,
+    required this.percent,
+    this.window = 'Past 24 hours',
+  });
+
+  final bool up;
+
+  /// Unsigned, e.g. "$798.00"; the arrow carries the direction.
+  final String amount;
+
+  /// Unsigned, e.g. "1.20%".
+  final String percent;
+  final String window;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = up ? VistaColors.long : VistaColors.short;
+    return Semantics(
+      label: '${up ? 'Up' : 'Down'} $amount, $percent, $window',
+      excludeSemantics: true,
+      child: Row(
+        children: [
+          RotatedBox(
+            quarterTurns: up ? 0 : 2,
+            child: SvgPicture.asset(
+              VistaAssets.changeArrowUp,
+              width: 9,
+              height: 7.2,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            ),
+          ),
+          const SizedBox(width: VistaSpace.sm),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Text(
+                    '$amount ($percent)',
+                    style: VistaType.figures(VistaType.subhead)
+                        .copyWith(fontWeight: FontWeight.w700, color: color),
+                  ),
+                  const SizedBox(width: VistaSpace.sm),
+                  Text(
+                    window,
+                    style: VistaType.subheadMuted.copyWith(
+                      color: VistaColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

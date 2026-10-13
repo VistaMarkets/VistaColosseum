@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
+import 'vista_icon.dart';
+import 'vista_pressable.dart';
 
 /// Text glyph (e.g. "↗", "•••") centred in a 44pt tap target.
 class VistaGlyphButton extends StatelessWidget {
@@ -25,8 +28,8 @@ class VistaGlyphButton extends StatelessWidget {
       button: true,
       label: semanticLabel,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.95,
         onTap: onPressed,
         child: SizedBox.square(
           dimension: VistaSize.tapTarget,
@@ -86,11 +89,7 @@ class VistaCountStat extends StatelessWidget {
       button: true,
       label: '$value $label',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: body,
-      ),
+      child: VistaPressable(scale: 0.95, onTap: onPressed, child: body),
     );
   }
 }
@@ -119,9 +118,12 @@ class VistaFilterChip extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
+      child: VistaPressable(
+        scale: 0.95,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onPressed();
+        },
         child: SizedBox(
           height: VistaSize.tapTarget,
           child: Center(
@@ -152,6 +154,138 @@ class VistaFilterChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Opponent line on an arena receipt: "ARENA vs (avatar) name".
+class VistaVersus {
+  const VistaVersus({required this.name, required this.avatarAsset});
+
+  final String name;
+  final String avatarAsset;
+}
+
+/// A call or arena receipt in a timeline: rail segment, title, optional
+/// versus line, and a coloured lead with quieter detail.
+class VistaReceipt extends StatelessWidget {
+  const VistaReceipt({
+    super.key,
+    required this.railAsset,
+    required this.title,
+    required this.lead,
+    required this.leadColor,
+    required this.detail,
+    this.versus,
+    this.railHeight,
+    this.compact = false,
+    this.onTap,
+  });
+
+  /// Opens the receipt's detail.
+  final VoidCallback? onTap;
+
+  /// Rail vector (10 wide; 56 tall for calls, 76 for arena receipts).
+  final String railAsset;
+
+  /// Overrides the rail height (e.g. 54 in the compact record panel).
+  final double? railHeight;
+
+  /// Tighter spacing, no bottom padding (the rail sets the row height).
+  final bool compact;
+  final String title;
+  final String lead;
+  final Color leadColor;
+  final String detail;
+  final VistaVersus? versus;
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = VistaType.chip.copyWith(fontWeight: FontWeight.w500);
+    final row = _row(meta);
+    if (onTap == null) return row;
+    return Semantics(
+      button: true,
+      label: '$title, $lead',
+      excludeSemantics: true,
+      child: VistaPressable(scale: 0.98, onTap: onTap, child: row),
+    );
+  }
+
+  Widget _row(TextStyle meta) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        VistaIcon(
+          railAsset,
+          size: 10,
+          height: railHeight ?? (versus == null ? 56 : 76),
+        ),
+        const SizedBox(width: VistaSpace.xl),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: compact ? 0 : VistaSpace.gutter),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: VistaType.subhead),
+                if (versus != null) ...[
+                  const SizedBox(height: VistaSpace.xs),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VistaColors.surfaceRaised,
+                          borderRadius: BorderRadius.circular(VistaRadius.sm),
+                        ),
+                        child: Text('DEBATE', style: VistaType.micro),
+                      ),
+                      const SizedBox(width: VistaSpace.sm),
+                      Text(
+                        'vs',
+                        style: VistaType.label.copyWith(
+                          color: VistaColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(width: VistaSpace.sm),
+                      VistaIcon(versus!.avatarAsset, size: 16),
+                      const SizedBox(width: VistaSpace.sm),
+                      Flexible(
+                        child: Text(
+                          versus!.name,
+                          style: VistaType.chip,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                SizedBox(height: compact ? 3 : VistaSpace.xs),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: lead,
+                        style: meta.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: leadColor,
+                        ),
+                      ),
+                      TextSpan(text: '   $detail'),
+                    ],
+                  ),
+                  style: meta.copyWith(color: VistaColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

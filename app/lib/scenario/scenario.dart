@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import '../charting/time_marks.dart';
 import '../design_system/design_system.dart';
-import '../features/arena/arena_mock.dart';
 import '../features/live/live_feed.dart';
 import '../features/live/market_prices.dart';
 import '../features/make_market/make_market_mock.dart';
@@ -132,10 +131,6 @@ abstract final class Scenario {
   /// by clash id: part of its books, so it changes hands with [receipts] on
   /// [switchPersona]. Only [placeOrder] adds to it, on a fill.
   static final participation = ValueNotifier<Map<String, TradeSide>>(const {});
-
-  /// The Arena's sort, crowd-split range and Ask query, shared by the list
-  /// and the crowd panel.
-  static final arena = ValueNotifier<ArenaView>(ArenaMock.allBattles);
 
   /// Fee credits to the user's market, newest first: the demo ledger
   /// (VC-MKT-004). Every fee total is summed from these, never stored.
@@ -305,17 +300,6 @@ abstract final class Scenario {
       }
     }
     return null;
-  }
-
-  /// Changes the given parts of the Arena's view.
-  static void setArena({int? sort, int? from, int? to, String? query}) {
-    final v = arena.value;
-    arena.value = (
-      sort: sort ?? v.sort,
-      from: from ?? v.from,
-      to: to ?? v.to,
-      query: query ?? v.query,
-    );
   }
 
   /// The user's fills on [side] of battle [clashId]. Receipts are unique
@@ -506,7 +490,6 @@ abstract final class Scenario {
     receipts.value = const [];
     stalePrices.value = TradeMock.stalePrices;
     participation.value = const {};
-    arena.value = ArenaMock.allBattles;
     feeEntries.value = YourMarketMock.fees;
     callReceipts.value = seedCalls;
     marketsLoadFails.value = false;
