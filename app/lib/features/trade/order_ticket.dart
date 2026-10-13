@@ -24,14 +24,10 @@ Future<void> showOrderTicket(
   BuildContext context, {
   required String symbol,
   required TradeSide side,
-  String? clashId,
 }) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000), // Figma scrim: black at 45%
-    builder: (_) => OrderTicket(symbol: symbol, side: side, clashId: clashId),
+  return showVistaSheet<void>(
+    context,
+    builder: (_) => OrderTicket(symbol: symbol, side: side),
   );
 }
 
@@ -63,18 +59,10 @@ class _Market {
 
 /// The ticket itself (the sheet's content).
 class OrderTicket extends StatefulWidget {
-  const OrderTicket({
-    super.key,
-    required this.symbol,
-    required this.side,
-    this.clashId,
-  });
+  const OrderTicket({super.key, required this.symbol, required this.side});
 
   final String symbol;
   final TradeSide side;
-
-  /// The Arena battle this ticket joins, if any; its fill carries the id.
-  final String? clashId;
 
   @override
   State<OrderTicket> createState() => _OrderTicketState();
@@ -142,7 +130,6 @@ class _OrderTicketState extends State<OrderTicket> {
     takeProfit: _exits ? _parse(_tp.text) : null,
     stopLoss: _exits ? _parse(_sl.text) : null,
     reduceOnly: _reduceOnly,
-    clashId: widget.clashId,
   );
 
   /// The most the slider reaches: all the cash, less room for the fee.
@@ -157,14 +144,22 @@ class _OrderTicketState extends State<OrderTicket> {
   @override
   void initState() {
     super.initState();
+    // Only a market order is priced by the feed; limit and stop orders take
+    // their price from the field, so their form needn't rebuild on a tick.
+    MarketPrices.of(widget.symbol).addListener(_onTick);
     _setPrice(_live);
     // A quarter of what the account can take, as in the design.
     _setUnits(_live > 0 ? _maxNotional * 0.25 / _live : 0);
     _resetExits();
   }
 
+  void _onTick() {
+    if (mounted && _kind == OrderKind.market) setState(() {});
+  }
+
   @override
   void dispose() {
+    MarketPrices.of(widget.symbol).removeListener(_onTick);
     for (final c in [_price, _size, _tp, _sl]) {
       c.dispose();
     }
@@ -201,9 +196,20 @@ class _OrderTicketState extends State<OrderTicket> {
     setState(() => _units = _sizeInUsd ? (_entry == 0 ? 0 : v / _entry) : v);
   }
 
+  /// The quarter stop the size slider last sat on, for its haptic tick.
+  double? _sizeStop;
+
   void _onSlider(double fraction) {
     if (_entry <= 0) return;
-    setState(() => _setUnits(_maxNotional * fraction / _entry));
+    // Magnetic stops: within 3% of a quarter, snap to it and tick once.
+    double? stop;
+    for (final q in const [0.0, 0.25, 0.5, 0.75, 1.0]) {
+      if ((fraction - q).abs() <= 0.03) stop = q;
+    }
+    if (stop != null && stop != _sizeStop) HapticFeedback.selectionClick();
+    _sizeStop = stop;
+    final f = stop ?? fraction;
+    setState(() => _setUnits(_maxNotional * f / _entry));
   }
 
   void _switchSide(TradeSide side) {
@@ -217,17 +223,45 @@ class _OrderTicketState extends State<OrderTicket> {
 
   String get _problem => _traderIndex ? '' : Scenario.problem(_intent) ?? '';
 
+  /// Bumped to shake the Place button when the order can't go through.
+  int _shakes = 0;
+
+  /// The field a refused order points at ('price' or 'size'), outlined in
+  /// red until it's edited.
+  String? _fault;
+
+  /// Set once a resting order is placed: the button reads "Placed ✓" before
+  /// the sheet closes.
+  bool _placed = false;
+
   /// Market orders go to review; limit and stop orders rest at once. A
-  /// trader index never reaches the store.
+  /// trader index never reaches the store. A refused order shakes the
+  /// button and outlines the field it points at.
   void _place() {
-    if (_problem.isNotEmpty) return;
+    if (_placed) return;
+    final problem = _problem;
+    if (problem.isNotEmpty) {
+      HapticFeedback.heavyImpact();
+      setState(() {
+        _shakes++;
+        _fault = switch (problem) {
+          'Enter a price' => 'price',
+          'Enter a size' ||
+          notEnoughFunds ||
+          'Size too large' ||
+          'Size too small' => 'size',
+          _ => null,
+        };
+      });
+      return;
+    }
     HapticFeedback.mediumImpact();
     if (_traderIndex) return _notBuilt(context);
     if (_kind == OrderKind.market) {
       setState(() => _review = _intent);
       return;
     }
-    _rest(context, _intent);
+    _rest(context, _intent, onPlaced: () => setState(() => _placed = true));
   }
 
   @override
@@ -237,21 +271,28 @@ class _OrderTicketState extends State<OrderTicket> {
     return Padding(
       padding: EdgeInsets.only(bottom: inset),
       child: Container(
+        // Never taller than most of the screen, so the scrim stays visible
+        // and the sheet reads as a sheet even with the keyboard up.
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        ),
+        // A dark sheet with its boxes lifted onto it (cards on the page
+        // colour), rather than a lighter slab with boxes cut in.
         decoration: const BoxDecoration(
-          color: VistaColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          color: VistaColors.background,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(VistaRadius.sheet),
+          ),
         ),
         child: SafeArea(
           top: false,
           bottom: false,
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 30 + safe),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: _review != null
                 ? _ReviewPanel(intent: _review!, requote: () => _intent)
-                : ValueListenableBuilder(
-                    valueListenable: MarketPrices.of(widget.symbol),
-                    builder: (context, _, _) => _content(),
-                  ),
+                : _content(),
           ),
         ),
       ),
@@ -272,16 +313,7 @@ class _OrderTicketState extends State<OrderTicket> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(
-          child: Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0x40FFFFFF),
-              borderRadius: BorderRadius.circular(VistaRadius.pill),
-            ),
-          ),
-        ),
+        const Center(child: VistaDragHandle()),
         gap,
         Row(
           children: [
@@ -318,7 +350,8 @@ class _OrderTicketState extends State<OrderTicket> {
           _field(
             label: _kind == OrderKind.limit ? 'Limit price' : 'Trigger price',
             controller: _price,
-            onChanged: (_) => setState(() {}),
+            fault: _fault == 'price',
+            onChanged: (_) => setState(() => _fault = null),
             trailing: [
               _chip('Mid', () => setState(() => _setPrice(_live))),
               const SizedBox(width: 8),
@@ -329,10 +362,14 @@ class _OrderTicketState extends State<OrderTicket> {
         ],
         _field(
           label: _kind == OrderKind.market
-              ? 'Size · at ${MarketPrices.format(_live)}'
+              ? 'Size   at ${MarketPrices.format(_live)}'
               : 'Size',
           controller: _size,
-          onChanged: _onSize,
+          fault: _fault == 'size',
+          onChanged: (v) {
+            _fault = null;
+            _onSize(v);
+          },
           trailing: [
             Semantics(
               button: true,
@@ -406,8 +443,8 @@ class _OrderTicketState extends State<OrderTicket> {
         ],
         gap,
         _summary(
-          'Margin · Liquidation',
-          '${formatCents(intent.marginCents)} · ${MarketPrices.format(math.max(0, liquidation), compact: true)}',
+          'Margin   Liquidation',
+          '${formatCents(intent.marginCents)}   ${MarketPrices.format(math.max(0, liquidation), compact: true)}',
         ),
         gap,
         _summary(
@@ -418,24 +455,33 @@ class _OrderTicketState extends State<OrderTicket> {
         Semantics(
           button: true,
           enabled: problem.isEmpty,
-          child: GestureDetector(
-            onTap: _place,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: problem.isEmpty ? side : VistaColors.surfaceRaised,
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-              ),
-              child: Text(
-                problem.isEmpty
-                    ? 'Place ${_kind.name} ${_side.label.toLowerCase()}'
-                    : problem,
-                style: VistaType.headline.copyWith(
-                  color: problem.isEmpty
-                      ? VistaColors.onAccent
-                      : VistaColors.textMuted,
+          child: VistaShake(
+            count: _shakes,
+            child: VistaPressable(
+              onTap: _place,
+              child: AnimatedContainer(
+                duration: VistaMotion.state,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: problem.isEmpty ? side : VistaColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(VistaRadius.pill),
+                ),
+                child: AnimatedSwitcher(
+                  duration: VistaMotion.state,
+                  child: Text(
+                    _placed
+                        ? 'Placed ✓'
+                        : problem.isEmpty
+                        ? 'Place ${_kind.name} ${_side.label.toLowerCase()}'
+                        : problem,
+                    key: ValueKey(_placed),
+                    style: VistaType.headline.copyWith(
+                      color: problem.isEmpty
+                          ? VistaColors.onAccent
+                          : VistaColors.textMuted,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -446,7 +492,7 @@ class _OrderTicketState extends State<OrderTicket> {
   }
 
   TextStyle get _unitStyle =>
-      VistaType.body.copyWith(fontSize: 14, color: VistaColors.textMuted);
+      VistaType.row.copyWith(color: VistaColors.textMuted);
 
   Widget _sideButton(TradeSide s) {
     final on = s == _side;
@@ -556,7 +602,7 @@ class _OrderTicketState extends State<OrderTicket> {
         PopupMenuItem(
           enabled: false,
           child: Text(
-            'Scale · coming soon',
+            'Scale   coming soon',
             style: VistaType.body.copyWith(color: VistaColors.textMuted),
           ),
         ),
@@ -570,7 +616,7 @@ class _OrderTicketState extends State<OrderTicket> {
     );
   }
 
-  /// "Cross · 10x": opens the leverage slider, up to the market's cap.
+  /// "Cross   10x": opens the leverage slider, up to the market's cap.
   Widget _leveragePill() {
     return Semantics(
       button: true,
@@ -579,11 +625,8 @@ class _OrderTicketState extends State<OrderTicket> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () async {
-          final l = await showModalBottomSheet<int>(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            barrierColor: const Color(0x73000000),
+          final l = await showVistaSheet<int>(
+            context,
             builder: (_) => _LeverageSheet(
               initial: _leverage,
               max: _market.maxLeverage,
@@ -603,10 +646,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 color: VistaColors.surfaceRaised,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
-              child: Text(
-                'Cross · ${_leverage}x',
-                style: VistaType.body.copyWith(fontSize: 14),
-              ),
+              child: Text('Cross   ${_leverage}x', style: VistaType.row),
             ),
           ),
         ),
@@ -638,7 +678,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 color: VistaColors.surfaceRaised,
                 borderRadius: BorderRadius.circular(VistaRadius.pill),
               ),
-              child: Text(label, style: VistaType.body.copyWith(fontSize: 14)),
+              child: Text(label, style: VistaType.row),
             ),
           ),
         ),
@@ -657,6 +697,8 @@ class _OrderTicketState extends State<OrderTicket> {
       style: style,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+      // The decimal pad has no return key: tapping anywhere else closes it.
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
       cursorColor: VistaColors.accent,
       decoration: const InputDecoration(
         isDense: true,
@@ -671,13 +713,21 @@ class _OrderTicketState extends State<OrderTicket> {
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
     List<Widget> trailing = const [],
+    bool fault = false,
   }) {
-    return Container(
+    return AnimatedContainer(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 14),
+      duration: VistaMotion.state,
       decoration: BoxDecoration(
-        color: VistaColors.background,
+        color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
+        // Red when a refused order points here; clear otherwise (same width
+        // either way, so nothing shifts).
+        border: Border.all(
+          color: fault ? VistaColors.short : const Color(0x00000000),
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
@@ -688,7 +738,7 @@ class _OrderTicketState extends State<OrderTicket> {
               children: [
                 Text(label, style: _fieldLabel, maxLines: 1),
                 const SizedBox(height: 2),
-                _input(controller, onChanged, VistaType.tab),
+                _input(controller, onChanged, VistaType.figures(VistaType.tab)),
               ],
             ),
           ),
@@ -709,7 +759,7 @@ class _OrderTicketState extends State<OrderTicket> {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: VistaColors.background,
+        color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -724,7 +774,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 _input(
                   c,
                   (_) => setState(() {}),
-                  VistaType.subhead.copyWith(fontSize: 16),
+                  VistaType.figures(VistaType.tab),
                 ),
               ],
             ),
@@ -759,7 +809,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: on ? VistaColors.accent : VistaColors.background,
+                  color: on ? VistaColors.accent : VistaColors.surface,
                   borderRadius: BorderRadius.circular(5),
                   border: on
                       ? null
@@ -767,7 +817,7 @@ class _OrderTicketState extends State<OrderTicket> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(label, style: VistaType.body.copyWith(fontSize: 14)),
+              Text(label, style: VistaType.row),
             ],
           ),
         ),
@@ -781,13 +831,10 @@ class _OrderTicketState extends State<OrderTicket> {
         Expanded(
           child: Text(
             label,
-            style: VistaType.bodyMedium.copyWith(
-              fontSize: 14,
-              color: VistaColors.textMuted,
-            ),
+            style: VistaType.rowMedium.copyWith(color: VistaColors.textMuted),
           ),
         ),
-        Text(value, style: VistaType.body.copyWith(fontSize: 14)),
+        Text(value, style: VistaType.figures(VistaType.row)),
       ],
     );
   }
@@ -819,17 +866,26 @@ void _notBuilt(BuildContext context) {
 }
 
 /// A limit or stop order: rests in Open orders through the store, then
-/// the ticket closes and says so.
-void _rest(BuildContext context, OrderIntent intent) {
+/// the ticket closes and says so. With [onPlaced], the ticket first shows
+/// the placement on its button and closes after [VistaMotion.confirmHold].
+void _rest(BuildContext context, OrderIntent intent, {VoidCallback? onPlaced}) {
   final result = Scenario.placeOrder(intent);
   if (result is OrderFailed) return _toast(context, result.reason);
   final kind = intent.kind.name;
-  Navigator.of(context).pop();
-  _toast(
-    context,
-    '${kind[0].toUpperCase()}${kind.substring(1)} '
-    '${intent.side.label.toLowerCase()} placed · in Open orders (simulated)',
-  );
+  void close() {
+    Navigator.of(context).pop();
+    _toast(
+      context,
+      '${kind[0].toUpperCase()}${kind.substring(1)} '
+      '${intent.side.label.toLowerCase()} placed   in Open orders (simulated)',
+    );
+  }
+
+  if (onPlaced == null) return close();
+  onPlaced();
+  Future.delayed(VistaMotion.confirmHold, () {
+    if (context.mounted) close();
+  });
 }
 
 /// Review, then the result, of a market order, inside the ticket's sheet.
@@ -870,7 +926,7 @@ class _ReviewPanelState extends State<_ReviewPanel> {
     final nav = Navigator.of(context);
     _toast(
       context,
-      '${r.name} ${r.side.label.toLowerCase()} filled · '
+      '${r.name} ${r.side.label.toLowerCase()} filled   '
       '${formatCents(r.totalCents)} from paper cash (simulated)',
       action: SnackBarAction(
         label: 'View in Wallet',
@@ -903,9 +959,10 @@ class _ReviewPanelState extends State<_ReviewPanel> {
     final fee = filled?.feeCents ?? i.feeCents;
     final copyFee = filled?.copyFeeCents ?? Scenario.copyFeeCents(i);
     final close = Navigator.of(context).pop;
-    // The review's 14 pt figure style, defined once for every line.
-    final figure = VistaType.body.copyWith(fontSize: 14);
-    final muted = figure.copyWith(color: VistaColors.textMuted);
+    // The review's row styles (as the ticket's summary lines), defined once
+    // for every line.
+    final figure = VistaType.figures(VistaType.row);
+    final muted = VistaType.rowMedium.copyWith(color: VistaColors.textMuted);
     Widget row(String label, String value) => Padding(
       key: ValueKey(label),
       padding: const EdgeInsets.only(top: VistaSpace.lg),
@@ -923,8 +980,7 @@ class _ReviewPanelState extends State<_ReviewPanel> {
             enabled: onTap != null,
             label: text,
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
               onTap: onTap,
               child: Container(
                 height: 52,
@@ -965,7 +1021,7 @@ class _ReviewPanelState extends State<_ReviewPanel> {
           OrderFilled() => 'Order filled',
           OrderFailed() => 'Order not placed',
           _ => 'Review order',
-        }, style: VistaType.subhead.copyWith(fontSize: 20)),
+        }, style: VistaType.title),
         if (result is OrderFailed) ...[
           const SizedBox(height: 4),
           Text(
@@ -973,11 +1029,11 @@ class _ReviewPanelState extends State<_ReviewPanel> {
             style: VistaType.body.copyWith(color: VistaColors.short),
           ),
         ],
-        row('Instrument', '${i.name} · ${i.symbol}'),
+        row('Instrument', '${i.name}   ${i.symbol}'),
         row('Direction', '${i.side.label} ${i.leverage}x'),
         row(
           'Size',
-          '${groupDigits(i.units, i.unitDecimals)} ${i.symbol} · '
+          '${groupDigits(i.units, i.unitDecimals)} ${i.symbol}   '
               '${formatCents(notional)}',
         ),
         row('Reference price', MarketPrices.format(i.price)),
@@ -1152,17 +1208,8 @@ class _LeverageSheetState extends State<_LeverageSheet> {
 
   double get _fraction => widget.max <= 1 ? 1 : (_l - 1) / (widget.max - 1);
 
-  void _set(int l) {
-    final next = l.clamp(1, widget.max);
-    if (next == _l) return;
-    HapticFeedback.selectionClick();
-    setState(() => _l = next);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final safe = MediaQuery.paddingOf(context).bottom;
-    // Round stops: 1x, then every 10x on a 50x market, 5x on 20x, ...
+  /// Round stops: 1x, then every 10x on a 50x market, 5x on 20x, ...
+  List<int> get _marks {
     final max = widget.max;
     final step = max >= 40
         ? 10
@@ -1171,12 +1218,32 @@ class _LeverageSheetState extends State<_LeverageSheet> {
         : max >= 10
         ? 2
         : 1;
-    final marks = [
+    return [
       1,
       for (var m = step; m < max; m += step)
         if (m > 1) m,
       max,
     ];
+  }
+
+  void _set(int l) {
+    final next = l.clamp(1, widget.max);
+    if (next == _l) return;
+    // Tick on the marked stops only (not every step of a 50x drag), and a
+    // firmer tap at the market's cap.
+    if (next == widget.max) {
+      HapticFeedback.lightImpact();
+    } else if (_marks.contains(next)) {
+      HapticFeedback.selectionClick();
+    }
+    setState(() => _l = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final safe = MediaQuery.paddingOf(context).bottom;
+    final max = widget.max;
+    final marks = _marks;
     double at(int m) => max <= 1 ? 1 : (m - 1) / (max - 1);
     // Scroll-controlled: sized to its content, so the bottom inset (which
     // includes the simulated pill's strip) never pushes Set off the sheet.
@@ -1187,7 +1254,9 @@ class _LeverageSheetState extends State<_LeverageSheet> {
       child: Container(
         decoration: const BoxDecoration(
           color: VistaColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(VistaRadius.sheet),
+          ),
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(16, 10, 16, 24 + safe),
@@ -1197,7 +1266,7 @@ class _LeverageSheetState extends State<_LeverageSheet> {
             children: [
               const Center(child: VistaDragHandle()),
               const SizedBox(height: 12),
-              Text('Leverage', style: VistaType.subhead.copyWith(fontSize: 20)),
+              Text('Leverage', style: VistaType.title),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -1281,7 +1350,7 @@ class _LeverageSheetState extends State<_LeverageSheet> {
                   ),
                   Text(
                     MarketPrices.format(widget.liquidation(_l)),
-                    style: VistaType.body.copyWith(fontSize: 14),
+                    style: VistaType.row,
                   ),
                 ],
               ),

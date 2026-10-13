@@ -8,6 +8,7 @@ import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
 import 'package:vista_colosseum/features/home/trade_idea_card.dart';
 import 'package:vista_colosseum/features/market/receipt_screens.dart';
+import 'package:vista_colosseum/features/markets/explore_sections.dart';
 import 'package:vista_colosseum/features/people/follow_list_screen.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
@@ -20,12 +21,15 @@ import 'trader_record_test.dart' show pumpApp;
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 /// The phones the simulation strip is tightest on (360x640, 375x667).
@@ -48,8 +52,7 @@ Finder get failureSwitch => find.byWidgetPredicate(
 );
 
 /// Every core list emptied: no positions, open orders, paper or call
-/// receipts, follows, favourites or fee credits, and an Ask no battle
-/// matches.
+/// receipts, follows, favourites or fee credits.
 void emptyScenario() {
   Scenario.positions.value = const [];
   Scenario.openOrders.value = const [];
@@ -61,7 +64,6 @@ void emptyScenario() {
   Scenario.favoriteTraders.value = const [];
   Scenario.feeEntries.value = const [];
   Scenario.callReceipts.value = const [];
-  Scenario.setArena(query: 'doge');
 }
 
 /// At the end of the screen's list, [line] shows with its one [action],
@@ -123,14 +125,6 @@ void main() {
         reason: '$name Home feed',
       );
 
-      await open(tab: 2);
-      await expectEmpty(
-        tester,
-        'No battles on “doge”',
-        'Clear search',
-        reason: '$name Arena',
-      );
-
       await open(tab: AppShell.wallet);
       await expectEmpty(
         tester,
@@ -138,9 +132,9 @@ void main() {
         'Explore markets',
         reason: '$name Positions',
       );
-      await tester.ensureVisible(find.text('Open orders'));
+      await tester.ensureVisible(find.text('Orders'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Open orders'));
+      await tester.tap(find.text('Orders'));
       await tester.pumpAndSettle();
       await expectEmpty(
         tester,
@@ -216,7 +210,7 @@ void main() {
     await tester.tap(find.text('Explore markets'));
     await tester.pumpAndSettle();
     expect(AppShell.tab.value, 1);
-    expect(find.text('ALL MARKETS'), findsOneWidget);
+    expect(find.byType(ExploreSections), findsOneWidget);
 
     // From a pushed list it closes the list first.
     AppShell.tab.value = AppShell.wallet;
@@ -228,14 +222,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(FollowListScreen), findsNothing);
     expect(AppShell.tab.value, 1);
-    expect(find.text('ALL MARKETS'), findsOneWidget);
+    expect(find.byType(ExploreSections), findsOneWidget);
 
     // Open orders' own action, not the Positions one tapped above.
     AppShell.tab.value = AppShell.wallet;
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Open orders'));
+    await tester.ensureVisible(find.text('Orders'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Open orders'));
+    await tester.tap(find.text('Orders'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Explore markets'));
     await tester.pumpAndSettle();
@@ -276,19 +270,9 @@ void main() {
     await tapEach(const ProfileScreen(handle: 'kilo.sol'), 1);
   });
 
-  testWidgets('Clear search brings back an emptied Ask or follow search', (
+  testWidgets('Clear search brings back an emptied follow search', (
     tester,
   ) async {
-    Scenario.setArena(query: 'doge');
-    await pumpApp(tester);
-    AppShell.tab.value = 2;
-    await tester.pumpAndSettle();
-    expect(find.byType(VistaBattleCard), findsNothing);
-    await tester.tap(find.text('Clear search'));
-    await tester.pumpAndSettle();
-    expect(Scenario.arena.value.query, isEmpty);
-    expect(find.byType(VistaBattleCard), findsWidgets);
-
     await pumpApp(tester, home: const FollowListScreen());
     await tester.enterText(find.byType(TextField), 'zzz');
     await tester.pumpAndSettle();
@@ -332,27 +316,26 @@ void main() {
     // No other tab depends on it. The pushed lists (Receipts, Ledger,
     // Follow) are checked with it on in 'seeded lists show no empty state'.
     for (final (tab, loaded) in [
-      (0, TradeIdeaCard),
-      (2, VistaBattleCard),
-      (AppShell.wallet, VistaListRow),
+      (0, find.byType(TradeIdeaCard)),
+      // Arena's live battle cards ("<question>, 58% long, 4h left").
+      (2, find.bySemanticsLabel(RegExp(r'% long, '))),
+      (AppShell.wallet, find.byType(VistaListRow)),
     ]) {
       AppShell.tab.value = tab;
       await tester.pumpAndSettle();
-      expect(find.byType(loaded), findsWidgets, reason: 'tab $tab');
+      expect(loaded, findsWidgets, reason: 'tab $tab');
       expect(find.text(loadFailed), findsNothing, reason: 'tab $tab');
     }
 
     AppShell.tab.value = 1;
     await tester.pumpAndSettle();
     expect(find.text(loadFailed), findsOneWidget);
-    expect(find.byType(VistaMarketRow), findsNothing);
-    expect(find.text('ALL MARKETS'), findsNothing);
+    expect(find.byType(ExploreSections), findsNothing);
 
     await tester.tap(find.widgetWithText(VistaPillButton, 'Retry'));
     await tester.pumpAndSettle();
     expect(find.text(loadFailed), findsNothing);
-    expect(find.text('ALL MARKETS'), findsOneWidget);
-    expect(find.byType(VistaMarketRow), findsWidgets);
+    expect(find.byType(ExploreSections), findsOneWidget);
 
     // Retry turned the toggle off.
     await openSettings();
@@ -368,14 +351,16 @@ void main() {
     await tester.pumpAndSettle();
     final markets = find
         .ancestor(
-          of: find.text('ALL MARKETS'),
+          of: find.byType(ExploreSections),
           matching: find.byType(Scrollable),
         )
         .first;
     await tester.drag(markets, const Offset(0, -300));
     await tester.pumpAndSettle();
     double offset() =>
-        Scrollable.of(tester.element(find.text('ALL MARKETS'))).position.pixels;
+        Scrollable.of(tester.element(find.byType(ExploreSections)))
+            .position
+            .pixels;
     final before = offset();
     expect(before, greaterThan(0));
 
@@ -385,7 +370,7 @@ void main() {
     await tester.tap(find.widgetWithText(VistaPillButton, 'Retry'));
     await tester.pumpAndSettle();
     expect(Scenario.marketsLoadFails.value, isFalse);
-    expect(find.text('ALL MARKETS'), findsOneWidget);
+    expect(find.byType(ExploreSections), findsOneWidget);
     expect(offset(), before);
   });
 
@@ -402,7 +387,7 @@ void main() {
     AppShell.tab.value = AppShell.wallet;
     await tester.pumpAndSettle();
     expect(find.byType(VistaEmptyState), findsNothing, reason: 'Positions');
-    await tester.tap(find.text('Open orders'));
+    await tester.tap(find.text('Orders'));
     await tester.pumpAndSettle();
     expect(find.byType(VistaEmptyState), findsNothing, reason: 'Open orders');
 

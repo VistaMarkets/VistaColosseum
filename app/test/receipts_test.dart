@@ -24,12 +24,15 @@ import 'scenario_test.dart' show ethLong;
 
 /// The app's font, so text measures as on a device.
 Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
   }
-  await loader.load();
 }
 
 /// Pumps the app (or [home] inside the real app builder) on a phone of
@@ -389,20 +392,21 @@ void main() {
     await back(tester, CallReceiptScreen);
 
     // Another trader's profile: maya.eth's ETH call backs only her own.
-    await pumpApp(tester, home: const ProfileScreen(handle: 'kaito.eth'));
+    // vega holds ETH (their own profile figures) and has no seeded call.
+    await pumpApp(tester, home: const ProfileScreen(handle: 'vega'));
     await tapAndSettle(tester, holding('ETH'));
-    expect(onReceipt(find.text('kaito.eth')), findsOneWidget);
+    expect(onReceipt(find.text('vega')), findsOneWidget);
     expect(onReceipt(find.text(noCall)), findsOneWidget);
     expect(onReceipt(find.text(eth.rule!)), findsNothing);
     await back(tester, CallReceiptScreen);
 
     // The trader market's Portfolio panel: another trader, no seeded calls.
-    await pumpApp(tester, home: const TraderMarketScreen(handle: 'kaito.eth'));
+    await pumpApp(tester, home: const TraderMarketScreen(handle: 'vega'));
     await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
     await tester.pumpAndSettle();
-    await tapAndSettle(tester, holding('SOL'));
-    expect(onReceipt(find.text('kaito.eth')), findsOneWidget);
-    expect(onReceipt(find.text('SOL')), findsOneWidget);
+    await tapAndSettle(tester, holding('ETH'));
+    expect(onReceipt(find.text('vega')), findsOneWidget);
+    expect(onReceipt(find.text('ETH')), findsOneWidget);
     expect(onReceipt(find.text(noCall)), findsOneWidget);
     await back(tester, CallReceiptScreen);
     // maya.eth's open ETH call backs only her own ETH holding.

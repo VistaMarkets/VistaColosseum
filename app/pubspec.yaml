@@ -35,3 +35,13 @@ flutter:
           weight: 600
         - asset: assets/fonts/OpenRunde-Bold.otf
           weight: 700
+    # Open Runde with fixed-width digits, for numbers (tool/tabular_digits.py).
+    - family: OpenRundeTabular
+      fonts:
+        - asset: assets/fonts/OpenRundeTabular-Regular.otf
+        - asset: assets/fonts/OpenRundeTabular-Medium.otf
+          weight: 500
+        - asset: assets/fonts/OpenRundeTabular-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/OpenRundeTabular-Bold.otf
+          weight: 700

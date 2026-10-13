@@ -16,11 +16,8 @@ Future<void> showFeedOrderTicket(
   String? sourceCallId,
   String? sourceAuthorHandle,
 }) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x73000000),
+  return showVistaSheet<void>(
+    context,
     builder: (_) => FeedOrderTicket(
       symbol: symbol,
       side: side,
@@ -155,6 +152,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
 
   void _setMargin(int cents, {bool fromField = false}) {
     setState(() {
+      _fault = null;
       _marginCents = math.max(0, cents);
       if (!fromField) _amount.text = _fmtUsd(_margin);
     });
@@ -166,11 +164,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   });
 
   Future<void> _custom() async {
-    final l = await showModalBottomSheet<int>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: const Color(0x73000000),
+    final l = await showVistaSheet<int>(
+      context,
       builder: (_) => _LeverageSheet(
         initial: _leverage,
         max: _market.maxLeverage,
@@ -181,13 +176,39 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     if (l != null && mounted) _setLeverage(l);
   }
 
+  /// Bumped to shake the order button when the order can't go through.
+  int _shakes = 0;
+
+  /// The field a refused order points at ('price' or 'amount'), outlined in
+  /// red until it's edited.
+  String? _fault;
+
+  /// Set once a resting order is placed: the button reads "Placed ✓" before
+  /// the sheet closes.
+  bool _placed = false;
+
   /// A market order goes to review; a limit rests at once. A trader index
-  /// never reaches the store.
+  /// never reaches the store. An order that can't go through shakes the
+  /// button instead.
   void _place() {
-    if (_problem != null) return;
+    if (_placed) return;
+    if (_problem != null) {
+      HapticFeedback.heavyImpact();
+      setState(() {
+        _shakes++;
+        _fault = _problem == 'Enter a limit price' ? 'price' : 'amount';
+      });
+      return;
+    }
     HapticFeedback.mediumImpact();
     if (_traderIndex) return _notBuilt(context);
-    if (_limit) return _rest(context, _intent);
+    if (_limit) {
+      return _rest(
+        context,
+        _intent,
+        onPlaced: () => setState(() => _placed = true),
+      );
+    }
     setState(() => _review = _intent);
   }
 
@@ -221,8 +242,10 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
         ),
         child: Container(
           decoration: const BoxDecoration(
-            color: VistaColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: VistaColors.background,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(VistaRadius.sheet),
+            ),
           ),
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + safe),
@@ -253,7 +276,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                         _field(
                           label: 'Limit price',
                           controller: _price,
-                          onChanged: (_) => setState(() {}),
+                          fault: _fault == 'price',
+                          onChanged: (_) => setState(() => _fault = null),
                         ),
                         gap,
                       ],
@@ -276,9 +300,10 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                       _leverageRow(),
                       gap,
                       _field(
-                        label: 'Amount · you have ${formatCents(_cash)}',
+                        label: 'Amount   you have ${formatCents(_cash)}',
                         controller: _amount,
                         prefix: r'$',
+                        fault: _fault == 'amount',
                         onChanged: (t) =>
                             _setMargin(_parseCents(t), fromField: true),
                       ),
@@ -314,11 +339,14 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                             'of available',
                       ),
                       gap,
+                      // What you pay versus what you control, spelled out.
                       Text(
-                        '\$${_fmtUsd(_notional)} of ${widget.symbol} at '
-                        '${_leverage}x · $_units',
+                        'You pay \$${_fmtUsd(_margin)} → '
+                        '\$${_fmtUsd(_notional)} position (${_leverage}x)   '
+                        '$_units',
                         style: muted12,
                       ),
+                      gap,
                       _exitsCheck(muted12),
                       if (_exits) ...[
                         _TpSlTrack(
@@ -416,42 +444,40 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
         if (l <= _market.maxLeverage) l,
     ];
     final custom = !presets.contains(_leverage);
-    Widget chip(
-      String label,
-      bool on,
-      VoidCallback onTap,
-      String semantics,
-    ) => Expanded(
-      child: Semantics(
-        button: true,
-        selected: on,
-        label: semantics,
-        excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: on ? VistaColors.textPrimary : VistaColors.surfaceRaised,
-              borderRadius: BorderRadius.circular(VistaRadius.pill),
-            ),
-            child: Text(
-              label,
-              style: VistaType.subhead.copyWith(
-                fontWeight: FontWeight.w700,
-                color: on ? const Color(0xFF111111) : VistaColors.textPrimary,
+    Widget chip(String label, bool on, VoidCallback onTap, String semantics) =>
+        Expanded(
+          child: Semantics(
+            button: true,
+            selected: on,
+            label: semantics,
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: on
+                      ? VistaColors.textPrimary
+                      : VistaColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(VistaRadius.pill),
+                ),
+                child: Text(
+                  label,
+                  style: VistaType.subhead.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: on ? VistaColors.ink : VistaColors.textPrimary,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+        );
     return Row(
       children: [
         for (final l in presets) ...[
@@ -478,13 +504,21 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
     String? prefix,
+    bool fault = false,
   }) {
-    final value = VistaType.body.copyWith(fontSize: 17);
-    return Container(
+    final value = VistaType.figures(VistaType.tab);
+    return AnimatedContainer(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      duration: VistaMotion.state,
       decoration: BoxDecoration(
-        color: VistaColors.background,
+        color: VistaColors.surface,
         borderRadius: BorderRadius.circular(14),
+        // Red when a refused order points here; clear otherwise (same width
+        // either way, so nothing shifts).
+        border: Border.all(
+          color: fault ? VistaColors.short : const Color(0x00000000),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,6 +545,8 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
                   style: value,
+                  // The decimal pad has no return key: tapping anywhere else closes it.
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   cursorColor: VistaColors.accent,
                   decoration: const InputDecoration(
                     isDense: true,
@@ -546,7 +582,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: _exits ? VistaColors.accent : VistaColors.background,
+                  color: _exits ? VistaColors.accent : VistaColors.surface,
                   borderRadius: BorderRadius.circular(5),
                   border: _exits
                       ? null
@@ -564,10 +600,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                     : null,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Take profit / Stop loss',
-                style: VistaType.body.copyWith(fontSize: 14),
-              ),
+              Text('Take profit / Stop loss', style: VistaType.row),
               const SizedBox(width: 10),
               Flexible(
                 child: Text(
@@ -585,7 +618,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
   }
 
   Widget _exitsSummary() {
-    final value = VistaType.body;
+    final value = VistaType.figures(VistaType.body);
     final rr = _slPct <= 0 ? 0 : _tpPct / _slPct;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -602,7 +635,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
             ),
             const SizedBox(height: 2),
             Text(
-              '−${_slPct.toStringAsFixed(1)}% · '
+              '−${_slPct.toStringAsFixed(1)}%   '
               '${_signedUsd(-_notional * _slPct / 100)}',
               style: value,
             ),
@@ -612,7 +645,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              'Risk / reward · 1 : ${rr.toStringAsFixed(1)}',
+              'Risk / reward   1 : ${rr.toStringAsFixed(1)}',
               style: VistaType.meta.copyWith(color: VistaColors.textMuted),
             ),
           ),
@@ -629,7 +662,7 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
             ),
             const SizedBox(height: 2),
             Text(
-              '+${_tpPct.toStringAsFixed(1)}% · '
+              '+${_tpPct.toStringAsFixed(1)}%   '
               '${_signedUsd(_notional * _tpPct / 100)}',
               style: value,
             ),
@@ -641,18 +674,20 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
 
   Widget _buttons() {
     final problem = _problem;
-    final label =
-        problem ?? '${widget.side.label} \$${_fmtUsd(_margin)} · ${_leverage}x';
+    final label = _placed
+        ? 'Placed ✓'
+        : problem ??
+              '${widget.side.label} \$${_fmtUsd(_margin)}   ${_leverage}x';
     Widget button(String text, Color bg, Color fg, VoidCallback? onTap) =>
         Expanded(
           child: Semantics(
             button: true,
             label: text,
             excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: VistaPressable(
               onTap: onTap,
-              child: Container(
+              child: AnimatedContainer(
+                duration: VistaMotion.state,
                 height: 52,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -661,9 +696,13 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
                 ),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
-                    text,
-                    style: VistaType.headline.copyWith(color: fg),
+                  child: AnimatedSwitcher(
+                    duration: VistaMotion.state,
+                    child: Text(
+                      text,
+                      key: ValueKey(text == 'Placed ✓'),
+                      style: VistaType.headline.copyWith(color: fg),
+                    ),
                   ),
                 ),
               ),
@@ -682,11 +721,25 @@ class _FeedOrderTicketState extends State<FeedOrderTicket> {
           },
         ),
         const SizedBox(width: 10),
-        button(
-          label,
-          problem == null ? widget.side.color : VistaColors.surfaceRaised,
-          problem == null ? VistaColors.onAccent : VistaColors.textMuted,
-          problem == null ? _place : null,
+        // Always tappable: an order that can't go through shakes instead.
+        Expanded(
+          child: VistaShake(
+            count: _shakes,
+            child: Row(
+              children: [
+                button(
+                  label,
+                  problem == null
+                      ? widget.side.color
+                      : VistaColors.surfaceRaised,
+                  problem == null
+                      ? VistaColors.onAccent
+                      : VistaColors.textMuted,
+                  _place,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -863,7 +916,7 @@ class _Grip extends StatelessWidget {
     width: 2.7,
     height: 11,
     decoration: BoxDecoration(
-      color: const Color(0xFF0E0E0E),
+      color: VistaColors.ink,
       borderRadius: BorderRadius.circular(2),
     ),
   );

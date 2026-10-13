@@ -5,24 +5,43 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vista_colosseum/features/notifications/notifications_screen.dart';
+import 'package:vista_colosseum/features/profile/edit_profile_screen.dart';
+import 'package:vista_colosseum/features/arena/trending_calls_screen.dart';
+import 'package:vista_colosseum/features/arena/hub_call_card.dart';
+import 'package:vista_colosseum/features/arena/room_screen.dart';
+import 'package:vista_colosseum/features/arena/arena_screen.dart';
+import 'package:vista_colosseum/features/markets/market_chart_card.dart';
 import 'package:vista_colosseum/charting/charting.dart';
 import 'package:vista_colosseum/design_system/design_system.dart';
 import 'package:vista_colosseum/features/account/account_state.dart';
 import 'package:vista_colosseum/features/account/account_top_bar.dart';
-import 'package:vista_colosseum/features/arena/arena_mock.dart';
-import 'package:vista_colosseum/features/arena/arena_screen.dart';
 import 'package:vista_colosseum/features/home/home_screen.dart';
-import 'package:vista_colosseum/features/home/maker_suggestion.dart';
 import 'package:vista_colosseum/features/home/mock_trade_idea.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_pager.dart';
 import 'package:vista_colosseum/features/portfolio/portfolio_screen.dart';
+import 'package:vista_colosseum/features/arena/settlement_item.dart';
+import 'package:vista_colosseum/features/arena/take_card.dart';
+import 'package:vista_colosseum/features/arena/arena_mock.dart';
+import 'package:vista_colosseum/features/arena/pick_position_screen.dart';
+import 'package:vista_colosseum/features/arena/compose_take_screen.dart';
+import 'package:vista_colosseum/features/arena/battle_builder.dart';
+import 'package:vista_colosseum/features/calls/calls_store.dart';
+import 'package:vista_colosseum/features/home/home_feed.dart';
+import 'package:vista_colosseum/features/live/live_feed.dart';
 import 'package:vista_colosseum/features/portfolio/series_chart.dart';
-import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
-import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/profile/profile_screen.dart';
+import 'package:vista_colosseum/features/profile/trader_profile.dart';
+import 'package:vista_colosseum/features/portfolio/trade_history.dart';
+import 'package:vista_colosseum/features/invite/invite_sheet.dart';
+import 'package:vista_colosseum/features/arena/battle_result_sheet.dart';
+import 'package:vista_colosseum/features/profile/receipts_screen.dart';
+import 'package:vista_colosseum/features/portfolio/position_sheet.dart';
+import 'package:vista_colosseum/features/portfolio/positions_state.dart';
+import 'package:vista_colosseum/features/people/follow_state.dart';
+import 'package:vista_colosseum/features/profile/private_profile_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_screen.dart';
 import 'package:vista_colosseum/features/settings/settings_state.dart';
-import 'package:vista_colosseum/features/simulation/simulation_indicator.dart';
 import 'package:vista_colosseum/features/watchlist/edit_favorites_screen.dart';
 import 'package:vista_colosseum/features/watchlist/watchlist_state.dart';
 import 'package:vista_colosseum/features/trade/asset_trade_screen.dart';
@@ -30,19 +49,29 @@ import 'package:vista_colosseum/features/trade/candle_chart.dart';
 import 'package:vista_colosseum/features/live/market_prices.dart';
 import 'package:vista_colosseum/features/home/replay_script.dart';
 import 'package:vista_colosseum/features/markets/markets_mock.dart';
-import 'package:vista_colosseum/features/market/market_mock.dart' show traderCalls;
-import 'package:vista_colosseum/features/market/receipt_screens.dart' show CallReceiptScreen;
 import 'package:vista_colosseum/features/market/trader_market_screen.dart';
-import 'package:vista_colosseum/features/market/your_market_screen.dart';
+import 'package:vista_colosseum/features/markets/markets_screen.dart';
+import 'package:vista_colosseum/features/arena/battle_screen.dart';
+import 'package:vista_colosseum/features/markets/explore_sections.dart';
+import 'package:vista_colosseum/features/markets/trader_standing.dart';
+import 'package:vista_colosseum/features/trade/trade_mock.dart';
+import 'package:vista_colosseum/features/arena/challenge_sheet.dart';
+import 'package:vista_colosseum/features/portfolio/portfolio_mock.dart';
 import 'package:vista_colosseum/features/portfolio/orders_state.dart';
 import 'package:vista_colosseum/features/trade/order_ticket.dart';
 import 'package:vista_colosseum/features/trade/caller_play_screen.dart';
 import 'package:vista_colosseum/features/home/trade_idea_card.dart';
 import 'package:vista_colosseum/features/home/people_in_sheet.dart';
 import 'package:vista_colosseum/features/share/share_call_sheet.dart';
+import 'package:vista_colosseum/features/home/maker_suggestion.dart';
+import 'package:vista_colosseum/features/market/market_mock.dart'
+    show traderCalls;
+import 'package:vista_colosseum/features/market/receipt_screens.dart'
+    show CallReceiptScreen;
+import 'package:vista_colosseum/features/market/your_market_screen.dart';
+import 'package:vista_colosseum/features/simulation/simulation_indicator.dart';
 import 'package:vista_colosseum/main.dart';
 import 'package:vista_colosseum/scenario/scenario.dart';
-import 'package:vista_colosseum/features/trade/trade_mock.dart';
 
 import 'scenario_test.dart' show state;
 
@@ -54,6 +83,101 @@ Finder get pagerBalance => find.descendant(
 
 /// The breakout label is the last event the trace reaches.
 Finder get breakoutLabel => find.text(r'Broke $2,950');
+
+/// Phone sizes (logical px) and safe-area insets the Home screen must fit.
+const phones = <String, (Size, EdgeInsets)>{
+  'small Android 360x640': (Size(360, 640), EdgeInsets.only(top: 24)),
+  'iPhone SE 375x667': (Size(375, 667), EdgeInsets.only(top: 20)),
+  'iPhone 15 393x852': (Size(393, 852), EdgeInsets.only(top: 59, bottom: 34)),
+  'Pixel 7 412x915': (Size(412, 915), EdgeInsets.only(top: 24, bottom: 24)),
+  'iPhone 15 Pro Max 430x932': (
+    Size(430, 932),
+    EdgeInsets.only(top: 59, bottom: 34),
+  ),
+};
+
+Future<void> _loadFonts() async {
+  // The text face and its fixed-width-digit twin for numbers.
+  for (final family in ['OpenRunde', 'OpenRundeTabular']) {
+    final loader = FontLoader(family);
+    for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
+      final bytes = File('assets/fonts/$family-$w.otf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
+  }
+}
+
+/// Fields outlined in red (a refused order pointing at them) inside [of].
+Finder redFields(Type of) => find.descendant(
+  of: find.byType(of),
+  matching: find.byWidgetPredicate(
+    (w) =>
+        w is AnimatedContainer &&
+        w.decoration is BoxDecoration &&
+        ((w.decoration! as BoxDecoration).border as Border?)?.top.color ==
+            VistaColors.short,
+  ),
+);
+
+/// From the Arena hub, Trending calls › See all: every call
+/// (`TrendingCallsScreen`).
+Future<void> openAllCalls(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    find.text('Trending calls'),
+    300,
+    scrollable: find
+        .descendant(
+          of: find.byType(ArenaScreen),
+          matching: find.byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          ),
+        )
+        .first,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(
+      of: find
+          .ancestor(of: find.text('Trending calls'), matching: find.byType(Row))
+          .first,
+      matching: find.text('See all'),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// The Live battles page on its own (every live debate, sortable).
+/// Explore's full list sits under the sideways sections: scroll to it.
+Future<void> scrollToAllMarkets(WidgetTester tester) async {
+  final list = find
+      .descendant(
+        of: find.byType(MarketsScreen),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  await tester.scrollUntilVisible(
+    find.text('ALL MARKETS'),
+    300,
+    scrollable: list,
+  );
+  await tester.ensureVisible(find.text('ALL MARKETS'));
+  await tester.pumpAndSettle();
+}
+
+/// Back to the top of Explore (search, tabs, Favorites).
+Future<void> scrollExploreToTop(WidgetTester tester) async {
+  await tester.drag(
+    find
+        .descendant(
+          of: find.byType(MarketsScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+    const Offset(0, 4000),
+  );
+  await tester.pumpAndSettle();
+}
 
 /// The simulated pill's label.
 final pill = RegExp(r'^Simulated · fixture-v1');
@@ -70,35 +194,23 @@ void expectPillClear(WidgetTester tester, Finder targets) {
   }
 }
 
-/// Phone sizes (logical px) and safe-area insets the Home screen must fit.
-const phones = <String, (Size, EdgeInsets)>{
-  'small Android 360x640': (Size(360, 640), EdgeInsets.only(top: 24)),
-  'iPhone SE 375x667': (Size(375, 667), EdgeInsets.only(top: 20)),
-  'iPhone 15 393x852': (Size(393, 852), EdgeInsets.only(top: 59, bottom: 34)),
-  'Pixel 7 412x915': (Size(412, 915), EdgeInsets.only(top: 24, bottom: 24)),
-  'iPhone 15 Pro Max 430x932': (
-    Size(430, 932),
-    EdgeInsets.only(top: 59, bottom: 34),
-  ),
-};
-
-Future<void> _loadFonts() async {
-  final loader = FontLoader('OpenRunde');
-  for (final w in ['Regular', 'Medium', 'Semibold', 'Bold']) {
-    final bytes = File('assets/fonts/OpenRunde-$w.otf').readAsBytesSync();
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
-  }
-  await loader.load();
-}
-
 void main() {
   setUpAll(_loadFonts);
   // Most screens assume the user already has a market; the make-a-market
   // group below starts without one.
+  // Scenario.reset() puts back the follows, positions, orders, likes and
+  // watchlist, and with a market lists the seeded $MAYA (with its cap
+  // history); the stores outside Scenario reset here.
   setUp(() {
-    Scenario.reset();
-    AccountState.listMarket('MAYA');
+    Scenario.reset(withMarket: true);
+    TakeLikes.reset();
+    CallsStore.reset();
+    BattlesStore.reset();
     SettingsState.reset();
+    ProfileEdits.reset();
+    Notifications.reset();
+    TradeHistory.reset();
+    DemoClock.reset();
   });
 
   for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -142,16 +254,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(pagerBalance, findsOneWidget);
       // Last position is reachable by scrolling on short phones.
-      await tester.scrollUntilVisible(
-        find.text('0xreal'),
-        200,
-        scrollable: find
-            .descendant(
-              of: find.byType(PortfolioScreen),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
+      await tester.ensureVisible(find.text('0xreal'));
       await tester.pumpAndSettle();
       expect(find.text('0xreal').hitTestable(), findsOneWidget);
     });
@@ -234,8 +337,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
       expect(feed.pixels, closeTo(feed.viewportDimension, 1));
       // The next card is another market, with its own replay story.
-      final next = mockFeed[1];
-      expect(next.ticker, isNot(mockFeed.first.ticker));
+      // Home opens on For You.
+      final next = HomeFeed.ideaOf(homeFeed[1] as Take);
+      expect(
+        next.ticker,
+        isNot(HomeFeed.ideaOf(homeFeed.first as Take).ticker),
+      );
       final payoff = find.text(next.script.events.last.label);
       // Swipe has settled; the new card has only just started tracing.
       expect(payoff.hitTestable(), findsNothing);
@@ -309,11 +416,11 @@ void main() {
         (feed(tester).childrenDelegate as SliverChildBuilderDelegate)
             .childCount;
 
-    /// Home's calls by the handles in [followed], in feed order.
-    List<TradeIdea> callsBy(Set<String> followed) => [
+    /// Home's Following calls: the followed traders' calls, ranked.
+    List<Take> following() => HomeFeed.following([
       for (final i in homeFeed)
-        if (i is TradeIdea && followed.contains(i.callerHandle)) i,
-    ];
+        if (i is Take) i,
+    ]);
 
     /// Every call card built on Home.
     Iterable<String> builtCallers(WidgetTester tester) => tester
@@ -351,20 +458,15 @@ void main() {
       await tester.tap(find.text('Following'));
       await tester.pumpAndSettle();
       final followed = Scenario.followed.value;
-      final calls = callsBy(followed);
-      // The seed follows kilo.sol and lunaq, who each have Home calls.
-      expect(calls.map((c) => c.callerHandle), [
-        'kilo.sol',
-        'lunaq',
-        'lunaq',
-        'kilo.sol',
-      ]);
+      final calls = following();
+      // Every trader the seed follows has Home calls, and only theirs show.
+      expect(calls.map((c) => c.handle).toSet(), followed);
       expect(pages(tester), calls.length);
       expect(find.byType(MakerSuggestionCard), findsNothing);
       expect(builtCallers(tester), isNotEmpty);
       expect(builtCallers(tester).every(followed.contains), isTrue);
       expect(feed(tester).controller!.page, 0);
-      expect(onScreen(tester).idea, calls.first);
+      expect(onScreen(tester).idea, HomeFeed.ideaOf(calls.first));
       expect(onScreen(tester).active, isTrue);
 
       feed(tester).controller!.jumpToPage(2);
@@ -373,7 +475,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(pages(tester), homeFeed.length);
       expect(feed(tester).controller!.page, 0);
-      expect(onScreen(tester).idea, homeFeed.first);
+      expect(onScreen(tester).idea, HomeFeed.ideaOf(homeFeed.first as Take));
       expect(onScreen(tester).active, isTrue);
     });
 
@@ -400,23 +502,23 @@ void main() {
       await openHome(tester);
       await tester.tap(find.text('Following'));
       await tester.pumpAndSettle();
-      // The last call is kilo.sol's; unfollow them from their profile.
-      final last = callsBy(Scenario.followed.value).length - 1;
-      feed(tester).controller!.jumpToPage(last);
+      // Unfollow the last call's caller from their profile.
+      final last = following().last;
+      feed(tester).controller!.jumpToPage(following().length - 1);
       await tester.pumpAndSettle();
-      expect(onScreen(tester).idea.callerHandle, 'kilo.sol');
-      await tester.tap(find.text('kilo.sol').first);
+      expect(onScreen(tester).idea.callerHandle, last.handle);
+      await tester.tap(find.text(last.handle).first);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(VistaFollowButton));
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
 
-      final calls = callsBy(Scenario.followed.value);
-      expect(calls.map((c) => c.callerHandle), isNot(contains('kilo.sol')));
+      final calls = following();
+      expect(calls.map((c) => c.handle), isNot(contains(last.handle)));
       expect(pages(tester), calls.length);
       expect(feed(tester).controller!.page, 0);
-      expect(onScreen(tester).idea, calls.first);
+      expect(onScreen(tester).idea, HomeFeed.ideaOf(calls.first));
       expect(onScreen(tester).active, isTrue);
     });
 
@@ -437,13 +539,13 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
 
-      final calls = callsBy(Scenario.followed.value);
-      expect(calls.map((c) => c.callerHandle), contains('kaito.eth'));
+      final calls = following();
+      expect(calls.map((c) => c.handle), contains('kaito.eth'));
       expect(pages(tester), calls.length);
       // Following starts again at its first card, kaito.eth's, and plays it.
-      expect(calls.first.callerHandle, 'kaito.eth');
+      expect(calls.first.handle, 'kaito.eth');
       expect(feed(tester).controller!.page, 0);
-      expect(onScreen(tester).idea, calls.first);
+      expect(onScreen(tester).idea, HomeFeed.ideaOf(calls.first));
       expect(onScreen(tester).active, isTrue);
     });
 
@@ -451,24 +553,32 @@ void main() {
       tester,
     ) async {
       await openHome(tester);
-      // For You, on the second card: 0xreal's, whom the seed does not follow.
-      feed(tester).controller!.jumpToPage(1);
+      // For You, on the first later card by someone the seed does not
+      // follow.
+      final page = [
+        for (final (i, item) in homeFeed.indexed)
+          if (i > 0 &&
+              item is Take &&
+              !Scenario.followed.value.contains(item.handle))
+            i,
+      ].first;
+      final card = HomeFeed.ideaOf(homeFeed[page] as Take);
+      feed(tester).controller!.jumpToPage(page);
       await tester.pumpAndSettle();
-      expect(onScreen(tester).idea, homeFeed[1]);
-      expect(Scenario.followed.value, isNot(contains('0xreal')));
+      expect(onScreen(tester).idea, card);
 
-      // Follow 0xreal from their profile, the page the caller name opens.
-      await tester.tap(find.text('0xreal').first);
+      // Follow them from their profile, the page the caller name opens.
+      await tester.tap(find.text(card.callerHandle).first);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(VistaFollowButton));
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
 
-      expect(Scenario.followed.value, contains('0xreal'));
+      expect(Scenario.followed.value, contains(card.callerHandle));
       // For You ignores follows: the same card stays on screen and plays.
-      expect(feed(tester).controller!.page, 1);
-      expect(onScreen(tester).idea, homeFeed[1]);
+      expect(feed(tester).controller!.page, page);
+      expect(onScreen(tester).idea, card);
       expect(onScreen(tester).active, isTrue);
     });
   });
@@ -494,8 +604,7 @@ void main() {
         .opacity;
 
     const portfolio = r'$12,480.00';
-    // The setup's listMarket('MAYA') is a fresh listing: the starting cap.
-    const market = r'$10,000';
+    const market = r'$44.0M';
 
     testWidgets('swiping the chart moves to the market cap and back', (
       tester,
@@ -740,8 +849,22 @@ void main() {
       await openFromFollowers(tester, 'lunaq');
       expect(find.text('HOLDING NOW'), findsOneWidget);
       expect(find.text('L'), findsOneWidget); // avatar initial
-      // The user follows lunaq in the fixture; the profile agrees.
+      // lunaq is on your Following list, so their profile says so.
       expect(find.text('Following'), findsOneWidget);
+
+      // Their own figures, not the designed profile's: Settled and Right
+      // as the store counts them, and their market's own cap.
+      Finder stat(String label, String value) => find.byWidgetPredicate(
+        (w) => w is VistaCountStat && w.label == label && w.value == value,
+      );
+      final m = Scenario.record('lunaq');
+      expect(stat('Settled', '${m.settled}'), findsOneWidget);
+      expect(stat('Right', '${m.right}'), findsOneWidget);
+      expect(
+        stat('Market', TraderProfile.of('lunaq').market!.cap),
+        findsOneWidget,
+      );
+      expect(find.text(r'BTC reclaims $66,000 by Tue'), findsNothing);
 
       // lunaq's own calls, not a sample every profile shared.
       await tester.scrollUntilVisible(
@@ -832,8 +955,9 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
-      // Home caller → profile → market.
-      await tester.tap(find.text('kaito.eth'));
+      // A trader's profile → their market.
+      Navigator.of(tester.element(find.byType(Scaffold).first))
+          .push(ProfileScreen.route('0xreal'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('market'));
       await tester.pumpAndSettle();
@@ -847,10 +971,10 @@ void main() {
       await openMarket(tester);
       expect(visible('Longs pay shorts'), findsOneWidget);
 
-      for (final next in ['Shared live by kaito.eth', 'Record']) {
+      for (final next in ['Shared live by 0xreal', 'Record']) {
         await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
         await tester.pumpAndSettle();
-        expect(visible(next), findsOneWidget);
+        expect(visible(next), findsWidgets); // Record: its tab and its title
       }
       // No Holders panel after Record.
       await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
@@ -913,80 +1037,199 @@ void main() {
     }
 
     List<String> rowNames(WidgetTester tester) => tester
-        .widgetList<VistaMarketRow>(find.byType(VistaMarketRow))
+        .widgetList<AssetMarketCard>(find.byType(AssetMarketCard))
         .map((r) => r.name)
         .toList();
 
-    testWidgets('Explore shows markets; sort, search and favourites work', (
+    // Tall enough that every asset card is built (the list is lazy).
+    const tall = Size(402, 1600);
+
+    testWidgets('Explore shows markets; search and favourites work', (
       tester,
     ) async {
-      await openMarkets(tester);
+      await openMarkets(tester, tall);
+      await scrollToAllMarkets(tester);
       expect(find.text('ALL MARKETS'), findsOneWidget);
+      // By volume; no sort chips on All markets.
       expect(rowNames(tester), ['BTC', 'ETH', 'SOL', 'ARB', 'AVAX']);
+      expect(find.widgetWithText(VistaFilterChip, 'Change'), findsNothing);
 
-      await tester.tap(find.text('Change'));
-      await tester.pumpAndSettle();
-      expect(rowNames(tester).first, 'SOL'); // ▲ 3.8% is the biggest move
-
+      await scrollExploreToTop(tester);
       await tester.enterText(find.byType(TextField), 'av');
       await tester.pumpAndSettle();
       expect(rowNames(tester), ['AVAX']);
       await tester.enterText(find.byType(TextField), '');
       await tester.pumpAndSettle();
+      // Cancel leaves search; Favorites and the sections come back.
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
 
       // Starring ARB adds it to the favourites rail.
       expect(find.byType(VistaMarketCard), findsNWidgets(3));
+      await scrollToAllMarkets(tester);
       final arb = find.ancestor(
         of: find.text('ARB'),
-        matching: find.byType(VistaMarketRow),
+        matching: find.byType(AssetMarketCard),
+      );
+      await tester.scrollUntilVisible(
+        arb,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(MarketsScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(
         find.descendant(of: arb, matching: find.byType(VistaStarButton)),
       );
       await tester.pumpAndSettle();
-      expect(
-        tester.widgetList(find.byType(VistaMarketCard)).length,
-        greaterThanOrEqualTo(3),
-      );
-      expect(tester.widget<VistaMarketRow>(arb).starred, isTrue);
+      expect(WatchlistState.isAsset('ARB'), isTrue);
+      expect(tester.widget<AssetMarketCard>(arb).starred, isTrue);
     });
 
-    testWidgets('Traders tab lists trader markets and opens one', (
+    testWidgets('Leaderboard ranks trader markets and opens one', (
       tester,
     ) async {
       await openMarkets(tester);
-      await tester.tap(find.text('Traders'));
+      await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      expect(find.text('ALL TRADER MARKETS'), findsOneWidget);
-      // Sorted by cap: the file's setUp lists MAYA fresh, so the user's own
-      // market (maya.eth) reads $10,000 and sorts last (VC-MKT-001).
-      expect(rowNames(tester).first, '0xreal');
-      expect(rowNames(tester).last, 'maya.eth');
-
-      await tester.tap(
-        find.descendant(
-          of: find.byType(VistaMarketRow),
-          matching: find.text('0xreal'),
+      // By market cap: you (maya.eth, $44.0M) first, then 0xreal.
+      expect(find.textContaining('#1', findRichText: true), findsOneWidget);
+      expect(find.widgetWithText(VistaFilterChip, 'Most right'), findsNothing);
+      // Each trader is a slim card with a small chart, unlike the Assets
+      // cards, and there's no Favorites rail.
+      expect(find.text('Favorites'), findsNothing);
+      expect(find.byType(VistaMarketCard), findsNothing);
+      expect(find.byType(AssetMarketCard), findsNothing);
+      final rows = find.byType(LeaderboardCard);
+      final maya = rows.first;
+      expect(
+        (
+          tester.widget<LeaderboardCard>(maya).name,
+          tester.widget<LeaderboardCard>(maya).rank,
         ),
+        ('maya.eth', 1),
       );
+      expect(tester.widget<LeaderboardCard>(rows.at(1)).name, '0xreal');
+      expect(
+        find.descendant(of: maya, matching: find.byType(SeriesChart)),
+        findsOneWidget,
+      );
+      for (final text in ['MAYA', 'You']) {
+        expect(
+          find.descendant(of: maya, matching: find.text(text)),
+          findsOneWidget,
+        );
+      }
+      // Every chip: market cap over its 24h change; no star.
+      expect(
+        find.descendant(of: maya, matching: find.byType(VistaStarButton)),
+        findsNothing,
+      );
+      for (final text in [r'$44.0M']) {
+        expect(
+          find.descendant(of: maya, matching: find.text(text)),
+          findsOneWidget,
+        );
+      }
+      expect(find.textContaining('% right'), findsNothing);
+
+      await tester.scrollUntilVisible(
+        find.text('0xreal'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      final xreal = find.ancestor(
+        of: find.text('0xreal'),
+        matching: find.byType(LeaderboardCard),
+      );
+      await tester.ensureVisible(xreal);
       await tester.pumpAndSettle();
-      expect(find.byType(VistaIntervalSelector), findsOneWidget);
+      await tester.tap(xreal);
+      await tester.pumpAndSettle();
+      // A card opens the trader's profile, not their market.
+      final profile = tester.widget<ProfileScreen>(find.byType(ProfileScreen));
+      expect(profile.handle, '0xreal');
+      expect(find.byType(TraderMarketScreen), findsNothing);
+      expect(tester.takeException(), isNull);
     });
 
-    Future<void> railShows(WidgetTester tester, String name) =>
-        tester.scrollUntilVisible(
-          find.descendant(
-            of: find.byType(VistaMarketCard),
-            matching: find.text(name),
-          ),
-          150,
-          scrollable: find
-              .ancestor(
-                of: find.byType(VistaMarketCard).first,
-                matching: find.byType(Scrollable),
-              )
-              .first,
-        );
+    testWidgets('a new trader on the board opens their profile', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(VistaFilterChip, 'Up and coming'),
+      );
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(LeaderboardCard).first);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ProfileScreen>(find.byType(ProfileScreen)).handle,
+        'vexa',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Change reranks the Leaderboard; no Top P&L', (tester) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(VistaFilterChip, 'Top P&L'), findsNothing);
+      await tester.ensureVisible(
+        find.widgetWithText(VistaFilterChip, 'Change'),
+      );
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Change'));
+      await tester.pumpAndSettle();
+      final first = tester.widget<LeaderboardCard>(
+        find.byType(LeaderboardCard).first,
+      );
+      expect((first.name, first.rank), ('pip.eth', 1));
+      expect(find.text(r'$6.2M'), findsOneWidget); // same card, cap
+    });
+
+    testWidgets('Up and coming narrows the board to new markets', (
+      tester,
+    ) async {
+      await openMarkets(tester);
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
+      await tester.pumpAndSettle();
+      expect(find.text('UNDER 30 DAYS OLD'), findsOneWidget);
+      final rows = tester
+          .widgetList<LeaderboardCard>(find.byType(LeaderboardCard))
+          .toList();
+      // By holders gained: vexa (+52) then pip.eth (+41); nothing older
+      // than 30 days, so you (maya.eth) aren't on it.
+      expect(rows.map((r) => r.name).take(2), ['vexa', 'pip.eth']);
+      expect(rows.map((r) => r.name), isNot(contains('maya.eth')));
+      expect(find.text('vexa'), findsOneWidget);
+      expect(find.text(r'$8.8M'), findsOneWidget);
+      expect(find.textContaining('You', findRichText: true), findsNothing);
+    });
+
+    Future<void> railShows(WidgetTester tester, String name) async {
+      await scrollExploreToTop(tester);
+      await tester.scrollUntilVisible(
+        find.descendant(
+          of: find.byType(VistaMarketCard),
+          matching: find.text(name),
+        ),
+        150,
+        scrollable: find
+            .ancestor(
+              of: find.byType(VistaMarketCard).first,
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+    }
 
     List<String> railNames(WidgetTester tester) => tester
         .widgetList<VistaMarketCard>(find.byType(VistaMarketCard))
@@ -996,13 +1239,14 @@ void main() {
     testWidgets('asset page star and Explore stars share one watchlist', (
       tester,
     ) async {
-      await openMarkets(tester);
+      await openMarkets(tester, tall);
       expect(railNames(tester), ['BTC', 'ETH', 'SOL']);
 
       // Star ARB from its trade page; it joins the end of the rail.
+      await scrollToAllMarkets(tester);
       await tester.tap(
         find.descendant(
-          of: find.byType(VistaMarketRow),
+          of: find.byType(AssetMarketCard),
           matching: find.text('ARB'),
         ),
       );
@@ -1019,14 +1263,16 @@ void main() {
       await railShows(tester, 'ARB');
 
       // Unstar BTC in Explore; its trade page shows it unwatched.
+      await scrollToAllMarkets(tester);
       final btc = find.ancestor(
         of: find.text('BTC').last,
-        matching: find.byType(VistaMarketRow),
+        matching: find.byType(AssetMarketCard),
       );
       await tester.tap(
         find.descendant(of: btc, matching: find.byType(VistaStarButton)),
       );
       await tester.pumpAndSettle();
+      await scrollExploreToTop(tester);
       expect(railNames(tester).first, 'ETH');
       expect(WatchlistState.assets.value, ['ETH', 'SOL', 'ARB']);
       expect(WatchlistState.isAsset('BTC'), isFalse);
@@ -1036,15 +1282,11 @@ void main() {
       tester,
     ) async {
       await openMarkets(tester);
-      await tester.tap(find.text('Traders'));
+      await tester.tap(find.text('Leaderboard'));
       await tester.pumpAndSettle();
-      expect(railNames(tester), ['maya.eth', 'lunaq', 'deltaone']);
-      await tester.tap(
-        find.descendant(
-          of: find.byType(VistaMarketRow),
-          matching: find.text('0xreal'),
-        ),
-      );
+      // The board opens profiles; the market page is a step further.
+      Navigator.of(tester.element(find.byType(MarketsScreen)))
+          .push(TraderMarketScreen.route('0xreal'));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(VistaWatchButton));
       await tester.pump();
@@ -1052,7 +1294,8 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back').last);
       await tester.pumpAndSettle();
       expect(WatchlistState.traders.value.last, '0xreal');
-      await railShows(tester, '0xreal');
+      // The Leaderboard has no Favorites rail.
+      expect(find.text('Favorites'), findsNothing);
     });
 
     testWidgets('Edit favorites removes with undo, and order drives the rail', (
@@ -1093,11 +1336,417 @@ void main() {
       testWidgets('renders without overflow on $name', (tester) async {
         await openMarkets(tester, size, padding);
         expect(tester.takeException(), isNull);
-        await tester.tap(find.text('Traders'));
+        await tester.tap(find.text('Leaderboard'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.widgetWithText(VistaFilterChip, 'Up and coming'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  testWidgets('Arena: Live battles swipe sideways and open a battle', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Arena'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Live battles'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    // Busiest live battle first, as a card on a sideways row.
+    final busiest = ([
+      for (final b in BattlesStore.all.value)
+        if (!b.settled) b,
+    ]..sort((a, b) => b.takes.compareTo(a.takes))).first;
+    expect(find.text('BATTLE   ${busiest.ticker}'), findsWidgets);
+    expect(find.textContaining('read both sides'), findsWidgets);
+    await tester.tap(find.text(busiest.question).first);
+    await tester.pumpAndSettle();
+    // The battle page (Figma 599:222): who to follow, every call, join.
+    expect(
+      tester.widget<BattleScreen>(find.byType(BattleScreen)).battle.id,
+      busiest.id,
+    );
+    expect(find.text('Top traders in this battle'), findsOneWidget);
+    expect(find.textContaining('% right'), findsNothing);
+    expect(find.byType(VistaFollowButton), findsWidgets);
+    expect(find.text('All ${busiest.takes}'), findsOneWidget);
+    expect(find.text('Join longs'), findsOneWidget);
+    expect(find.text('Join shorts'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // The old Live battles list is gone: no See all on the section.
+    Navigator.of(tester.element(find.byType(BattleScreen))).pop();
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Live battles'),
+          matching: find.byType(Row),
+        ),
+        matching: find.text('See all'),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('Join on a battle: ticket without that side, post page with it', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    LiveBattle live(String ticker) => BattlesStore.all.value.firstWhere(
+      (b) => b.ticker == ticker && !b.settled,
+    );
+    final nav = Navigator.of(tester.element(find.byType(Scaffold).first));
+    // No BTC position: the order ticket, on the long side.
+    nav.push(BattleScreen.route(live('BTC')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Join longs'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PickPositionScreen), findsNothing);
+    final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
+    expect((ticket.symbol, ticket.side), ('BTC', TradeSide.long));
+    Navigator.of(tester.element(find.byType(OrderTicket))).pop();
+    await tester.pumpAndSettle();
+    nav.pop();
+    await tester.pumpAndSettle();
+    // An ETH long: straight to the post page with the battle attached.
+    final eth = live('ETH');
+    nav.push(BattleScreen.route(eth));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Join longs'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PickPositionScreen), findsNothing);
+    expect(find.byType(ComposeTakeScreen), findsOneWidget);
+    expect(find.text('LIVE DEBATE'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Holding the long.');
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Post'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BattleScreen), findsOneWidget);
+    expect(
+      BattlesStore.all.value.firstWhere((b) => b.id == eth.id).takes,
+      eth.takes + 1,
+    );
+  });
+
+  testWidgets('call cards: no TP/SL; the exit and its P/L once closed', (
+    tester,
+  ) async {
+    CallerPost post({double? exit}) => CallerPost(
+      handle: 'lunaq',
+      age: '40m',
+      side: TradeSide.long,
+      leverage: 10,
+      entryRatio: 1,
+      size: 600,
+      takeProfit: 1.012,
+      stopLoss: 0.994,
+      message: '',
+      exitRatio: exit,
+    );
+    Future<void> pump(CallerPost p) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BackedPositionCard(post: p, ticker: 'ETH'),
+        ),
+      ),
+    );
+    await pump(post());
+    expect(find.textContaining('TP'), findsNothing);
+    expect(find.textContaining('SL'), findsNothing);
+    expect(find.textContaining('Exit'), findsNothing);
+    // Closed 1% up at 10x: +10.0%, fixed, with the exit price.
+    await pump(post(exit: 1.01));
+    expect(find.text('Exited +10.0%'), findsOneWidget);
+    expect(find.textContaining('   Exit '), findsOneWidget);
+    expect(find.textContaining('TP'), findsNothing);
+  });
+
+  testWidgets('Explore Assets: Favorites, then four sideways sections', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Explore'));
+    await tester.pumpAndSettle();
+    expect(find.text('Favorites'), findsOneWidget);
+    for (final title in [
+      'Moving now',
+      'Most called',
+      'Most battles',
+      'Rising traders',
+    ]) {
+      await tester.scrollUntilVisible(
+        find.text(title),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text(title), findsOneWidget);
+    }
+    // Rising traders: most new holders first; a card opens their profile.
+    final vexa = find.ancestor(
+      of: find.text('+52 holders'),
+      matching: find.byType(SlimMarketCard),
+    );
+    await tester.ensureVisible(vexa);
+    await tester.pumpAndSettle();
+    await tester.tap(vexa);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<ProfileScreen>(find.byType(ProfileScreen)).handle,
+      'vexa',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Explore: tapping search shows just the full list; Cancel', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Explore'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    expect(find.text('Favorites'), findsNothing);
+    expect(find.text('Moving now'), findsNothing);
+    expect(find.text('ALL MARKETS'), findsNothing);
+    expect(find.byType(AssetMarketCard), findsNWidgets(5));
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Favorites'), findsOneWidget);
+    expect(find.text('Cancel'), findsNothing);
+  });
+
+  testWidgets('Leaderboard: Brand new chip lists new markets, newest first', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Explore'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Leaderboard'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(VistaFilterChip, 'Brand new'));
+    await tester.pumpAndSettle();
+    expect(find.text('JUST OPENED'), findsOneWidget);
+    // No time window; the same card as every other chip.
+    expect(find.text('NEW'), findsNothing);
+    expect(find.bySemanticsLabel('7d'), findsNothing);
+    final rows = tester
+        .widgetList<LeaderboardCard>(find.byType(LeaderboardCard))
+        .map((c) => c.name)
+        .toList();
+    expect(rows, ['pip.eth', 'vexa', 'orca.sol']); // 3, 6, 11 days
+    expect(find.text(r'$6.2M'), findsOneWidget);
+  });
+
+  testWidgets('Wallet History: closing a position lists it with its P/L', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    final wallet = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('History'),
+      200,
+      scrollable: wallet,
+    );
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    expect(find.text('Closed   3'), findsOneWidget);
+    // Close the ETH long from Positions; it heads History.
+    final eth = PositionsState.open.value.firstWhere(
+      (p) => p.detail.symbol == 'ETH',
+    );
+    PositionsState.remove(eth);
+    TradeHistory.add(ClosedTrade.from(eth));
+    await tester.pumpAndSettle();
+    expect(find.text('Closed   4'), findsOneWidget);
+    expect(TradeHistory.closed.value.first.symbol, 'ETH');
+    await tester.scrollUntilVisible(
+      find.text('Ethereum'),
+      200,
+      scrollable: wallet,
+    );
+    await tester.tap(find.text('Ethereum'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReceiptSheet), findsOneWidget);
+    expect(find.text('Closed at'), findsOneWidget);
+  });
+
+  testWidgets('a battle you are in settles; the result sheet shows', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    const label = r'ETH holds $2,900 into the close';
+    LiveBattle quick() =>
+        BattlesStore.all.value.firstWhere((b) => b.label == label);
+    expect(quick().settled, isFalse);
+    expect(BattlesStore.yourSide(quick()), TradeSide.long);
+    final before = Notifications.unread.value;
+    // Three minutes on: it's due.
+    DemoClock.now = () => DemoClock.start.add(const Duration(minutes: 3));
+    await tester.pump(const Duration(seconds: 16));
+    await tester.pumpAndSettle();
+    expect(quick().settled, isTrue);
+    expect(find.byType(BattleResultSheet), findsOneWidget);
+    // ETH is well above $2,900: the statement held, so your long won.
+    expect(quick().result!.longRight, isTrue);
+    expect(find.text('You won the battle'), findsOneWidget);
+    expect(
+      BattlesStore.longWins(quick(), 2850),
+      isFalse,
+    ); // under the line, it wouldn't have
+    expect(Notifications.unread.value, before + 1);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BattleResultSheet), findsNothing);
+  });
+
+  testWidgets('Invite: green pill on My portfolio and in Settings', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('+ Invite friends'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InviteSheet), findsOneWidget);
+    expect(find.text('Vistamarkets.xyz/maya'), findsOneWidget);
+    expect(find.text('Claim \$318.60'), findsOneWidget);
+    Navigator.of(tester.element(find.byType(InviteSheet))).pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.text('Invite friends'), findsOneWidget);
+    await tester.tap(find.text('Invite friends'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InviteSheet), findsOneWidget);
+  });
+
+  group('challenge', () {
+    Future<void> toCalls(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Trending calls'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('holding the other side opens the sheet, then the composer;'
+        ' posting starts the debate on their call', (tester) async {
+      await toCalls(tester);
+      // vega is short ETH and you hold an ETH long.
+      await tester.tap(find.bySemanticsLabel('Challenge').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(ChallengeSheet), findsOneWidget);
+      expect(find.text('Challenge vega'), findsOneWidget);
+      expect(find.text('24 hours'), findsOneWidget);
+      expect(find.text('YOUR SIDE   LONG ETH'), findsOneWidget);
+      expect(
+        find.textContaining('ETH closes above', findRichText: true),
+        findsOneWidget,
+      );
+      // Ready-made challenges: swipe to Touches and set its price.
+      expect(find.text('CLOSES ABOVE'), findsOneWidget);
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
+      await tester.pumpAndSettle();
+      final touches = find.byKey(const ValueKey('challenge-card-1'));
+      await tester.enterText(
+        find.descendant(of: touches, matching: find.byType(TextField)),
+        '3100',
+      );
+      await tester.pumpAndSettle();
+      const statement = r'ETH touches $3,100 in 24 hours';
+      expect(find.text(statement), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Next: make your case'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      expect(find.text('LIVE DEBATE'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Breaks out by tomorrow.');
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      final debate = BattlesStore.all.value.first;
+      expect(
+        (debate.label, debate.takes, debate.longShare),
+        (statement, 2, 0.5),
+      );
+      final vega = CallsStore.all.value.firstWhere(
+        (t) => t.handle == 'vega' && t.ticker == 'ETH',
+      );
+      expect(vega.battle, statement);
+      expect(
+        CallsStore.all.value.where(
+          (t) => t.handle == PortfolioMock.handle && t.battle == statement,
+        ),
+        hasLength(1),
+      );
+    });
+
+    testWidgets('without that side, the ticket opens on it', (tester) async {
+      await toCalls(tester);
+      // kilo.sol is short SOL; you only hold a SOL short.
+      await tester.tap(find.bySemanticsLabel('Challenge').last);
+      await tester.pumpAndSettle();
+      expect(find.byType(ChallengeSheet), findsNothing);
+      final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
+      expect((ticket.symbol, ticket.side), ('SOL', TradeSide.long));
+    });
   });
 
   group('arena', () {
@@ -1115,393 +1764,426 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
+      // Most of these are about every call: Calls › See all on the hub.
+      await openAllCalls(tester);
     }
 
-    /// The battles' tickers, in list order.
-    List<String> tickers(WidgetTester tester) => tester
-        .widgetList<VistaBattleCard>(find.byType(VistaBattleCard))
-        .map((c) => c.ticker)
-        .toList();
-
-    /// Drags the crowd-range thumb at [from] (0–1 along the track) to [to].
-    Future<void> dragThumb(WidgetTester tester, double from, double to) async {
-      final r = tester.getRect(find.byType(RangeSlider));
-      final w = r.width - 24;
-      await tester.dragFrom(
-        Offset(r.left + 12 + from * w, r.center.dy),
-        Offset((to - from) * w, 0),
-      );
+    // The feed's vertical list (the carousel and chips scroll sideways).
+    final feed = find.byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    );
+    Future<void> scrollTo(WidgetTester tester, Finder f) async {
+      await tester.scrollUntilVisible(f, 200, scrollable: feed);
       await tester.pumpAndSettle();
     }
 
-    test('every Arena caller price is that trader\'s market price', () {
-      final sides = [
-        for (final b in ArenaMock.battles) ...[b.bull, b.bear],
-      ].where((s) => MarketPrices.base(s.caller) > 0).toList();
-      expect(
-        sides.map((s) => s.caller),
-        containsAll(['maya.eth', '0xreal', 'kilo.sol', 'lunaq']),
-      );
-      for (final side in sides) {
+    testWidgets(
+      'Arena hub: markets, trending, top calls; See all is every call',
+      (tester) async {
+        tester.view
+          ..physicalSize = const Size(402, 874) * 3
+          ..devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(const VistaColosseumApp());
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Arena'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        // The account bar (with notifications), search, your markets, the +.
+        expect(find.bySemanticsLabel(RegExp('^Notifications')), findsOneWidget);
+        expect(find.text(r'Search $tickers or @people'), findsOneWidget);
+        expect(find.text('Your markets'), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('room')), findsWidgets);
+        expect(find.bySemanticsLabel('Make a call'), findsOneWidget);
+        // A market row opens that market's room in every call.
+        // Your markets are the ones you hold: ETH, SOL and 0xreal's market.
+        expect(find.bySemanticsLabel(RegExp('^ETH room')), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('^SOL room')), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('^REAL room')), findsOneWidget);
         expect(
-          side.price,
-          MarketPrices.format(MarketPrices.base(side.caller), compact: true),
-          reason: side.caller,
+          find.text('You: LONG 5x   7 calls today   2 debates'),
+          findsOneWidget,
         );
-      }
-    });
-
-    test('every Arena caller change is that trader\'s Explore change', () {
-      final traders = {for (final m in MarketsMock.traders) m.id: m.changePct};
-      final sides = [
-        for (final b in ArenaMock.battles) ...[b.bull, b.bear],
-      ].where((s) => traders.containsKey(s.caller)).toList();
-      expect(
-        sides.map((s) => s.caller),
-        containsAll(['maya.eth', '0xreal', 'kilo.sol', 'lunaq']),
-      );
-      for (final s in sides) {
-        final c = traders[s.caller]!;
+        await tester.tap(find.bySemanticsLabel(RegExp('^ETH room')).first);
+        await tester.pumpAndSettle();
+        expect(find.byType(RoomScreen), findsOneWidget);
         expect(
-          s.change,
-          '${c < 0 ? '−' : '+'}${c.abs().toStringAsFixed(1)}%',
-          reason: s.caller,
+          tester
+              .widgetList<HubCallCard>(find.byType(HubCallCard))
+              .every((c) => c.take.ticker == 'ETH'),
+          isTrue,
         );
-      }
-    });
+        await tester.tap(find.bySemanticsLabel('Back').last);
+        await tester.pumpAndSettle();
+        // Trending calls › See all: every call, nothing else.
+        await openAllCalls(tester);
+        expect(find.byType(TrendingCallsScreen), findsOneWidget);
+        expect(find.byType(BattleTile), findsNothing);
+        expect(find.byType(HubCallCard), findsWidgets);
+      },
+    );
 
-    test('Arena caller changes and results start with + or U+2212', () {
-      for (final b in ArenaMock.battles) {
-        for (final s in [b.bull, b.bear]) {
-          expect(s.change, matches(RegExp(r'^[+−]\d')), reason: s.caller);
-          expect(s.result, matches(RegExp(r'^[+−]\d')), reason: s.caller);
-        }
-      }
-    });
+    testWidgets(
+      'a room: follow it, top traders, debates, post from a position',
+      (tester) async {
+        tester.view
+          ..physicalSize = const Size(402, 874) * 3
+          ..devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: VistaTheme.dark(),
+            home: const RoomScreen(roomKey: 'ARB'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('ARB room'), findsOneWidget);
+        expect(find.text('Top traders in ARB'), findsOneWidget);
+        expect(find.textContaining('% right'), findsNothing);
+        // Always three, by the cap of their own market.
+        expect(find.textContaining(RegExp(r'\d+ ARB call')), findsNWidgets(3));
+        // Follow room adds it to your markets (favourites).
+        expect(WatchlistState.isAsset('ARB'), isFalse);
+        await tester.tap(find.bySemanticsLabel('Follow room'));
+        await tester.pumpAndSettle();
+        expect(WatchlistState.isAsset('ARB'), isTrue);
+        // Its debates.
+        await tester.tap(find.textContaining('Debates ('));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widgetList<BattleTile>(find.byType(BattleTile))
+              .every((b) => b.battle.ticker == 'ARB'),
+          isTrue,
+        );
+        // Post a call: no ARB position yet, so open one first.
+        await tester.tap(find.text('Post a call on ARB'));
+        await tester.pumpAndSettle();
+        expect(find.text('No ARB position open'), findsOneWidget);
+        expect(find.text('Open a long'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Arena tab shows the battles with the crowd filter', (
+    testWidgets('Your markets follow Portfolio: close a position, it goes', (
       tester,
     ) async {
-      await openArena(tester);
-      expect(find.byType(VistaBattleCard), findsWidgets);
-      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
-      expect(find.text('3 battles'), findsOneWidget);
-
-      // Drag the lower thumb to 70/30: only the 70/30+ battles count.
-      await dragThumb(tester, 0, 0.4);
-      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
-      expect(find.text('2 battles'), findsOneWidget);
-
-      // Other tabs fold the panel away (kept, so its filter survives).
-      await tester.tap(find.bySemanticsLabel('Home'));
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
-      expect(find.byType(RangeSlider).hitTestable(), findsNothing);
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      expect(find.text('Crowd split 70/30 +'), findsOneWidget);
-    });
-
-    testWidgets('sort chips order the battles by volume, change and funding', (
-      tester,
-    ) async {
-      await openArena(tester, const Size(402, 2400));
-      expect(tickers(tester), ['BTC', 'ETH', 'SOL']); // Volume, the default
-      await tester.tap(find.text('Change'));
-      await tester.pumpAndSettle();
-      expect(tickers(tester), ['SOL', 'BTC', 'ETH']);
-      await tester.tap(find.text('Funding'));
-      await tester.pumpAndSettle();
-      // Markets' funding: SOL +0.012%, BTC +0.009%, ETH −0.004%.
-      expect(tickers(tester), ['SOL', 'BTC', 'ETH']);
-      await tester.tap(find.text('Volume'));
-      await tester.pumpAndSettle();
-      expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
-    });
-
-    test('each battle quotes its asset as the Markets tab does', () {
-      for (final b in ArenaMock.battles) {
-        final m = MarketsMock.assets.firstWhere((m) => m.id == b.asset);
-        expect(
-          (b.changePct, b.fundingPct),
-          (m.changePct, m.sortValues['Funding']),
-          reason: b.asset,
-        );
-      }
-    });
-
-    test('sorts by the chip field, highest first, ties by id', () {
-      Battle battle(String id, int volume, double change, double funding) =>
-          Battle(
-            id: id,
-            asset: 'BTC',
-            price: '',
-            volume: volume,
-            changePct: change,
-            fundingPct: funding,
-            bullPct: 60,
-            bullCount: 0,
-            bearCount: 0,
-            timeLeft: '',
-            question: '',
-            bull: ArenaMock.battles.first.bull,
-            bear: ArenaMock.battles.first.bear,
-            opinionCount: 2,
-            opinions: const [],
-          );
-      // Fed out of id order, so a sort without the tiebreak fails.
-      final pool = [
-        battle('c', 3, -1, 2),
-        battle('b', 1, 2, 1),
-        battle('a', 1, 1, 2),
-      ];
-      List<String> ids(int sort) => [
-        for (final b in ArenaMock.visible((
-          sort: sort,
-          from: 0,
-          to: ArenaMock.bucketCount,
-          query: '',
-        ), pool))
-          b.id,
-      ];
-      expect(ids(0), ['c', 'a', 'b']); // volume; a and b tie on 1
-      expect(ids(1), ['b', 'a', 'c']); // change
-      expect(ids(2), ['a', 'c', 'b']); // funding; a and c tie on 2
-    });
-
-    testWidgets('the crowd range filters the cards and the panel counts them', (
-      tester,
-    ) async {
-      await openArena(tester, const Size(402, 2400));
-      // Buckets come from the battles' splits: BTC 63/37, ETH 28/72 (a
-      // 72/28 majority), SOL 88/12.
-      expect(
-        tester.widget<VistaHistogram>(find.byType(VistaHistogram)).values,
-        [0, 0, 1, 0, 1, 0, 0, 1, 0, 0],
+      expect(find.bySemanticsLabel(RegExp('^SOL room')), findsOneWidget);
+      final sol = PositionsState.open.value.firstWhere(
+        (p) => p.detail.symbol == 'SOL',
       );
-      expect(find.text('3 battles'), findsOneWidget);
-      expect(tickers(tester), hasLength(3));
-
-      await dragThumb(tester, 0, 0.4); // 70/30 and up
-      expect(find.text('2 battles'), findsOneWidget);
-      expect(tickers(tester), ['ETH', 'SOL']);
-
-      await dragThumb(tester, 0.4, 0); // the full range again
-      expect(find.text('3 battles'), findsOneWidget);
-      expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
-      // A display filter touches no record (VC-ARN-005).
-      expect(Scenario.receipts.value, isEmpty);
-      expect(Scenario.participation.value, isEmpty);
+      PositionsState.remove(sol);
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(RegExp('^SOL room')), findsNothing);
+      expect(find.bySemanticsLabel(RegExp('^ETH room')), findsOneWidget);
     });
 
-    testWidgets('an empty crowd split says so; Show all restores the cards', (
+    testWidgets('an ETH room posts from the ETH position', (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VistaTheme.dark(),
+          home: const RoomScreen(roomKey: 'ETH'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Post a call on ETH'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ethereum'), findsOneWidget);
+      expect(find.text('Solana'), findsNothing);
+    });
+
+    testWidgets('Trending calls is calls only; a debate badge opens it', (
       tester,
     ) async {
       await openArena(tester);
-      await dragThumb(tester, 1, 0.2); // 50/50 to 60/40: no battle there
-      expect(find.text('0 battles'), findsOneWidget);
-      expect(find.byType(VistaBattleCard), findsNothing);
-      final emptyState = find.byType(VistaEmptyState);
+      expect(find.text('Trending calls'), findsOneWidget);
+      expect(find.byType(BattleTile), findsNothing);
+      // No room chips: just the three sorts.
       expect(
+        tester
+            .widgetList<VistaFilterChip>(find.byType(VistaFilterChip))
+            .map((c) => c.label),
+        ['Following', 'Trending', 'New'],
+      );
+      expect(find.byType(HubCallCard), findsWidgets);
+      final renata = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'renatafx',
+      );
+      await scrollTo(tester, renata);
+      await tester.tap(
         find.descendant(
-          of: emptyState,
-          matching: find.text('No battles in this crowd split'),
+          of: renata,
+          matching: find.textContaining(r'Reclaims $72,000 by Fri'),
         ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<BattleScreen>(find.byType(BattleScreen)).battle.ticker,
+        'BTC',
+      );
+    });
+
+    testWidgets('agree toggles; Join opens the ticket on the take\'s side', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await scrollTo(tester, find.bySemanticsLabel('Agree, 48'));
+      await tester.tap(find.bySemanticsLabel('Agree, 48'));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('Agree, 49'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Join long').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Place market long'), findsOneWidget);
+    });
+
+    testWidgets('Follow on a call card follows the caller everywhere', (
+      tester,
+    ) async {
+      await openArena(tester);
+      expect(FollowState.isFollowing('voskov'), isFalse);
+      final card = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'voskov',
+      );
+      await scrollTo(tester, card);
+      await tester.tap(
+        find.descendant(of: card, matching: find.text('Follow')),
+      );
+      await tester.pumpAndSettle();
+      expect(FollowState.isFollowing('voskov'), isTrue);
+      expect(
+        find.descendant(of: card, matching: find.text('Following')),
         findsOneWidget,
       );
-      expectPillClear(
-        tester,
-        find.descendant(
-          of: emptyState,
-          matching: find.widgetWithText(VistaPillButton, 'Show all'),
-        ),
+      // The profile agrees.
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(PersonInitial)).first,
       );
-
-      await tester.tap(find.text('Show all'));
       await tester.pumpAndSettle();
-      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
-      expect(find.text('3 battles'), findsOneWidget);
-      expect(find.byType(VistaBattleCard), findsWidgets);
-
-      // Emptied from the lower thumb, Show all brings the floor back too.
-      await dragThumb(tester, 0, 0.9); // 95/5 and up: no battle there
-      expect(find.text('0 battles'), findsOneWidget);
-      await tester.tap(find.text('Show all'));
-      await tester.pumpAndSettle();
-      expect(find.text('Crowd split 50/50 +'), findsOneWidget);
-      expect(find.text('3 battles'), findsOneWidget);
+      expect(
+        tester
+            .widget<VistaFollowButton>(find.byType(VistaFollowButton).first)
+            .following,
+        isTrue,
+      );
     });
 
-    testWidgets('Ask filters by asset; no match names the assets there are', (
-      tester,
-    ) async {
-      await openArena(tester, const Size(402, 2400));
-      final ask = find.descendant(
-        of: find.byType(ArenaScreen),
-        matching: find.byType(TextField),
-      );
-      await tester.enterText(ask, 'eth');
-      await tester.pumpAndSettle();
-      expect(tickers(tester), ['ETH']);
-      expect(find.text('1 battle'), findsOneWidget);
-      // A substring, not a prefix or the whole ticker.
-      await tester.enterText(ask, 'th');
-      await tester.pumpAndSettle();
-      expect(tickers(tester), ['ETH']);
-
-      await tester.enterText(ask, 'doge');
-      await tester.pumpAndSettle();
-      expect(find.byType(VistaBattleCard), findsNothing);
-      expect(find.text('Try BTC, ETH, SOL'), findsOneWidget);
-      expect(find.text('0 battles'), findsOneWidget);
-
-      // Reset clears the query, and the field with it.
-      Scenario.reset(withMarket: Scenario.hasMarket.value);
-      await tester.pumpAndSettle();
-      expect(tickers(tester), ['BTC', 'ETH', 'SOL']);
-      expect(tester.widget<TextField>(ask).controller!.text, isEmpty);
-    });
-
-    testWidgets('with the keyboard up the panel folds and Ask results show', (
-      tester,
-    ) async {
-      await openArena(tester, const Size(360, 640));
-      final ask = find.descendant(
-        of: find.byType(ArenaScreen),
-        matching: find.byType(TextField),
-      );
-      tester.view.viewInsets = const FakeViewPadding(bottom: 280.0 * 3);
-      await tester.enterText(ask, 'doge');
-      await tester.pumpAndSettle();
-      expect(find.byType(RangeSlider).hitTestable(), findsNothing);
-      expect(find.text('Try BTC, ETH, SOL').hitTestable(), findsOneWidget);
-
-      // Keyboard down: the panel unfolds with its state intact.
-      tester.view.resetViewInsets();
-      await tester.pumpAndSettle();
-      expect(find.byType(RangeSlider).hitTestable(), findsOneWidget);
-      expect(find.text('0 battles'), findsOneWidget);
-    });
-
-    testWidgets('joining: Cancel counts nothing; a fill counts once, shows', (
+    testWidgets('a call card shows the caller\'s market; it opens', (
       tester,
     ) async {
       await openArena(tester);
-      Future<void> bullTicket() async {
-        // BTC leads on volume: its Bull opens a BTC long.
-        await tester.tap(find.text("I'm with Bull").first);
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Place market long'));
-        await tester.pumpAndSettle();
-      }
+      final call = find.byWidgetPredicate(
+        (w) =>
+            w is HubCallCard &&
+            w.take.handle == 'kilo.sol' &&
+            w.take.ticker == 'SOL' &&
+            w.take.backed,
+      );
+      await scrollTo(tester, call);
+      final market = find.descendant(
+        of: call,
+        matching: find.textContaining(r'$0.1720', findRichText: true),
+      );
+      expect(market, findsOneWidget);
+      await tester.tap(market);
+      await tester.pumpAndSettle();
+      expect(find.byType(TraderMarketScreen), findsOneWidget);
+    });
 
-      await bullTicket();
+    testWidgets('Following / Trending / New order the calls', (tester) async {
+      await openArena(tester);
+      // Sideways chips like Explore's sorts; Trending is on.
+      bool on(String l) => tester
+          .widget<VistaFilterChip>(find.widgetWithText(VistaFilterChip, l))
+          .selected;
+      expect(on('Trending'), isTrue);
+      expect(find.byType(PopupMenuButton<int>), findsNothing);
+
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'New'));
+      await tester.pumpAndSettle();
+      expect(on('New'), isTrue);
+      final newest = CallsStore.all.value
+          .where((t) => t.backed)
+          .map((t) => CallsStore.minutesAgo(t.age))
+          .reduce((a, b) => a < b ? a : b);
+      final first = tester.widget<HubCallCard>(find.byType(HubCallCard).first);
+      expect(CallsStore.minutesAgo(first.take.age), newest);
+
+      await tester.tap(find.widgetWithText(VistaFilterChip, 'Following'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<HubCallCard>(find.byType(HubCallCard))
+            .every((c) => FollowState.isFollowing(c.take.handle)),
+        isTrue,
+      );
+    });
+
+    testWidgets('settled calls and debates post to the feed', (tester) async {
+      await openArena(tester);
+      await scrollTo(tester, find.text('SETTLED RIGHT'));
+      final maya = find.ancestor(
+        of: find.text('SETTLED RIGHT'),
+        matching: find.byType(SettlementItem),
+      );
+      // The caller's own market as it settled.
+      expect(
+        find.descendant(of: maya, matching: find.textContaining('MAYA ▲2.1%')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.descendant(of: maya, matching: find.text('maya.eth')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ReceiptSheet), findsOneWidget);
+      await tester.tapAt(const Offset(200, 60));
+      await tester.pumpAndSettle();
+
+      await scrollTo(tester, find.text('Debate settled'));
+      await tester.tap(find.text('Read the thread ›'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BattleScreen), findsOneWidget);
+      expect(find.text('SETTLED   LONG SIDE RIGHT'), findsOneWidget);
+      expect(find.text('Join longs'), findsNothing); // settled: closed
+    });
+
+    testWidgets('+ → pick a position → write → post: it tops the feed', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      expect(find.text('What are you calling?'), findsOneWidget);
+      expect(find.text('YOUR POSITIONS   3'), findsOneWidget);
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+
+      // The composer: the position card sits under the text field.
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      expect(find.text('LONG ETH'), findsOneWidget);
+      expect(find.text('LONG 5x'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byType(BackedPositionCard)).dy,
+        greaterThan(tester.getBottomLeft(find.byType(TextField)).dy),
+      );
+      // Post waits for text.
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'ETH/BTC bottomed.');
+      await tester.pump();
+      expect(find.text('263'), findsOneWidget); // characters left
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+
+      // Back on Arena with the new take first.
+      expect(find.byType(ComposeTakeScreen), findsNothing);
+      expect(find.byType(PickPositionScreen), findsNothing);
+      final first = tester.widget<HubCallCard>(find.byType(HubCallCard).first);
+      expect(first.take.body, 'ETH/BTC bottomed.');
+      expect(first.take.handle, 'maya.eth');
+    });
+
+    testWidgets('a take posted in Arena shows in that asset\'s Callers', (
+      tester,
+    ) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Solana'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Fading the unlock.');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      // The same list the trade pages read: SOL's callers now start with it.
+      final sol = CallsStore.callersOn('SOL');
+      expect(sol.first.handle, 'maya.eth');
+      expect(sol.first.message, 'Fading the unlock.');
+      expect(
+        CallsStore.callersOn('ETH').map((p) => p.message),
+        isNot(contains('Fading the unlock.')),
+      );
+      // Trade pages and Arena share the calls: ETH's are the ETH takes.
+      expect(CallsStore.callersOn('ETH').map((p) => p.handle), [
+        'vega',
+        'lunaq',
+        'maya.eth',
+        'orbit.eth',
+        'maya.eth', // your call on the battle that settles first
+      ]);
+    });
+
+    testWidgets('the composer makes a call, not a debate', (tester) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ComposeTakeScreen), findsOneWidget);
+      expect(find.bySemanticsLabel('Make it a debate'), findsNothing);
+      expect(find.byType(MakeBattleButton), findsNothing);
+      expect(find.text('Start debate'), findsNothing);
+    });
+
+    testWidgets('Cancel leaves the composer without posting', (tester) async {
+      await openArena(tester);
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Solana'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Not yet.');
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
-      expect(find.text('and 14'), findsOneWidget);
-      expect(find.text('Joined Bull'), findsNothing);
-      expect(Scenario.positions.value.where((p) => p.clashId != null), isEmpty);
-
-      await bullTicket();
-      await tester.tap(find.text('Confirm'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Done'));
-      await tester.pumpAndSettle();
-      expect(find.text('and 15'), findsOneWidget);
-      expect(find.text('Joined Bull'), findsOneWidget);
-      // Only the joined side says so, and only its crowd moved.
-      expect(find.text('Joined Bear'), findsNothing);
-      expect(find.text('and 6'), findsOneWidget);
-      // The fill's Wallet position references the clash.
-      expect(Scenario.positions.value.first.clashId, 'btc-72k');
-      expect(Scenario.positions.value.first.title, 'Bitcoin');
+      expect(find.byType(PickPositionScreen), findsOneWidget);
+      expect(CallsStore.all.value.where((t) => t.age == 'now'), isEmpty);
     });
 
-    testWidgets("a battle's opinions trade that battle's asset and clash", (
-      tester,
-    ) async {
-      await openArena(tester, const Size(402, 2400));
-      await tester.tap(find.text('+7 more opinions'));
-      await tester.pumpAndSettle();
-      // ETH's own split, count and callers, not BTC's.
-      expect(find.text('Crowd split 28% bull'), findsOneWidget);
-      expect(find.text('Crowd split · 9 opinions'), findsOneWidget);
-      expect(find.text('@lunaq'), findsOneWidget);
-      // The subtitle's accuracy is lunaq's derived record, not a stored 77%.
-      expect(find.text('Sniper · 67% accuracy'), findsOneWidget);
-      await tester.tap(find.text('Follow Bear'));
-      await tester.pumpAndSettle();
-      final ticket = tester.widget<OrderTicket>(find.byType(OrderTicket));
-      expect((ticket.symbol, ticket.side), ('ETH', TradeSide.short));
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('composer renders without overflow on $name', (tester) async {
+        await openArena(tester, size, padding);
+        await tester.tap(find.bySemanticsLabel('Make a call'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('0xreal'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
 
-      await tester.tap(find.text('Place market short'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Confirm'));
-      await tester.pumpAndSettle();
-      expect(Scenario.positions.value.first.clashId, 'eth-4k');
-      expect(Scenario.positions.value.first.side, TradeSide.short);
-      expect(Scenario.participation.value, {'eth-4k': TradeSide.short});
-
-      // Back on the Arena, ETH's card shows the Bear join and its crowd.
-      await tester.tap(find.text('Done'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Back'));
-      await tester.pumpAndSettle();
-      expect(find.text('Joined Bear'), findsOneWidget);
-      expect(find.text('Joined Bull'), findsNothing);
-      expect(find.text('and 13'), findsOneWidget);
-    });
-
-    testWidgets('sort chips stay fixed while battles scroll', (tester) async {
-      await openArena(tester);
-      final before = tester.getTopLeft(find.text('Volume'));
-      final card = tester.getTopLeft(find.byType(VistaBattleCard).first);
-      await tester.drag(find.byType(ListView).last, const Offset(0, -300));
-      await tester.pumpAndSettle();
-      expect(tester.getTopLeft(find.text('Volume')), before);
-      // Left-aligned with the page gutter, not centred.
-      expect(
-        tester.getTopLeft(find.byType(VistaFilterChip).first).dx,
-        closeTo(VistaSpace.gutter, 1),
-      );
-      expect(
-        tester.getTopLeft(find.byType(VistaBattleCard).first).dy,
-        lessThan(card.dy),
-      );
-    });
-
-    testWidgets('a narrower range starts the list at the top', (tester) async {
-      await openArena(
+    for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
+      testWidgets('position picker renders without overflow on $name', (
         tester,
-        const Size(360, 640),
-        const EdgeInsets.only(top: 24),
-      );
-      final list = find
-          .descendant(
-            of: find.byType(ArenaScreen),
-            matching: find.byType(ListView),
-          )
-          .first;
-      double offset() => tester
-          .state<ScrollableState>(
-            find.descendant(of: list, matching: find.byType(Scrollable)).first,
-          )
-          .position
-          .pixels;
-      await tester.drag(list, const Offset(0, -4000));
-      await tester.pumpAndSettle();
-      expect(offset(), greaterThan(0));
-
-      Scenario.setArena(from: 7, to: 8); // SOL's 88/12 bucket only
-      await tester.pumpAndSettle();
-      expect(tickers(tester), ['SOL']);
-      expect(offset(), 0);
-    });
+      ) async {
+        await openArena(tester, size, padding);
+        await tester.tap(find.bySemanticsLabel('Make a call'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     testWidgets('tapping a caller opens their profile', (tester) async {
       await openArena(tester);
-      await tester.tap(find.text('0xreal').first);
+      final card = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'voskov',
+      );
+      await scrollTo(tester, card);
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(PersonInitial)).first,
+      );
       await tester.pumpAndSettle();
-      expect(find.text('HOLDING NOW'), findsOneWidget);
+      expect(find.byType(ProfileScreen), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -1512,8 +2194,8 @@ void main() {
     }
   });
 
-  group('opinions', () {
-    Future<void> openOpinions(
+  group('battle page', () {
+    Future<void> openDebate(
       WidgetTester tester, [
       Size size = const Size(402, 874),
       EdgeInsets pad = EdgeInsets.zero,
@@ -1527,50 +2209,34 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('+21 more opinions').first);
+      // The busiest live battle's page.
+      final busiest = ([
+        for (final b in BattlesStore.all.value)
+          if (!b.settled) b,
+      ]..sort((a, b) => b.takes.compareTo(a.takes))).first;
+      Navigator.of(tester.element(find.byType(Scaffold).first))
+          .push(BattleScreen.route(busiest));
       await tester.pumpAndSettle();
     }
 
-    List<String> handles(WidgetTester tester) => tester
-        .widgetList<VistaSideDetail>(find.byType(VistaSideDetail))
-        .map((d) => d.handle)
-        .toList();
-
-    testWidgets('more opinions opens the clash detail; filters and back', (
+    testWidgets('a battle page: the question, its calls, and join', (
       tester,
     ) async {
-      await openOpinions(tester);
-      expect(find.text('Crowd split · 23 opinions'), findsOneWidget);
-      expect(find.text('Follow Bull'), findsOneWidget);
-      expect(handles(tester).first, '@renatafx');
-
-      await tester.tap(find.text('Bull thesis'));
-      await tester.pumpAndSettle();
-      expect(handles(tester), ['@renatafx']);
-
-      await tester.tap(find.text('Bear thesis'));
-      await tester.pumpAndSettle();
-      expect(handles(tester), isNot(contains('@renatafx')));
-      expect(handles(tester).first, '@voskov');
-
-      await tester.tap(find.bySemanticsLabel('Back'));
-      await tester.pumpAndSettle();
-      expect(find.byType(VistaBattleCard), findsWidgets);
-    });
-
-    testWidgets('the crowd split is labelled crowd split, never odds', (
-      tester,
-    ) async {
-      await openOpinions(tester);
-      expect(find.text('Crowd split 63% bull'), findsOneWidget);
-      expect(find.text('Crowd split · 23 opinions'), findsOneWidget);
-      final odds = RegExp('odds|probab', caseSensitive: false);
-      expect(find.textContaining(odds), findsNothing);
+      await openDebate(tester);
+      expect(
+        find.text(r"Reclaims $72,000 before Friday's expiry"),
+        findsOneWidget,
+      );
+      expect(find.byType(HubCallCard), findsWidgets);
+      expect(find.text('Join longs'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
       testWidgets('renders without overflow on $name', (tester) async {
-        await openOpinions(tester, size, padding);
+        await openDebate(tester, size, padding);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('Join shorts'));
+        await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
     }
@@ -1601,22 +2267,25 @@ void main() {
       expect(balance.top, greaterThanOrEqualTo(handle.bottom - 1));
       expect(balance.left, closeTo(handle.left, 1));
 
-      // Settings gear only on Portfolio, right of Deposit.
-      final settings = find.descendant(
+      // Right of Deposit: the settings gear on Wallet, the notifications
+      // bell on the other tabs.
+      final icon = find.descendant(
         of: bar,
         matching: find.byType(VistaIconButton),
       );
       final deposit = tester.getRect(inBar('Deposit'));
-      if (wallet) {
-        expect(settings, findsOneWidget);
-        expect(tester.getRect(settings).left, greaterThan(deposit.left));
-        await tester.tap(settings);
-        await tester.pumpAndSettle();
-        expect(find.byType(SettingsScreen), findsOneWidget);
-      } else {
-        expect(settings, findsNothing);
-        expect(deposit.right, greaterThan(402 - 16 - 20));
-      }
+      expect(icon, findsOneWidget);
+      expect(tester.getRect(icon).left, greaterThan(deposit.left));
+      expect(
+        tester.widget<VistaIconButton>(icon).semanticLabel,
+        startsWith(wallet ? 'Settings' : 'Notifications'),
+      );
+      await tester.tap(icon);
+      await tester.pumpAndSettle();
+      expect(
+        find.byType(SettingsScreen),
+        wallet ? findsOneWidget : findsNothing,
+      );
     });
   }
 
@@ -1647,9 +2316,23 @@ void main() {
       expect(visible('Ethereum'), findsOneWidget); // the card is ETH
       expect(visible('Longs pay shorts'), findsOneWidget);
 
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-      await tester.pumpAndSettle();
-      expect(visible('Book'), findsOneWidget);
+      // One tap to any panel: the tabs, Book last.
+      Future<void> panel(String name) async {
+        await tester.tap(
+          find.descendant(
+            of: find.byType(VistaUnderlineTabs),
+            matching: find.text(name),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      final tabs = tester.widget<VistaUnderlineTabs>(
+        find.byType(VistaUnderlineTabs),
+      );
+      expect(tabs.labels, ['Market', 'Callers', 'Alerts', 'Book']);
+      await panel('Book');
+      expect(visible('Spread 0.02'), findsOneWidget);
       // Just the book: no Trades tab, no market-buy slippage line.
       expect(find.text('Trades'), findsNothing);
       expect(find.text(r'Market buy $10,000'), findsNothing);
@@ -1659,8 +2342,7 @@ void main() {
       expect(find.text('2,968.42'), findsOneWidget);
       expect(find.text('Spread 0.02'), findsOneWidget);
       expect(find.text('67,412.0'), findsNothing);
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-      await tester.pumpAndSettle();
+      await panel('Callers');
       expect(visible('Callers in ETH'), findsOneWidget);
       // No long/short tally or split bar over the thread.
       expect(find.text('8 long'), findsNothing);
@@ -1728,10 +2410,13 @@ void main() {
       await launch(tester);
       await tester.tap(find.text('Details').first);
       await tester.pumpAndSettle();
-      for (var i = 0; i < 2; i++) {
-        await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-        await tester.pumpAndSettle();
-      }
+      await tester.tap(
+        find.descendant(
+          of: find.byType(VistaUnderlineTabs),
+          matching: find.text('Callers'),
+        ),
+      );
+      await tester.pumpAndSettle();
       expect(visible('Callers in ETH'), findsOneWidget);
       expect(find.text('vega'), findsOneWidget);
 
@@ -1747,9 +2432,10 @@ void main() {
       await launch(tester);
       await tester.tap(find.bySemanticsLabel('Explore'));
       await tester.pumpAndSettle();
+      await scrollToAllMarkets(tester);
       await tester.tap(
         find.descendant(
-          of: find.byType(VistaMarketRow),
+          of: find.byType(AssetMarketCard),
           matching: find.text('SOL'),
         ),
       );
@@ -1834,16 +2520,7 @@ void main() {
         of: find.byType(PortfolioScreen),
         matching: find.text(title),
       );
-      await tester.scrollUntilVisible(
-        row,
-        200,
-        scrollable: find
-            .descendant(
-              of: find.byType(PortfolioScreen),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
+      await tester.ensureVisible(row);
       await tester.pumpAndSettle();
       await tester.tap(row);
       await tester.pumpAndSettle();
@@ -1866,32 +2543,31 @@ void main() {
       expect(find.text('+3.5%'), findsOneWidget);
       expect(tester.getTopLeft(find.text(r'TP $3,004')).dy, lessThan(tpBefore));
 
-      // An edited level turns Close into Edit; saving turns it back.
+      // An edited level turns Close into Save changes; saving confirms on
+      // the button, then it reads Close again.
       expect(find.bySemanticsLabel('Close position'), findsNothing);
+      expect(find.text('Save changes'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Save take profit and stop loss'));
       await tester.pump();
-      expect(
-        find.text('Take profit and stop loss updated (simulated)'),
-        findsOneWidget,
-      );
+      expect(find.text('Saved ✓'), findsOneWidget);
       expect(find.bySemanticsLabel('Close position'), findsOneWidget);
+      await tester.pump(VistaMotion.confirmHold * 2);
+      await tester.pumpAndSettle();
+      expect(find.text('Close'), findsOneWidget);
 
       // Nudging back and forth to the saved value also restores Close.
       await tester.tap(find.bySemanticsLabel('Lower Stop loss'));
       await tester.pump();
-      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Save changes'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Raise Stop loss'));
       await tester.pumpAndSettle();
       expect(find.text('Close'), findsOneWidget);
 
-      // Close dismisses the sheet (simulated).
+      // Close dismisses the sheet and closes the position (simulated).
       await tester.tap(find.bySemanticsLabel('Close position'));
       await tester.pumpAndSettle();
       expect(find.byType(PositionSheet), findsNothing);
-      expect(
-        find.text('Close position (simulated) — not in the demo yet'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Closed Ethereum'), findsOneWidget);
     });
 
     testWidgets('a short puts stop-loss above entry', (tester) async {
@@ -1941,13 +2617,18 @@ void main() {
       await openWallet(tester);
       expect(find.text(r'+$91 (0.73%)'), findsOneWidget);
       // The balance page covers the chosen span (no market, no cap page).
+      // The first chart is the portfolio's; position rows have their own.
       expect(find.text('Last 24 hours'), findsOneWidget);
-      final day = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
+      final day = tester
+          .widget<SeriesChart>(find.byType(SeriesChart).first)
+          .focus;
       await tester.tap(find.text('1W'));
       await tester.pumpAndSettle();
       expect(find.text(r'+$412 (3.41%)'), findsOneWidget);
       expect(find.text('Past week'), findsOneWidget);
-      final week = tester.widget<SeriesChart>(find.byType(SeriesChart)).focus;
+      final week = tester
+          .widget<SeriesChart>(find.byType(SeriesChart).first)
+          .focus;
       // A different window, ending at the same balance.
       expect(week.first, isNot(day.first));
       expect(week.last, closeTo(12480, 0.01));
@@ -1960,7 +2641,7 @@ void main() {
       expect(find.bySemanticsLabel('Make a market'), findsOneWidget);
       expect(find.text('Your market'), findsNothing);
       // The chart has no muted market line behind the portfolio.
-      final chart = tester.widget<SeriesChart>(find.byType(SeriesChart));
+      final chart = tester.widget<SeriesChart>(find.byType(SeriesChart).first);
       expect(chart.muted, isNull);
       // No market-cap page to swipe to.
       final under = tester.getCenter(pagerBalance) + const Offset(0, 150);
@@ -2013,7 +2694,7 @@ void main() {
       await tester.tap(find.text(r'Create $MACRO'));
       await tester.pumpAndSettle();
 
-      // 3 · Live, with the confetti burst.
+      // 3 · Live, with a check stamped on the market.
       expect(find.text('Your market is open'), findsOneWidget);
       expect(find.text(r'$10,000'), findsOneWidget);
       expect(AccountState.hasMarket.value, isTrue);
@@ -2024,8 +2705,6 @@ void main() {
       expect(find.bySemanticsLabel('Make a market'), findsNothing);
       expect(find.text('Your market'), findsOneWidget);
       expect(find.text(r'$MACRO market cap'), findsOneWidget);
-      // The cap page holds the listed cap (at opacity 0 until swiped).
-      expect(find.text(r'$10,000'), findsOneWidget);
     });
 
     testWidgets('the listing success step opens Your market for the new '
@@ -2052,15 +2731,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Make a call — not in the demo yet'), findsNothing);
       expect(
-        find.text('Posting calls is outside this demo. Nothing has been '
-            'published. You can look at a sample call from another trader.'),
+        find.text(
+          'Posting calls is outside this demo. Nothing has been '
+          'published. You can look at a sample call from another trader.',
+        ),
         findsOneWidget,
       );
       await tester.tap(find.text('See a sample call'));
       await tester.pumpAndSettle();
       expect(find.byType(CallReceiptScreen), findsOneWidget);
       expect(
-        tester.widget<CallReceiptScreen>(find.byType(CallReceiptScreen))
+        tester
+            .widget<CallReceiptScreen>(find.byType(CallReceiptScreen))
             .receipt
             .id,
         traderCalls.first.id,
@@ -2262,7 +2944,12 @@ void main() {
       await tester.scrollUntilVisible(
         row,
         120,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: find
+            .descendant(
+              of: find.byType(SettingsScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(row);
       await tester.pumpAndSettle();
@@ -2284,6 +2971,18 @@ void main() {
       expect(SettingsState.notify.value['flips'], isFalse);
       expect(find.text('3 of 4 on'), findsOneWidget);
       expect(SettingsState.notifyFrom.value['0xreal'], isFalse);
+    });
+
+    testWidgets('Deposit and Withdraw sit under the wallet (simulated)', (
+      tester,
+    ) async {
+      await openSettings(tester);
+      for (final label in ['Deposit', 'Withdraw']) {
+        expect(find.widgetWithText(VistaPillButton, label), findsOneWidget);
+      }
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Withdraw'));
+      await tester.pump();
+      expect(find.text('Withdraw — not in the demo yet'), findsOneWidget);
     });
 
     testWidgets('Display settings change the charts and the Long side', (
@@ -2427,7 +3126,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Wallet'));
       await tester.pumpAndSettle();
-      final tab = find.text('Open orders');
+      final tab = find.text('Orders');
       await tester.scrollUntilVisible(
         tab,
         120,
@@ -2458,22 +3157,22 @@ void main() {
       tester,
     ) async {
       await openOrders(tester);
-      expect(find.text('Open orders · 3'), findsOneWidget);
+      expect(find.text('Open orders   3'), findsOneWidget);
       Finder rich(String text) => find.textContaining(text, findRichText: true);
-      expect(rich(r'Fills at $2,850.00 · 4.0% below mark'), findsOneWidget);
-      expect(find.text(r'Size $2,138 · 0.75 ETH'), findsOneWidget);
+      expect(rich(r'Fills at $2,850.00   4.0% below mark'), findsOneWidget);
+      expect(find.text(r'Size $2,138   0.75 ETH'), findsOneWidget);
       expect(find.text(r'TP $3,060.00'), findsOneWidget);
       // Only what the order needs: no venue, age or source call.
       expect(find.textContaining('Jupiter'), findsNothing);
       expect(find.textContaining("'s call"), findsNothing);
 
       await reveal(tester, find.text('1.2 / 4.5 SOL filled'));
-      expect(rich(r'Fills at $222.50 · 3.5% above mark'), findsOneWidget);
+      expect(rich(r'Fills at $222.50   3.5% above mark'), findsOneWidget);
       await reveal(tester, find.text('Reduce only'));
 
       await tester.tap(find.bySemanticsLabel('Cancel SOL order'));
       await tester.pumpAndSettle();
-      expect(find.text('Open orders · 2'), findsOneWidget);
+      expect(find.text('Open orders   2'), findsOneWidget);
       expect(find.text('1.2 / 4.5 SOL filled'), findsNothing);
       expect(
         find.text('SOL limit order cancelled (simulated)'),
@@ -2482,7 +3181,7 @@ void main() {
 
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle();
-      expect(find.text('Open orders · 3'), findsOneWidget);
+      expect(find.text('Open orders   3'), findsOneWidget);
       expect(find.text('1.2 / 4.5 SOL filled'), findsOneWidget);
     });
 
@@ -2520,10 +3219,11 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Explore'));
       await tester.pumpAndSettle();
+      await scrollToAllMarkets(tester);
       expect(find.text(r'$3,001'), findsWidgets); // compact, in the list
       await tester.tap(
         find.descendant(
-          of: find.byType(VistaMarketRow),
+          of: find.byType(AssetMarketCard),
           matching: find.text('ETH'),
         ),
       );
@@ -2532,8 +3232,10 @@ void main() {
     });
 
     test('the feed has one call on every market Explore offers', () {
+      // Markets opened in the last two weeks have no call yet.
       final markets = [
-        for (final m in [...MarketsMock.assets, ...MarketsMock.traders]) m.id,
+        for (final m in [...MarketsMock.assets, ...MarketsMock.traders])
+          if ((MarketsMock.traderCards[m.id]?.days ?? 999) > 14) m.id,
       ];
       expect(
         [for (final i in mockFeed) i.ticker],
@@ -2585,15 +3287,301 @@ void main() {
       await tester.pumpWidget(const VistaColosseumApp());
       await tester.pumpAndSettle();
       final feed = tester.widget<PageView>(find.byType(PageView).first);
+      // Home's default tab (For You), in its ranked order.
       final index = homeFeed.indexWhere(
-        (i) => i is TradeIdea && i.traderMarket,
+        (i) => i is Take && HomeFeed.ideaOf(i).traderMarket,
       );
       feed.controller!.jumpToPage(index);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Details').hitTestable());
       await tester.pumpAndSettle();
       expect(find.byType(TraderMarketScreen), findsOneWidget);
-      expect(find.text((homeFeed[index] as TradeIdea).ticker), findsWidgets);
+      expect(
+        find.text(HomeFeed.ideaOf(homeFeed[index] as Take).ticker),
+        findsWidgets,
+      );
+    });
+  });
+
+  group('home feed', () {
+    test('Following is only people you follow; For You is everyone', () {
+      final calls = CallsStore.all.value;
+      final following = HomeFeed.following(calls);
+      expect(
+        following.every((t) => HomeFeed.followed.contains(t.handle)),
+        isTrue,
+      );
+      final forYou = HomeFeed.forYou(calls);
+      expect(forYou.length, calls.length);
+      expect(forYou.any((t) => !HomeFeed.followed.contains(t.handle)), isTrue);
+    });
+
+    test('popularity and freshness rank; following boosts For You', () {
+      const big = Take(
+        handle: 'x',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '5h',
+        ticker: 'BTC',
+        body: '',
+        likes: 4000,
+        joined: 1000,
+      );
+      const small = Take(
+        handle: 'y',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '5h',
+        ticker: 'BTC',
+        body: '',
+        likes: 40,
+      );
+      const stale = Take(
+        handle: 'x',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '3d',
+        ticker: 'BTC',
+        body: '',
+        likes: 4000,
+        joined: 1000,
+      );
+      expect(HomeFeed.score(big), greaterThan(HomeFeed.score(small)));
+      expect(HomeFeed.score(big), greaterThan(HomeFeed.score(stale)));
+      final followed = HomeFeed.followed.first;
+      const base = Take(
+        handle: 'nobody',
+        side: TradeSide.long,
+        accuracy: '',
+        age: '1h',
+        ticker: 'BTC',
+        body: '',
+        likes: 100,
+      );
+      final mine = Take(
+        handle: followed,
+        side: TradeSide.long,
+        accuracy: '',
+        age: '1h',
+        ticker: 'BTC',
+        body: '',
+        likes: 100,
+      );
+      expect(HomeFeed.score(mine), closeTo(HomeFeed.score(base) * 1.5, 1e-9));
+    });
+
+    testWidgets('a call posted in Arena is the first card on Home', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ethereum'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'ETH/BTC bottomed.');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      final first = tester.widget<TradeIdeaCard>(
+        find.byType(TradeIdeaCard).first,
+      );
+      expect(first.idea.callerHandle, 'maya.eth');
+      expect(first.idea.ticker, 'ETH');
+      // For You leads with it too.
+      await tester.tap(find.text('For You'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TradeIdeaCard>(find.byType(TradeIdeaCard).first)
+            .idea
+            .callerHandle,
+        'maya.eth',
+      );
+    });
+
+    testWidgets('cards show the market cap (or nothing) before the age', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      // No + on Home.
+      expect(find.bySemanticsLabel('Make a call'), findsNothing);
+      // kaito.eth has no market: no measure, just "kaito.eth › · 5h".
+      final card = find.byType(TradeIdeaCard).first;
+      final handle = tester.widget<TradeIdeaCard>(card).idea.callerHandle;
+      expect(TraderStanding.of(handle), isNull);
+      expect(
+        find.descendant(of: card, matching: find.textContaining('% right')),
+        findsNothing,
+      );
+      // A trader with a market shows its cap: "MAYA $44.0M".
+      expect(TraderStanding.of('maya.eth')?.cap, r'$44.0M');
+
+      // A call made from Arena's + leads Home.
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Solana'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Fading the unlock.');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.bySemanticsLabel('Post'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      final first = tester.widget<TradeIdeaCard>(
+        find.byType(TradeIdeaCard).first,
+      );
+      expect(first.idea.callerHandle, 'maya.eth');
+      expect(first.idea.question, 'Fading the unlock.');
+    });
+
+    testWidgets('the tabs switch feeds and start at the top', (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+      String firstHandle() => tester
+          .widget<TradeIdeaCard>(find.byType(TradeIdeaCard).first)
+          .idea
+          .callerHandle;
+      // Home opens on For You.
+      expect(firstHandle(), HomeFeed.forYou(CallsStore.all.value).first.handle);
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      expect(
+        firstHandle(),
+        HomeFeed.following(CallsStore.all.value).first.handle,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('trade page Callers: Join opens the ticket on their side', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const AssetTradeScreen(ticker: 'ETH'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(VistaUnderlineTabs),
+            matching: find.text('Callers'),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    final join = find.byType(VistaJoinPill).first;
+    await tester.ensureVisible(join);
+    await tester.pumpAndSettle();
+    final side = tester.widget<VistaJoinPill>(join).side;
+    await tester.tap(join);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Place market ${side.label.toLowerCase()}'),
+      findsOneWidget,
+    );
+  });
+
+  group('positions', () {
+    Future<void> launch(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const VistaColosseumApp());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a market order from Home lands in Portfolio', (tester) async {
+      await launch(tester);
+      await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
+      await tester.pumpAndSettle();
+      // A market order is reviewed, then fills on Confirm.
+      await tester.tap(find.text(r'Long $200   2x'));
+      await tester.pumpAndSettle();
+      expect(find.text('Review order'), findsOneWidget);
+      await tester.tap(find.text('Confirm'));
+      await tester.pumpAndSettle();
+      expect(find.text('Order filled'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('Order filled'), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      expect(PositionsState.open.value, hasLength(4));
+      // The new one first: the card's market, long at 2x.
+      final first = PositionsState.open.value.first;
+      expect(first.tag, 'LONG 2x');
+      expect(first.detail.opened, 'just now');
+    });
+
+    testWidgets('Close removes the position; Undo puts it back', (
+      tester,
+    ) async {
+      await launch(tester);
+      await tester.tap(find.bySemanticsLabel('Wallet'));
+      await tester.pumpAndSettle();
+      final row = find.descendant(
+        of: find.byType(PortfolioScreen),
+        matching: find.text('Ethereum'),
+      );
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Close position'));
+      await tester.pumpAndSettle();
+      expect(
+        PositionsState.open.value.map((p) => p.title),
+        isNot(contains('Ethereum')),
+      );
+      expect(find.textContaining('Closed Ethereum'), findsOneWidget);
+      expect(find.textContaining('realised'), findsOneWidget);
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(PositionsState.open.value.first.title, 'Ethereum');
+    });
+
+    testWidgets('no positions: the + picker points to Explore', (tester) async {
+      await launch(tester);
+      PositionsState.open.value = const [];
+      await tester.tap(find.bySemanticsLabel('Arena'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Make a call'));
+      await tester.pumpAndSettle();
+      expect(find.text('No open positions yet'), findsOneWidget);
+      await tester.tap(find.text('Find a market'));
+      await tester.pumpAndSettle();
+      expect(find.byType(MarketsScreen), findsOneWidget);
+      await scrollToAllMarkets(tester);
+      expect(find.text('ALL MARKETS'), findsOneWidget);
     });
   });
 
@@ -2625,7 +3613,7 @@ void main() {
       // Opens as a market order with take profit / stop loss off.
       expect(find.text('Place market long'), findsOneWidget);
       expect(find.text('Take profit'), findsNothing);
-      expect(find.text('Cross · 10x'), findsOneWidget);
+      expect(find.text('Cross   10x'), findsOneWidget);
       expect(find.text('Fee (taker 0.05%)'), findsOneWidget);
 
       // Ticking TP/SL shows the exits.
@@ -2646,6 +3634,10 @@ void main() {
       await tester.pumpAndSettle();
       final before = OrdersState.open.value.length;
       await tester.tap(find.text('Place limit long'));
+      await tester.pump();
+      // Confirmed on the button, then the sheet closes.
+      expect(find.text('Placed ✓'), findsOneWidget);
+      await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
       expect(find.byType(OrderTicket), findsNothing);
       expect(OrdersState.open.value.length, before + 1);
@@ -2654,7 +3646,7 @@ void main() {
       expect(placed.side, TradeSide.long);
       expect(placed.leverage, 10);
       expect(
-        find.text('Limit long placed · in Open orders (simulated)'),
+        find.text('Limit long placed   in Open orders (simulated)'),
         findsOneWidget,
       );
     });
@@ -2671,12 +3663,18 @@ void main() {
       await tester.pump();
       expect(find.text('Not enough funds'), findsOneWidget);
       final before = OrdersState.open.value.length;
+      expect(redFields(OrderTicket), findsNothing);
       await tester.tap(find.text('Not enough funds'));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(OrdersState.open.value.length, before);
+      // The size field is outlined until it's edited.
+      expect(redFields(OrderTicket), findsOneWidget);
+      await tester.enterText(size.at(0), '0.01');
+      await tester.pumpAndSettle();
+      expect(redFields(OrderTicket), findsNothing);
     });
 
-    testWidgets('Arena Bull and Home Long open the ticket on that side', (
+    testWidgets('Arena Join short and Home Long open the ticket on that side', (
       tester,
     ) async {
       tester.view
@@ -2690,13 +3688,21 @@ void main() {
       await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
       await tester.pumpAndSettle();
       expect(find.byType(FeedOrderTicket), findsOneWidget);
-      expect(find.text(r'Long $200 · 2x'), findsOneWidget);
+      expect(find.text(r'Long $200   2x'), findsOneWidget);
       Navigator.of(tester.element(find.byType(FeedOrderTicket))).pop();
       await tester.pumpAndSettle();
 
       await tester.tap(find.bySemanticsLabel('Arena'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text("I'm with Bear").first);
+      // Bring the first call's Join clear of the floating composer.
+      await tester.scrollUntilVisible(
+        find.text('Join short'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.drag(find.byType(ListView).last, const Offset(0, -150));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Join short').first);
       await tester.pumpAndSettle();
       expect(find.text('Place market short'), findsOneWidget);
     });
@@ -2705,7 +3711,7 @@ void main() {
       await pumpBtc(tester);
       await tester.tap(find.text('Long').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cross · 10x'));
+      await tester.tap(find.text('Cross   10x'));
       await tester.pumpAndSettle();
       expect(find.text('Leverage'), findsOneWidget);
       expect(find.text('Set 10x'), findsOneWidget);
@@ -2729,7 +3735,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Set ${cap - 1}x'));
       await tester.pumpAndSettle();
-      expect(find.text('Cross · ${cap - 1}x'), findsOneWidget);
+      expect(find.text('Cross   ${cap - 1}x'), findsOneWidget);
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -2738,7 +3744,7 @@ void main() {
         await tester.tap(find.text('Long').last);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await tester.tap(find.text('Cross · 10x'));
+        await tester.tap(find.text('Cross   10x'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       });
@@ -2753,9 +3759,9 @@ void main() {
         await pumpBtc(tester, size, padding);
         await tester.tap(find.text('Long').last);
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.text('Cross · 10x'));
+        await tester.ensureVisible(find.text('Cross   10x'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Cross · 10x'));
+        await tester.tap(find.text('Cross   10x'));
         await tester.pumpAndSettle();
         await tester.tap(find.bySemanticsLabel('Raise leverage'));
         await tester.pumpAndSettle();
@@ -2766,7 +3772,7 @@ void main() {
         );
         await tester.tap(find.text('Set 11x'));
         await tester.pumpAndSettle();
-        expect(find.text('Cross · 11x'), findsOneWidget);
+        expect(find.text('Cross   11x'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }
@@ -2942,18 +3948,18 @@ void main() {
         expect(inTicket(find.text(l)), findsOneWidget);
       }
       expect(
-        inTicket(find.text(r'$400 of ETH at 2x · 0.1348 ETH')),
+        inTicket(find.text(r'You pay $200 → $400 position (2x)   0.1348 ETH')),
         findsOneWidget,
       );
-      expect(inTicket(find.text(r'If ETH falls to $1,499')), findsOneWidget);
-      expect(inTicket(find.text(r'you lose the $200')), findsOneWidget);
+      // No worst-case box: the margin and liquidation line covers the risk.
+      expect(inTicket(find.text('WORST CASE')), findsNothing);
       // TP/SL opens on, with the track at the design's defaults.
       expect(inTicket(find.text('STOP LOSS')), findsOneWidget);
       expect(inTicket(find.text('ENTRY')), findsOneWidget);
       expect(inTicket(find.text(r'$2,906')), findsOneWidget);
       expect(inTicket(find.text(r'$3,176')), findsOneWidget);
-      expect(inTicket(find.text(r'−2.1% · −$8.40')), findsOneWidget);
-      expect(inTicket(find.text(r'+7.0% · +$28.00')), findsOneWidget);
+      expect(inTicket(find.text(r'−2.1%   −$8.40')), findsOneWidget);
+      expect(inTicket(find.text(r'+7.0%   +$28.00')), findsOneWidget);
 
       // Dragging the stop's thumb left widens the stop.
       await tester.drag(
@@ -2961,14 +3967,16 @@ void main() {
         const Offset(-30, 0),
       );
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'−2.1% · −$8.40')), findsNothing);
+      expect(inTicket(find.text(r'−2.1%   −$8.40')), findsNothing);
 
       // 5x updates what it buys and where it liquidates.
       await tester.tap(inTicket(find.text('5x')));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $200 · 5x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $200   5x')), findsOneWidget);
       expect(
-        inTicket(find.text(r'$1,000 of ETH at 5x · 0.3369 ETH')),
+        inTicket(
+          find.text(r'You pay $200 → $1,000 position (5x)   0.3369 ETH'),
+        ),
         findsOneWidget,
       );
 
@@ -2986,7 +3994,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Set 3x'));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $200 · 3x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $200   3x')), findsOneWidget);
     });
 
     testWidgets('a limit order lands in Open orders', (tester) async {
@@ -2995,13 +4003,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(inTicket(find.text('Limit price')), findsOneWidget);
       final before = OrdersState.open.value.length;
-      await tester.tap(inTicket(find.text(r'Long $200 · 2x')));
+      await tester.tap(inTicket(find.text(r'Long $200   2x')));
+      await tester.pump();
+      expect(inTicket(find.text('Placed ✓')), findsOneWidget);
+      await tester.pump(VistaMotion.confirmHold);
       await tester.pumpAndSettle();
       expect(find.byType(FeedOrderTicket), findsNothing);
       expect(OrdersState.open.value.length, before + 1);
       expect(OrdersState.open.value.first.leverage, 2);
       expect(
-        find.text('Limit long placed · in Open orders (simulated)'),
+        find.text('Limit long placed   in Open orders (simulated)'),
         findsOneWidget,
       );
     });
@@ -3015,13 +4026,13 @@ void main() {
         Offset(box.left + 12 + (box.width - 24) * 0.43, box.center.dy),
       );
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $4,992 · 2x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $4,992   2x')), findsOneWidget);
       // Dragging to the far right snaps to Max: the cash less the $5.00
       // copy fee (the call is not the creator's), less room for the fee at
       // 2x and 5 bps ((1,248,000 − 500) × 10,000 ~/ 10,010 cents).
       await tester.drag(slider, const Offset(600, 0));
       await tester.pumpAndSettle();
-      expect(inTicket(find.text(r'Long $12,462.53 · 2x')), findsOneWidget);
+      expect(inTicket(find.text(r'Long $12,462.53   2x')), findsOneWidget);
     });
 
     testWidgets('an amount over the balance blocks the order', (tester) async {
@@ -3030,6 +4041,13 @@ void main() {
       await tester.enterText(inTicket(find.byType(TextField)).first, '50000');
       await tester.pump();
       expect(inTicket(find.text('Not enough funds')), findsOneWidget);
+      // Tapping it shakes instead of placing.
+      final before = OrdersState.open.value.length;
+      await tester.tap(inTicket(find.text('Not enough funds')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FeedOrderTicket), findsOneWidget);
+      expect(OrdersState.open.value.length, before);
+      expect(redFields(FeedOrderTicket), findsOneWidget); // the amount
     });
 
     for (final MapEntry(key: name, value: (size, padding)) in phones.entries) {
@@ -3060,7 +4078,7 @@ void main() {
         );
         await tester.tap(find.text('Set 3x'));
         await tester.pumpAndSettle();
-        expect(inTicket(find.text(r'Long $200 · 3x')), findsOneWidget);
+        expect(inTicket(find.text(r'Long $200   3x')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }
@@ -3080,10 +4098,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    for (var i = 0; i < 3; i++) {
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
-      await tester.pumpAndSettle();
-    }
+    await tester.tap(
+      find.descendant(
+        of: find.byType(VistaUnderlineTabs),
+        matching: find.text('Alerts'),
+      ),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Alerts on ETH'), findsOneWidget);
     // The ETH card's events, fills and call, newest first.
     for (final t in [
@@ -3103,6 +4124,241 @@ void main() {
     expect(joined, lessThan(call.dy));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('numbers use the fixed-width digit face', (tester) async {
+    // Every digit is as wide as every other, so a ticking price keeps its
+    // width: $1,111.11 sets as wide as $8,888.88.
+    double widthOf(String text) {
+      final p = TextPainter(
+        text: TextSpan(text: text, style: VistaType.display),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      return p.width;
+    }
+
+    expect(VistaType.display.fontFamily, VistaType.numberFamily);
+    expect(widthOf(r'$1,111.11'), closeTo(widthOf(r'$8,888.88'), 0.01));
+    expect(widthOf(r'$2,968.40'), closeTo(widthOf(r'$2,971.15'), 0.01));
+  });
+
+  testWidgets('a profile pins its market price once it scrolls away', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const ProfileScreen(handle: 'maya.eth'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    double opacityOf() =>
+        tester.widget<AnimatedOpacity>(find.byKey(pinnedPriceKey)).opacity;
+    expect(opacityOf(), 0);
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(opacityOf(), 1);
+    // Back to the top, it tucks away again.
+    await tester.drag(find.byType(ListView), const Offset(0, 800));
+    await tester.pumpAndSettle();
+    expect(opacityOf(), 0);
+  });
+
+  testWidgets('the trade page puts the 24h change on a line under the price', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const AssetTradeScreen(ticker: 'ETH'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // ETH is down 0.40% on the day: $11.92 below its 24h open.
+    expect(
+      find.bySemanticsLabel(r'Down $11.92, 0.40%, Past 24 hours'),
+      findsOneWidget,
+    );
+    final price = tester.getBottomLeft(find.byType(LiveUsd).first);
+    final change = tester.getTopLeft(find.byType(VistaChangeLine));
+    expect(change.dy, greaterThan(price.dy)); // under, not beside
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('each backed call in a debate opens its play', (tester) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: BattleScreen(battle: BattlesStore.all.value.first),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // @renatafx: in Most right and on their call.
+    expect(find.text('LONG 10x'), findsWidgets);
+    await tester.tap(find.byType(BackedPositionCard).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(CallerPlayScreen), findsOneWidget);
+  });
+
+  test('a new caller\'s backed call is boosted and seen early', () {
+    expect(HomeFeed.isNewCaller('vega'), isTrue);
+    expect(HomeFeed.isNewCaller('maya.eth'), isFalse);
+    final ranked = HomeFeed.forYou(CallsStore.all.value);
+    final i = ranked.indexWhere((t) => t.handle == 'vega' && t.backed);
+    expect(i, lessThanOrEqualTo(HomeFeed.newCallerSlot));
+  });
+
+  testWidgets('Settings › Edit: change name and bio; your profile shows them', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Settings').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit').first);
+    await tester.pumpAndSettle();
+    expect(find.byType(EditProfileScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // Nothing changed yet: Save waits.
+    await tester.tap(find.bySemanticsLabel('Save'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditProfileScreen), findsOneWidget);
+    // Bios stop at 60 characters.
+    await tester.enterText(find.byType(TextField).last, 'x' * 80);
+    await tester.pump();
+    expect(find.text('60/60'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Maya');
+    await tester.enterText(
+      find.byType(TextField).last,
+      'Swing trades, receipts.',
+    );
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Save'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditProfileScreen), findsNothing);
+    expect(find.text('Profile updated'), findsOneWidget);
+    expect(find.text('Swing trades, receipts.'), findsOneWidget); // settings
+    // Your profile shows the name over the handle, and the bio.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: VistaTheme.dark(),
+        home: const ProfileScreen(handle: 'maya.eth'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Maya'), findsOneWidget);
+    expect(find.text('Swing trades, receipts.'), findsOneWidget);
+  });
+
+  testWidgets('the bell: a dot while new, filters, a note opens, read after', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(402, 874) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const VistaColosseumApp());
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Notifications, 4 new'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Notifications, 4 new'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NotificationsScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(find.text('TODAY'), findsOneWidget);
+    expect(Notifications.unread.value, 0);
+    // People: follows, with Follow back.
+    await tester.tap(find.widgetWithText(VistaFilterChip, 'People'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('started following you', findRichText: true),
+      findsWidgets,
+    );
+    expect(find.byType(VistaFollowButton), findsOneWidget);
+    await tester.tap(find.byType(VistaFollowButton));
+    await tester.pumpAndSettle();
+    expect(FollowState.isFollowing('sam.sol'), isTrue);
+    // Markets: your market's move opens it.
+    await tester.tap(find.widgetWithText(VistaFilterChip, 'Markets'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.textContaining('MAYA ▲4.3% today', findRichText: true),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(TraderMarketScreen), findsOneWidget);
+    // Back on Home: no dot.
+    await tester.tap(find.bySemanticsLabel('Back').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Back').last);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Notifications'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a call from someone you follow shows in Notifications as a call card',
+    (tester) async {
+      tester.view
+        ..physicalSize = const Size(402, 874) * 3
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VistaTheme.dark(),
+          home: const NotificationsScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      HubCallCard? voskov() => tester
+          .widgetList<HubCallCard>(
+            find.byType(HubCallCard, skipOffstage: false),
+          )
+          .where((c) => c.take.handle == 'voskov')
+          .firstOrNull;
+      // Not following voskov: no card for their call.
+      expect(FollowState.isFollowing('voskov'), isFalse);
+      expect(voskov(), isNull);
+      FollowState.toggle('voskov');
+      await tester.pumpAndSettle();
+      // Following: voskov's call shows, as a call card.
+      await tester.scrollUntilVisible(
+        find.byWidgetPredicate(
+          (w) => w is HubCallCard && w.take.handle == 'voskov',
+        ),
+        300,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      expect(voskov(), isNotNull);
+      expect(voskov()!.take.ticker, 'BTC');
+      // Join right from it.
+      final card = find.byWidgetPredicate(
+        (w) => w is HubCallCard && w.take.handle == 'voskov',
+      );
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(VistaJoinPill)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Place market short'), findsOneWidget);
+    },
+  );
 
   group('simulation indicator', () {
     const tabs = ['Home', 'Explore', 'Arena', 'Wallet'];
@@ -3173,7 +4429,7 @@ void main() {
         // Home's feed ticket.
         await tester.tap(find.widgetWithText(VistaPillButton, 'Long').first);
         await tester.pumpAndSettle();
-        final cta = button(r'Long $200 · 2x');
+        final cta = button(r'Long $200   2x');
         await tester.ensureVisible(cta);
         await tester.pumpAndSettle();
         expectPillClear(tester, cta);
@@ -3299,10 +4555,7 @@ void main() {
         expect(s.referencePrice, TradeMock.quotes[s.asset]!.price);
         final i = homeFeed.indexOf(s);
         expect(i, greaterThan(0));
-        expect([
-          homeFeed[i - 1],
-          homeFeed[i + 1],
-        ], everyElement(isA<TradeIdea>()));
+        expect([homeFeed[i - 1], homeFeed[i + 1]], everyElement(isA<Take>()));
       }
       // The live one can really be traded.
       expect(Scenario.tradable(live.asset), isTrue);
@@ -3359,7 +4612,7 @@ void main() {
         find.byType(FeedOrderTicket),
       );
       expect((ticket.symbol, ticket.side), (live.asset, live.direction));
-      expect(find.text('${live.direction.label} \$200 · 2x'), findsOneWidget);
+      expect(find.text('${live.direction.label} \$200   2x'), findsOneWidget);
     });
 
     testWidgets('a card follows the demo clock, and Trade this opens the '
@@ -3386,7 +4639,7 @@ void main() {
         find.byType(FeedOrderTicket),
       );
       expect((ticket.symbol, ticket.side), (expired.asset, expired.direction));
-      expect(find.text('Short \$200 · 2x'), findsOneWidget);
+      expect(find.text('Short \$200   2x'), findsOneWidget);
       // The clock moves on with the card mounted: it expires in place.
       Scenario.clock.value = TradeMock.chartEnd;
       await tester.pump();

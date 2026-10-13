@@ -4,10 +4,12 @@ import 'package:flutter/widgets.dart';
 
 import '../../design_system/design_system.dart';
 import 'live_fills_stream.dart';
+import '../markets/trader_standing.dart';
 import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../share/share_call_sheet.dart';
 import 'mock_trade_idea.dart';
+import '../people/follow_state.dart';
 import 'likes_state.dart';
 import 'people_in_sheet.dart';
 import 'replay_timeline.dart';
@@ -86,9 +88,6 @@ class _TradeIdeaCardState extends State<TradeIdeaCard> {
                   variant: idea.side == TradeSide.long
                       ? VistaPillVariant.long
                       : VistaPillVariant.short,
-                  leadingAsset: idea.side == TradeSide.long
-                      ? VistaAssets.longArrow
-                      : null,
                   onPressed: onTrade,
                 ),
               ),
@@ -139,13 +138,26 @@ class _CallHeader extends StatelessWidget {
                         const SizedBox(width: VistaSpace.xs),
                         Text(
                           '›',
-                          style: VistaType.body.copyWith(
-                            fontSize: 14,
+                          style: VistaType.row.copyWith(
                             color: VistaColors.textSecondary,
                           ),
                         ),
                         const SizedBox(width: VistaSpace.md),
-                        Text('· ${idea.age}', style: VistaType.meta),
+                        // Their market's cap (blank without one), then when
+                        // they called it.
+                        if (TraderStanding.of(idea.callerHandle)
+                            case final s?) ...[
+                          Text(
+                            '${s.symbol} ${s.cap}',
+                            style: VistaType.meta.copyWith(
+                              color: VistaColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: VistaSpace.sm),
+                        ],
+                        Text(idea.age, style: VistaType.meta),
+                        const SizedBox(width: VistaSpace.md),
+                        FollowChip(handle: idea.callerHandle),
                       ],
                     ),
                   ),
@@ -218,13 +230,12 @@ class _PriceBlock extends StatelessWidget {
       var pct = (price - call) / call * 100;
       if (idea.side == TradeSide.short) pct = -pct;
       final colour = pct >= 0 ? VistaColors.long : VistaColors.short;
-      const tabular = [FontFeature.tabularFigures()];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
             formatUsd(price, decimals: MarketPrices.decimalsFor(idea.price)),
-            style: VistaType.displayNumber.copyWith(fontFeatures: tabular),
+            style: VistaType.displayNumber,
           ),
           const SizedBox(height: 1),
           Text.rich(
@@ -234,10 +245,10 @@ class _PriceBlock extends StatelessWidget {
                   text:
                       '${pct >= 0 ? '+' : '−'}'
                       '${pct.abs().toStringAsFixed(2)}%',
-                  style: change.copyWith(color: colour, fontFeatures: tabular),
+                  style: VistaType.figures(change).copyWith(color: colour),
                 ),
                 TextSpan(
-                  text: ' · replaying ${idea.age}',
+                  text: '   replaying ${idea.age}',
                   style: change.copyWith(color: VistaColors.textSecondary),
                 ),
               ],
@@ -319,12 +330,15 @@ class _ChartWithRail extends StatelessWidget {
           top: 0,
           bottom: 0,
           right: _chartRightInset,
-          child: SignalReplayChart(
-            active: active,
-            frame: frame,
-            // The same live price as the header, so both show one number.
-            livePrice: _livePrice(idea),
-            script: idea.script,
+          child: RepaintBoundary(
+            // The replay repaints every frame; keep that to the chart.
+            child: SignalReplayChart(
+              active: active,
+              frame: frame,
+              // The same live price as the header, so both show one number.
+              livePrice: _livePrice(idea),
+              script: idea.script,
+            ),
           ),
         ),
         // Live fills stream; older entries fade.

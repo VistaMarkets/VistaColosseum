@@ -108,16 +108,18 @@ class _OpenOrderCardState extends State<OpenOrderCard>
                       valueListenable: MarketPrices.of(o.symbol),
                       builder: (context, _, _) => Text.rich(
                         TextSpan(
-                          style: muted,
+                          // Ticks with the price: the number face keeps
+                          // the line from shifting (letters are the same).
+                          style: VistaType.figures(muted),
                           children: [
                             const TextSpan(text: 'Fills at '),
                             TextSpan(
                               text: _usd(o.limitPrice),
-                              style: VistaType.bodyStrong,
+                              style: VistaType.figures(VistaType.bodyStrong),
                             ),
                             TextSpan(
                               text:
-                                  ' · ${(o.distance * 100).toStringAsFixed(1)}% '
+                                  '   ${(o.distance * 100).toStringAsFixed(1)}% '
                                   '${o.limitBelowMark ? 'below' : 'above'} mark',
                             ),
                           ],
@@ -140,7 +142,7 @@ class _OpenOrderCardState extends State<OpenOrderCard>
               runSpacing: VistaSpace.sm,
               children: [
                 VistaTag(
-                  label: 'Size ${_usd(o.notional, 0)} · ${_units(o.quantity)}',
+                  label: 'Size ${_usd(o.notional, 0)}   ${_units(o.quantity)}',
                   dense: true,
                 ),
                 if (o.partlyFilled)

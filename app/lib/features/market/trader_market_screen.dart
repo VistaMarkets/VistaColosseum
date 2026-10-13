@@ -8,6 +8,7 @@ import '../../scenario/scenario.dart';
 import '../live/market_prices.dart';
 import '../portfolio/series_chart.dart';
 import '../profile/holdings_table.dart';
+import '../profile/trader_profile.dart';
 import '../settings/settings_state.dart';
 import '../trade/trade_mock.dart';
 import '../trade/order_ticket.dart';
@@ -163,11 +164,10 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                       valueListenable: MarketPrices.of(widget.handle),
                       builder: (context, price, _) => Text(
                         t > 0.5
-                            ? 'Market cap · ${MarketPrices.format(price)} per unit'
+                            ? 'Market cap   ${MarketPrices.format(price)} per unit'
                             : 'Trader market',
-                        style: VistaType.caption.copyWith(
-                          color: VistaColors.textMuted,
-                        ),
+                        style: VistaType.figures(VistaType.caption)
+                            .copyWith(color: VistaColors.textMuted),
                       ),
                     ),
                   ],
@@ -220,47 +220,33 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                     ),
                   ),
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                // Figma 232:159: the cap on its own line, the 24h change
+                // under it.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Scales down on narrow phones instead of overflowing.
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.bottomLeft,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            // Cap = the market's one live price × its supply.
-                            ValueListenableBuilder(
-                              valueListenable: MarketPrices.of(widget.handle),
-                              builder: (context, price, _) => Text(
-                                TraderMarketMock.capFor(price),
-                                style: VistaType.display.copyWith(fontSize: 32),
-                              ),
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              TraderMarketMock.capChangeOf(widget.handle),
-                              style: VistaType.subhead.copyWith(
-                                color: VistaColors.long,
-                              ),
-                            ),
-                          ],
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      // Cap = the market's one live price × its supply.
+                      child: ValueListenableBuilder(
+                        valueListenable: MarketPrices.of(widget.handle),
+                        builder: (context, price, _) => Text(
+                          TraderMarketMock.capFor(price),
+                          style: VistaType.displayLarge,
                         ),
                       ),
                     ),
-                    const SizedBox(width: VistaSpace.md),
-                    Text(
-                      TraderMarketMock.change24hOf(widget.handle),
-                      style: VistaType.displayNumber.copyWith(
-                        fontSize: 24,
-                        color: VistaColors.long,
-                      ),
+                    const SizedBox(height: VistaSpace.sm),
+                    VistaChangeLine(
+                      up: !TraderMarketMock.capChangeOf(widget.handle)
+                          .startsWith('−'),
+                      amount: TraderMarketMock.capChangeOf(widget.handle)
+                          .replaceAll(RegExp(r'^[+−-]'), ''),
+                      percent: TraderMarketMock.change24hOf(widget.handle)
+                          .replaceAll(RegExp(r'^[+−-]'), ''),
                     ),
-                    const SizedBox(width: 10),
                   ],
                 ),
               ],
@@ -291,6 +277,8 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
         ),
         const SizedBox(height: VistaSpace.md),
         HoldingsTable(
+          holdings: TraderProfile.of(widget.handle).holdings,
+          cashShare: TraderProfile.of(widget.handle).cashShare,
           onRowTap: (h) =>
               Navigator.of(context)
                   .push(CallReceiptScreen.forHolding(widget.handle, h)),
@@ -311,10 +299,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                 Navigator.of(context).push(ReceiptsScreen.route(widget.handle)),
             child: Text(
               'All receipts ›',
-              style: VistaType.body.copyWith(
-                fontSize: 14,
-                color: VistaColors.accent,
-              ),
+              style: VistaType.row.copyWith(color: VistaColors.accent),
             ),
           ),
         ),
@@ -371,8 +356,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
                 children: [
                   Text(
                     'Longs pay shorts',
-                    style: VistaType.bodyMedium.copyWith(
-                      fontSize: 14,
+                    style: VistaType.rowMedium.copyWith(
                       color: VistaColors.textMuted,
                     ),
                   ),
@@ -383,10 +367,7 @@ class _TraderMarketScreenState extends State<TraderMarketScreen> {
             ),
             Text(
               TraderMarketMock.fundingRate,
-              style: VistaType.body.copyWith(
-                fontSize: 14,
-                color: VistaColors.short,
-              ),
+              style: VistaType.row.copyWith(color: VistaColors.short),
             ),
           ],
         ),

@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../app_shell.dart';
 import '../../design_system/design_system.dart';
 import '../../scenario/scenario.dart';
+import '../live/market_prices.dart';
 import '../market/market_mock.dart';
 import '../market/receipt_screens.dart';
 import '../market/trader_market_mock.dart';
 import '../market/trader_market_screen.dart';
+import '../markets/market_chart_card.dart';
 import '../people/follow_list_screen.dart';
+import '../people/follow_state.dart';
 import '../portfolio/portfolio_mock.dart';
 import '../portfolio/series_chart.dart';
+import 'edit_profile_screen.dart';
 import 'holdings_table.dart';
 import 'private_profile_screen.dart';
 import 'profile_mock.dart';
-import '../../app_shell.dart';
+import 'trader_profile.dart';
+
+/// The pinned market-price bar (for tests).
+const pinnedPriceKey = Key('profile.pinnedPrice');
 
 /// [author]'s settled calls as dots, oldest to newest, the last 10 at
 /// most, each in its receipt's colour (right long, wrong short). Order is
@@ -68,9 +76,9 @@ class VerdictStrip extends StatelessWidget {
   }
 }
 
-/// Someone else's profile (Figma 303:102, "Profile — maya.eth · Arena
-/// receipts"). Shows [handle] with their own record and calls; the rest is
-/// the sample profile content.
+/// Someone's profile (Figma 303:102, "Profile — maya.eth · Arena
+/// receipts"). Shows [handle] with their own figures and market, and the
+/// record and calls the store holds for them.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.handle});
 
@@ -91,7 +99,62 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   int _span = PortfolioMock.defaultSpan;
 
-  MarketFigures get _figures => ProfileMock.marketOf(widget.handle);
+  /// Your own profile (shows your edits).
+  bool get _mine => widget.handle == PortfolioMock.handle;
+
+  /// This trader's own figures (yours are the designed ones).
+  TraderProfile get _p => TraderProfile.of(widget.handle);
+
+  /// Their market block shows when they have a market and a settled call;
+  /// with no settled call, no chart and no index copy.
+  bool get _showMarket =>
+      _p.market != null && Scenario.record(widget.handle).settled > 0;
+
+  final _scroll = ScrollController();
+
+  /// On the market's price row, to tell when it has scrolled away.
+  final _priceKey = GlobalKey();
+
+  /// On the scrolling area, whose top edge the price row scrolls under.
+  final _listKey = GlobalKey();
+
+  /// The price row is out of view: show it pinned at the top instead.
+  bool _pinned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  // Measured after the frame: during the scroll callback the list hasn't
+  // been laid out at its new offset yet, so positions would be stale.
+  void _onScroll() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+
+  void _measure() {
+    if (!mounted) return;
+    final row = _priceKey.currentContext?.findRenderObject() as RenderBox?;
+    final list = _listKey.currentContext?.findRenderObject() as RenderBox?;
+    bool pinned;
+    // No market block, no price to pin.
+    if (!_showMarket) {
+      pinned = false;
+    } else if (row == null || !row.attached || list == null) {
+      // Built lazily: once it's been dropped it's well off the top.
+      pinned = _scroll.offset > 0;
+    } else {
+      final bottom = row.localToGlobal(Offset(0, row.size.height)).dy;
+      pinned = bottom < list.localToGlobal(Offset.zero).dy;
+    }
+    if (pinned != _pinned) setState(() => _pinned = pinned);
+  }
 
   void _openMarket() =>
       Navigator.of(context).push(TraderMarketScreen.route(widget.handle));
@@ -130,36 +193,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.paddingOf(context).bottom + 24,
-                ),
+              child: Stack(
+                key: _listKey,
                 children: [
-                  Padding(padding: gutter, child: _header()),
-                  const SizedBox(height: 18 + 16),
-                  _record(),
-                  const SizedBox(height: 8 + 22),
-                  const Padding(
-                    padding: gutter,
-                    child: VistaSectionHead(
-                      title: 'HOLDING NOW',
-                      note: 'Shared live',
+                  ListView(
+                    controller: _scroll,
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.paddingOf(context).bottom + 24,
+                    ),
+                    children: [
+                      Padding(padding: gutter, child: _header()),
+                      const SizedBox(height: VistaSpace.sectionLg),
+                      _record(),
+                      const SizedBox(height: VistaSpace.sectionLg),
+                      const Padding(
+                        padding: gutter,
+                        child: VistaSectionHead(
+                          title: 'HOLDING NOW',
+                          note: 'Shared live',
+                        ),
+                      ),
+                      const SizedBox(height: VistaSpace.xl),
+                      Padding(
+                        padding: gutter,
+                        child: HoldingsTable(
+                          holdings: _p.holdings,
+                          cashShare: _p.cashShare,
+                          onRowTap: (h) => Navigator.of(context).push(
+                            CallReceiptScreen.forHolding(widget.handle, h),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: VistaSpace.sectionLg),
+                      Padding(padding: gutter, child: _calls()),
+                    ],
+                  ),
+                  // The market price stays in reach while scrolling: pinned
+                  // under the title bar once its row has scrolled away.
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    child: IgnorePointer(
+                      ignoring: !_pinned,
+                      child: AnimatedSlide(
+                        offset: _pinned ? Offset.zero : const Offset(0, -0.4),
+                        duration: VistaMotion.state,
+                        curve: VistaMotion.enter,
+                        child: AnimatedOpacity(
+                          key: pinnedPriceKey,
+                          opacity: _pinned ? 1 : 0,
+                          duration: VistaMotion.state,
+                          child: _pinnedPrice(),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4 + 8),
-                  Padding(
-                    padding: gutter,
-                    child: HoldingsTable(
-                      onRowTap: (h) => Navigator.of(context)
-                          .push(CallReceiptScreen.forHolding(widget.handle, h)),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Padding(padding: gutter, child: _calls()),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// "$0.4400   maya.eth's market   +4.27%" in a slim bar; tapping opens
+  /// the market.
+  Widget _pinnedPrice() {
+    return Semantics(
+      button: true,
+      label:
+          '${widget.handle} market, '
+          '${MarketPrices.format(MarketPrices.of(widget.handle).value, compact: true)}, '
+          '${_changeText(_p)}',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _openMarket,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
+          decoration: const BoxDecoration(
+            color: VistaColors.background,
+            border: Border(bottom: BorderSide(color: VistaColors.hairline)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _LivePrice(
+                handle: widget.handle,
+                style: VistaType.figures(VistaType.headline),
+              ),
+              const SizedBox(width: VistaSpace.sm),
+              Expanded(
+                child: Text(
+                  "${widget.handle}'s market",
+                  style: VistaType.body.copyWith(color: VistaColors.textMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                _changeText(_p),
+                style: VistaType.figures(VistaType.body)
+                    .copyWith(color: vistaChangeColor(_p.change ?? 0)),
+              ),
+              const SizedBox(width: VistaSpace.xs),
+              Text(
+                '›',
+                style: VistaType.tab.copyWith(color: VistaColors.textMuted),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -182,13 +328,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Text(
             initial,
-            style: VistaType.body.copyWith(
-              fontSize: 26,
+            style: VistaType.displayMedium.copyWith(
               color: VistaColors.textSecondary,
             ),
           ),
         ),
         gap,
+        // Your own name from Edit profile, over your handle.
+        if (_mine)
+          ValueListenableBuilder(
+            valueListenable: ProfileEdits.name,
+            builder: (context, name, _) => name.isEmpty
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: VistaSpace.xs),
+                    child: Text(
+                      name,
+                      style: VistaType.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+          ),
         Text(
           widget.handle,
           style: VistaType.displayNumber,
@@ -228,38 +389,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
         gap,
-        Text(
-          ProfileMock.bio,
-          textAlign: TextAlign.center,
-          style: VistaType.bodyRegular.copyWith(height: 1.35),
+        ValueListenableBuilder(
+          valueListenable: ProfileEdits.bio,
+          builder: (context, bio, _) => Text(
+            _mine ? bio : _p.bio,
+            textAlign: TextAlign.center,
+            style: VistaType.bodyRegular.copyWith(height: 1.35),
+          ),
         ),
         gap,
         Row(
           children: [
             Expanded(
+              // Shared with call cards and the Home feed; nothing is sent.
               child: ValueListenableBuilder(
-                valueListenable: Scenario.followed,
-                builder: (context, followed, _) => VistaFollowButton(
-                  following: followed.contains(widget.handle),
-                  onPressed: () => Scenario.toggleFollow(widget.handle),
+                valueListenable: FollowState.following,
+                builder: (context, following, _) => VistaFollowButton(
+                  following: following.contains(widget.handle),
+                  onPressed: () => FollowState.toggle(widget.handle),
                   expand: true,
                 ),
               ),
             ),
-            const SizedBox(width: VistaSpace.lg),
-            VistaChevronPill(
-              label: 'market',
-              chevron: false,
-              large: true,
-              onPressed: _openMarket,
-            ),
+            if (_p.market != null) ...[
+              const SizedBox(width: VistaSpace.lg),
+              VistaChevronPill(
+                label: 'market',
+                chevron: false,
+                large: true,
+                onPressed: _openMarket,
+              ),
+            ],
           ],
         ),
       ],
     );
   }
 
+  /// Settled and Right as the store counts them ([m]); followers and the
+  /// market's cap are the trader's own.
   Widget _stats(RecordMetrics m) {
+    final market = _p.market;
     return Row(
       children: [
         Expanded(
@@ -270,33 +440,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         Expanded(
           child: VistaCountStat(
-            value: ProfileMock.followers,
+            value: _p.followers,
             label: 'Followers',
             onPressed: () =>
                 Navigator.of(context).push(FollowListScreen.route()),
           ),
         ),
+        // Their market's cap; a dash without one.
         Expanded(
           child: VistaCountStat(
-            value: _figures.market,
+            value: market?.cap ?? '—',
             label: 'Market',
-            valueColor: VistaColors.accent,
-            onPressed: _openMarket,
+            valueColor: market == null
+                ? VistaColors.textMuted
+                : VistaColors.accent,
+            onPressed: market == null ? null : _openMarket,
           ),
         ),
       ],
     );
   }
 
-  /// The illustrative index chart and the record it is based on; with no
-  /// settled call, no chart and no index copy.
+  /// The market block and, under it, the record it is based on.
   Widget _record() {
     return ValueListenableBuilder(
       valueListenable: Scenario.callReceipts,
       builder: (context, _, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (Scenario.record(widget.handle).settled > 0) ...[
+          if (_showMarket) ...[
             _market(),
             const SizedBox(height: VistaSpace.lg),
           ],
@@ -316,42 +488,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.gutter),
           child: Row(
+            key: _priceKey,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
-                _figures.price,
-                style: VistaType.displayNumber.copyWith(fontSize: 24),
-              ),
+              _LivePrice(handle: widget.handle, style: VistaType.displaySmall),
               const SizedBox(width: VistaSpace.sm),
               Expanded(
                 child: Text(
-                  _figures.cap,
+                  '${_p.market!.cap} cap',
                   style: VistaType.body.copyWith(color: VistaColors.textMuted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
-                _figures.change,
-                style: VistaType.headline.copyWith(color: VistaColors.long),
+                _changeText(_p),
+                style: VistaType.headline.copyWith(
+                  color: vistaChangeColor(_p.change ?? 0),
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: VistaSpace.lg),
-        // The user's freshly listed market has no history (VC-MKT-001): a
-        // flat line at its cap, not the seeded index export.
-        if (widget.handle == TraderMarketMock.own &&
-            !TraderMarketMock.ownHasHistory)
+        // Yours is the designed chart, or, while your freshly listed market
+        // has no history (VC-MKT-001), a flat line at its cap; everyone
+        // else's is the app's line.
+        if (_mine && !TraderMarketMock.ownHasHistory)
           SizedBox(
             height: 180,
             child: SeriesChart(
               focus: List.filled(48, TraderMarketMock.ownCapCents / 100),
             ),
           )
+        else if (_mine)
+          const ProfileIndexChart()
         else
-          const ProfileIndexChart(),
+          ValueListenableBuilder(
+            valueListenable: MarketPrices.of(widget.handle),
+            builder: (context, price, _) => Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: VistaSpace.gutter,
+              ),
+              child: MarketLineChart(
+                id: widget.handle,
+                changePct: _p.change ?? 0,
+                price: price,
+                height: 160,
+              ),
+            ),
+          ),
         const SizedBox(height: VistaSpace.lg),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.md),
@@ -398,9 +585,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-/// The trader's illustrative index chart on Profile, edge to edge (static
-/// Figma vectors on a 402×180 box; x stretches with the screen). It is not
-/// the trader-market route's chart, which plots the market's price series.
+/// "+4.27%" for the market's 7d change; empty without a market.
+String _changeText(TraderProfile p) {
+  final c = p.change;
+  if (c == null) return '';
+  return '${c >= 0 ? '+' : '−'}${c.abs().toStringAsFixed(2)}%';
+}
+
+/// The market's live price.
+class _LivePrice extends StatelessWidget {
+  const _LivePrice({required this.handle, required this.style});
+
+  final String handle;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder(
+    valueListenable: MarketPrices.of(handle),
+    builder: (context, price, _) =>
+        Text(MarketPrices.format(price, compact: true), style: style),
+  );
+}
+
+/// Your illustrative index chart on your own Profile, edge to edge (static
+/// Figma vectors on a 402×180 box; x stretches with the screen). Other
+/// traders' profiles plot their market's line instead.
 class ProfileIndexChart extends StatelessWidget {
   const ProfileIndexChart({super.key});
 

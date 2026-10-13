@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'design_system/design_system.dart';
 import 'features/arena/arena_screen.dart';
-import 'features/arena/crowd_filter_panel.dart';
+import 'features/arena/battle_result_sheet.dart';
 import 'features/home/home_screen.dart';
 import 'features/markets/markets_screen.dart';
 import 'features/portfolio/portfolio_screen.dart';
@@ -30,7 +32,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   static const _home = 0;
-  static const _arena = 2;
+  static const _explore = 1;
   static const _wallet = AppShell.wallet;
 
   static const _navItems = [
@@ -52,6 +54,9 @@ class _AppShellState extends State<AppShell> {
           ? _wallet
           : _home
       ..addListener(_onTab);
+    _settler = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) settleBattles(context);
+    });
   }
 
   void _onTab() => setState(() {});
@@ -59,6 +64,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     AppShell.tab.removeListener(_onTab);
+    _settler?.cancel();
     super.dispose();
   }
 
@@ -72,6 +78,10 @@ class _AppShellState extends State<AppShell> {
     AppShell.tab.value = i;
   }
 
+  /// Battles count down live; every so often settle any that are done (a
+  /// result sheet shows for ones you were in).
+  Timer? _settler;
+
   /// Bottom dock timing: the Arena panel folding in and out.
   static const _dock = Duration(milliseconds: 360);
   static const Curve _dockCurve = Cubic(0.2, 0, 0, 1);
@@ -79,83 +89,70 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final arena = _tab == _arena;
-    // The panel folds while the keyboard is up, so Ask's results get the room.
-    final panelOpen = arena && MediaQuery.viewInsetsOf(context).bottom == 0;
+    final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
+    // The nav floats over the tabs with nothing behind it. Tabs are told how
+    // much room it takes at the bottom (as safe-area padding) so fixed
+    // content keeps clear while lists scroll beneath it.
+    // The nav clears the whole bottom inset: the simulation pill's strip
+    // sits just above the home indicator, so there is no safe area to sink
+    // into (the iOS-style 12pt sink would put the nav on the pill).
+    final navBottom = bottomInset + VistaSpace.lg;
+    final navSpace = typing
+        ? 0.0
+        : VistaSize.navBar + VistaSpace.sm + navBottom;
+    final media = MediaQuery.of(context);
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _FadeThroughStack(
-              index: _tab,
-              children: [
-                HomeScreen(visible: _tab == _home, onNotBuilt: _notBuilt),
-                MarketsScreen(onNotBuilt: _notBuilt),
-                ArenaScreen(onNotBuilt: _notBuilt),
-                PortfolioScreen(onNotBuilt: _notBuilt),
-              ],
+          Positioned.fill(
+            child: MediaQuery(
+              data: media.copyWith(
+                padding: media.padding.copyWith(bottom: navSpace),
+                viewPadding: media.viewPadding.copyWith(bottom: navSpace),
+              ),
+              child: _FadeThroughStack(
+                index: _tab,
+                children: [
+                  HomeScreen(
+                    visible: _tab == _home,
+                    onNotBuilt: _notBuilt,
+                    onExplore: () => _select(_explore),
+                  ),
+                  MarketsScreen(onNotBuilt: _notBuilt),
+                  ArenaScreen(
+                    onNotBuilt: _notBuilt,
+                    onExplore: () => _select(_explore),
+                  ),
+                  PortfolioScreen(onNotBuilt: _notBuilt),
+                ],
+              ),
             ),
           ),
-          // One dock for every tab, so the nav never moves between parents
-          // (its sliding pill keeps animating). On the Arena tab the crowd
-          // panel folds open above the nav and the sheet eases in behind it.
-          AnimatedContainer(
-            duration: _dock,
-            curve: _dockCurve,
-            decoration: BoxDecoration(
-              color: arena
-                  ? VistaColors.surface
-                  : VistaColors.surface.withValues(alpha: 0),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(35),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, arena ? 0.25 : 0),
-                  offset: const Offset(0, -4),
-                  blurRadius: 4,
+          // While typing (the bottom search on Explore and Arena) the nav
+          // steps aside so the field sits right on the keyboard. One nav for
+          // every tab, so it never moves between parents (its sliding pill
+          // keeps animating).
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AnimatedSlide(
+              duration: _dock,
+              curve: _dockCurve,
+              offset: typing ? const Offset(0, 1.5) : Offset.zero,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  VistaSpace.gutter,
+                  VistaSpace.sm,
+                  VistaSpace.gutter,
+                  navBottom,
                 ),
-              ],
-            ),
-            padding: EdgeInsets.fromLTRB(
-              VistaSpace.gutter,
-              arena ? 14 : 18,
-              VistaSpace.gutter,
-              VistaSpace.sm + bottomInset,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ClipRect(
-                  child: AnimatedAlign(
-                    duration: _dock,
-                    curve: _dockCurve,
-                    alignment: Alignment.topCenter,
-                    heightFactor: panelOpen ? 1 : 0,
-                    child: AnimatedOpacity(
-                      duration: _dock,
-                      curve: panelOpen
-                          ? const Interval(0.3, 1)
-                          : Curves.easeOut,
-                      opacity: panelOpen ? 1 : 0,
-                      child: IgnorePointer(
-                        ignoring: !panelOpen,
-                        child: ExcludeSemantics(
-                          excluding: !panelOpen,
-                          // Kept mounted so its filter survives tab switches
-                          // and the keyboard.
-                          child: const CrowdFilterPanel(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                VistaBottomNav(
+                child: VistaBottomNav(
                   items: _navItems,
                   selectedIndex: _tab,
                   onChanged: _select,
                 ),
-              ],
+              ),
             ),
           ),
         ],

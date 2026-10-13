@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../design_system/design_system.dart';
@@ -8,20 +9,16 @@ import '../live/live_feed.dart';
 import '../live/market_prices.dart';
 import '../home/signal_replay_chart.dart';
 import 'portfolio_mock.dart';
+import 'positions_state.dart';
+import 'trade_history.dart';
 import 'series_chart.dart';
 
 /// Slides the position sheet up from the bottom (Figma 104:110, "Position
 /// sheet · as built → P/L-led, portfolio chart").
 Future<void> showPositionSheet(BuildContext context, PortfolioPosition p) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: VistaColors.background,
-    barrierColor: const Color(0x99000000),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-    ),
-    clipBehavior: Clip.antiAlias,
+  return showVistaSheet<void>(
+    context,
+    color: VistaColors.background,
     builder: (_) => PositionSheet(position: p),
   );
 }
@@ -56,6 +53,20 @@ class _PositionSheetState extends State<PositionSheet> {
   PositionDetail get _d => widget.position.detail;
   bool get _long => widget.position.side == TradeSide.long;
 
+  /// The margin behind the position: its size over its leverage.
+  double get _margin {
+    final size =
+        double.tryParse(_d.size.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    return size / widget.position.leverage;
+  }
+
+  /// Rough liquidation price: entry less the margin, plus a half-percent
+  /// maintenance buffer (as the order tickets estimate it).
+  double get _liquidation {
+    final cushion = 1 / widget.position.leverage - 0.005;
+    return _d.entry * (_long ? 1 - cushion : 1 + cushion);
+  }
+
   /// One stepper press: 0.5% of entry.
   double get _step => _d.entry * 0.005;
 
@@ -69,6 +80,7 @@ class _PositionSheetState extends State<PositionSheet> {
   /// Moves a level, keeping take-profit on the winning side of entry and
   /// stop-loss on the losing side.
   void _nudge({required bool takeProfit, required int dir}) {
+    HapticFeedback.selectionClick();
     setState(() {
       final winAbove = _long;
       if (takeProfit) {
@@ -100,16 +112,7 @@ class _PositionSheetState extends State<PositionSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: VistaColors.surfaceRaised,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            Center(child: VistaDragHandle()),
             gap,
             Row(
               children: [
@@ -128,7 +131,7 @@ class _PositionSheetState extends State<PositionSheet> {
                     children: [
                       Text(p.title, style: VistaType.tab),
                       Text(
-                        '${p.side.label} ${p.leverage}x · opened ${_d.opened}',
+                        '${p.side.label} ${p.leverage}x   opened ${_d.opened}',
                         style: VistaType.bodyRegular.copyWith(
                           color: VistaColors.textSecondary,
                         ),
@@ -147,7 +150,8 @@ class _PositionSheetState extends State<PositionSheet> {
               children: [
                 Text(
                   p.pnlPercent,
-                  style: VistaType.bodyMedium.copyWith(color: p.pnlColor),
+                  style: VistaType.figures(VistaType.bodyMedium)
+                      .copyWith(color: p.pnlColor),
                 ),
                 const SizedBox(width: VistaSpace.xs),
                 Text(_d.size, style: VistaType.bodyMedium),
@@ -162,12 +166,22 @@ class _PositionSheetState extends State<PositionSheet> {
                   valueListenable: MarketPrices.of(_d.symbol),
                   builder: (context, price, _) => Text(
                     '${_d.symbol} ${formatUsd(price, decimals: _d.decimals < 2 ? 2 : _d.decimals)}',
-                    style: VistaType.body,
+                    style: VistaType.figures(VistaType.body),
                   ),
                 ),
                 const SizedBox(width: VistaSpace.sm),
-                Text('· entry ${_usd(_d.entry)}', style: VistaType.bodyRegular),
+                Text('entry ${_usd(_d.entry)}', style: VistaType.bodyRegular),
               ],
+            ),
+            const SizedBox(height: VistaSpace.xs),
+            // Where it would be liquidated, and what that costs: shown at
+            // entry on the tickets, so shown here too.
+            Text(
+              'Liquidation ${_usd(_liquidation)}   you\'d lose the '
+              '${formatUsd(_margin)} margin',
+              style: VistaType.bodyRegular.copyWith(
+                color: VistaColors.textMuted,
+              ),
             ),
             gap,
             SizedBox(
@@ -223,20 +237,29 @@ class _PositionSheetState extends State<PositionSheet> {
                   ? 'Save take profit and stop loss'
                   : 'Close position',
               excludeSemantics: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
+              child: VistaPressable(
                 onTap: _edited ? _saveEdits : _close,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: VistaMotion.state,
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: _edited ? VistaColors.accent : VistaColors.short,
+                    color: _edited || _justSaved
+                        ? VistaColors.accent
+                        : VistaColors.short,
                     borderRadius: BorderRadius.circular(VistaRadius.pill),
                   ),
-                  child: Text(
-                    _edited ? 'Edit' : 'Close',
-                    style: VistaType.headline,
+                  child: AnimatedSwitcher(
+                    duration: VistaMotion.state,
+                    child: Text(
+                      _justSaved
+                          ? 'Saved ✓'
+                          : _edited
+                          ? 'Save changes'
+                          : 'Close',
+                      key: ValueKey('$_justSaved$_edited'),
+                      style: VistaType.headline,
+                    ),
                   ),
                 ),
               ),
@@ -247,30 +270,49 @@ class _PositionSheetState extends State<PositionSheet> {
     );
   }
 
+  /// Briefly true after saving: the button reads "Saved ✓" in place.
+  bool _justSaved = false;
+
   void _saveEdits() {
-    // Simulated only: the new levels live in this sheet.
+    // Simulated only: the new levels live in this sheet. Confirmed on the
+    // button itself rather than a toast behind the scrim.
+    HapticFeedback.mediumImpact();
     setState(() {
       _savedTp = _tp;
       _savedSl = _sl;
+      _justSaved = true;
     });
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Take profit and stop loss updated (simulated)'),
-        ),
-      );
+    Future.delayed(VistaMotion.confirmHold * 2, () {
+      if (mounted) setState(() => _justSaved = false);
+    });
   }
 
+  /// Closes the position: it leaves Portfolio and its P/L is realised.
+  /// Simulated: nothing is sent. Undo puts it back where it was.
   void _close() {
+    final p = widget.position;
     final messenger = ScaffoldMessenger.of(context);
+    HapticFeedback.mediumImpact();
     Navigator.of(context).pop();
-    // Simulated only: nothing is closed anywhere.
+    final at = PositionsState.remove(p);
+    // It goes to History with its exit and realised P/L.
+    final trade = ClosedTrade.from(p);
+    TradeHistory.add(trade);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('Close position (simulated) — not in the demo yet'),
+        SnackBar(
+          content: Text(
+            'Closed ${p.title} ${p.tag}   realised ${p.detail.pnl} '
+            '(simulated)',
+          ),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              PositionsState.insert(at, p);
+              TradeHistory.remove(trade);
+            },
+          ),
         ),
       );
   }
@@ -291,7 +333,8 @@ class _PositionSheetState extends State<PositionSheet> {
           ),
           Text(
             _usd(value),
-            style: VistaType.subhead.copyWith(fontWeight: FontWeight.w400),
+            style: VistaType.figures(VistaType.subhead)
+                .copyWith(fontWeight: FontWeight.w400),
           ),
           const SizedBox(width: VistaSpace.md),
           // Entry has no steppers; an invisible copy keeps its price in line.
@@ -303,7 +346,10 @@ class _PositionSheetState extends State<PositionSheet> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_pct(value), style: VistaType.bodyRegular),
+                Text(
+                  _pct(value),
+                  style: VistaType.figures(VistaType.bodyRegular),
+                ),
                 // Two 44pt targets around the 30pt circles, overhanging the
                 // 30pt row so levels keep Figma's spacing.
                 SizedBox(
@@ -386,9 +432,9 @@ class _PositionChart extends StatelessWidget {
       span >= _spanMoves.length ? entry : base * (1 - _spanMoves[span]),
       base,
     );
-    return ValueListenableBuilder(
-      valueListenable: MarketPrices.of(symbol),
-      builder: (context, live, _) {
+    return EasedValue(
+      listenable: MarketPrices.of(symbol),
+      builder: (context, live) {
         final series = endAt(history, live);
         // One price scale for the line and the levels, with some air.
         final all = [...series, entry, scaleLevels.$1, scaleLevels.$2];

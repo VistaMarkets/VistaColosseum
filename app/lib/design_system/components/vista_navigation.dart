@@ -6,7 +6,9 @@ import 'package:flutter/widgets.dart';
 import '../tokens/vista_colors.dart';
 import '../tokens/vista_metrics.dart';
 import '../tokens/vista_typography.dart';
+import 'vista_glass.dart';
 import 'vista_icon.dart';
+import '../tokens/vista_motion.dart';
 
 /// Slim top bar: avatar + handle on the left, icon actions on the right.
 class VistaTopBar extends StatelessWidget {
@@ -91,7 +93,10 @@ class VistaSegmentedTabs extends StatelessWidget {
       selected: selected,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(i),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onChanged(i);
+        },
         // 14 either side of the divider, per Figma's 14px gap.
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: VistaSpace.xxl),
@@ -103,13 +108,15 @@ class VistaSegmentedTabs extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(
-                    labels[i],
+                  AnimatedDefaultTextStyle(
+                    duration: VistaMotion.state,
+                    curve: VistaMotion.enter,
                     style: VistaType.tab.copyWith(
                       color: selected
                           ? VistaColors.textPrimary
                           : VistaColors.textInactive,
                     ),
+                    child: Text(labels[i]),
                   ),
                   if (counts != null) ...[
                     const SizedBox(width: 5),
@@ -125,11 +132,14 @@ class VistaSegmentedTabs extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: VistaSpace.xs),
-              Container(
-                width: 20,
+              // The underline grows in under the picked tab.
+              AnimatedContainer(
+                duration: VistaMotion.state,
+                curve: VistaMotion.enter,
+                width: selected ? 20 : 0,
                 height: 2,
                 decoration: BoxDecoration(
-                  color: selected ? VistaColors.accent : null,
+                  color: VistaColors.accent,
                   borderRadius: BorderRadius.circular(VistaRadius.hairline),
                 ),
               ),
@@ -240,13 +250,11 @@ class _VistaBottomNavState extends State<VistaBottomNav>
         )..layout()).width,
     ];
 
-    return Container(
+    // A floating frosted pill holding all four tabs (the same on every
+    // tab), with the selected tab's pill inside it.
+    return VistaGlass(
       height: VistaSize.navBar,
       padding: const EdgeInsets.all(VistaSpace.md),
-      decoration: BoxDecoration(
-        color: VistaColors.surface,
-        borderRadius: BorderRadius.circular(VistaRadius.pill),
-      ),
       child: LayoutBuilder(
         builder: (context, constraints) => AnimatedBuilder(
           animation: _move,

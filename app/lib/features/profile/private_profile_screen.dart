@@ -60,9 +60,9 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                 ),
                 children: [
                   Padding(padding: gutter, child: _header()),
-                  const SizedBox(height: 18 + 16),
+                  const SizedBox(height: VistaSpace.sectionLg),
                   Padding(padding: gutter, child: _notice()),
-                  const SizedBox(height: 4 + 14),
+                  const SizedBox(height: VistaSpace.section),
                   Padding(
                     padding: gutter,
                     child: Column(
@@ -83,7 +83,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6 + 6),
+                  const SizedBox(height: VistaSpace.xl),
                   Padding(padding: gutter, child: _calls()),
                 ],
               ),
@@ -109,8 +109,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
           ),
           child: Text(
             initial,
-            style: VistaType.body.copyWith(
-              fontSize: 26,
+            style: VistaType.displayMedium.copyWith(
               color: VistaColors.textSecondary,
             ),
           ),

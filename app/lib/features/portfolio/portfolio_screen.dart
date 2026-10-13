@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../app_shell.dart';
 import '../../design_system/design_system.dart';
+import '../../scenario/scenario.dart';
+import '../markets/market_chart_card.dart';
 
 import '../account/account_state.dart';
 import '../account/account_top_bar.dart';
-import '../make_market/make_market_flow.dart';
 import '../live/live_feed.dart';
-import '../market/receipt_screens.dart';
+import '../make_market/make_market_flow.dart';
+// Both receipt files define a ReceiptsScreen; only the ledger is used here.
+import '../market/receipt_screens.dart' show LedgerScreen;
 import '../market/your_market_screen.dart';
 import '../people/follow_list_screen.dart';
 import '../people/follow_mock.dart';
 import 'open_order_card.dart';
 import 'orders_state.dart';
-import '../../scenario/scenario.dart';
+import 'trade_history.dart';
+import '../invite/invite_sheet.dart';
+import '../profile/profile_mock.dart';
+import '../profile/receipts_screen.dart';
+import '../live/market_prices.dart';
 import 'portfolio_mock.dart';
 import 'portfolio_pager.dart';
 import 'position_sheet.dart';
-import '../../app_shell.dart';
 
 /// Wallet tab (Figma 174:110, "Portfolio — dot grid · up").
 class PortfolioScreen extends StatefulWidget {
@@ -69,8 +76,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     const gap = SizedBox(height: VistaSpace.sm);
     return SafeArea(
       bottom: false,
+      // Scrolls under the floating nav; the end clears it.
       child: ListView(
-        padding: const EdgeInsets.only(top: 9, bottom: VistaSpace.gutter),
+        // The account bar sits where it does on Home, Explore and Arena.
+        padding: EdgeInsets.only(
+          bottom: VistaSpace.gutter + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           Padding(padding: gutter, child: _profile()),
           gap,
@@ -97,7 +108,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           Padding(
             padding: gutter,
             child: VistaUnderlineTabs(
-              labels: const ['Positions', 'Open orders'],
+              labels: const ['Positions', 'Orders', 'History'],
               selectedIndex: _list,
               onChanged: (i) => setState(() => _list = i),
             ),
@@ -105,7 +116,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           gap,
           Padding(
             padding: gutter,
-            child: _list == 0 ? _positions() : _openOrders(),
+            child: switch (_list) {
+              0 => _positions(),
+              1 => _openOrders(),
+              _ => _history(),
+            },
           ),
         ],
       ),
@@ -140,6 +155,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   Navigator.of(context)
                       .push(FollowListScreen.route(initialTab: 1)),
             ),
+            // Bring people in, beside the people you already have.
+            const InviteButton(chip: true),
           ],
         ),
       ],
@@ -147,57 +164,101 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   /// Shown in place of the fees row until the user lists a market (Figma
-  /// 175:218).
+  /// 175:218): the page's one call to action, so it stands out as a tinted
+  /// card (like "Make it a battle"), with the brand's dot pattern behind it.
   Widget _makeMarketButton() {
     return Semantics(
       button: true,
       label: 'Make a market',
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: VistaPressable(
+        scale: 0.98,
         onTap: () => Navigator.of(context).push(MakeMarketFlow.route()),
-        child: SizedBox(
-          height: VistaSize.tapTarget,
-          child: Center(
-            child: Container(
-              height: 37,
-              width: double.infinity,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: VistaColors.surface,
-                borderRadius: BorderRadius.circular(VistaRadius.pill),
-                border: Border.all(color: VistaColors.accent, width: 0.5),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned.fill(
-                    child: SvgPicture.asset(
-                      VistaAssets.makeMarketButtonDots,
-                      fit: BoxFit.cover,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          // The blue is strongest behind the title and fades to the right.
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                VistaColors.long.withValues(alpha: 0.30),
+                VistaColors.long.withValues(alpha: 0.03),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(VistaRadius.card),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.6,
+                  child: SvgPicture.asset(
+                    VistaAssets.makeMarketButtonDots,
+                    fit: BoxFit.cover,
+                    // The dots are drawn blue; tint them to the card's green.
+                    colorFilter: const ColorFilter.mode(
+                      VistaColors.long,
+                      BlendMode.srcIn,
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Make a market',
-                        style: VistaType.headline.copyWith(
-                          color: VistaColors.accent,
-                        ),
-                      ),
-                      const SizedBox(width: VistaSpace.md),
-                      Text(
-                        '↗',
-                        style: VistaType.headline.copyWith(
-                          color: VistaColors.accent,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
+              // A rising line on the right, faded so the blue washes over
+              // it: decoration for "your market", not data.
+              Positioned(
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: 220,
+                child: ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (r) => const LinearGradient(
+                    colors: [Color(0x00FFFFFF), Color(0x8CFFFFFF)],
+                    stops: [0, 0.75],
+                  ).createShader(r),
+                  child: const CustomPaint(painter: _RisingLine()),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: VistaSpace.gutter,
+                  vertical: VistaSpace.xxl,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      // The text stays left of the line's brighter end.
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 220),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Make a market', style: VistaType.headline),
+                              const SizedBox(height: VistaSpace.xxs),
+                              Text(
+                                'Let people trade your track record. You earn '
+                                'the fees.',
+                                style: VistaType.bodyMedium.copyWith(
+                                  color: VistaColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: VistaSpace.md),
+                    Text(
+                      '›',
+                      style: VistaType.displaySmall.copyWith(
+                        color: VistaColors.long,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -263,45 +324,109 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     );
   }
 
-  Widget _positions() {
-    return ValueListenableBuilder(
-      valueListenable: Scenario.positions,
-      builder: (context, positions, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+  Widget _positions() => ValueListenableBuilder(
+    valueListenable: Scenario.positions,
+    builder: (context, positions, _) => _positionList(positions),
+  );
+
+  Widget _positionList(List<PortfolioPosition> positions) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
+          child: Text(
+            'Positions   ${positions.length}',
+            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+          ),
+        ),
+        if (positions.isEmpty)
+          VistaEmptyState(
+            message: 'No positions yet',
+            actionLabel: 'Explore markets',
+            onAction: () => AppShell.showExplore(context),
+          ),
+        for (final p in positions) ...[
+          const SizedBox(height: VistaSpace.sm),
+          VistaListRow(
+            leading: p.coinAsset != null
+                ? VistaListRow.coin(p.coinAsset!)
+                : VistaListRow.initial(p.initial!),
+            title: p.title,
+            tag: p.tag,
+            tagColor: p.side.color,
+            chart: PositionLineChart(position: p),
+            value: p.pnl,
+            change: p.pnlPercent,
+            valueColor: p.pnlColor,
+            onPressed: () => showPositionSheet(context, p),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Closed trades, newest first: what, side, exit and realised P/L. A row
+  /// opens its receipt (entry, exit, result).
+  Widget _history() => ValueListenableBuilder(
+    valueListenable: TradeHistory.closed,
+    builder: (context, trades, _) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
+          child: Text(
+            'Closed   ${trades.length}',
+            style: VistaType.body.copyWith(color: VistaColors.textMuted),
+          ),
+        ),
+        if (trades.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
+            padding: const EdgeInsets.only(top: VistaSpace.section),
             child: Text(
-              'Positions · ${positions.length}',
+              'Closed trades show up here with what they made.',
+              textAlign: TextAlign.center,
               style: VistaType.body.copyWith(color: VistaColors.textMuted),
             ),
           ),
-          if (positions.isEmpty)
-            VistaEmptyState(
-              message: 'No positions yet',
-              actionLabel: 'Explore markets',
-              onAction: () => AppShell.showExplore(context),
+        for (final t in trades) ...[
+          const SizedBox(height: VistaSpace.sm),
+          VistaListRow(
+            leading: t.coinAsset != null
+                ? VistaListRow.coin(t.coinAsset!)
+                : VistaListRow.initial(t.initial ?? t.title[0].toUpperCase()),
+            title: t.title,
+            tag: t.tag,
+            tagNote: t.closed == 'now'
+                ? 'closed now'
+                : 'closed ${t.closed} ago',
+            tagColor: t.side.color,
+            value: t.pnl,
+            change: t.pnlPercent,
+            valueColor: t.pnlColor,
+            onPressed: () => showReceiptSheet(
+              context,
+              ProfileReceipt(
+                kind: ReceiptKind.call,
+                rail: t.inProfit
+                    ? VistaAssets.railRecordRight
+                    : VistaAssets.railRecordWrong,
+                title: '${t.title} ${t.tag}',
+                side: t.side,
+                entry: MarketPrices.format(t.entry, compact: true),
+                close: 'Closed ${MarketPrices.format(t.exit, compact: true)}',
+                lead: '${t.pnl}   ${t.pnlPercent}',
+                leadColor: t.pnlColor,
+                detail: t.closed == 'now'
+                    ? 'Closed just now'
+                    : 'Closed ${t.closed} ago',
+              ),
             ),
-          for (final p in positions) ...[
-            const SizedBox(height: VistaSpace.sm),
-            VistaListRow(
-              leading: p.coinAsset != null
-                  ? VistaListRow.coin(p.coinAsset!)
-                  : VistaListRow.initial(p.initial!),
-              title: p.title,
-              tag: p.tag,
-              tagColor: p.side.color,
-              sparkAsset: p.sparkAsset,
-              value: p.pnl,
-              change: p.pnlPercent,
-              valueColor: p.pnlColor,
-              onPressed: () => showPositionSheet(context, p),
-            ),
-          ],
+          ),
         ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
 
   // Open orders has no Figma design; cards follow the backend's order model.
   Widget _openOrders() {
@@ -318,7 +443,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         Padding(
           padding: const EdgeInsets.only(left: VistaSpace.xs, top: 6),
           child: Text(
-            'Open orders · ${orders.length}',
+            'Open orders   ${orders.length}',
             style: VistaType.body.copyWith(color: VistaColors.textMuted),
           ),
         ),
@@ -337,4 +462,60 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       ],
     );
   }
+}
+
+/// The faded line behind "Make a market": a market that climbs with a
+/// couple of dips, in the up-green, with a soft fill under it.
+class _RisingLine extends CustomPainter {
+  const _RisingLine();
+
+  static const _points = [
+    (0.0, 0.78),
+    (0.12, 0.70),
+    (0.22, 0.74),
+    (0.34, 0.58),
+    (0.44, 0.62),
+    (0.56, 0.44),
+    (0.66, 0.50),
+    (0.78, 0.32),
+    (0.88, 0.26),
+    (1.0, 0.14),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Path();
+    for (final (i, (x, y)) in _points.indexed) {
+      final o = Offset(x * size.width, y * size.height);
+      i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
+    }
+    final fill = Path.from(line)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(
+      fill,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            VistaColors.long.withValues(alpha: 0.35),
+            VistaColors.long.withValues(alpha: 0),
+          ],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.drawPath(
+      line,
+      Paint()
+        ..color = VistaColors.long
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RisingLine old) => false;
 }

@@ -34,6 +34,9 @@ abstract final class VistaAssets {
   static const String peopleIn = '$_dir/people_in_button.svg';
   static const String share = '$_dir/share_button.svg';
 
+  // Arena take actions (18pt glyphs, no circle).
+  static const String takePeople = '$_dir/take_people.svg';
+
   // Avatars and coins (placeholders from the mock).
   static const String personAvatar = '$_dir/person_avatar.svg';
   static const String profileAvatar = '$_dir/profile_avatar.svg';
@@ -54,6 +57,9 @@ abstract final class VistaAssets {
   static const String marketClipAbove = '$_dir/market_clip_above.svg';
   static const String marketClipBelow = '$_dir/market_clip_below.svg';
   static const String marketLiveHalo = '$_dir/market_live_halo.svg';
+
+  /// The change line's arrow (Figma 232:177), pointing up; turned for down.
+  static const String changeArrowUp = '$_dir/change_arrow_up.svg';
   static const String holdersAvatars = '$_dir/holders_avatars.svg';
   static const String timelineRight = '$_dir/timeline_rail_right.svg';
   static const String timelineWrong = '$_dir/timeline_rail_wrong.svg';
@@ -67,6 +73,13 @@ abstract final class VistaAssets {
   static const String coinEthSmall = '$_dir/coin_eth_20.svg';
   static const String coinBtcBackground = '$_dir/coin_btc_bg.svg';
   static const String coinCashBackground = '$_dir/coin_cash_bg.svg';
+  static const String railCallOpen = '$_dir/rail_call_open.svg';
+  static const String railCallRight = '$_dir/rail_call_right.svg';
+  static const String railArenaOpen = '$_dir/rail_arena_open.svg';
+  static const String railArenaRight = '$_dir/rail_arena_right.svg';
+  static const String railArenaWrong = '$_dir/rail_arena_wrong.svg';
+  static const String opponentAvatarLong = '$_dir/opponent_avatar_long.svg';
+  static const String opponentAvatarShort = '$_dir/opponent_avatar_short.svg';
   // Trader market (Figma 236:102 chart open; 237/241 swiped up). The chart
   // is exported at two heights with different price scales: tall (506) when
   // the chart is open, short (196) when the panels are up.
@@ -95,6 +108,9 @@ abstract final class VistaAssets {
   static const String tmShortClipAbove = '$_dir/tm_short_clip_above.svg';
   static const String tmShortClipBelow = '$_dir/tm_short_clip_below.svg';
   static const String liveDotSmall = '$_dir/live_dot_small.svg';
+  static const String railRecordOpen = '$_dir/rail_record_open.svg';
+  static const String railRecordRight = '$_dir/rail_record_right.svg';
+  static const String railRecordWrong = '$_dir/rail_record_wrong.svg';
   // Markets (Figma 185:110 Assets, 222:110 Traders). Coins come at 20pt for
   // the favourites rail and 22pt for list rows.
   static const String coinBtcRail = '$_dir/coin_btc_rail.svg';
