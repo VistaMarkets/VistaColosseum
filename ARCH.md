@@ -35,7 +35,7 @@ The social experience connects trader profiles, opposing calls, performance
 records, and communities. **TPX** (Trader Performance Exchange) adds long and
 short positions on trader performance indices derived from settled results.
 
-Use VistaMobileBE and Flutter-mobile-app as read-only references for lightweight
+Use VBE and VFE as read-only references for lightweight
 demo implementations. Preserve existing safety gates and keep credentials and
 real financial execution out of the demo.
 
