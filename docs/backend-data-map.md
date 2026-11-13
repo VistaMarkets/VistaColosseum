@@ -1,8 +1,8 @@
 # Backend data map
 
 What data the app shows, which pages share it, and where it should come from
-once the app talks to VistaMobileBE (VMBE). Written 2026-10-04 against branch
-`feat/premium-feel` and VMBE `d9fcd7d6`.
+once the app talks to VBE (Vista Back End). Written 2026-10-04 against branch
+`feat/premium-feel` and VBE `d9fcd7d6`.
 
 Every value in the app today is mock data (`*_mock.dart`) or in-memory state
 (`*_state.dart`). The point of this page is to replace each source **once**:
@@ -10,7 +10,7 @@ several real-world things are modelled two to five times today, one per page,
 and wiring them separately would let the same price, person or call disagree
 across screens.
 
-VMBE references:
+VBE references:
 
 - `docs/api/frontend-api-contract.md` — the rules every request follows.
 - `docs/specs/2026-09-16-client-gateway-openapi.yaml` — the staged REST
@@ -21,7 +21,7 @@ VMBE references:
 
 ## The shared entities at a glance
 
-| Entity | Pages that show it | App sources today | VMBE source | Served today? |
+| Entity | Pages that show it | App sources today | VBE source | Served today? |
 | --- | --- | --- | --- | --- |
 | [Market price](#1-market-and-price) | Almost every page | `MarketPrices` (one store) + per-page copies | `/v1/prices`, `prices` stream, `/v1/assets/*` | Prices yes; assets staged |
 | [Person](#2-person-and-record) | Home, trade, Arena, profile, follows | Handles and accuracy strings in 7 models | `CallAuthor`, `TraderProfile`, `TraderStats` | Staged |
@@ -112,7 +112,7 @@ just-posted call first. `GET /v1/feed?type=following|for-you` replaces it.
 
 A Home card needs more than Arena's row does: the call's entry time and
 price for the replay, the market events tagged along it (funding, whale,
-price level), and recent fills. In VMBE terms that is `Call` plus
+price level), and recent fills. In VBE terms that is `Call` plus
 `/v1/calls/{id}/events` and the Signal Replay contract (#883); the saved
 entry must be the author's real entry, never the current price.
 
@@ -125,7 +125,7 @@ entry must be the author's real entry, never the current price.
 | `ProfileReceipt` | `profile/profile_mock.dart` | Profile calls timeline |
 | `RecordCall`, `RecordEntry` | `market/*_mock.dart` | Trader market record |
 
-**Wire to:** VMBE `Call` — `id`, `author`, `asset`, `direction`, `thesis`,
+**Wire to:** VBE `Call` — `id`, `author`, `asset`, `direction`, `thesis`,
 `entryPrice`, `markPrice`, `performanceSincePostedPct`, `createdAt`,
 `closedAt`, `likeCount`, `likedByMe`, `tradedCount`, `participantCount`,
 `shareUrl`.
@@ -141,7 +141,7 @@ entry must be the author's real entry, never the current price.
 
 Field mapping:
 
-| App | VMBE |
+| App | VBE |
 | --- | --- |
 | `Take.body`, `TradeIdea` reasoning, `CallerPost.message` | `thesis` |
 | `Take.likes`, Home like count | `likeCount`, `likedByMe` |
@@ -157,7 +157,7 @@ wrong-way trade at leverage.
 ### Home card field map (checked 2026-10-07)
 
 Every data point on a Home trade card (`trade_idea_card.dart`) against the
-VMBE client contract (`docs/specs/2026-09-16-client-gateway-openapi.yaml`).
+VBE client contract (`docs/specs/2026-09-16-client-gateway-openapi.yaml`).
 "Built" means the gateway serves it today; "staged" means the contract
 defines it but the gateway doesn't serve it yet. Served today: accounts,
 orders, prices (snapshot, latest, history, `/v1/ws`), suggestions, terms.
@@ -229,7 +229,7 @@ them under Open orders.
 `GET /v1/orders/constraints` for ticket limits (leverage tiers, minimum size,
 fees), `/v1/orders/{id}/cancel`, `/v1/orders/{id}/modify`.
 
-**Rule:** submission is gated in VMBE and stays simulated in this demo. A
+**Rule:** submission is gated in VBE and stays simulated in this demo. A
 `200` can still be a refusal; read `OrderStatus`.
 
 ## 6. Account and balance
@@ -248,7 +248,7 @@ the Portfolio header. Daily P/L chart: `/v1/portfolio/pnl/daily`.
 
 ## 7. Likes, follows, favourites
 
-| Store | File | Pages | VMBE |
+| Store | File | Pages | VBE |
 | --- | --- | --- | --- |
 | `LikesState` | `home/likes_state.dart` | Home | `POST/DELETE /v1/calls/{id}/like`, `Call.likedByMe` |
 | `TakeLikes` | `arena/take_card.dart` | Arena | same as above |
@@ -267,12 +267,12 @@ whale and price-level events plus live fills. The trade page's Alerts panel
 **Wire to:** `GET /v1/calls/{id}/events` + `calls` stream (`CallEvent`) for
 events on a call; `GET /v1/notifications` + `notifications` stream for the
 viewer's alerts. Signal Replay needs saved entry, venue and candle coverage
-that VMBE has not specified yet (#883).
+that VBE has not specified yet (#883).
 
 ## 9. Battles (Arena)
 
 `LiveBattle` (carousel, Live battles page), `OpinionsMock` (battle detail) and
-`Take.battle` (the chip on a take). **VMBE defines no Arena endpoint**:
+`Take.battle` (the chip on a take). **VBE defines no Arena endpoint**:
 ADR-0021 retains Arena behind #884–#886.
 
 Needed from the backend: a `Battle` (id, asset, question, settles-at,
@@ -286,14 +286,14 @@ for an unbacked take.
 
 `TraderMarketMock`, `YourMarketMock`, `MakeMarketMock`, the Traders tab of
 `MarketsMock`, and the trader-token prices in `MarketPrices` (`maya.eth`,
-`0xreal`, …). VMBE excludes trader-token prices from the Explore contract and
+`0xreal`, …). VBE excludes trader-token prices from the Explore contract and
 gates TPX behind #885/#886. Keep these on mock data until that lands.
 
 ## Device-only (no backend)
 
 `SettingsState`, `DisplayPrefs` (long on the right, chart prefs), and the
 demo's `CallsStore` until posting is wired. Private position notes are
-device-only by VMBE's decision.
+device-only by VBE's decision.
 
 ---
 
@@ -307,7 +307,7 @@ device-only by VMBE's decision.
    `/v1/feed` and `/v1/assets/{id}/calls`.
 5. **One `Person` model + `TraderStats`** for every handle and record.
 6. **Likes, follows, favourites** as one store each.
-7. Battles and TPX when VMBE specifies them.
+7. Battles and TPX when VBE specifies them.
 
 ## Open questions for the backend
 
