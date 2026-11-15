@@ -5,14 +5,14 @@
 | Term | Expansion | Meaning here |
 | --- | --- | --- |
 | VC | VistaColosseum | This demo project; GitHub repository `VistaMarkets/VistaColosseum` |
-| VMBE | VistaMobileBE | Backend reference repository |
-| FMA | Flutter-mobile-app | Frontend reference repository |
-| TPX | Trader Performance Exchange | The trader-performance market concept documented in FMA's `tpx/` directory |
+| VBE | Vista Back End | Backend reference repository |
+| VFE | Vista Front End | Frontend reference repository |
+| TPX | Trader Performance Exchange | The trader-performance market concept documented in VFE's `tpx/` directory |
 | API | Application Programming Interface | A defined interface between components or services |
 | UI | User Interface | Screens, controls, and visible feedback |
 | UX | User Experience | How a person understands and uses the product |
 | PnL | Profit and Loss | A position's or trader's gain or loss; simulated where shown in the demo |
-| DEX | Decentralized Exchange | A general exchange category; preserve VMBE's more specific domain term `Venue` when referring to its model |
+| DEX | Decentralized Exchange | A general exchange category; preserve VBE's more specific domain term `Venue` when referring to its model |
 | RPC | Remote Procedure Call | A request to a remote service, including a blockchain node |
 | ADR | Architecture Decision Record | A documented design decision and its reasoning |
 
@@ -21,9 +21,9 @@ VC is the agreed project name. Its GitHub repository is
 
 ## References
 
-- VMBE: [VistaMobileBE](https://github.com/VistaMarkets/VistaMobileBE); read its
+- VBE: [VistaMarkets/vbe](https://github.com/VistaMarkets/vbe); read its
   `CONTEXT.md` for backend terminology.
-- FMA: [Flutter-mobile-app](https://github.com/VistaMarkets/Flutter-mobile-app);
+- VFE: [VistaMarkets/vfe](https://github.com/VistaMarkets/vfe);
   read its `docs/APP_FLOW.md` for user flows and `tpx/README.md` for TPX's
   definition and design status.
 
